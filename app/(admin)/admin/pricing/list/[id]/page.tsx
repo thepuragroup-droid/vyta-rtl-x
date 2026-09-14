@@ -196,7 +196,7 @@ export default function PricelistEditorPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-bronze" />
+        <Loader2 className="w-6 h-6 animate-spin text-teal-dark" />
       </div>
     );
   }
@@ -204,7 +204,7 @@ export default function PricelistEditorPage() {
     return (
       <div className="text-center py-20">
         <p className="text-ink-muted mb-4">{error || 'Price list not found.'}</p>
-        <Link href="/admin/pricing" className="text-bronze hover:underline text-sm">
+        <Link href="/admin/pricing" className="text-teal-dark hover:underline text-sm">
           ← Back to Pricing
         </Link>
       </div>
@@ -226,7 +226,7 @@ export default function PricelistEditorPage() {
                   type="text"
                   value={headerName}
                   onChange={(e) => setHeaderName(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
                 <button
                   onClick={saveHeader}
@@ -247,7 +247,7 @@ export default function PricelistEditorPage() {
                 onChange={(e) => setHeaderDescription(e.target.value)}
                 placeholder="Description (optional)"
                 rows={2}
-                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
               />
             </div>
           ) : (
@@ -319,7 +319,7 @@ export default function PricelistEditorPage() {
             placeholder="Search products…"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-            className="w-full pl-10 pr-4 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full pl-10 pr-4 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
         <button
@@ -372,7 +372,7 @@ export default function PricelistEditorPage() {
                 const delta = listPrice - defaultPrice;
                 const pct = defaultPrice > 0 ? (delta / defaultPrice) * 100 : 0;
                 return (
-                  <tr key={pid} className={isDirty ? 'bg-bronze/5' : 'hover:bg-surface'}>
+                  <tr key={pid} className={isDirty ? 'bg-teal/5' : 'hover:bg-surface'}>
                     <td className="px-5 py-2 text-sm text-ink">
                       <div className="font-medium">{it.product?.name ?? 'Unknown'}</div>
                       {it.product?.strength && (
@@ -396,9 +396,9 @@ export default function PricelistEditorPage() {
                             if (e.key === 'ArrowUp') { e.preventDefault(); focusRow(-1, pid); }
                             else if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); focusRow(1, pid); }
                           }}
-                          className={`w-28 pl-5 pr-2 py-1.5 rounded-lg border text-right tabular-nums text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:bg-surface disabled:text-ink-muted ${
+                          className={`w-28 pl-5 pr-2 py-1.5 rounded-lg border text-right tabular-nums text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:bg-surface disabled:text-ink-muted ${
                             isDirty
-                              ? 'bg-white border-bronze'
+                              ? 'bg-white border-teal'
                               : 'bg-surface border-line'
                           }`}
                         />

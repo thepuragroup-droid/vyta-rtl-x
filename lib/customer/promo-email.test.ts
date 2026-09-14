@@ -262,7 +262,7 @@ test('an outreach email with no extras renders as it always did', () => {
   assert.doesNotMatch(html, /Your discount/);
   assert.doesNotMatch(html, /Your code/);
   // The chrome is still there: wordmark, card and footer.
-  assert.match(html, /AMINOCAN/);
+  assert.match(html, /VYTA/);
   assert.match(html, /Canadian research peptides/);
 });
 

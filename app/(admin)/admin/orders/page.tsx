@@ -393,7 +393,7 @@ export default function AdminOrders() {
   }, [filteredOrders]);
 
   const renderOrderRow = (order: any) => (
-    <tr key={order.id} className={`hover:bg-surface transition-colors ${selected.has(order.id) ? 'bg-bronze/5' : ''}`}>
+    <tr key={order.id} className={`hover:bg-surface transition-colors ${selected.has(order.id) ? 'bg-teal/5' : ''}`}>
       {showSelection && (
         <td className="px-5 py-4">
           <input
@@ -401,7 +401,7 @@ export default function AdminOrders() {
             checked={selected.has(order.id)}
             onChange={() => toggleOne(order.id)}
             aria-label={`Select order ${order.order_number}`}
-            className="w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40 cursor-pointer"
+            className="w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40 cursor-pointer"
           />
         </td>
       )}
@@ -424,7 +424,7 @@ export default function AdminOrders() {
         {/* Row-level loading: shows what's running for this order (create /
             buy / print), including during a bulk run. */}
         {rowBusy[order.id] && (
-          <div className="mb-1.5 inline-flex items-center gap-1.5 px-2 py-1 bg-bronze/10 border border-bronze/20 rounded-lg text-[11px] font-medium text-bronze">
+          <div className="mb-1.5 inline-flex items-center gap-1.5 px-2 py-1 bg-teal/10 border border-teal/20 rounded-lg text-[11px] font-medium text-teal-dark">
             <Loader2 className="w-3 h-3 animate-spin" />
             {rowBusy[order.id]}
           </div>
@@ -444,7 +444,7 @@ export default function AdminOrders() {
                     href={order.tracking_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-bronze hover:underline inline-flex items-center gap-1"
+                    className="text-teal-dark hover:underline inline-flex items-center gap-1"
                   >
                     {order.tracking_number}
                     <ExternalLink className="w-3 h-3" />
@@ -472,7 +472,7 @@ export default function AdminOrders() {
                   <button
                     onClick={() => handleBuyAndPrint(order.id)}
                     disabled={!!rowBusy[order.id]}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg text-[11px] font-medium hover:bg-bronze/20 transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg text-[11px] font-medium hover:bg-teal/20 transition-colors disabled:opacity-50"
                   >
                     <Printer className="w-3 h-3" />
                     Buy &amp; Print Label
@@ -497,7 +497,7 @@ export default function AdminOrders() {
                 <button
                   onClick={() => handleCreateShipment(order.id)}
                   disabled={!!rowBusy[order.id]}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg text-[11px] font-medium hover:bg-bronze/20 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg text-[11px] font-medium hover:bg-teal/20 transition-colors disabled:opacity-50"
                 >
                   <PackagePlus className="w-3 h-3" />
                   Create Shipment
@@ -518,7 +518,7 @@ export default function AdminOrders() {
               value={order.status}
               onChange={(e) => handleStatusChange(order.id, e.target.value)}
               disabled={updating === order.id}
-              className="text-sm bg-surface border border-line text-ink rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="text-sm bg-surface border border-line text-ink rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal/40"
             >
               <option value="pending">Pending</option>
               <option value="paid">Paid</option>
@@ -543,7 +543,7 @@ export default function AdminOrders() {
               onClick={() => handleGenerateInvoice(order.id)}
               disabled={!!rowBusy[order.id]}
               title="Generate invoice"
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-muted hover:text-bronze hover:bg-surface transition-colors disabled:opacity-50"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-muted hover:text-teal-dark hover:bg-surface transition-colors disabled:opacity-50"
             >
               <FileText className="w-4 h-4" />
             </button>
@@ -574,7 +574,7 @@ export default function AdminOrders() {
             placeholder="Search orders, customers..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
         <div className="relative">
@@ -582,7 +582,7 @@ export default function AdminOrders() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none"
+            className="pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -598,13 +598,13 @@ export default function AdminOrders() {
       {/* Summary */}
       <div className="flex gap-4 mb-6 text-sm">
         <span className="text-ink-muted">{filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''}</span>
-        <span className="text-bronze">{filteredOrders.filter(o => o.status === 'pending').length} pending</span>
+        <span className="text-teal-dark">{filteredOrders.filter(o => o.status === 'pending').length} pending</span>
         <span className="text-blue-400">{filteredOrders.filter(o => o.status === 'paid').length} paid</span>
       </div>
 
       {/* Bulk actions */}
       {showSelection && selected.size > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 px-4 py-3 bg-bronze/5 border border-bronze/30 rounded-lg">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 px-4 py-3 bg-teal/5 border border-teal/30 rounded-lg">
           <span className="text-sm text-ink">
             {selected.size} order{selected.size !== 1 ? 's' : ''} selected
           </span>
@@ -621,7 +621,7 @@ export default function AdminOrders() {
                 <button
                   onClick={() => openBulkDialog('create')}
                   disabled={deleting || bulkRunning}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bronze/10 border border-bronze/20 text-bronze text-sm font-medium hover:bg-bronze/20 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal/10 border border-teal/20 text-teal-dark text-sm font-medium hover:bg-teal/20 disabled:opacity-50"
                 >
                   {bulkRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackagePlus className="w-4 h-4" />}
                   Create shipments
@@ -629,7 +629,7 @@ export default function AdminOrders() {
                 <button
                   onClick={() => openBulkDialog('label')}
                   disabled={deleting || bulkRunning}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bronze/10 border border-bronze/20 text-bronze text-sm font-medium hover:bg-bronze/20 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal/10 border border-teal/20 text-teal-dark text-sm font-medium hover:bg-teal/20 disabled:opacity-50"
                 >
                   {bulkRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
                   Generate labels
@@ -666,7 +666,7 @@ export default function AdminOrders() {
                       checked={allVisibleSelected}
                       onChange={toggleAll}
                       aria-label="Select all orders"
-                      className="w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40 cursor-pointer"
+                      className="w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40 cursor-pointer"
                     />
                   </th>
                 )}
@@ -685,7 +685,7 @@ export default function AdminOrders() {
                   group.orders.length > 0 && group.orders.every((o) => selected.has(o.id));
                 return (
                 <React.Fragment key={group.key}>
-                  <tr className={`bg-surface/70 ${showSelection ? 'cursor-pointer hover:bg-bronze/5' : ''}`}>
+                  <tr className={`bg-surface/70 ${showSelection ? 'cursor-pointer hover:bg-teal/5' : ''}`}>
                     {showSelection && (
                       <td className="px-5 py-2.5 border-y border-line">
                         <input
@@ -693,7 +693,7 @@ export default function AdminOrders() {
                           checked={groupSelected}
                           onChange={() => toggleGroup(group.orders)}
                           aria-label={`Select all orders on ${group.label}`}
-                          className="w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40 cursor-pointer"
+                          className="w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40 cursor-pointer"
                         />
                       </td>
                     )}
@@ -706,13 +706,13 @@ export default function AdminOrders() {
                       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                         <div className="flex items-baseline gap-2">
                           {group.relative && (
-                            <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-bronze/10 text-bronze">
+                            <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-teal/10 text-teal-dark">
                               {group.relative}
                             </span>
                           )}
                           <span className="text-sm font-semibold text-ink">{group.label}</span>
                           {groupSelected && (
-                            <span className="text-[10px] font-medium text-bronze">Selected</span>
+                            <span className="text-[10px] font-medium text-teal-dark">Selected</span>
                           )}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-ink-muted">

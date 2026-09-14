@@ -151,7 +151,7 @@ export default function RecipientPicker({
           onChange={(e) => setQuery(e.target.value)}
           disabled={disabled}
           placeholder="Search by name or email…"
-          className="w-full rounded-lg border border-line bg-surface py-2 pl-9 pr-9 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50"
+          className="w-full rounded-lg border border-line bg-surface py-2 pl-9 pr-9 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
         />
         {loading && (
           <Loader2 className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-ink-muted" />
@@ -164,7 +164,7 @@ export default function RecipientPicker({
           {selected.map((r) => (
             <span
               key={r.id}
-              className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-bronze/40 bg-bronze/5 py-1 pl-2.5 pr-1.5 text-xs text-ink"
+              className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-teal/40 bg-teal/5 py-1 pl-2.5 pr-1.5 text-xs text-ink"
             >
               <span className="truncate">{recipientLabel(r)}</span>
               <button
@@ -172,7 +172,7 @@ export default function RecipientPicker({
                 onClick={() => toggle(r)}
                 disabled={disabled}
                 aria-label={`Remove ${recipientLabel(r)}`}
-                className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-bronze/20 hover:text-ink"
+                className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-teal/20 hover:text-ink"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -205,12 +205,12 @@ export default function RecipientPicker({
                 disabled={disabled || blocked}
                 title={blocked ? `One send can address at most ${MAX_BULK_RECIPIENTS} customers.` : undefined}
                 className={`flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-surface ${
-                  checked ? 'bg-bronze/5' : ''
+                  checked ? 'bg-teal/5' : ''
                 } ${blocked ? 'cursor-not-allowed opacity-50' : ''}`}
               >
                 <span
                   className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${
-                    checked ? 'border-bronze bg-bronze text-white' : 'border-line'
+                    checked ? 'border-teal bg-teal-dark text-white' : 'border-line'
                   }`}
                 >
                   {checked && <Check className="h-3 w-3" />}
@@ -292,7 +292,7 @@ export default function RecipientPicker({
             type="button"
             onClick={addAllShown}
             disabled={disabled}
-            className="text-xs font-medium text-bronze hover:text-bronze-dark"
+            className="text-xs font-medium text-teal-dark hover:text-teal-dark"
           >
             Add all {Math.min(unselectedShown, room)} shown
           </button>

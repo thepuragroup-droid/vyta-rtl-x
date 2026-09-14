@@ -226,9 +226,9 @@ export default function Hero() {
             transition={{ duration: 0.5 }}
             className="lg:col-span-7"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-bronze/20 border border-bronze/30 rounded-full mb-4 sm:mb-6">
-              <Beaker className="w-3.5 h-3.5 text-bronze flex-shrink-0" />
-              <span className="text-[10px] sm:text-xs font-medium text-bronze">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal/20 border border-teal/30 rounded-full mb-4 sm:mb-6">
+              <Beaker className="w-3.5 h-3.5 text-teal-light flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs font-medium text-teal-light">
                 Pharmaceutical Grade Research
               </span>
             </div>
@@ -267,8 +267,8 @@ export default function Hero() {
                   aria-label={`${label} — view lab documentation`}
                   className="group inline-flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full bg-white/[0.07] hover:bg-white/[0.14] border border-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5"
                 >
-                  <span className="w-6 h-6 rounded-full bg-bronze/20 flex items-center justify-center">
-                    <Icon className="w-3.5 h-3.5 text-bronze" />
+                  <span className="w-6 h-6 rounded-full bg-teal/20 flex items-center justify-center">
+                    <Icon className="w-3.5 h-3.5 text-teal-light" />
                   </span>
                   <span className="text-[10px] sm:text-xs font-medium text-white/80 group-hover:text-white transition-colors">
                     {label}
@@ -296,12 +296,12 @@ export default function Hero() {
             ) : product ? (
               <div className="backdrop-blur-xl bg-white/[0.08] border border-white/15 rounded-2xl shadow-2xl shadow-black/40 p-4 sm:p-5">
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-bronze/20 border border-bronze/30 rounded-full text-[10px] font-medium text-bronze">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal/20 border border-teal/30 rounded-full text-[10px] font-medium text-teal-light">
                     <Beaker className="w-3 h-3" />
                     Featured Compound
                   </span>
                   {product.purity && (
-                    <span className="text-[10px] font-semibold text-bronze-light bg-bronze/15 border border-bronze/30 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-semibold text-teal-light bg-teal/15 border border-teal/30 px-2 py-0.5 rounded-full">
                       {product.purity}
                     </span>
                   )}
@@ -348,7 +348,7 @@ export default function Hero() {
                     <button
                       onClick={() => openPurchaseModal(product)}
                       aria-label={`Add ${product.name} to cart`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-bronze hover:bg-bronze-light text-ink text-xs font-semibold rounded-lg transition-colors"
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-teal hover:bg-teal-light text-ink text-xs font-semibold rounded-lg transition-colors"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                       Add
@@ -357,7 +357,7 @@ export default function Hero() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-white/10 text-[10px] text-white/40">
-                  <FileCheck className="w-3 h-3 text-bronze flex-shrink-0" />
+                  <FileCheck className="w-3 h-3 text-teal-light flex-shrink-0" />
                   COA verified — PPB Analytical Inc.
                 </div>
               </div>
@@ -381,8 +381,8 @@ export default function Hero() {
                   },
                 ].map(({ icon: Icon, title, sub }) => (
                   <div key={title} className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 bg-bronze/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-bronze" />
+                    <div className="w-11 h-11 bg-teal/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-5 h-5 text-teal-light" />
                     </div>
                     <div>
                       <p className="font-semibold text-white text-sm">{title}</p>
@@ -425,7 +425,7 @@ export default function Hero() {
                   className="flex items-center text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.15em] text-white/45"
                 >
                   {item}
-                  <span className="mx-5 sm:mx-8 text-bronze/60">•</span>
+                  <span className="mx-5 sm:mx-8 text-teal-light/60">•</span>
                 </span>
               ))}
             </div>

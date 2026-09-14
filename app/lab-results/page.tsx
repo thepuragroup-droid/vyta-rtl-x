@@ -78,7 +78,7 @@ function formatDate(iso: string | null): string {
 function purityTone(pct: number | null): string {
   if (pct === null || pct === undefined) return 'text-ink-muted';
   if (pct >= 99) return 'text-emerald-600';
-  if (pct >= 97) return 'text-bronze-dark';
+  if (pct >= 97) return 'text-teal-dark';
   return 'text-amber-600';
 }
 
@@ -166,9 +166,9 @@ export default function LabResultsPage() {
             transition={{ duration: 0.4 }}
             className="max-w-2xl"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-bronze/10 border border-bronze/20 rounded-full mb-4">
-              <ShieldCheck className="w-3.5 h-3.5 text-bronze" />
-              <span className="text-xs font-medium text-bronze">Third-Party Verified</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal/10 border border-teal/20 rounded-full mb-4">
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-dark" />
+              <span className="text-xs font-medium text-teal-dark">Third-Party Verified</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-ink mb-3">Lab Results</h1>
             <p className="text-ink-muted leading-relaxed">
@@ -208,7 +208,7 @@ export default function LabResultsPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search reports, compounds, sample IDs…"
-                  className="w-full pl-10 pr-4 py-2.5 bg-white rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
                 />
               </div>
               {!loading && (
@@ -260,8 +260,8 @@ export default function LabResultsPage() {
             {/* Trust strip */}
             <div className="mt-12 bg-white border border-line rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-bronze/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <ShieldCheck className="w-5 h-5 text-bronze" />
+                <div className="w-10 h-10 bg-teal/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-teal-dark" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-ink text-sm mb-0.5">
@@ -379,7 +379,7 @@ function ReportCard({ lab, index }: { lab: LabResult; index: number }) {
       {/* Lab badge */}
       <div className="absolute top-3 left-3">
         <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-ink text-[10px] font-medium px-2 py-1 rounded-full border border-line/50">
-          <Microscope className="w-3 h-3 text-bronze" />
+          <Microscope className="w-3 h-3 text-teal-dark" />
           {lab.lab}
         </span>
       </div>
@@ -404,7 +404,7 @@ function ReportCard({ lab, index }: { lab: LabResult; index: number }) {
             title="This certificate confirms identity against a reference standard; it does not report a purity percentage."
             className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-[11px] font-semibold text-ink-muted px-2 py-1 rounded-full border border-line/50"
           >
-            <ShieldCheck className="w-3 h-3 text-bronze" />
+            <ShieldCheck className="w-3 h-3 text-teal-dark" />
             Identity verified
           </span>
         </div>

@@ -49,10 +49,10 @@ export interface PackingListInput {
   line_items: PackingListLine[];
 }
 
-const INK = '#1A1A1A';
-const MUTED = '#6B7280';
-const RULE = '#E5E7EB';
-const BRONZE = '#9C8B5A';
+const INK = '#07203A';
+const MUTED = '#56707F';
+const RULE = '#DCE7EB';
+const BRONZE = '#438B9E';
 
 /**
  * Render a Packing List to a Buffer. Never throws — errors surface via

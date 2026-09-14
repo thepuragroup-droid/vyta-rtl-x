@@ -15,8 +15,8 @@ export default function GuidesIndexPage() {
   return (
     <>
       <div className="mb-8 flex items-start gap-3">
-        <div className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-bronze/10">
-          <BookOpen className="h-5 w-5 text-bronze" />
+        <div className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-teal/10">
+          <BookOpen className="h-5 w-5 text-teal-dark" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-ink">Guides &amp; How-Tos</h1>
@@ -39,13 +39,13 @@ export default function GuidesIndexPage() {
                   <Link
                     key={guide.slug}
                     href={`/admin/guides/${guide.slug}`}
-                    className="group flex flex-col rounded-xl border border-line bg-white p-5 transition-colors hover:border-bronze/40"
+                    className="group flex flex-col rounded-xl border border-line bg-white p-5 transition-colors hover:border-teal/40"
                   >
                     <div className="mb-3 flex items-center justify-between">
-                      <div className="grid h-9 w-9 place-items-center rounded-lg bg-bronze/10">
-                        <Icon className="h-5 w-5 text-bronze" />
+                      <div className="grid h-9 w-9 place-items-center rounded-lg bg-teal/10">
+                        <Icon className="h-5 w-5 text-teal-dark" />
                       </div>
-                      <ArrowRight className="h-4 w-4 text-ink-light transition-colors group-hover:text-bronze" />
+                      <ArrowRight className="h-4 w-4 text-ink-light transition-colors group-hover:text-teal-dark" />
                     </div>
                     <h3 className="text-sm font-bold text-ink">{guide.title}</h3>
                     <p className="mt-1 flex-1 text-sm leading-relaxed text-ink-muted">

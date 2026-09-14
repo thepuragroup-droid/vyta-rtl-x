@@ -78,13 +78,13 @@ export default function AudienceFilters({
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
         <button
           onClick={onToggleOpen}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-ink transition-colors hover:text-bronze"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-ink transition-colors hover:text-teal-dark"
           aria-expanded={open}
         >
-          <SlidersHorizontal className="h-4 w-4 text-bronze" />
+          <SlidersHorizontal className="h-4 w-4 text-teal-dark" />
           Email conditions
           {active > 0 && (
-            <span className="rounded-full bg-bronze/10 px-2 py-0.5 text-[11px] font-semibold text-bronze">
+            <span className="rounded-full bg-teal/10 px-2 py-0.5 text-[11px] font-semibold text-teal-dark">
               {active} on
             </span>
           )}
@@ -161,7 +161,7 @@ export default function AudienceFilters({
                     aria-pressed={on}
                     className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
                       on
-                        ? 'border-bronze bg-bronze text-white'
+                        ? 'border-teal bg-teal-dark text-white'
                         : 'border-line bg-white text-ink-muted hover:border-ink/20 hover:text-ink'
                     }`}
                   >
@@ -245,7 +245,7 @@ function DateRange({
           max={to || undefined}
           onChange={(e) => onFrom(e.target.value)}
           aria-label={`${label} from`}
-          className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+          className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
         />
         <span className="text-xs text-ink-muted">→</span>
         <input
@@ -254,7 +254,7 @@ function DateRange({
           min={from || undefined}
           onChange={(e) => onTo(e.target.value)}
           aria-label={`${label} to`}
-          className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+          className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-xs text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
         />
         {(from || to) && (
           <button

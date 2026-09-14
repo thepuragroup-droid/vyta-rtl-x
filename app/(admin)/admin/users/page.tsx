@@ -133,7 +133,7 @@ export default function UsersPage() {
             placeholder="Search by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
         <div className="relative">
@@ -141,7 +141,7 @@ export default function UsersPage() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value as any)}
-            className="pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none"
+            className="pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
           >
             <option value="all">All Roles</option>
             <option value="customer">Customer</option>
@@ -154,7 +154,7 @@ export default function UsersPage() {
           <select
             value={statusFilter === 'all' ? 'all' : statusFilter ? 'active' : 'inactive'}
             onChange={(e) => setStatusFilter(e.target.value === 'all' ? 'all' : e.target.value === 'active')}
-            className="pl-4 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none"
+            className="pl-4 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>

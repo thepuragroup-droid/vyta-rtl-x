@@ -257,7 +257,7 @@ export default function InvoiceDetailPage() {
     return (
       <div className="text-center py-20">
         <p className="text-ink-muted mb-4">Invoice not found</p>
-        <Link href="/admin/invoices" className="text-bronze hover:text-bronze/80 text-sm">Back to Invoices</Link>
+        <Link href="/admin/invoices" className="text-teal-dark hover:text-teal-dark/80 text-sm">Back to Invoices</Link>
       </div>
     );
   }
@@ -285,7 +285,7 @@ export default function InvoiceDetailPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold font-mono text-ink">{invoice.invoice_number}</h1>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-bronze/10 text-bronze border border-bronze/20">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-teal/10 text-teal-dark border border-teal/20">
                 {cur}
               </span>
               {/* Where this invoice came from: a PuraMass hand-off, or raised here. */}
@@ -327,7 +327,7 @@ export default function InvoiceDetailPage() {
                 setEmailTo(invoice.customer_email ?? '');
                 setShowEmail(true);
               }}
-              className="px-3 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 transition-colors flex items-center gap-2"
+              className="px-3 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 transition-colors flex items-center gap-2"
               title="Email the invoice PDF to the customer"
             >
               <Send className="w-4 h-4" /> Send Email
@@ -367,7 +367,7 @@ export default function InvoiceDetailPage() {
               <select
                 value={newStatus}
                 onChange={(e) => setNewStatus(e.target.value as InvoiceStatus)}
-                className="flex-1 px-2 py-1 bg-surface border border-line rounded text-xs focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="flex-1 px-2 py-1 bg-surface border border-line rounded text-xs focus:outline-none focus:ring-2 focus:ring-teal/40"
               >
                 {(['draft', 'sent', 'paid', 'partial', 'overdue', 'cancelled'] as InvoiceStatus[]).map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -410,7 +410,7 @@ export default function InvoiceDetailPage() {
             </div>
           ) : (
             <div>
-              <div className="text-lg font-bold text-bronze tabular-nums">{money(amount_due)}</div>
+              <div className="text-lg font-bold text-teal-dark tabular-nums">{money(amount_due)}</div>
               <div className="text-[11px] text-ink-muted tabular-nums">
                 of {money(Number(invoice.total))}
                 {amount_paid > 0 && <> · {money(amount_paid)} paid</>}
@@ -446,7 +446,7 @@ export default function InvoiceDetailPage() {
                 </div>
               )}
               {puramass && (
-                <div className="mt-1 text-[10px] uppercase tracking-wider text-bronze">
+                <div className="mt-1 text-[10px] uppercase tracking-wider text-teal-dark">
                   Captured by PuraMass
                 </div>
               )}
@@ -496,7 +496,7 @@ export default function InvoiceDetailPage() {
                     href={tracking.tracking.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[11px] text-bronze hover:text-bronze/80"
+                    className="text-[11px] text-teal-dark hover:text-teal-dark/80"
                   >
                     Track shipment →
                   </a>
@@ -559,7 +559,7 @@ export default function InvoiceDetailPage() {
                           <span
                             className={`ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide align-middle ${
                               pt === 'vial'
-                                ? 'bg-bronze/10 text-bronze'
+                                ? 'bg-teal/10 text-teal-dark'
                                 : 'bg-slate-100 text-slate-600'
                             }`}
                           >
@@ -622,7 +622,7 @@ export default function InvoiceDetailPage() {
                     <span>Paid</span>
                     <span className="tabular-nums">– {money(amount_paid)}</span>
                   </div>
-                  <div className="flex justify-between font-bold text-bronze">
+                  <div className="flex justify-between font-bold text-teal-dark">
                     <span>Amount Due</span>
                     <span className="tabular-nums">{money(amount_due)}</span>
                   </div>
@@ -706,7 +706,7 @@ export default function InvoiceDetailPage() {
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value as InvoiceStatus)}
-                  className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 >
                   {(['draft', 'sent', 'paid', 'partial', 'overdue'] as InvoiceStatus[]).map((s) => (
                     <option key={s} value={s}>{s}</option>
@@ -869,7 +869,7 @@ export default function InvoiceDetailPage() {
           <div className="bg-white rounded-xl w-full max-w-md p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-ink flex items-center gap-2">
-                <Send className="w-4 h-4 text-bronze" /> Send invoice email
+                <Send className="w-4 h-4 text-teal-dark" /> Send invoice email
               </h3>
               <button onClick={() => setShowEmail(false)}>
                 <X className="w-4 h-4 text-ink-muted" />
@@ -887,7 +887,7 @@ export default function InvoiceDetailPage() {
                   value={emailTo}
                   onChange={(e) => setEmailTo(e.target.value)}
                   placeholder={invoice.customer_email ?? 'customer@example.com'}
-                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
                 <p className="mt-1 text-[11px] text-ink-muted">
                   Leaving this blank sends to the invoice&apos;s customer email.
@@ -904,7 +904,7 @@ export default function InvoiceDetailPage() {
               <button
                 onClick={handleSendEmail}
                 disabled={emailSending}
-                className="flex-1 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {emailSending && <Loader2 className="w-4 h-4 animate-spin" />}
                 Send
@@ -937,7 +937,7 @@ export default function InvoiceDetailPage() {
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
                   placeholder={amount_due.toFixed(2)}
-                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div>
@@ -945,7 +945,7 @@ export default function InvoiceDetailPage() {
                 <select
                   value={payMethod}
                   onChange={(e) => setPayMethod(e.target.value as PaymentMethod)}
-                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 >
                   <option value="card">Card</option>
                   <option value="e-transfer">E-Transfer</option>
@@ -960,7 +960,7 @@ export default function InvoiceDetailPage() {
                   value={payRef}
                   onChange={(e) => setPayRef(e.target.value)}
                   placeholder="Transaction ID, cheque #..."
-                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
             </div>

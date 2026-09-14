@@ -13,12 +13,12 @@ import {
   type SettlementInvoiceStatus,
 } from '@/lib/admin/stealth-health';
 
-export type Tint = 'emerald' | 'blue' | 'bronze' | 'amber' | 'rose' | 'neutral';
+export type Tint = 'emerald' | 'blue' | 'teal' | 'amber' | 'rose' | 'neutral';
 
 const TINTS: Record<Tint, { fg: string; bg: string }> = {
   emerald: { fg: 'text-emerald-700', bg: 'bg-emerald-100' },
   blue: { fg: 'text-blue-700', bg: 'bg-blue-100' },
-  bronze: { fg: 'text-bronze', bg: 'bg-bronze/10' },
+  teal: { fg: 'text-teal-dark', bg: 'bg-teal/10' },
   amber: { fg: 'text-amber-700', bg: 'bg-amber-100' },
   rose: { fg: 'text-rose-700', bg: 'bg-rose-100' },
   neutral: { fg: 'text-ink', bg: 'bg-surface' },
@@ -123,7 +123,7 @@ export function DailyBars({ points, currency, title, subtitle }: {
           {points.map((p) => (
             <div
               key={p.date}
-              className="flex-1 min-w-[2px] bg-bronze/70 hover:bg-bronze rounded-t transition-colors"
+              className="flex-1 min-w-[2px] bg-teal/70 hover:bg-teal rounded-t transition-colors"
               style={{ height: `${Math.max(2, (p.earned_cents / max) * 100)}%` }}
               title={`${p.date} · ${money(p.earned_cents, currency)} · ${p.orders} order${p.orders === 1 ? '' : 's'}`}
             />

@@ -184,7 +184,7 @@ export function TrendChart({
           const value = top * (1 - t);
           return (
             <g key={t}>
-              <line x1={PAD_L} x2={W - PAD_R} y1={gy} y2={gy} stroke="#E4E6E9" strokeWidth={1} />
+              <line x1={PAD_L} x2={W - PAD_R} y1={gy} y2={gy} stroke="#DCE7EB" strokeWidth={1} />
               <text x={PAD_L - 8} y={gy + 3.5} textAnchor="end"
                 className="fill-ink-light" style={{ fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
                 {formatTick(value)}
@@ -222,7 +222,7 @@ export function TrendChart({
         {hover != null && (
           <g pointerEvents="none">
             <line x1={x(hover)} x2={x(hover)} y1={PAD_T} y2={BASE_Y}
-              stroke="#8A8A8A" strokeWidth={1} strokeOpacity={0.6} />
+              stroke="#6E8898" strokeWidth={1} strokeOpacity={0.6} />
             <circle cx={x(hover)} cy={y(buckets[hover].value)} r={4.5}
               fill={color} stroke="#fff" strokeWidth={2} />
           </g>
@@ -406,7 +406,7 @@ export function MultiTrendChart({
           const value = top * (1 - t);
           return (
             <g key={t}>
-              <line x1={PAD_L} x2={W - padR} y1={gy} y2={gy} stroke="#E4E6E9" strokeWidth={1} />
+              <line x1={PAD_L} x2={W - padR} y1={gy} y2={gy} stroke="#DCE7EB" strokeWidth={1} />
               <text x={PAD_L - 8} y={gy + 3.5} textAnchor="end"
                 className="fill-ink-light" style={{ fontSize: 10, fontVariantNumeric: 'tabular-nums' }}>
                 {formatTick(value)}
@@ -487,7 +487,7 @@ export function MultiTrendChart({
         {hover != null && (
           <g pointerEvents="none">
             <line x1={x(hover)} x2={x(hover)} y1={PAD_T} y2={BASE_Y}
-              stroke="#8A8A8A" strokeWidth={1} strokeOpacity={0.6} />
+              stroke="#6E8898" strokeWidth={1} strokeOpacity={0.6} />
             {kind === 'line' && series.map((s) => (
               <circle key={s.key} cx={x(hover)} cy={y(valueAt(hover, s.key))} r={4}
                 fill={s.color} stroke="#fff" strokeWidth={2} />

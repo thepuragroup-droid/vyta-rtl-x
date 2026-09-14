@@ -69,7 +69,7 @@ export default function BackordersPage() {
   return (
     <>
       <div className="flex items-center gap-3 mb-1">
-        <PackageX className="w-6 h-6 text-bronze" />
+        <PackageX className="w-6 h-6 text-teal-dark" />
         <h1 className="text-xl font-bold text-ink">Backorders</h1>
       </div>
       <p className="text-sm text-ink-muted mb-6">Invoice line items ordered beyond available stock.</p>
@@ -127,7 +127,7 @@ export default function BackordersPage() {
                   <tr key={bo.id} className="hover:bg-surface transition-colors align-top">
                     <td className="px-5 py-4">
                       {bo.invoice ? (
-                        <Link href={`/admin/invoices/${bo.invoice.id}`} className="font-mono text-sm text-ink hover:text-bronze">
+                        <Link href={`/admin/invoices/${bo.invoice.id}`} className="font-mono text-sm text-ink hover:text-teal-dark">
                           {bo.invoice.invoice_number}
                         </Link>
                       ) : <span className="text-ink-muted">—</span>}

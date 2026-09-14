@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCustomer } from '@/contexts/CustomerContext';
-import { Package, Clock, ChevronRight, Beaker, Loader2, ArrowLeft } from 'lucide-react';
+import { Package, Clock, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
 import { getCustomerOrders } from '@/lib/customer/api';
 import type { Order } from '@/lib/supabase';
 
@@ -53,7 +53,7 @@ export default function OrderHistoryPage() {
   if (customerLoading || (loading && customer)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="w-6 h-6 text-bronze animate-spin" />
+        <Loader2 className="w-6 h-6 text-teal-dark animate-spin" />
       </div>
     );
   }
@@ -117,7 +117,7 @@ export default function OrderHistoryPage() {
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                     </span>
-                    <ChevronRight className="w-4 h-4 text-ink-muted group-hover:text-bronze transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-ink-muted group-hover:text-teal-dark transition-colors" />
                   </div>
                 </div>
                 <div className="flex items-center justify-between text-sm">

@@ -84,7 +84,7 @@ export default function EditAffiliateModal({
                 type="text"
                 value={form.first_name}
                 onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               />
             </div>
             <div>
@@ -93,7 +93,7 @@ export default function EditAffiliateModal({
                 type="text"
                 value={form.last_name}
                 onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               />
             </div>
           </div>
@@ -103,7 +103,7 @@ export default function EditAffiliateModal({
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
             />
           </div>
           <div>
@@ -113,7 +113,7 @@ export default function EditAffiliateModal({
               placeholder="0x…"
               value={form.wallet_address}
               onChange={(e) => setForm({ ...form, wallet_address: e.target.value })}
-              className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal/40"
             />
           </div>
           <div>
@@ -122,7 +122,7 @@ export default function EditAffiliateModal({
               type="text"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal/40"
             />
           </div>
           <label className="flex items-center gap-2 text-sm text-ink">
@@ -130,7 +130,7 @@ export default function EditAffiliateModal({
               type="checkbox"
               checked={form.active}
               onChange={(e) => setForm({ ...form, active: e.target.checked })}
-              className="accent-bronze"
+              className="accent-teal"
             />
             Active
           </label>

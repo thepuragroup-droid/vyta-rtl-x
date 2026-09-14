@@ -61,7 +61,7 @@ function SupplierForm({
                   [key]: type === 'number' ? parseInt(e.target.value) || 1 : e.target.value,
                 }))
               }
-              className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
             />
           </div>
         ))}
@@ -71,7 +71,7 @@ function SupplierForm({
             value={draft.notes}
             onChange={(e) => setDraft((p) => ({ ...p, notes: e.target.value }))}
             rows={2}
-            className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
       </div>
@@ -210,7 +210,7 @@ export default function SuppliersPage() {
           placeholder="Search by name, email, or contact…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
         />
       </div>
 
@@ -265,8 +265,8 @@ export default function SuppliersPage() {
                 ) : (
                   <div className="flex items-center justify-between px-5 py-4 hover:bg-surface transition-colors">
                     <div className="flex items-start gap-4 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-bronze/10 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-4 h-4 text-bronze" />
+                      <div className="w-9 h-9 rounded-xl bg-teal/10 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="w-4 h-4 text-teal-dark" />
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-ink">{supplier.name}</p>
@@ -283,8 +283,8 @@ export default function SuppliersPage() {
                         </div>
                         {supplier.lead_time_days && (
                           <div className="flex items-center gap-1 mt-1">
-                            <Clock className="w-3 h-3 text-bronze" />
-                            <span className="text-xs text-bronze">{supplier.lead_time_days} day lead time</span>
+                            <Clock className="w-3 h-3 text-teal-dark" />
+                            <span className="text-xs text-teal-dark">{supplier.lead_time_days} day lead time</span>
                           </div>
                         )}
                       </div>

@@ -344,7 +344,7 @@ export default function OrderDetailPage() {
     return (
       <div className="text-center py-20">
         <p className="text-ink-muted mb-4">Order not found</p>
-        <Link href="/admin/orders" className="text-bronze hover:text-bronze/80 text-sm">Back to Orders</Link>
+        <Link href="/admin/orders" className="text-teal-dark hover:text-teal-dark/80 text-sm">Back to Orders</Link>
       </div>
     );
   }
@@ -411,7 +411,7 @@ export default function OrderDetailPage() {
                   }`}>
                     {i <= currentStepIndex ? <Check className="w-4 h-4" /> : i + 1}
                   </div>
-                  <span className={`text-[10px] uppercase tracking-wider ${i <= currentStepIndex ? 'text-bronze' : 'text-ink-muted'}`}>
+                  <span className={`text-[10px] uppercase tracking-wider ${i <= currentStepIndex ? 'text-teal-dark' : 'text-ink-muted'}`}>
                     {step}
                   </span>
                 </div>
@@ -544,7 +544,7 @@ export default function OrderDetailPage() {
           {acquisition.channel && (
             <div className="bg-white rounded-xl border border-line p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Megaphone className="w-4 h-4 text-bronze" />
+                <Megaphone className="w-4 h-4 text-teal-dark" />
                 <h2 className="font-semibold text-ink">Acquisition</h2>
                 <InfoTip label="How this order's channel was decided">
                   <OrderAcquisitionTip />
@@ -597,13 +597,13 @@ export default function OrderDetailPage() {
           {(commission || order.referral_code) && (
             <div className="bg-white rounded-xl border border-line p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Tag className="w-4 h-4 text-bronze" />
+                <Tag className="w-4 h-4 text-teal-dark" />
                 <h2 className="font-semibold text-ink">Affiliate Commission</h2>
               </div>
               {order.referral_code && (
                 <div className="mb-3">
                   <p className="text-ink-muted text-sm mb-1">Referral Code Used</p>
-                  <span className="font-mono text-bronze bg-bronze/10 px-2 py-0.5 rounded text-sm">{order.referral_code}</span>
+                  <span className="font-mono text-teal-dark bg-teal/10 px-2 py-0.5 rounded text-sm">{order.referral_code}</span>
                 </div>
               )}
               {commission && (
@@ -727,7 +727,7 @@ export default function OrderDetailPage() {
                         href={order.tracking_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-bronze hover:underline inline-flex items-center gap-1 font-mono text-xs break-all"
+                        className="text-teal-dark hover:underline inline-flex items-center gap-1 font-mono text-xs break-all"
                       >
                         {order.tracking_number}
                         <ExternalLink className="w-3 h-3 flex-shrink-0" />
@@ -755,7 +755,7 @@ export default function OrderDetailPage() {
                     <button
                       onClick={handleBuyAndPrint}
                       disabled={shipBusy}
-                      className="w-full px-3 py-2 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg text-sm font-medium hover:bg-bronze/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full px-3 py-2 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg text-sm font-medium hover:bg-teal/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {shipBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
                       Buy &amp; Print Label
@@ -779,7 +779,7 @@ export default function OrderDetailPage() {
                     value={courierId}
                     onChange={(e) => setCourierId(e.target.value)}
                     disabled={shipBusy || ratesLoading}
-                    className="w-full px-3 py-2 bg-surface border border-line text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50"
+                    className="w-full px-3 py-2 bg-surface border border-line text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
                   >
                     {ratesLoading && <option value="">Loading couriers…</option>}
                     {!ratesLoading && rates.length === 0 && (
@@ -796,7 +796,7 @@ export default function OrderDetailPage() {
                 <button
                   onClick={handleCreateShipment}
                   disabled={shipBusy}
-                  className="w-full px-3 py-2 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg text-sm font-medium hover:bg-bronze/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full px-3 py-2 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg text-sm font-medium hover:bg-teal/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {shipBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackagePlus className="w-4 h-4" />}
                   Create Shipment with Courier
@@ -818,12 +818,12 @@ export default function OrderDetailPage() {
                 value={trackingInput}
                 onChange={(e) => setTrackingInput(e.target.value)}
                 placeholder="Enter tracking number"
-                className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
               />
               <button
                 onClick={handleSaveTracking}
                 disabled={savingTracking}
-                className="px-3 py-2 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg text-sm hover:bg-bronze/20 transition-colors disabled:opacity-50"
+                className="px-3 py-2 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg text-sm hover:bg-teal/20 transition-colors disabled:opacity-50"
               >
                 {savingTracking ? '...' : <Save className="w-4 h-4" />}
               </button>
@@ -837,7 +837,7 @@ export default function OrderDetailPage() {
               value={order.status}
               onChange={(e) => handleStatusChange(e.target.value)}
               disabled={updating}
-              className="w-full px-3 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50"
+              className="w-full px-3 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
             >
               <option value="pending">Pending</option>
               <option value="received">Payment Received</option>
@@ -950,7 +950,7 @@ export default function OrderDetailPage() {
                     type="text"
                     value={etTo}
                     onChange={(e) => setEtTo(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                     placeholder="customer@email.com"
                   />
                 </div>
@@ -961,7 +961,7 @@ export default function OrderDetailPage() {
                     type="text"
                     value={etCc}
                     onChange={(e) => setEtCc(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                     placeholder="Comma-separated emails (optional)"
                   />
                 </div>
@@ -972,7 +972,7 @@ export default function OrderDetailPage() {
                     type="text"
                     value={etSubject}
                     onChange={(e) => setEtSubject(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
 
@@ -982,7 +982,7 @@ export default function OrderDetailPage() {
                     value={etBody}
                     onChange={(e) => setEtBody(e.target.value)}
                     rows={12}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-bronze/40 resize-y"
+                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-teal/40 resize-y"
                   />
                 </div>
 
@@ -1006,7 +1006,7 @@ export default function OrderDetailPage() {
                       </div>
                     ))}
                   </div>
-                  <label className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-line rounded-lg text-xs text-ink-muted hover:text-ink hover:border-bronze cursor-pointer transition-colors">
+                  <label className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-line rounded-lg text-xs text-ink-muted hover:text-ink hover:border-teal cursor-pointer transition-colors">
                     <Paperclip className="w-3.5 h-3.5" /> Attach images
                     <input
                       type="file"

@@ -97,7 +97,7 @@ export default function LiveShipmentTracking({ tracking, refreshing, onRefresh, 
       {/* Header */}
       <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-line">
         <div className="flex items-center gap-2 min-w-0">
-          <Radio className={`w-4 h-4 flex-shrink-0 ${delivered ? 'text-emerald-500' : 'text-bronze'}`} />
+          <Radio className={`w-4 h-4 flex-shrink-0 ${delivered ? 'text-emerald-500' : 'text-teal-dark'}`} />
           <h2 className="font-semibold text-ink text-sm">Live Shipment Tracking</h2>
           {t.carrier && (
             <span className="text-xs text-ink-muted truncate hidden sm:inline">· {t.carrier}</span>
@@ -109,7 +109,7 @@ export default function LiveShipmentTracking({ tracking, refreshing, onRefresh, 
               onClick={() => setShowMap((v) => !v)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                 showMap
-                  ? 'bg-bronze/10 border-bronze text-bronze'
+                  ? 'bg-teal/10 border-teal text-teal-dark'
                   : 'bg-surface border-line text-ink-muted hover:text-ink hover:border-ink/20'
               }`}
               title="Toggle the shipment map"
@@ -161,11 +161,11 @@ export default function LiveShipmentTracking({ tracking, refreshing, onRefresh, 
                             ? 'bg-emerald-500 text-white'
                             : 'bg-ink text-white'
                           : 'bg-surface text-ink-muted'
-                      } ${isCurrent && !delivered ? 'ring-4 ring-bronze/20' : ''}`}
+                      } ${isCurrent && !delivered ? 'ring-4 ring-teal/20' : ''}`}
                     >
                       <Icon className="w-4 h-4" />
                     </div>
-                    <span className={`text-[10px] text-center uppercase tracking-wider ${done ? 'text-bronze' : 'text-ink-muted'}`}>
+                    <span className={`text-[10px] text-center uppercase tracking-wider ${done ? 'text-teal-dark' : 'text-ink-muted'}`}>
                       {stage.label}
                     </span>
                   </div>
@@ -194,7 +194,7 @@ export default function LiveShipmentTracking({ tracking, refreshing, onRefresh, 
                   href={t.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-mono text-xs text-bronze hover:underline inline-flex items-center gap-1"
+                  className="font-mono text-xs text-teal-dark hover:underline inline-flex items-center gap-1"
                 >
                   {t.number}
                   <ExternalLink className="w-3 h-3" />
@@ -232,7 +232,7 @@ export default function LiveShipmentTracking({ tracking, refreshing, onRefresh, 
                     <div className="flex flex-col items-center">
                       <span
                         className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${
-                          latest ? 'bg-bronze ring-4 ring-bronze/15' : 'bg-line'
+                          latest ? 'bg-teal ring-4 ring-teal/15' : 'bg-line'
                         }`}
                       />
                       {i < checkpoints.length - 1 && <span className="w-px flex-1 bg-line my-1" />}

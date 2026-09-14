@@ -98,7 +98,7 @@ export default function SupplierPricelistsPage() {
         <select
           value={supplierId}
           onChange={(e) => setSupplierId(e.target.value)}
-          className="sm:w-72 px-3 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+          className="sm:w-72 px-3 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
         >
           <option value="">Select a supplier…</option>
           {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -111,7 +111,7 @@ export default function SupplierPricelistsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             disabled={!supplierId}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
           />
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function SupplierPricelistsPage() {
                   const dirty = r.product_id in edited;
                   const usingFallback = !dirty && r.supplier_price == null;
                   return (
-                    <tr key={r.product_id} className={dirty ? 'bg-bronze/5' : ''}>
+                    <tr key={r.product_id} className={dirty ? 'bg-teal/5' : ''}>
                       <td className="px-5 py-3 text-ink font-medium">{r.product_name}</td>
                       <td className="px-5 py-3 font-mono text-xs text-ink-muted">{r.sku ?? '—'}</td>
                       <td className="px-5 py-3 text-right tabular-nums text-ink-muted">${r.original_price.toFixed(2)}</td>
@@ -154,7 +154,7 @@ export default function SupplierPricelistsPage() {
                             step="0.01"
                             value={priceOf(r)}
                             onChange={(e) => setPrice(r.product_id, parseFloat(e.target.value) || 0)}
-                            className={`w-32 pl-5 pr-2 py-1.5 border rounded-lg text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-bronze/40 ${usingFallback ? 'bg-surface border-line text-ink-muted' : 'bg-white border-line text-ink'}`}
+                            className={`w-32 pl-5 pr-2 py-1.5 border rounded-lg text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-teal/40 ${usingFallback ? 'bg-surface border-line text-ink-muted' : 'bg-white border-line text-ink'}`}
                           />
                         </div>
                         {usingFallback && (

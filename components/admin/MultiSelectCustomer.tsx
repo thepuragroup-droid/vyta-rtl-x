@@ -148,12 +148,12 @@ export default function MultiSelectCustomer({
               onClick={() => toggle(c.id)}
               disabled={disabled}
               className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-surface transition-colors ${
-                checked ? 'bg-bronze/5' : ''
+                checked ? 'bg-teal/5' : ''
               } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               <span
                 className={`w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center ${
-                  checked ? 'bg-bronze border-bronze text-white' : 'border-line'
+                  checked ? 'bg-teal-dark border-teal text-white' : 'border-line'
                 } ${single ? 'rounded-full' : ''}`}
               >
                 {checked && <Check className="w-3 h-3" />}
@@ -178,7 +178,7 @@ export default function MultiSelectCustomer({
       <div className="flex items-center justify-between mb-1">
         <label className="block text-xs font-medium text-ink-muted">{label}</label>
         {!single && selectedCount > 0 && (
-          <span className="text-xs text-bronze font-medium">{selectedCount} selected</span>
+          <span className="text-xs text-teal-dark font-medium">{selectedCount} selected</span>
         )}
       </div>
       <div ref={anchorRef} className="relative">
@@ -192,7 +192,7 @@ export default function MultiSelectCustomer({
             !single && selectedCount > 0 ? `${selectedCount} selected — search to add…` : 'Search…'
           }
           disabled={disabled}
-          className="w-full pl-9 pr-8 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50"
+          className="w-full pl-9 pr-8 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
         />
         <ChevronDown
           className={`absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted transition-transform pointer-events-none ${open ? 'rotate-180' : ''}`}

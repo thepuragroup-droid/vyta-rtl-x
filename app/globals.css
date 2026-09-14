@@ -3,25 +3,37 @@
 @tailwind utilities;
 
 :root {
-  /* PURA Color System */
-  --color-ink: #1A1A1A;
-  --color-ink-muted: #6E6E6E;
-  --color-bronze: #9C8B5A;
-  --color-bronze-light: #B8A876;
-  --color-bg: #FFFFFF;
-  --color-surface: #F7F7F7;
-  --color-surface-2: #F2F2F2;
-  --color-line: #C9CCD1;
+  /* ── VYTA Biosciences colour system ──────────────────────────────────────
+     Core swatches from the Brand Identity Guidelines v1.0. Midnight Navy is
+     the anchor; Bio Teal and Aqua add vitality; Mist and Cloud create the
+     breathing room. Keep these in sync with tailwind.config.ts. */
+  --color-navy: #07203a; /* Midnight Navy */
+  --color-ocean: #0e3f5f; /* Deep Ocean */
+  --color-vital: #1b5d83; /* Vital Blue */
+  --color-teal: #438b9e; /* Bio Teal */
+  --color-aqua: #6eb2b8; /* Aqua */
+  --color-mist: #bbd6d6; /* Mist */
+  --color-cloud: #f7fafb; /* Cloud */
 
-  /* Legacy mappings */
+  /* Semantic roles */
+  --color-ink: #07203a;
+  --color-ink-muted: #56707f;
+  --color-ink-light: #6e8898;
+  --color-bg: #ffffff;
+  --color-surface: #f7fafb;
+  --color-surface-2: #edf3f5;
+  --color-line: #dce7eb;
+
+  /* Legacy mappings — kept so older `var(--accent)` style references keep
+     resolving; they now point at the VYTA ramp. */
   --background: #ffffff;
-  --foreground: #1A1A1A;
-  --primary: #1A1A1A;
-  --primary-dark: #000000;
-  --secondary: #6E6E6E;
-  --accent: #9C8B5A;
-  --border: #C9CCD1;
-  --success: #22c55e;
+  --foreground: #07203a;
+  --primary: #07203a;
+  --primary-dark: #05182b;
+  --secondary: #56707f;
+  --accent: #438b9e;
+  --border: #dce7eb;
+  --success: #12876f;
 }
 
 * {
@@ -30,12 +42,31 @@
   margin: 0;
 }
 
+@layer base {
+  /**
+   * "Inter Display — HEADINGS / PRODUCT NAMES / CAMPAIGNS." Applied once here
+   * rather than per-component: every heading picks up the display optical size
+   * and its tighter fit automatically. Utility classes still win, so any
+   * component setting its own `tracking-*` keeps it.
+   */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-optical-sizing: auto;
+    font-variation-settings: 'opsz' 32;
+    letter-spacing: -0.02em;
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 50%, #ffffff 100%);
+  /* Calm, near-white ground with the faintest Cloud wash — "generous white
+     space; avoid visual clutter". */
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-cloud) 50%, #ffffff 100%);
   min-height: 100vh;
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
@@ -71,12 +102,33 @@ select:disabled,
     text-wrap: balance;
   }
 
-  /* Clean glass effect */
+  /* ── Typography ────────────────────────────────────────────────────────
+     The guidelines pair "Inter Display" for headings / product names /
+     campaigns with "Inter" for body copy. Inter v4 ships one variable family
+     carrying an optical-size axis, so the display cut is the same font driven
+     to its display optical size rather than a second download. */
+  .font-display {
+    font-family: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-optical-sizing: auto;
+    font-variation-settings: 'opsz' 32;
+    letter-spacing: -0.02em;
+  }
+
+  /* Small all-caps label used for eyebrows and section kickers. */
+  .text-eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-teal);
+  }
+
+  /* Clean glass effect — navy-tinted rather than neutral grey. */
   .glass {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(7, 32, 58, 0.06);
   }
 
   /* Tabular numbers for stats */
@@ -90,7 +142,38 @@ select:disabled,
   }
 
   .card-hover:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 4px rgba(7, 32, 58, 0.05), 0 16px 40px -16px rgba(7, 32, 58, 0.16);
+    border-color: rgba(67, 139, 158, 0.35);
+  }
+
+  /* ── Design language: soft gradients, clean geometry, molecular cues ──── */
+
+  /* Navy→Aqua hairline used to close sections, as on the guideline sheet. */
+  .brand-rule {
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #07203a 0%, #1b5d83 50%, #6eb2b8 100%);
+  }
+
+  /* Deep navy band with a soft teal bloom — the anchor surface for heroes,
+     footers and CTA panels. */
+  .surface-navy {
+    background-color: var(--color-navy);
+    background-image:
+      radial-gradient(60rem 30rem at 15% -10%, rgba(67, 139, 158, 0.35) 0%, transparent 60%),
+      radial-gradient(45rem 25rem at 95% 110%, rgba(110, 178, 184, 0.22) 0%, transparent 60%);
+  }
+
+  /* Barely-there Cloud wash for alternating sections. */
+  .surface-cloud {
+    background-image: linear-gradient(180deg, #ffffff 0%, var(--color-cloud) 100%);
+  }
+
+  /* Subtle molecular cue — a lattice of Mist-coloured nodes. Decorative only;
+     always sits behind content at low opacity. */
+  .molecular-grid {
+    background-image: radial-gradient(circle, rgba(110, 178, 184, 0.35) 1px, transparent 1px);
+    background-size: 28px 28px;
   }
 
   /* Hide scrollbar but allow scrolling */
@@ -122,10 +205,10 @@ select:disabled,
     animation-play-state: paused;
   }
 
-  /* Warm "graded film" treatment for the hero's fallback still — pulls the
-     stock purple science image toward the ink/bronze brand palette. */
+  /* Cool "graded" treatment for the hero's fallback still — pulls the stock
+     science image toward the Midnight Navy / Bio Teal palette. */
   .hero-still-grade {
-    filter: saturate(0.4) sepia(0.45) hue-rotate(-10deg) brightness(0.62) contrast(1.08);
+    filter: saturate(0.45) sepia(0.35) hue-rotate(150deg) brightness(0.6) contrast(1.1);
   }
 
   /* HPLC trace drawing itself in the lab exhibit panel: draw, hold, fade,
@@ -180,9 +263,9 @@ select:disabled,
   }
 }
 
-/* Selection color - PURA bronze */
+/* Selection colour — Bio Teal */
 ::selection {
-  background-color: rgba(156, 139, 90, 0.2);
+  background-color: rgba(67, 139, 158, 0.22);
   color: inherit;
 }
 
@@ -193,7 +276,7 @@ select:focus,
 button:focus-visible {
   outline: none;
   ring: 2px;
-  ring-color: rgba(156, 139, 90, 0.4);
+  ring-color: rgba(67, 139, 158, 0.4);
 }
 
 /* Container utility */
@@ -202,4 +285,3 @@ button:focus-visible {
   margin-left: auto;
   margin-right: auto;
 }
-

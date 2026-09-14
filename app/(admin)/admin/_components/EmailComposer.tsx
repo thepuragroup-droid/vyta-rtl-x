@@ -351,7 +351,7 @@ export default function EmailComposer({
                 key={t}
                 onClick={() => setTab(t)}
                 className={`-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition ${
-                  tab === t ? 'border-bronze text-ink' : 'border-transparent text-ink-muted hover:text-ink'
+                  tab === t ? 'border-teal text-ink' : 'border-transparent text-ink-muted hover:text-ink'
                 }`}
               >
                 {t === 'write' ? <Pencil className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -374,7 +374,7 @@ export default function EmailComposer({
                   value={subject}
                   onChange={(e) => { setSubject(e.target.value); setTouched(true); }}
                   placeholder="Subject line"
-                  className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
                 {vagueDiscount && (
                   <p className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700">
@@ -397,14 +397,14 @@ export default function EmailComposer({
                   onChange={(e) => { setBody(e.target.value); setTouched(true); }}
                   rows={9}
                   placeholder="Write the message…"
-                  className="w-full resize-y rounded-lg border border-line bg-white px-3 py-2 text-sm leading-relaxed text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full resize-y rounded-lg border border-line bg-white px-3 py-2 text-sm leading-relaxed text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </Field>
 
               {/* Promo block */}
-              <div className="mt-5 rounded-xl border border-bronze/30 bg-bronze/5 p-4">
+              <div className="mt-5 rounded-xl border border-teal/30 bg-teal/5 p-4">
                 <div className="mb-3 flex items-start gap-2">
-                  <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-bronze" />
+                  <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal-dark" />
                   <p className="text-xs leading-relaxed text-ink">{promoNote}</p>
                 </div>
 
@@ -414,7 +414,7 @@ export default function EmailComposer({
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                       placeholder="SUMMER15"
-                      className="w-full rounded-lg border border-line bg-white px-3 py-2 font-mono text-sm tracking-wide text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                      className="w-full rounded-lg border border-line bg-white px-3 py-2 font-mono text-sm tracking-wide text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                     />
                   </Field>
                   <Field label="Valid until" compact hint="Free text — shown as written.">
@@ -422,7 +422,7 @@ export default function EmailComposer({
                       value={promoExpires}
                       onChange={(e) => setPromoExpires(e.target.value)}
                       placeholder="Valid until 30 September"
-                      className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                      className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                     />
                   </Field>
                 </div>
@@ -479,7 +479,7 @@ export default function EmailComposer({
                           } ${
                             discountError
                               ? 'border-red-300 focus:ring-red-200'
-                              : 'border-line focus:ring-bronze/40'
+                              : 'border-line focus:ring-teal/40'
                           }`}
                         />
                         {discountType === 'percentage' && (
@@ -510,7 +510,7 @@ export default function EmailComposer({
                       // type. This line is for the condition beside it.
                       showDiscount && discount ? 'No minimum spend' : '15% off any order over $200'
                     }
-                    className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </Field>
 
@@ -593,7 +593,7 @@ export default function EmailComposer({
                   className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 ${
                     badCc.length > 0
                       ? 'border-red-300 focus:ring-red-200'
-                      : 'border-line focus:ring-bronze/40'
+                      : 'border-line focus:ring-teal/40'
                   }`}
                 />
                 {badCc.length > 0 && (

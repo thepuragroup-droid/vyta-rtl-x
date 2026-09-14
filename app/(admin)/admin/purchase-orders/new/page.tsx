@@ -63,7 +63,7 @@ export default function NewPurchaseOrderPage() {
       ) : (
         <>
           {prefill && (
-            <div className="mb-5 flex items-start gap-2 px-4 py-3 bg-bronze/10 border border-bronze/30 rounded-lg text-sm text-bronze">
+            <div className="mb-5 flex items-start gap-2 px-4 py-3 bg-teal/10 border border-teal/30 rounded-lg text-sm text-teal-dark">
               <PackageX className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>
                 Fulfilling the backorder for invoice{' '}

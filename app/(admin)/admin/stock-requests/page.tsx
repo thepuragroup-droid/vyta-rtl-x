@@ -47,7 +47,7 @@ export default function StockRequestsPage() {
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <Bell className="w-5 h-5 text-bronze" />
+          <Bell className="w-5 h-5 text-teal-dark" />
           <h1 className="text-xl sm:text-2xl font-bold text-ink">Stock Requests</h1>
         </div>
         <p className="text-ink-muted text-sm">
@@ -153,7 +153,7 @@ export default function StockRequestsPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="inline-flex items-center gap-1.5 bg-bronze/10 text-bronze px-2.5 py-1 rounded-full text-xs font-medium">
+                      <span className="inline-flex items-center gap-1.5 bg-teal/10 text-teal-dark px-2.5 py-1 rounded-full text-xs font-medium">
                         <Bell className="w-3 h-3" />
                         {p.count}
                       </span>
@@ -175,7 +175,7 @@ export default function StockRequestsPage() {
                     <td className="px-5 py-4 text-right">
                       <Link
                         href="/admin/products"
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-bronze hover:underline"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-dark hover:underline"
                       >
                         <Package className="w-4 h-4" />
                         Restock

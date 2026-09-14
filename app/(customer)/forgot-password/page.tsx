@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, ArrowRight, AlertCircle, Beaker, Check } from 'lucide-react';
+import { Mail, ArrowRight, AlertCircle, Check } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
@@ -43,10 +43,8 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/login" className="inline-flex flex-col items-center gap-2">
-            <div className="w-12 h-12 bg-ink rounded-xl flex items-center justify-center">
-              <Beaker className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-lg font-bold text-ink tracking-tight">Aminocan</span>
+            <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="w-12 h-12 object-contain" />
+            <span className="text-lg font-bold text-ink tracking-tight">VYTA</span>
           </Link>
         </div>
 
@@ -68,7 +66,7 @@ export default function ForgotPasswordPage() {
                 </p>
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 text-bronze hover:text-bronze-dark font-semibold text-sm"
+                  className="inline-flex items-center gap-2 text-teal-dark hover:text-teal-dark font-semibold text-sm"
                 >
                   Back to Login
                   <ArrowRight className="w-4 h-4" />
@@ -97,7 +95,7 @@ export default function ForgotPasswordPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
+                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
                         placeholder="you@example.com"
                         autoComplete="email"
                       />
@@ -121,7 +119,7 @@ export default function ForgotPasswordPage() {
                 </form>
 
                 <div className="mt-5 text-center">
-                  <Link href="/login" className="text-bronze hover:text-bronze-dark text-xs sm:text-sm font-medium">
+                  <Link href="/login" className="text-teal-dark hover:text-teal-dark text-xs sm:text-sm font-medium">
                     Back to Login
                   </Link>
                 </div>

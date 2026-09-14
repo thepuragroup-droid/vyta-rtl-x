@@ -13,7 +13,6 @@ import {
   Wallet,
   ArrowRight,
   ArrowLeft,
-  Beaker,
   AlertCircle,
   ShieldCheck,
 } from "lucide-react";
@@ -119,7 +118,7 @@ export default function AffiliateSignup() {
   if (isLoading || (!customer && !affiliate)) {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-bronze border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-teal border-t-transparent rounded-full animate-spin" />
       </main>
     );
   }
@@ -144,16 +143,14 @@ export default function AffiliateSignup() {
         {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex flex-col items-center gap-2">
-            <div className="w-12 h-12 bg-ink rounded-xl flex items-center justify-center">
-              <Beaker className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-lg font-bold text-ink tracking-tight">Aminocan</span>
+            <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="w-12 h-12 object-contain" />
+            <span className="text-lg font-bold text-ink tracking-tight">VYTA</span>
           </Link>
         </div>
 
         {/* Header */}
         <div className="text-center mb-5 sm:mb-6">
-          <span className="text-[10px] sm:text-xs font-semibold text-bronze uppercase tracking-[0.2em] mb-2 block">
+          <span className="text-[10px] sm:text-xs font-semibold text-teal-dark uppercase tracking-[0.2em] mb-2 block">
             Commission Program
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-ink mb-1">
@@ -167,8 +164,8 @@ export default function AffiliateSignup() {
         {/* Form Card */}
         <div className="bg-white rounded-xl p-5 sm:p-6 md:p-8 border border-line shadow-sm">
           {/* Account info banner */}
-          <div className="mb-5 p-3 bg-bronze/5 border border-bronze/20 rounded-lg flex items-start gap-2">
-            <ShieldCheck className="w-4 h-4 text-bronze flex-shrink-0 mt-0.5" />
+          <div className="mb-5 p-3 bg-teal/5 border border-teal/20 rounded-lg flex items-start gap-2">
+            <ShieldCheck className="w-4 h-4 text-teal-dark flex-shrink-0 mt-0.5" />
             <div className="text-xs text-ink-muted">
               Joining as <span className="font-semibold text-ink">{customer!.first_name} {customer!.last_name}</span>
               {" "}·{" "}
@@ -200,7 +197,7 @@ export default function AffiliateSignup() {
                   type="text"
                   value={walletAddress}
                   onChange={(e) => setWalletAddress(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted font-mono"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted font-mono"
                   placeholder="0x..."
                 />
               </div>
@@ -219,13 +216,13 @@ export default function AffiliateSignup() {
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-line accent-bronze cursor-pointer flex-shrink-0"
+                  className="mt-0.5 w-4 h-4 rounded border-line accent-teal cursor-pointer flex-shrink-0"
                 />
                 <span className="text-xs sm:text-sm text-ink-muted leading-snug">
-                  I agree to become an Aminocan affiliate and abide by the{" "}
+                  I agree to become an VYTA affiliate and abide by the{" "}
                   <Link
                     href="/terms"
-                    className="text-bronze hover:text-bronze-dark underline"
+                    className="text-teal-dark hover:text-teal-dark underline"
                     target="_blank"
                   >
                     affiliate program terms
@@ -267,7 +264,7 @@ export default function AffiliateSignup() {
         <div className="mt-5 sm:mt-6 text-center">
           <p className="text-[10px] sm:text-xs text-ink-muted">
             Already an affiliate?{" "}
-            <Link href="/affiliate/dashboard" className="text-bronze hover:text-bronze-dark">
+            <Link href="/affiliate/dashboard" className="text-teal-dark hover:text-teal-dark">
               Go to dashboard
             </Link>
           </p>

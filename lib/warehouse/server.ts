@@ -489,27 +489,27 @@ const DEFAULT_TEMPLATES: Record<
   { subject: string; body: string }
 > = {
   'shipment.packed': {
-    subject: 'Your Aminocan order {{order_number}} has been packed',
+    subject: 'Your VYTA order {{order_number}} has been packed',
     body:
       "Hi {{customer_first_name}},\n\nGreat news — your order {{order_number}} has been packed and is ready for the carrier. " +
-      "We'll send you the tracking details as soon as it ships.\n\nThanks,\nAminocan Fulfillment",
+      "We'll send you the tracking details as soon as it ships.\n\nThanks,\nVYTA Fulfillment",
   },
   'shipment.shipped': {
-    subject: 'Your Aminocan order {{order_number}} is on its way',
+    subject: 'Your VYTA order {{order_number}} is on its way',
     body:
       "Hi {{customer_first_name}},\n\nYour order {{order_number}} just shipped via {{carrier}}.\n" +
-      "Tracking number: {{tracking_number}}\nTrack it here: {{tracking_url}}\n\nThanks,\nAminocan Fulfillment",
+      "Tracking number: {{tracking_number}}\nTrack it here: {{tracking_url}}\n\nThanks,\nVYTA Fulfillment",
   },
   'pickup.packed': {
-    subject: 'Your Aminocan pickup order {{order_number}} is ready',
+    subject: 'Your VYTA pickup order {{order_number}} is ready',
     body:
       "Hi {{customer_first_name}},\n\nYour pickup order {{order_number}} is packed and ready. " +
-      "Come by during business hours and we'll have it waiting for you.\n\nThanks,\nAminocan Fulfillment",
+      "Come by during business hours and we'll have it waiting for you.\n\nThanks,\nVYTA Fulfillment",
   },
   'pickup.shipped': {
-    subject: 'Your Aminocan pickup order {{order_number}}',
+    subject: 'Your VYTA pickup order {{order_number}}',
     body:
-      "Hi {{customer_first_name}},\n\nThanks for picking up order {{order_number}}.\n\nAminocan Fulfillment",
+      "Hi {{customer_first_name}},\n\nThanks for picking up order {{order_number}}.\n\nVYTA Fulfillment",
   },
 };
 
@@ -526,7 +526,7 @@ export function plainTextToHtml(text: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.5;color:#1a1a1a;white-space:pre-wrap;">${esc}</div>`;
+  return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.5;color:#07203a;white-space:pre-wrap;">${esc}</div>`;
 }
 
 export async function buildNotificationPreview(
@@ -629,7 +629,7 @@ export async function sendFulfillmentEmail(
   } else {
     try {
       const sent = await transport.sendMail({
-        from: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'Aminocan <orders@aminocan.com>',
+        from: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'VYTA <orders@aminocan.com>',
         to,
         subject,
         text: body,

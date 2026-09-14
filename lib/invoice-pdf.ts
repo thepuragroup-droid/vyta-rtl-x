@@ -90,35 +90,35 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
       const width = right - left;
 
       // Header
-      doc.fillColor('#1A1A1A').fontSize(22).font('Helvetica-Bold').text('AMINOCAN', left, 50);
-      doc.fillColor('#9C8B5A').fontSize(9).font('Helvetica').text('CANADIAN PEPTIDES', { characterSpacing: 2 });
-      doc.fillColor('#1A1A1A').fontSize(20).font('Helvetica-Bold')
+      doc.fillColor('#07203A').fontSize(22).font('Helvetica-Bold').text('VYTA', left, 50);
+      doc.fillColor('#438B9E').fontSize(9).font('Helvetica').text('BIOSCIENCES', { characterSpacing: 2 });
+      doc.fillColor('#07203A').fontSize(20).font('Helvetica-Bold')
         .text('INVOICE', left, 50, { width, align: 'right' });
-      doc.fillColor('#6B7280').fontSize(11).font('Helvetica')
+      doc.fillColor('#56707F').fontSize(11).font('Helvetica')
         .text(inv.invoice_number, { width, align: 'right' });
 
-      doc.moveTo(left, 100).lineTo(right, 100).strokeColor('#E5E7EB').stroke();
+      doc.moveTo(left, 100).lineTo(right, 100).strokeColor('#DCE7EB').stroke();
 
       // Parties + dates
       let y = 120;
-      doc.fillColor('#6B7280').fontSize(9).font('Helvetica-Bold').text('BILL TO', left, y);
-      doc.fillColor('#1A1A1A').fontSize(11).font('Helvetica')
+      doc.fillColor('#56707F').fontSize(9).font('Helvetica-Bold').text('BILL TO', left, y);
+      doc.fillColor('#07203A').fontSize(11).font('Helvetica')
         .text(inv.customer_name || 'Guest / Offline customer', left, y + 14);
-      if (inv.customer_email) doc.fillColor('#6B7280').fontSize(10).text(inv.customer_email);
-      if (inv.customer_phone) doc.fillColor('#6B7280').fontSize(10).text(inv.customer_phone);
+      if (inv.customer_email) doc.fillColor('#56707F').fontSize(10).text(inv.customer_email);
+      if (inv.customer_phone) doc.fillColor('#56707F').fontSize(10).text(inv.customer_phone);
 
       // Ship To — PuraMass sales only, where the address lives on the hand-off
       // ledger instead of the invoice.
       const pm = inv.puramass ?? null;
       if (pm) {
         let sy = y + 70;
-        doc.fillColor('#6B7280').fontSize(9).font('Helvetica-Bold').text('SHIP TO', left, sy);
+        doc.fillColor('#56707F').fontSize(9).font('Helvetica-Bold').text('SHIP TO', left, sy);
         sy += 14;
-        doc.fillColor('#1A1A1A').fontSize(11).font('Helvetica')
+        doc.fillColor('#07203A').fontSize(11).font('Helvetica')
           .text(pm.customer_name || inv.customer_name || 'Guest', left, sy);
         sy += 14;
         const addrLines = formatAddressLines(pm.shipping_address);
-        doc.fillColor('#6B7280').fontSize(10);
+        doc.fillColor('#56707F').fontSize(10);
         if (addrLines.length > 0) {
           for (const line of addrLines) {
             doc.text(line, left, sy, { width: width / 2 });
@@ -132,7 +132,7 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
           doc.text(pm.customer_phone, left, sy, { width: width / 2 });
           sy += 12;
         }
-        doc.fillColor('#9CA3AF').fontSize(8).text(
+        doc.fillColor('#6E8898').fontSize(8).text(
           pm.shipping_address_source === 'customer'
             ? 'Confirmed by the customer'
             : 'Reported by PuraMass',
@@ -144,8 +144,8 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
 
       const metaX = left + width / 2;
       const metaRow = (label: string, value: string, ry: number) => {
-        doc.fillColor('#6B7280').fontSize(9).font('Helvetica-Bold').text(label, metaX, ry, { width: width / 2, align: 'right', continued: false });
-        doc.fillColor('#1A1A1A').fontSize(10).font('Helvetica').text(value, metaX, ry + 11, { width: width / 2, align: 'right' });
+        doc.fillColor('#56707F').fontSize(9).font('Helvetica-Bold').text(label, metaX, ry, { width: width / 2, align: 'right', continued: false });
+        doc.fillColor('#07203A').fontSize(10).font('Helvetica').text(value, metaX, ry + 11, { width: width / 2, align: 'right' });
       };
       metaRow('ISSUE DATE', fmtDate(inv.issue_date), y);
       metaRow('DUE DATE', fmtDate(inv.due_date), y + 30);
@@ -161,40 +161,40 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
       // Items table. The Ship To block (PuraMass sales) needs the extra room.
       y = inv.puramass ? 300 : 210;
       const cols = { desc: left, qty: left + 250, unit: left + 320, disc: left + 400, total: left + 460 };
-      doc.fillColor('#6B7280').fontSize(9).font('Helvetica-Bold');
+      doc.fillColor('#56707F').fontSize(9).font('Helvetica-Bold');
       doc.text('DESCRIPTION', cols.desc, y);
       doc.text('QTY', cols.qty, y, { width: 50, align: 'right' });
       doc.text('UNIT', cols.unit, y, { width: 60, align: 'right' });
       doc.text('DISC', cols.disc, y, { width: 50, align: 'right' });
       doc.text('TOTAL', cols.total, y, { width: right - cols.total, align: 'right' });
       y += 16;
-      doc.moveTo(left, y).lineTo(right, y).strokeColor('#E5E7EB').stroke();
+      doc.moveTo(left, y).lineTo(right, y).strokeColor('#DCE7EB').stroke();
       y += 8;
 
-      doc.font('Helvetica').fontSize(10).fillColor('#1A1A1A');
+      doc.font('Helvetica').fontSize(10).fillColor('#07203A');
       for (const li of inv.line_items) {
         if (y > doc.page.height - 160) { doc.addPage(); y = 60; }
         const pt = li.price_type === 'vial' ? 'Vial' : 'Box';
         const descWithChip = `${li.description}  [${pt}]`;
         const h = doc.heightOfString(descWithChip, { width: 240 });
-        doc.fillColor('#1A1A1A').text(descWithChip, cols.desc, y, { width: 240 });
-        doc.fillColor('#6B7280').text(String(li.qty), cols.qty, y, { width: 50, align: 'right' });
+        doc.fillColor('#07203A').text(descWithChip, cols.desc, y, { width: 240 });
+        doc.fillColor('#56707F').text(String(li.qty), cols.qty, y, { width: 50, align: 'right' });
         doc.text(money(li.unit_price), cols.unit, y, { width: 60, align: 'right' });
         doc.text(li.discount_pct > 0 ? `${li.discount_pct}%` : '—', cols.disc, y, { width: 50, align: 'right' });
-        doc.fillColor('#1A1A1A').text(money(li.line_total), cols.total, y, { width: right - cols.total, align: 'right' });
+        doc.fillColor('#07203A').text(money(li.line_total), cols.total, y, { width: right - cols.total, align: 'right' });
         y += Math.max(h, 12) + 8;
       }
 
-      doc.moveTo(left, y).lineTo(right, y).strokeColor('#E5E7EB').stroke();
+      doc.moveTo(left, y).lineTo(right, y).strokeColor('#DCE7EB').stroke();
       y += 12;
 
       // Totals
       const totalsX = left + width - 220;
       const totalRow = (label: string, value: string, bold = false) => {
         doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(bold ? 12 : 10)
-          .fillColor(bold ? '#1A1A1A' : '#6B7280');
+          .fillColor(bold ? '#07203A' : '#56707F');
         doc.text(label, totalsX, y, { width: 110 });
-        doc.fillColor('#1A1A1A').text(value, totalsX + 110, y, { width: 110, align: 'right' });
+        doc.fillColor('#07203A').text(value, totalsX + 110, y, { width: 110, align: 'right' });
         y += bold ? 20 : 16;
       };
       totalRow('Subtotal', money(inv.subtotal));
@@ -213,9 +213,9 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
       // Payments
       if (inv.payments && inv.payments.length) {
         y += 12;
-        doc.fillColor('#6B7280').fontSize(9).font('Helvetica-Bold').text('PAYMENTS', left, y);
+        doc.fillColor('#56707F').fontSize(9).font('Helvetica-Bold').text('PAYMENTS', left, y);
         y += 14;
-        doc.font('Helvetica').fontSize(10).fillColor('#1A1A1A');
+        doc.font('Helvetica').fontSize(10).fillColor('#07203A');
         for (const p of inv.payments) {
           doc.text(`${fmtDate(p.paid_at)} — ${p.method}`, left, y, { width: 300 });
           doc.text(money(p.amount), totalsX + 110, y, { width: 110, align: 'right' });
@@ -226,13 +226,13 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
       // Notes
       if (inv.notes) {
         y += 16;
-        doc.fillColor('#6B7280').fontSize(9).font('Helvetica-Bold').text('NOTES', left, y);
-        doc.fillColor('#1A1A1A').fontSize(10).font('Helvetica').text(inv.notes, left, y + 14, { width });
+        doc.fillColor('#56707F').fontSize(9).font('Helvetica-Bold').text('NOTES', left, y);
+        doc.fillColor('#07203A').fontSize(10).font('Helvetica').text(inv.notes, left, y + 14, { width });
       }
 
       // Footer
-      doc.fillColor('#9CA3AF').fontSize(9).font('Helvetica')
-        .text('Aminocan Peptides • Canada', left, doc.page.height - 70, { width, align: 'center' });
+      doc.fillColor('#6E8898').fontSize(9).font('Helvetica')
+        .text('VYTA Biosciences • Canada', left, doc.page.height - 70, { width, align: 'center' });
 
       doc.end();
     } catch (err) {

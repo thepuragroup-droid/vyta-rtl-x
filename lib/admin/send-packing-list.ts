@@ -201,19 +201,19 @@ interface EmailVars {
 
 function renderEmailBody(v: EmailVars): string {
   const orderLine = v.orderNumber
-    ? `<p style="margin:0 0 12px 0;color:#4b5563">Order <strong>${escape(v.orderNumber)}</strong></p>`
+    ? `<p style="margin:0 0 12px 0;color:#56707f">Order <strong>${escape(v.orderNumber)}</strong></p>`
     : '';
   const notesBlock = v.notes
-    ? `<p style="margin:16px 0 0 0;padding:12px 14px;background:#f9fafb;border-left:3px solid #9c8b5a;border-radius:4px;color:#374151;font-size:13px;line-height:1.5">${escape(v.notes)}</p>`
+    ? `<p style="margin:16px 0 0 0;padding:12px 14px;background:#f7fafb;border-left:3px solid #438b9e;border-radius:4px;color:#0E3F5F;font-size:13px;line-height:1.5">${escape(v.notes)}</p>`
     : '';
   return `<!doctype html>
-<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a1a;background:#ffffff;padding:24px">
+<html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#07203a;background:#ffffff;padding:24px">
   <table role="presentation" width="100%" style="max-width:560px;margin:0 auto">
     <tr><td>
       <div style="font-weight:800;font-size:18px;letter-spacing:2px">PURAMASS</div>
-      <div style="font-size:11px;color:#6b7280;margin-bottom:20px">aminocan.com  ·  info@aminocan.com</div>
+      <div style="font-size:11px;color:#56707f;margin-bottom:20px">aminocan.com  ·  info@aminocan.com</div>
       <h2 style="margin:0 0 8px 0;font-size:20px">Packing list for ${escape(v.shipToName)}</h2>
-      <p style="margin:0 0 12px 0;color:#4b5563">
+      <p style="margin:0 0 12px 0;color:#56707f">
         Invoice <strong>${escape(v.invoiceNumber)}</strong>
       </p>
       ${orderLine}
@@ -222,7 +222,7 @@ function renderEmailBody(v: EmailVars): string {
         The full itemized packing list is attached as a PDF — quantities only, no pricing.
       </p>
       ${notesBlock}
-      <p style="margin:24px 0 0 0;color:#6b7280;font-size:12px">
+      <p style="margin:24px 0 0 0;color:#56707f;font-size:12px">
         Questions? Reply to this email or write us at info@aminocan.com.
       </p>
     </td></tr>

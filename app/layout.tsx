@@ -21,7 +21,19 @@ import { siteConfig } from '@/lib/config';
 import { getServerSiteConfig } from '@/lib/site-config-server';
 import { consentDefaultSnippet } from '@/lib/analytics/consent';
 
-const inter = Inter({ subsets: ['latin'] });
+/**
+ * VYTA pairs "Inter Display" (headings / product names / campaigns) with
+ * "Inter" (body copy, UI, specifications, long-form). Inter v4 is a single
+ * variable family carrying an optical-size axis, so both cuts come from one
+ * download: body text uses the default optical size, and `.font-display`
+ * (globals.css) pins `opsz` to 32 for the display cut.
+ */
+const inter = Inter({
+  subsets: ['latin'],
+  axes: ['opsz'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 // Branding-aware metadata. Reads the site_settings singleton for the store
 // name / tagline / favicon, wrapped so a missing client or un-migrated DB
@@ -101,7 +113,7 @@ window.gtag=window.gtag||gtag;gtag('js',new Date());gtag('config','${ga4Id}');`,
         {gtmSnippet && <script dangerouslySetInnerHTML={{ __html: gtmSnippet }} />}
         {/* End Google Tag Manager */}
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${inter.className}`}>
         {/* Google Tag Manager (noscript) */}
         {gtmId && (
           <noscript>

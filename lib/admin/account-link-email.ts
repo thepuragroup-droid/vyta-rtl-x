@@ -51,13 +51,13 @@ interface Copy {
 function copyFor(audience: AccountLinkAudience, greetingName: string): Copy {
   return audience === 'affiliate'
     ? {
-        subject: 'Set up your Aminocan affiliate account',
+        subject: 'Set up your VYTA affiliate account',
         heading: 'Set Up Your Account',
         intro: `Hi ${greetingName}, your affiliate account is ready. Click below to set your password and sign in.`,
         cta: 'Set Password',
       }
     : {
-        subject: 'Sign in to your Aminocan account',
+        subject: 'Sign in to your VYTA account',
         heading: 'Sign in to your account',
         intro: `Hi ${greetingName}, click below to set your password and sign in.`,
         cta: 'Set Password & Sign In',
@@ -73,33 +73,33 @@ export function buildAccountLinkEmail(input: AccountLinkEmailInput): AccountLink
 
   const affiliateKicker =
     audience === 'affiliate'
-      ? `<p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Affiliate Program</p>`
+      ? `<p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Affiliate Program</p>`
       : '';
 
   const html = `
       <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-          <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>${affiliateKicker}
+        <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+          <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>${affiliateKicker}
         </div>
         <div style="padding: 32px 24px; text-align: center;">
-          <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">${escapeHtml(heading)}</h2>
-          <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+          <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">${escapeHtml(heading)}</h2>
+          <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
             ${escapeHtml(intro)}
           </p>
-          <a href="${actionLink}" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="${actionLink}" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
             ${escapeHtml(cta)}
           </a>
-          <p style="font-size: 12px; color: #9CA3AF; margin: 24px 0 0; line-height: 1.6;">
+          <p style="font-size: 12px; color: #6E8898; margin: 24px 0 0; line-height: 1.6;">
             ${escapeHtml(footnote)}
           </p>
         </div>
-        <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-          <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Aminocan Peptides &bull; Canada</p>
+        <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+          <p style="font-size: 12px; color: #6E8898; margin: 0;">VYTA Biosciences &bull; Canada</p>
         </div>
       </div>
     `;
 
-  const text = [intro, '', actionLink, '', footnote, '', 'Aminocan Peptides • Canada'].join('\n');
+  const text = [intro, '', actionLink, '', footnote, '', 'VYTA Biosciences • Canada'].join('\n');
 
   return { subject, html, text };
 }

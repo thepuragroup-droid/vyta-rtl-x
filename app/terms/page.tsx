@@ -3,7 +3,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
 export const metadata = {
-  title: 'Terms & Conditions | Aminocan',
+  title: 'Terms & Conditions | VYTA',
 };
 
 export default function TermsPage() {
@@ -16,7 +16,7 @@ export default function TermsPage() {
           <div className="mb-10">
             <h1 className="text-3xl sm:text-4xl font-bold text-ink mb-3">Terms &amp; Conditions</h1>
             <p className="text-ink-muted text-sm">
-              These terms and conditions govern all users of Aminocan and{' '}
+              These terms and conditions govern all users of VYTA and{' '}
               <span className="font-medium text-ink">aminocan.com</span>. These must be agreed upon before any
               purchases can be made.
             </p>
@@ -41,9 +41,9 @@ export default function TermsPage() {
             </p>
 
             <p>
-              Aminocan reserves the right to limit and/or deny sales of products to any unqualified individuals
+              VYTA reserves the right to limit and/or deny sales of products to any unqualified individuals
               if we have reason to believe that misuse will occur. All customers MUST be at least 19 years of
-              age to purchase our products. Under no circumstances shall Aminocan or any associated affiliates
+              age to purchase our products. Under no circumstances shall VYTA or any associated affiliates
               be liable for consequential damages, whether purchasers claim in contract, negligence, strict
               liability or otherwise. In direct consideration of approving the sale of any product to the
               purchaser, the purchaser agrees to indemnify and hold us harmless from all claims, expenses,
@@ -53,16 +53,16 @@ export default function TermsPage() {
             </p>
 
             <p>
-              Aminocan&apos;s products are intended solely for laboratory research purposes and unless otherwise
+              VYTA&apos;s products are intended solely for laboratory research purposes and unless otherwise
               stated are not to be used for any other purposes, including but not limited to vitro diagnostic
               purpose, in food drugs, medical devices, or cosmetics for humans or animals or for commercial
-              purposes. The purchaser agrees that the products have not been sterilized or tested by Aminocan
+              purposes. The purchaser agrees that the products have not been sterilized or tested by VYTA
               for safety and efficacy in food, drug, medical device, cosmetic, commercial or any other use.
             </p>
 
             <p>
-              The purchaser expressly represents and warrants to Aminocan that the purchaser will properly
-              test, use, manufacture and market any products purchased from Aminocan and/or materials produced
+              The purchaser expressly represents and warrants to VYTA that the purchaser will properly
+              test, use, manufacture and market any products purchased from VYTA and/or materials produced
               with products purchased from aminocan.com in accordance with the practices of a reliable person
               who is experienced in the field and in strict compliance with all applicable laws and regulations,
               now and hereinafter enacted.
@@ -76,7 +76,7 @@ export default function TermsPage() {
             </p>
 
             <p>
-              The purchaser realizes that, since Aminocan&apos;s products are, unless otherwise stated,
+              The purchaser realizes that, since VYTA&apos;s products are, unless otherwise stated,
               intended solely for research purposes, they may not be on the Toxic Substances Control Act (TSCA)
               inventory listing. The purchaser assumes responsibility to assure that the products purchased from
               aminocan.com are approved for use under TSCA, if applicable.
@@ -85,14 +85,14 @@ export default function TermsPage() {
             <p>
               Purchaser has the responsibility to verify the hazards and to conduct any further research
               necessary to learn the hazards involved in using products purchased from aminocan.com. No
-              products purchased from Aminocan shall, unless otherwise stated, be considered to be foods,
+              products purchased from VYTA shall, unless otherwise stated, be considered to be foods,
               drugs, medical devices or cosmetics.
             </p>
 
             <p>
               ALL products and services offered are for RESEARCH purposes ONLY. Under NO circumstances
               shall/should ANY of these materials be used for recreational purposes nor human consumption.
-              Aminocan is NOT liable for ANY damages that may be caused by negligence, abuse, or ANY other
+              VYTA is NOT liable for ANY damages that may be caused by negligence, abuse, or ANY other
               unforeseen matter.
             </p>
 
@@ -107,16 +107,16 @@ export default function TermsPage() {
               <h2 className="text-base font-bold text-ink mb-3 uppercase tracking-wide">Disclaimer of Warranties</h2>
               <div className="space-y-4">
                 <p>
-                  AMINOCAN.COM PROVIDES CONTENT ON THIS WEB SITE AS A SERVICE TO YOU, OUR CUSTOMER. THIS WEB
+                  VYTA PROVIDES CONTENT ON THIS WEB SITE AS A SERVICE TO YOU, OUR CUSTOMER. THIS WEB
                   SITE CANNOT AND DOES NOT CONTAIN INFORMATION ABOUT ALL APPLICATIONS FOR PRODUCTS SOLD. IT
                   MAY NOT CONTAIN ALL INFORMATION THAT IS APPLICABLE TO YOUR PERSONAL CIRCUMSTANCES OR YOUR
                   USE OF PRODUCTS SOLD. THE CONTENT OF THIS WEB SITE, THE WEB SITE SERVER THAT MAKES IT
-                  AVAILABLE, AND THE SERVICES AND PRODUCTS AMINOCAN.COM PROVIDES ON THIS WEB SITE, ARE
+                  AVAILABLE, AND THE SERVICES AND PRODUCTS VYTA PROVIDES ON THIS WEB SITE, ARE
                   PROVIDED ON AN &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo; BASIS WITHOUT WARRANTY OF
-                  ANY KIND, WHETHER EXPRESS, IMPLIED OR STATUTORY. AMINOCAN.COM EXPRESSLY DISCLAIMS LIABILITY
+                  ANY KIND, WHETHER EXPRESS, IMPLIED OR STATUTORY. VYTA EXPRESSLY DISCLAIMS LIABILITY
                   FOR TECHNICAL FAILURES (INCLUDING HARDWARE OR SOFTWARE FAILURES), INCOMPLETE, SCRAMBLED OR
                   DELAYED COMPUTER TRANSMISSIONS, AND/OR TECHNICAL INACCURACIES, AS WELL AS UNAUTHORIZED
-                  ACCESS OF USER TRANSMISSIONS BY THIRD PARTIES. FURTHER, AMINOCAN.COM DOES NOT REPRESENT OR
+                  ACCESS OF USER TRANSMISSIONS BY THIRD PARTIES. FURTHER, VYTA DOES NOT REPRESENT OR
                   WARRANT THAT NO VIRUSES OR OTHER CONTAMINATING OR DESTRUCTIVE PROPERTIES WILL BE
                   TRANSMITTED, OR THAT NO DAMAGE WILL OCCUR TO YOUR COMPUTER SYSTEM. YOU HAVE SOLE
                   RESPONSIBILITY FOR ADEQUATE PROTECTION AND BACKUP OF DATA AND/OR EQUIPMENT AND TO TAKE ALL
@@ -126,19 +126,19 @@ export default function TermsPage() {
                   CONNECTION WITH THIS WEB SITE.
                 </p>
                 <p>
-                  TO THE FULL EXTENT NOT PRECLUDED BY APPLICABLE LAW AMINOCAN.COM, THEIR MEDICAL ADVISORS,
+                  TO THE FULL EXTENT NOT PRECLUDED BY APPLICABLE LAW VYTA, THEIR MEDICAL ADVISORS,
                   SUPPLIERS, CONSULTANTS, DIRECTORS AND EMPLOYEES DISCLAIM AND EXCLUDE ALL WARRANTIES WITH
                   RESPECT TO ALL CONTENT, EXPRESS, IMPLIED OR STATUTORY. THIS DISCLAIMER INCLUDES, BUT IS NOT
                   LIMITED TO, ANY AND ALL WARRANTIES OR MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
-                  NON-INFRINGEMENT. AMINOCAN.COM DOES NOT WARRANT THE CONTENT TO BE ACCURATE, COMPLETE OR
-                  CURRENT. AMINOCAN.COM DOES NOT WARRANT THAT THIS WEB SITE WILL OPERATE WITHOUT ERROR, THAT
+                  NON-INFRINGEMENT. VYTA DOES NOT WARRANT THE CONTENT TO BE ACCURATE, COMPLETE OR
+                  CURRENT. VYTA DOES NOT WARRANT THAT THIS WEB SITE WILL OPERATE WITHOUT ERROR, THAT
                   DEFECTS WILL BE CORRECTED OR THAT THIS WEB SITE OR THE WEB SITE SERVER MAKING IT AVAILABLE
                   ARE FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS. PRICE AND AVAILABILITY CONTENT, AS WELL AS
                   OTHER CONTENT CONTAINED IN THIS WEB SITE OR ACCESSIBLE THEREFROM, IS SUBJECT TO CHANGE
                   WITHOUT NOTICE.
                 </p>
                 <p>
-                  YOU ACKNOWLEDGE AND AGREE THAT AMINOCAN.COM DOES NOT ENDORSE THE CONTENT OF ANY SITE
+                  YOU ACKNOWLEDGE AND AGREE THAT VYTA DOES NOT ENDORSE THE CONTENT OF ANY SITE
                   ACCESSED VIA LINKS OR OTHER MEANS FROM THIS WEB SITE AND IT IS NOT RESPONSIBLE OR LIABLE FOR
                   SUCH CONTENT EVEN THOUGH IT MAY BE UNLAWFUL, HARASSING, LIBELOUS, PRIVACY INVADING, ABUSIVE,
                   THREATENING, HARMFUL, OBSCENE, OR OTHERWISE OBJECTIONABLE, OR THAT IT INFRINGES OR MAY
@@ -148,7 +148,7 @@ export default function TermsPage() {
                   THIS WEB SITE INCLUDES CONTENT PROVIDED BY THIRD PARTIES/LINKS AND YOU, OUR CUSTOMER. WE
                   HAVE NO CONTROL OVER, AND ASSUME NO RESPONSIBILITY FOR THE CONTENT, PRIVACY POLICIES, OR
                   PRACTICES OF ANY THIRD-PARTY WEBSITES OR SERVICES. YOU FURTHER ACKNOWLEDGE AND AGREE THAT
-                  AMINOCAN.COM SHALL NOT BE RESPONSIBLE OR LIABLE, DIRECTLY OR INDIRECTLY FOR ANY DAMAGE OR
+                  VYTA SHALL NOT BE RESPONSIBLE OR LIABLE, DIRECTLY OR INDIRECTLY FOR ANY DAMAGE OR
                   LOSS CAUSED BY OR IN CONNECTION WITH THE USE OF OR RELIANCE ON ANY SUCH CONTENT, GOODS, OR
                   SERVICES AVAILABLE ON OR THROUGH ANY SUCH WEBSITES OR SERVICES.
                 </p>
@@ -160,10 +160,10 @@ export default function TermsPage() {
               <h2 className="text-base font-bold text-ink mb-3 uppercase tracking-wide">Entire Agreement</h2>
               <p>
                 These Terms and Conditions and any terms incorporated or referred to herein constitute the
-                entire agreement between Aminocan and you relating to your use of this Web Site and the subject
+                entire agreement between VYTA and you relating to your use of this Web Site and the subject
                 matter hereof, and supersede any prior understandings or agreements (whether electronic, oral or
                 written) regarding the subject matter, and may not be amended or modified except in writing, or
-                by Aminocan making such amendments or modifications in accordance with this Terms and Conditions
+                by VYTA making such amendments or modifications in accordance with this Terms and Conditions
                 of Use Agreement.
               </p>
             </section>
@@ -192,31 +192,31 @@ export default function TermsPage() {
               </p>
               <p className="mt-3">
                 We strongly advise you to read the terms and conditions and privacy policies of any third-party
-                websites or services that you visit. AMINOCAN.COM IS A DISTRIBUTOR OF SUCH CONTENT AND NOT ITS
-                PUBLISHER. AMINOCAN.COM&apos;S EDITORIAL CONTROL OF SUCH CONTENT IS THE SAME AS THAT OF A
-                PUBLIC LIBRARY OR NEWSSTAND. AMINOCAN.COM&apos;S THIRD PARTY SUPPLIERS MAY EXPRESS CERTAIN
-                OPINIONS OR PROVIDE CERTAIN INFORMATION AND OFFERS. AMINOCAN.COM MAKES NO WARRANTIES AS TO THE
+                websites or services that you visit. VYTA IS A DISTRIBUTOR OF SUCH CONTENT AND NOT ITS
+                PUBLISHER. VYTA&apos;S EDITORIAL CONTROL OF SUCH CONTENT IS THE SAME AS THAT OF A
+                PUBLIC LIBRARY OR NEWSSTAND. VYTA&apos;S THIRD PARTY SUPPLIERS MAY EXPRESS CERTAIN
+                OPINIONS OR PROVIDE CERTAIN INFORMATION AND OFFERS. VYTA MAKES NO WARRANTIES AS TO THE
                 COMPLETENESS, ACCURACY, TIMELINESS, OR RELIABILITY OF INFORMATION OR OFFERS SUPPLIED BY THIRD
-                PARTIES. AMINOCAN.COM DOES NOT GUARANTEE OR WARRANT THE PERFORMANCE OF ANY THIRD PARTY,
+                PARTIES. VYTA DOES NOT GUARANTEE OR WARRANT THE PERFORMANCE OF ANY THIRD PARTY,
                 INCLUDING ANY SUCH THIRD PARTY&apos;S CONFORMANCE TO ANY LAW, RULE, REGULATION OR POLICY.
               </p>
               <p className="mt-3">
-                AMINOCAN.COM DOES NOT WARRANT THAT INFORMATION, SERVICES, AND PRODUCTS CONTAINED IN THIS WEB
+                VYTA DOES NOT WARRANT THAT INFORMATION, SERVICES, AND PRODUCTS CONTAINED IN THIS WEB
                 SITE WILL SATISFY YOUR REQUIREMENTS OR THAT THEY ARE ERROR OR DEFECT-FREE. BEFORE USING ANY
                 PRODUCT YOU SHOULD CONFIRM ANY INFORMATION OF IMPORTANCE TO YOU ON THE PRODUCT PACKAGING. YOU
                 ASSUME RESPONSIBILITY FOR THE ACCURACY, APPROPRIATENESS AND LEGALITY OF ANY INFORMATION YOU
-                SUPPLY AMINOCAN.COM.
+                SUPPLY VYTA.
               </p>
               <p className="mt-3">
                 AS PARTIAL CONSIDERATION FOR YOUR ACCESS TO THIS WEB SITE AND USE OF ITS CONTENT, YOU AGREE
-                THAT AMINOCAN.COM IS NOT LIABLE TO YOU IN ANY MANNER WHATSOEVER FOR DECISIONS YOU MAY MAKE OR
+                THAT VYTA IS NOT LIABLE TO YOU IN ANY MANNER WHATSOEVER FOR DECISIONS YOU MAY MAKE OR
                 YOUR ACTIONS OR NON-ACTIONS IN RELIANCE UPON THE CONTENT. YOU ALSO AGREE THAT THE AGGREGATE
-                LIABILITY OF AMINOCAN.COM ARISING FROM OR RELATED TO YOUR USE AND ACCESS REGARDLESS OF THE FORM
+                LIABILITY OF VYTA ARISING FROM OR RELATED TO YOUR USE AND ACCESS REGARDLESS OF THE FORM
                 OF ACTION OR CLAIM (FOR EXAMPLE, CONTRACT, WARRANTY, TORT, NEGLIGENCE, STRICT LIABILITY,
                 PROFESSIONAL MALPRACTICE, FRAUD, OR OTHER BASES FOR CLAIMS), IS LIMITED TO THE PURCHASE PRICE
-                OF ANY ITEMS YOU PURCHASED FROM AMINOCAN.COM IN THE APPLICABLE TRANSACTION. AMINOCAN.COM SHALL
+                OF ANY ITEMS YOU PURCHASED FROM VYTA IN THE APPLICABLE TRANSACTION. VYTA SHALL
                 NOT IN ANY CASE BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR
-                PUNITIVE DAMAGES EVEN IF AMINOCAN.COM HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+                PUNITIVE DAMAGES EVEN IF VYTA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
                 THIS IS A COMPREHENSIVE LIMITATION OF LIABILITY THAT APPLIES TO ALL LOSSES AND DAMAGES OF ANY
                 KIND. IF YOU ARE DISSATISFIED WITH THIS WEB SITE OR ITS CONTENT (INCLUDING TERMS OF USE), YOUR
                 SOLE EXCLUSIVE REMEDY IS TO DISCONTINUE USING THIS WEB SITE.
@@ -276,9 +276,9 @@ export default function TermsPage() {
                   </li>
                 </ul>
                 <p>
-                  Aminocan reserves the right to limit and/or deny sales of products to any unqualified
+                  VYTA reserves the right to limit and/or deny sales of products to any unqualified
                   individuals. All customers MUST be at least 19 years of age to purchase our products. IN NO
-                  CIRCUMSTANCE SHALL Aminocan BE LIABLE FOR INCIDENTAL OR CONSEQUENTIAL DAMAGES, WHETHER
+                  CIRCUMSTANCE SHALL VYTA BE LIABLE FOR INCIDENTAL OR CONSEQUENTIAL DAMAGES, WHETHER
                   PURCHASER&apos;S CLAIM IN CONTRACT, NEGLIGENCE, STRICT LIABILITY OR OTHERWISE. IN DIRECT
                   CONSIDERATION OF APPROVING THE SALE OF ANY PRODUCT TO THE PURCHASER, THE PURCHASER AGREES TO
                   INDEMNIFY AND HOLD US HARMLESS FROM ALL CLAIMS, EXPENSES, LOSSES AND LIABILITY OF ANY TYPE
@@ -293,17 +293,17 @@ export default function TermsPage() {
               <h2 className="text-base font-bold text-ink mb-3 uppercase tracking-wide">Product Use</h2>
               <div className="space-y-3">
                 <p>
-                  Aminocan products are intended for laboratory IN-VITRO RESEARCH PURPOSES ONLY — NOT FOR
+                  VYTA products are intended for laboratory IN-VITRO RESEARCH PURPOSES ONLY — NOT FOR
                   HUMAN or ANIMAL USE or CONSUMPTION of any kind and are not to be used for any other purposes,
                   including but not limited to food and/or drugs, medical devices, vitro diagnostic purpose, or
                   for commercial purposes. The purchaser agrees that the products have not been sterilized or
-                  tested by Aminocan for safety and efficacy in food, drug, medical device, cosmetic,
+                  tested by VYTA for safety and efficacy in food, drug, medical device, cosmetic,
                   commercial or any other use.
                 </p>
                 <p>
-                  The purchaser expressly represents and warrants to Aminocan that the purchaser will properly
-                  test, use, manufacture and market any products purchased from Aminocan and/or materials
-                  produced with products purchased from Aminocan in accordance with the practices of a reliable
+                  The purchaser expressly represents and warrants to VYTA that the purchaser will properly
+                  test, use, manufacture and market any products purchased from VYTA and/or materials
+                  produced with products purchased from VYTA in accordance with the practices of a reliable
                   person who is experienced in the field and in strict compliance with all applicable laws and
                   regulations, now and hereinafter enacted.
                 </p>
@@ -314,10 +314,10 @@ export default function TermsPage() {
                   introduced into interstate commerce.
                 </p>
                 <p>
-                  The purchaser realizes and agrees that, since Aminocan products are, unless otherwise stated,
+                  The purchaser realizes and agrees that, since VYTA products are, unless otherwise stated,
                   intended solely for in-vitro research purposes, they may not be on the Toxic Substances
                   Control Act (TSCA) inventory listing. The purchaser assumes responsibility to assure that the
-                  products purchased from Aminocan are approved for use under TSCA, if applicable.
+                  products purchased from VYTA are approved for use under TSCA, if applicable.
                 </p>
                 <p>
                   Purchaser has the responsibility to verify the hazards and to conduct any further research
@@ -325,7 +325,7 @@ export default function TermsPage() {
                   products purchased from aminocan.com shall, unless otherwise stated, be considered to be
                   foods, drugs, medical devices or cosmetics. ALL products and services offered are for
                   RESEARCH purposes ONLY. Under NO circumstances shall/should ANY of these materials be used
-                  for therapeutic or diagnostic purposes. Aminocan is NOT liable for ANY damages that may be
+                  for therapeutic or diagnostic purposes. VYTA is NOT liable for ANY damages that may be
                   caused by negligence, abuse, or ANY other unforeseen matter.
                 </p>
                 <p>
@@ -358,10 +358,10 @@ export default function TermsPage() {
                   </li>
                 </ul>
                 <p>
-                  In no event shall Aminocan be liable for special, incidental or consequential damages,
+                  In no event shall VYTA be liable for special, incidental or consequential damages,
                   whether purchasers claim in contract, strict liability or otherwise. In consideration of the
                   sale of products to purchaser, which sales we would not otherwise make, purchaser agrees to
-                  indemnify and hold Aminocan harmless from all claims, expenses, losses and liability of any
+                  indemnify and hold VYTA harmless from all claims, expenses, losses and liability of any
                   nature whatsoever arising out of purchasers handling and/or use of purchased product.
                 </p>
                 <p>
@@ -372,7 +372,7 @@ export default function TermsPage() {
                   products contained/sold herein.
                 </p>
                 <p>
-                  Aminocan assumes that the researcher is familiar with the products being purchased. We do not
+                  VYTA assumes that the researcher is familiar with the products being purchased. We do not
                   provide any type of guidelines or suggestions regarding reconstitution of peptides or their
                   application to your research. Please familiarize yourself with all products and their
                   research purposes prior to purchasing.
@@ -380,18 +380,18 @@ export default function TermsPage() {
                 <p>
                   The purchaser warrants that they are affiliated with a laboratory, institution, university or
                   other research based facility which warrants the purchase and use of products sold by
-                  Aminocan, for research purposes only. Furthermore, should anyone purchase from Aminocan that
+                  VYTA, for research purposes only. Furthermore, should anyone purchase from VYTA that
                   does not have said affiliations, they will be committing a fraudulent act for which they
                   could be held liable.
                 </p>
                 <p>
-                  Aminocan reserves the right to perform due diligence screening upon the information provided
-                  to check for accuracy. Aminocan, at its sole discretion, may require further verification of
+                  VYTA reserves the right to perform due diligence screening upon the information provided
+                  to check for accuracy. VYTA, at its sole discretion, may require further verification of
                   affiliation prior to order fulfillment.
                 </p>
                 <p>
                   Under NO circumstances shall/should ANY of these materials be used for recreational purposes
-                  nor human consumption of any kind. Aminocan is NOT liable for ANY damages that may be caused
+                  nor human consumption of any kind. VYTA is NOT liable for ANY damages that may be caused
                   by negligence, abuse, or ANY other unforeseen matter.
                 </p>
               </div>
@@ -403,11 +403,11 @@ export default function TermsPage() {
                 Governing Law and Jurisdiction
               </h2>
               <p>
-                This Web Site (excluding linked sites, if any) is administered and controlled by Aminocan and
+                This Web Site (excluding linked sites, if any) is administered and controlled by VYTA and
                 its affiliates, subsidiaries, officers, directors, employees or agents. You agree that this
                 Terms and Conditions of Use Agreement and this Web Site will be governed by and construed in
                 accordance with applicable law without giving effect to any principles of conflicts of laws. You
-                access this Web Site and/or associated services of Aminocan at your own risk, and remain
+                access this Web Site and/or associated services of VYTA at your own risk, and remain
                 responsible for complying with the laws of the jurisdiction within which you are located.
               </p>
             </section>
@@ -418,7 +418,7 @@ export default function TermsPage() {
                 Pricing and Payments
               </h2>
               <p>
-                I authorize Aminocan to initiate a single ACH/electronic debit to my account or process payment
+                I authorize VYTA to initiate a single ACH/electronic debit to my account or process payment
                 via credit card or any of the other alternative payment methods offered at checkout in the
                 amount of my order. I agree that ACH transactions I authorize comply with all applicable law.
                 Payments made after 2pm eastern time will be applied once the payment clears our bank and
@@ -434,7 +434,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-base font-bold text-ink mb-3 uppercase tracking-wide">Termination</h2>
               <p>
-                Aminocan reserves the right to immediately terminate or suspend your purchase transaction
+                VYTA reserves the right to immediately terminate or suspend your purchase transaction
                 without prior notice or liability, for any reason, including but not limited to a breach of the
                 Terms of Service, product misuse, unauthorized usage, or for safety considerations.
               </p>
@@ -449,15 +449,15 @@ export default function TermsPage() {
             <section>
               <h2 className="text-base font-bold text-ink mb-3 uppercase tracking-wide">Force Majeure</h2>
               <p>
-                Aminocan shall not be liable for any delay or failure in performance caused by circumstances
+                VYTA shall not be liable for any delay or failure in performance caused by circumstances
                 beyond its reasonable control, including, without limitation, delays due to backorders of
-                requested products, mail delays, customs delays or lost shipments. Aminocan shall not be
+                requested products, mail delays, customs delays or lost shipments. VYTA shall not be
                 responsible to notify the Customer in the event of such delays. The Customer shall be solely
                 responsible to make other arrangements to purchase alternative products and any costs incurred
                 in connection with such purchases.
               </p>
               <p className="mt-3">
-                Aminocan assumes that the researcher is familiar with the products being purchased. We do not
+                VYTA assumes that the researcher is familiar with the products being purchased. We do not
                 provide any type of guidelines or suggestions regarding reconstitution of peptides or their
                 application to your research. Please familiarize yourself with all products and their research
                 purposes prior to purchasing.
@@ -474,7 +474,7 @@ export default function TermsPage() {
               <h2 className="text-base font-bold text-ink mb-3 uppercase tracking-wide">Contact</h2>
               <p>
                 For questions regarding these Terms &amp; Conditions, please contact us at{' '}
-                <a href="mailto:admin@aminocan.com" className="text-bronze hover:underline font-medium">
+                <a href="mailto:admin@aminocan.com" className="text-teal-dark hover:underline font-medium">
                   admin@aminocan.com
                 </a>
                 .

@@ -104,42 +104,42 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 <title>Purchase Order ${esc(po.po_number)}</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif; font-size: 13px; color: #111827; background: #fff; padding: 48px 56px; line-height: 1.5; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif; font-size: 13px; color: #07203A; background: #fff; padding: 48px 56px; line-height: 1.5; }
   .page { max-width: 820px; margin: 0 auto; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
-  .brand-name { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #111827; }
-  .brand-name span { color: #b8860b; }
-  .brand-tagline { font-size: 11px; color: #6b7280; margin-top: 4px; }
+  .brand-name { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #07203A; }
+  .brand-name span { color: #438b9e; }
+  .brand-tagline { font-size: 11px; color: #56707f; margin-top: 4px; }
   .po-meta { text-align: right; }
-  .po-title { font-size: 28px; font-weight: 700; color: #111827; }
-  .po-number { font-size: 13px; color: #6b7280; margin-top: 4px; font-family: monospace; }
+  .po-title { font-size: 28px; font-weight: 700; color: #07203A; }
+  .po-number { font-size: 13px; color: #56707f; margin-top: 4px; font-family: monospace; }
   .status-pill { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: ${meta.pdfFg}; background: ${meta.pdfBg}; }
-  .divider { border: none; border-top: 2px solid #f3f4f6; margin: 32px 0; }
+  .divider { border: none; border-top: 2px solid #edf3f5; margin: 32px 0; }
   .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; margin-bottom: 40px; }
-  .info-block h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; margin-bottom: 8px; font-weight: 600; }
-  .info-block p { color: #111827; line-height: 1.6; }
+  .info-block h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #6e8898; margin-bottom: 8px; font-weight: 600; }
+  .info-block p { color: #07203A; line-height: 1.6; }
   .info-block .strong { font-weight: 600; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
-  thead tr { background: #f9fafb; }
-  th { padding: 10px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
+  thead tr { background: #f7fafb; }
+  th { padding: 10px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #56707f; font-weight: 600; border-bottom: 2px solid #dce7eb; }
   th.center { text-align: center; } th.right { text-align: right; }
-  .td { padding: 11px 12px; border-bottom: 1px solid #f3f4f6; color: #111827; vertical-align: top; }
-  .td.center { text-align: center; color: #6b7280; }
+  .td { padding: 11px 12px; border-bottom: 1px solid #edf3f5; color: #07203A; vertical-align: top; }
+  .td.center { text-align: center; color: #56707f; }
   .td.right { text-align: right; font-variant-numeric: tabular-nums; }
-  .td.muted { color: #6b7280; }
+  .td.muted { color: #56707f; }
   .chip { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; background: #eef2ff; color: #4338ca; vertical-align: 1px; }
-  .footnote { margin: -20px 0 24px; font-size: 10px; color: #9ca3af; font-style: italic; }
+  .footnote { margin: -20px 0 24px; font-size: 10px; color: #6e8898; font-style: italic; }
   tbody tr:last-child .td { border-bottom: none; }
   .totals-wrap { display: flex; justify-content: flex-end; }
   .totals { width: 280px; }
   .totals-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
-  .totals-row .label { color: #6b7280; }
+  .totals-row .label { color: #56707f; }
   .totals-row .val { font-variant-numeric: tabular-nums; }
-  .totals-row.grand { border-top: 2px solid #111827; margin-top: 6px; padding-top: 10px; font-weight: 700; font-size: 16px; }
-  .notes { margin-top: 40px; background: #f9fafb; border-radius: 8px; padding: 16px 20px; }
-  .notes h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; margin-bottom: 8px; font-weight: 600; }
-  .notes p { color: #374151; font-size: 12px; line-height: 1.7; white-space: pre-wrap; }
-  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; }
+  .totals-row.grand { border-top: 2px solid #07203A; margin-top: 6px; padding-top: 10px; font-weight: 700; font-size: 16px; }
+  .notes { margin-top: 40px; background: #f7fafb; border-radius: 8px; padding: 16px 20px; }
+  .notes h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #6e8898; margin-bottom: 8px; font-weight: 600; }
+  .notes p { color: #0E3F5F; font-size: 12px; line-height: 1.7; white-space: pre-wrap; }
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid #dce7eb; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #6e8898; }
   @media print { body { padding: 24px 32px; } @page { margin: 0; size: A4; } }
 </style>
 </head>

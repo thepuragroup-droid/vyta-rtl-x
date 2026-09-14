@@ -181,7 +181,7 @@ export default function PriceListImportModal({ customers, onClose, onDone }: Pro
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-line flex-shrink-0">
           <h2 className="font-semibold text-ink flex items-center gap-2">
-            <Upload className="w-4 h-4 text-bronze" /> Import price list (CSV)
+            <Upload className="w-4 h-4 text-teal-dark" /> Import price list (CSV)
           </h2>
           <button onClick={onClose} className="text-ink-muted hover:text-ink"><X className="w-5 h-5" /></button>
         </div>
@@ -207,7 +207,7 @@ export default function PriceListImportModal({ customers, onClose, onDone }: Pro
           <button
             onClick={downloadTemplate}
             disabled={busy === 'template'}
-            className="inline-flex items-center gap-2 text-sm text-bronze hover:text-bronze/80 disabled:opacity-40"
+            className="inline-flex items-center gap-2 text-sm text-teal-dark hover:text-teal-dark/80 disabled:opacity-40"
           >
             {busy === 'template' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             Download template (CSV)
@@ -232,7 +232,7 @@ export default function PriceListImportModal({ customers, onClose, onDone }: Pro
               disabled={busy === 'validate'}
               className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-line rounded-lg text-sm text-ink hover:bg-surface/80 disabled:opacity-40"
             >
-              {busy === 'validate' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 text-bronze" />}
+              {busy === 'validate' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 text-teal-dark" />}
               Validate &amp; Preview
             </button>
           )}

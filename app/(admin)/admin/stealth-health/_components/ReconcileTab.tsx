@@ -165,7 +165,7 @@ export default function ReconcileTab({ isAdmin, termsCurrency }: {
           {isAdmin && (
             <button
               onClick={pull} disabled={pulling}
-              className="inline-flex items-center gap-2 rounded-lg bg-bronze px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-teal-dark px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
               {pulling
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Pulling…</>

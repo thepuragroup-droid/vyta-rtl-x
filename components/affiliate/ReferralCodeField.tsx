@@ -112,7 +112,7 @@ export default function ReferralCodeField({
           maxLength={REFERRAL_CODE_MAX_LENGTH}
           placeholder="AMCSMITH10"
           onChange={(e) => onChange(normalizeReferralCode(e.target.value))}
-          className="w-full px-3 py-2.5 pr-10 bg-surface border border-line rounded-lg text-sm font-mono uppercase tracking-wider text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50"
+          className="w-full px-3 py-2.5 pr-10 bg-surface border border-line rounded-lg text-sm font-mono uppercase tracking-wider text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           {availability.kind === 'checking' && (
@@ -129,9 +129,9 @@ export default function ReferralCodeField({
             type="button"
             disabled={disabled}
             onClick={() => onChange(normalizeReferralCode(suggestion!))}
-            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-bronze/40 hover:text-ink disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-teal/40 hover:text-ink disabled:opacity-50"
           >
-            <Sparkles className="w-3 h-3 text-bronze" />
+            <Sparkles className="w-3 h-3 text-teal-dark" />
             Use {suggestion}
           </button>
         )}
@@ -139,9 +139,9 @@ export default function ReferralCodeField({
           type="button"
           disabled={disabled}
           onClick={() => onChange(generateReferralCode())}
-          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-bronze/40 hover:text-ink disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-teal/40 hover:text-ink disabled:opacity-50"
         >
-          <Shuffle className="w-3 h-3 text-bronze" />
+          <Shuffle className="w-3 h-3 text-teal-dark" />
           Random code
         </button>
       </div>

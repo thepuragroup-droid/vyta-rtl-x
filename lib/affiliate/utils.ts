@@ -1,6 +1,6 @@
 /**
  * Affiliate System Utility Functions
- * Aminocan Peptides - 10% Commission Program
+ * VYTA Biosciences - 10% Commission Program
  *
  * THIS FILE IS THE SINGLE SOURCE OF TRUTH FOR WHAT A REFERRAL CODE LOOKS LIKE.
  * Middleware, the checkout field, the affiliate request form, the admin editor
@@ -17,7 +17,7 @@ export const REFERRAL_CODE_MAX_LENGTH = 20;
 export const REFERRAL_CODE_REGEX = /^[A-Z0-9]{4,20}$/;
 
 /**
- * House prefix for a suggested vanity code. Aminocan's is `AMC` — the sibling
+ * House prefix for a suggested vanity code. VYTA's is `AMC` — the sibling
  * site this was ported from uses its own. Change it here and every suggestion
  * across the product follows.
  */

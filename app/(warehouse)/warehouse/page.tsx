@@ -226,14 +226,14 @@ export default function WarehousePage() {
               onClick={() => switchTab(t.key)}
               className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition ${
                 activeTab
-                  ? 'border-bronze text-ink'
+                  ? 'border-teal text-ink'
                   : 'border-transparent text-ink-muted hover:text-ink'
               }`}
             >
               {t.label}
               <span
                 className={`text-[11px] rounded-full px-1.5 py-0.5 ${
-                  activeTab ? 'bg-bronze text-white' : 'bg-surface text-ink-muted'
+                  activeTab ? 'bg-teal-dark text-white' : 'bg-surface text-ink-muted'
                 }`}
               >
                 {count}
@@ -286,7 +286,7 @@ export default function WarehousePage() {
                         selectedInView.length > 0 && !allSelected;
                   }}
                   onChange={toggleSelectAll}
-                  className="h-4 w-4 accent-bronze"
+                  className="h-4 w-4 accent-teal"
                 />
                 {selectedInView.length > 0
                   ? `${selectedInView.length} selected`
@@ -305,7 +305,7 @@ export default function WarehousePage() {
           )}
 
           {selectedInView.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-md border border-bronze/40 bg-bronze/5 px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-md border border-teal/40 bg-teal/5 px-3 py-2">
               <span className="text-xs text-ink">
                 {selectedInView.length} order{selectedInView.length === 1 ? '' : 's'} selected
               </span>
@@ -314,7 +314,7 @@ export default function WarehousePage() {
                   type="button"
                   onClick={() => bulkSetRemoved(false)}
                   disabled={bulkBusy}
-                  className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-line bg-white text-sm text-ink px-3 py-1.5 hover:border-bronze disabled:opacity-60"
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-line bg-white text-sm text-ink px-3 py-1.5 hover:border-teal disabled:opacity-60"
                 >
                   <RotateCcw className="w-4 h-4" />
                   {bulkBusy ? 'Restoring…' : 'Restore to queue'}
@@ -433,8 +433,8 @@ function ChipGroup<T extends string>({
           onClick={() => onChange(o.key)}
           className={`text-xs px-2.5 py-1 rounded-full border ${
             value === o.key
-              ? 'border-bronze bg-bronze text-white'
-              : 'border-line text-ink-muted hover:border-bronze'
+              ? 'border-teal bg-teal-dark text-white'
+              : 'border-line text-ink-muted hover:border-teal'
           }`}
         >
           {o.label}

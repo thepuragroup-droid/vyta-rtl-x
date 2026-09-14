@@ -107,10 +107,10 @@ export async function getAttributionSummary(
   }
 }
 
-/** Bar colour per earnings group. Paid carries the bronze accent — it is the
+/** Bar colour per earnings group. Paid carries the teal accent — it is the
  *  one with a budget behind it, and the eye should land there first. */
 export const EARNINGS_TINTS: Record<EarningsGroupKey, { bar: string; text: string; dot: string }> = {
-  paid:         { bar: 'bg-bronze',      text: 'text-bronze',      dot: 'bg-bronze' },
+  paid:         { bar: 'bg-teal',      text: 'text-teal-dark',      dot: 'bg-teal' },
   affiliate:    { bar: 'bg-blue-500',    text: 'text-blue-700',    dot: 'bg-blue-500' },
   organic:      { bar: 'bg-emerald-500', text: 'text-emerald-700', dot: 'bg-emerald-500' },
   direct:       { bar: 'bg-ink/60',      text: 'text-ink',         dot: 'bg-ink/60' },

@@ -170,7 +170,7 @@ export default function AddressAutocomplete({
           placeholder={placeholder}
           autoComplete="off"
           disabled={disabled}
-          className="w-full pl-10 pr-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
+          className="w-full pl-10 pr-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
         />
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-ink-muted">
           {loading ? (
@@ -209,7 +209,7 @@ export default function AddressAutocomplete({
                 }}
                 onMouseEnter={() => setActive(i)}
                 className={`px-3 py-2 text-sm cursor-pointer ${
-                  active === i ? 'bg-bronze/10 text-ink' : 'text-ink'
+                  active === i ? 'bg-teal/10 text-ink' : 'text-ink'
                 }`}
               >
                 <div className="font-medium">{s.address}</div>

@@ -86,8 +86,8 @@ export function renderInvoiceHtml({
   const salesPersonName = sp ? `${sp.first_name} ${sp.last_name}` : '';
 
   const statusColor: Record<string, string> = {
-    draft: '#6b7280',
-    sent: '#3b82f6',
+    draft: '#56707f',
+    sent: '#438b9e',
     paid: '#10b981',
     partial: '#f59e0b',
     overdue: '#ef4444',
@@ -141,43 +141,43 @@ export function renderInvoiceHtml({
 <title>Invoice ${invoice.invoice_number}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1a1a1a; background: #fff; padding: 40px; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #07203a; background: #fff; padding: 40px; }
   .page { max-width: 800px; margin: 0 auto; }
   header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
   .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-  .logo span { color: #b8860b; }
+  .logo span { color: #438b9e; }
   .invoice-meta { text-align: right; }
-  .invoice-meta h2 { font-size: 24px; font-weight: 700; color: #1a1a1a; }
-  .invoice-meta .number { font-size: 14px; color: #555; margin-top: 4px; }
-  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; background: ${statusColor[invoice.status] ?? '#6b7280'}; }
+  .invoice-meta h2 { font-size: 24px; font-weight: 700; color: #07203a; }
+  .invoice-meta .number { font-size: 14px; color: #56707F; margin-top: 4px; }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; background: ${statusColor[invoice.status] ?? '#56707f'}; }
   .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 32px; }
-  .party h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 8px; }
+  .party h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #6E8898; margin-bottom: 8px; }
   .party p { line-height: 1.6; }
-  .dates { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; background: #f8f8f6; border-radius: 8px; padding: 16px; margin-bottom: 32px; }
-  .date-item h4 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 4px; }
+  .dates { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; background: #f7fafb; border-radius: 8px; padding: 16px; margin-bottom: 32px; }
+  .date-item h4 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #6E8898; margin-bottom: 4px; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-  thead th { border-bottom: 2px solid #e5e5e5; padding: 10px 8px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #888; }
-  tbody td { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  thead th { border-bottom: 2px solid #dce7eb; padding: 10px 8px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #6E8898; }
+  tbody td { padding: 10px 8px; border-bottom: 1px solid #edf3f5; vertical-align: top; }
   tbody tr:last-child td { border-bottom: none; }
   .totals { display: flex; justify-content: flex-end; }
   .totals-inner { width: 260px; }
   .totals-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
-  .totals-row.total { border-top: 2px solid #1a1a1a; padding-top: 10px; margin-top: 5px; font-weight: 700; font-size: 15px; }
-  .totals-row.due { color: #b8860b; font-weight: 700; }
+  .totals-row.total { border-top: 2px solid #07203a; padding-top: 10px; margin-top: 5px; font-weight: 700; font-size: 15px; }
+  .totals-row.due { color: #438b9e; font-weight: 700; }
   .payments-section { margin-top: 32px; }
-  .payments-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 12px; }
-  .pmt-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
-  footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e5e5; font-size: 11px; color: #888; text-align: center; }
+  .payments-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #6E8898; margin-bottom: 12px; }
+  .pmt-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #edf3f5; font-size: 12px; }
+  footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #dce7eb; font-size: 11px; color: #6E8898; text-align: center; }
   .pt-chip { display:inline-block; margin-left:6px; padding:1px 6px; border-radius:999px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; vertical-align:1px; }
-  .pt-box { background:#eef2f7; color:#334155; }
-  .pt-vial { background:#f5eee0; color:#9c8b5a; }
-  .sku { margin-top:3px; font-size:10px; color:#999; letter-spacing:0.04em; }
-  .origin { margin-top:8px; font-size:10px; color:#777; text-transform:uppercase; letter-spacing:0.08em; }
-  .source-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; border:1px solid #ece7dc; background:#fcfaf5; border-radius:8px; padding:14px 16px; margin-bottom:32px; }
-  .source-strip h4 { font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:#9c8b5a; margin-bottom:4px; }
+  .pt-box { background:#edf3f5; color:#0E3F5F; }
+  .pt-vial { background:#e1eff1; color:#438b9e; }
+  .sku { margin-top:3px; font-size:10px; color:#6E8898; letter-spacing:0.04em; }
+  .origin { margin-top:8px; font-size:10px; color:#6E8898; text-transform:uppercase; letter-spacing:0.08em; }
+  .source-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; border:1px solid #e1eff1; background:#f7fafb; border-radius:8px; padding:14px 16px; margin-bottom:32px; }
+  .source-strip h4 { font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:#438b9e; margin-bottom:4px; }
   .source-strip p { font-size:12px; word-break:break-all; }
-  .source-title { grid-column:1 / -1; font-size:11px; font-weight:700; color:#9c8b5a; text-transform:uppercase; letter-spacing:0.08em; }
-  .party .note { margin-top:4px; font-size:10px; color:#999; }
+  .source-title { grid-column:1 / -1; font-size:11px; font-weight:700; color:#438b9e; text-transform:uppercase; letter-spacing:0.08em; }
+  .party .note { margin-top:4px; font-size:10px; color:#6E8898; }
   .totals-row.refund { color:#b45309; }
   @media print { body { padding: 0; } }
 </style>
@@ -187,7 +187,7 @@ export function renderInvoiceHtml({
   <header>
     <div>
       <div class="logo">AMINO<span>CAN</span></div>
-      <p style="margin-top:6px;font-size:12px;color:#555">aminocan.com<br>info@aminocan.com</p>
+      <p style="margin-top:6px;font-size:12px;color:#56707F">aminocan.com<br>info@aminocan.com</p>
     </div>
     <div class="invoice-meta">
       <h2>Invoice</h2>
@@ -291,7 +291,7 @@ export function renderInvoiceHtml({
     </div>`).join('')}
   </div>` : ''}
 
-  ${invoice.notes ? `<div style="margin-top:24px;padding:16px;background:#f8f8f6;border-radius:8px;font-size:12px"><strong>Notes:</strong> ${invoice.notes}</div>` : ''}
+  ${invoice.notes ? `<div style="margin-top:24px;padding:16px;background:#f7fafb;border-radius:8px;font-size:12px"><strong>Notes:</strong> ${invoice.notes}</div>` : ''}
 
   <footer>Thank you for your business.</footer>
 </div>

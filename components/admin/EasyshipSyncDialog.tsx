@@ -372,8 +372,8 @@ export default function EasyshipSyncDialog({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-line px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-bronze/10 p-2">
-              <RefreshCw className="h-5 w-5 text-bronze" />
+            <div className="rounded-lg bg-teal/10 p-2">
+              <RefreshCw className="h-5 w-5 text-teal-dark" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-ink">Sync Easyship shipments</h2>
@@ -455,7 +455,7 @@ export default function EasyshipSyncDialog({
                       value={date}
                       max={maxDateIso()}
                       onChange={(e) => setDate(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                      className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                     />
                   </label>
                   <p className="text-xs text-ink-muted">
@@ -591,7 +591,7 @@ export default function EasyshipSyncDialog({
                     <button
                       type="button"
                       onClick={startManual}
-                      className="cursor-pointer text-xs font-medium text-bronze hover:underline"
+                      className="cursor-pointer text-xs font-medium text-teal-dark hover:underline"
                     >
                       Hand-match these instead →
                     </button>
@@ -678,7 +678,7 @@ export default function EasyshipSyncDialog({
                           value={invSearchInput}
                           onChange={(e) => setInvSearchInput(e.target.value)}
                           placeholder="Invoice #, customer, email"
-                          className="w-full rounded-lg border border-line bg-white py-1.5 pl-7 pr-2 text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                          className="w-full rounded-lg border border-line bg-white py-1.5 pl-7 pr-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                         />
                       </div>
                     </div>
@@ -802,7 +802,7 @@ export default function EasyshipSyncDialog({
                         value={shipSearch}
                         onChange={(e) => setShipSearch(e.target.value)}
                         placeholder="Recipient, tracking #, shipment id"
-                        className="w-full rounded-lg border border-line bg-white py-1.5 pl-7 pr-2 text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                        className="w-full rounded-lg border border-line bg-white py-1.5 pl-7 pr-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                       />
                     </div>
                     <div className="mt-2 text-[11px] text-ink-muted">

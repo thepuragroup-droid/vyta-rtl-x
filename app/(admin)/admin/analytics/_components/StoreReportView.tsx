@@ -257,7 +257,7 @@ function Segmented<T extends string>({ value, options, onChange, ariaLabel }: {
           <button key={o.id} type="button" onClick={() => onChange(o.id)}
             aria-pressed={active}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] text-xs font-medium transition-colors ${
-              active ? 'bg-bronze text-white' : 'text-ink-muted hover:text-ink hover:bg-surface'
+              active ? 'bg-teal-dark text-white' : 'text-ink-muted hover:text-ink hover:bg-surface'
             }`}>
             {Icon && <Icon className="w-3.5 h-3.5" aria-hidden />} {o.label}
           </button>
@@ -413,7 +413,7 @@ export function StoreReportView({ view }: { view: StoreView }) {
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <p className="text-sm text-ink-muted">Could not load the store report.</p>
         <button onClick={load}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90">
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90">
           <RefreshCw className="w-4 h-4" aria-hidden /> Try again
         </button>
       </div>
@@ -439,7 +439,7 @@ export function StoreReportView({ view }: { view: StoreView }) {
               aria-pressed={range.preset === p.id}
               className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                 range.preset === p.id
-                  ? 'bg-bronze text-white border-bronze'
+                  ? 'bg-teal-dark text-white border-teal'
                   : 'bg-white text-ink-muted border-line hover:bg-surface hover:text-ink'
               }`}>
               {p.label}
@@ -454,7 +454,7 @@ export function StoreReportView({ view }: { view: StoreView }) {
             onChange={(v) => v && setRange({ preset: 'custom', from: range.from, to: v })} />
           <label className="inline-flex items-center gap-1.5 text-xs text-ink-muted cursor-pointer select-none">
             <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)}
-              className="accent-bronze" />
+              className="accent-teal" />
             Compare to previous period
           </label>
           <button onClick={load} disabled={refreshing}
@@ -880,7 +880,7 @@ function CheckoutOutcomes({ report }: { report: StoreReport }) {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <h3 className="text-sm font-semibold text-ink flex items-center gap-1.5">
-            <Timer className="w-4 h-4 text-bronze" aria-hidden /> Checkout outcomes
+            <Timer className="w-4 h-4 text-teal-dark" aria-hidden /> Checkout outcomes
           </h3>
           <p className="text-[11px] text-ink-muted mt-0.5">
             {fmtInt(placed)} order{placed === 1 ? '' : 's'} placed ·{' '}
@@ -896,7 +896,7 @@ function CheckoutOutcomes({ report }: { report: StoreReport }) {
           <SplitBar segments={segments} />
 
           {recoverable > 0 && (
-            <div className="mt-4 rounded-lg border border-bronze/30 bg-bronze/5 p-3">
+            <div className="mt-4 rounded-lg border border-teal/30 bg-teal/5 p-3">
               <p className="text-xs text-ink">
                 <span className="font-semibold">
                   {fmtInt(recoverable)} checkout{recoverable === 1 ? '' : 's'} never paid
@@ -1074,7 +1074,7 @@ function ProductTable({ rows, currency, sortKey, expanded, onToggle }: {
                           <SplitBar segments={[
                             { label: 'Single vials', value: r.units.vial, color: VIZ.sales },
                             { label: 'Packs / cases', value: r.units.pack, color: VIZ.orders },
-                            { label: 'Unit not recorded', value: r.units.other, color: '#C9CCD1' },
+                            { label: 'Unit not recorded', value: r.units.other, color: '#DCE7EB' },
                           ]} />
                         </div>
                         <DetailGrid rows={[

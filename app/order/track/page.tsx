@@ -14,7 +14,6 @@ import {
   Check,
   AlertCircle,
   MapPin,
-  Beaker,
   ExternalLink,
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api-fetch';
@@ -135,10 +134,8 @@ function OrderTrackContent() {
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <Link href="/" className="inline-flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-ink rounded-xl flex items-center justify-center">
-              <Beaker className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-ink">Aminocan</span>
+            <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="w-10 h-10 object-contain" />
+            <span className="text-lg font-bold text-ink">VYTA</span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink mb-1 sm:mb-2">Track Your Order</h1>
           <p className="text-ink-muted text-xs sm:text-sm">Enter your order number to check status</p>
@@ -156,7 +153,7 @@ function OrderTrackContent() {
                 onChange={(e) => setOrderInput(e.target.value.toUpperCase())}
                 placeholder="AMC-XXXXXXXX"
                 autoComplete="off"
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-bronze/40 font-mono uppercase text-xs sm:text-sm"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-teal/40 font-mono uppercase text-xs sm:text-sm"
               />
             </div>
             <div>
@@ -169,7 +166,7 @@ function OrderTrackContent() {
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="you@example.com"
                   autoComplete="email"
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-bronze/40 text-xs sm:text-sm"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-teal/40 text-xs sm:text-sm"
                 />
                 <button
                   type="submit"
@@ -327,7 +324,7 @@ function OrderTrackContent() {
                         href={`${explorerUrls[orderData.crypto ?? ''] || ''}${orderData.payment_tx_hash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-shrink-0 p-1 text-bronze hover:text-ink transition-colors"
+                        className="flex-shrink-0 p-1 text-teal-dark hover:text-ink transition-colors"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
@@ -381,7 +378,7 @@ function OrderTrackContent() {
               </p>
               <a
                 href="mailto:support@aminocan.com"
-                className="text-bronze hover:text-ink font-medium text-xs sm:text-sm"
+                className="text-teal-dark hover:text-ink font-medium text-xs sm:text-sm"
               >
                 Contact Support &rarr;
               </a>
@@ -391,7 +388,7 @@ function OrderTrackContent() {
 
         {/* Back Link */}
         <div className="mt-6 sm:mt-8 text-center">
-          <Link href="/products" className="text-ink-muted hover:text-bronze transition-colors text-xs sm:text-sm">
+          <Link href="/products" className="text-ink-muted hover:text-teal-dark transition-colors text-xs sm:text-sm">
             &larr; Continue Shopping
           </Link>
         </div>

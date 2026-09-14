@@ -17,8 +17,8 @@ const TILE_ATTRIBUTION = MAPBOX
   ? '© Mapbox © OpenStreetMap'
   : '© OpenStreetMap contributors';
 
-const INK = '#1A1A1A';
-const BRONZE = '#9C8B5A';
+const INK = '#07203A';
+const BRONZE = '#438B9E';
 const EMERALD = '#059669';
 
 async function geocode(queries: string[]): Promise<Record<string, LatLng | null>> {

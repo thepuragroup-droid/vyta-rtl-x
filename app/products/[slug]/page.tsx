@@ -219,7 +219,7 @@ export default function ProductDetailPage() {
               </button>
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 text-bronze hover:text-bronze-dark font-medium"
+                className="inline-flex items-center gap-2 text-teal-dark hover:text-teal-dark font-medium"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Products</span>
@@ -242,7 +242,7 @@ export default function ProductDetailPage() {
             <p className="text-ink-muted mb-8 text-sm sm:text-base">The product you&apos;re looking for doesn&apos;t exist.</p>
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 text-bronze hover:text-bronze-dark font-medium"
+              className="inline-flex items-center gap-2 text-teal-dark hover:text-teal-dark font-medium"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Products</span>
@@ -273,11 +273,11 @@ export default function ProductDetailPage() {
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="molecular-grid" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-                <circle cx="30" cy="30" r="1.5" fill="#1A1A1A" />
-                <circle cx="0" cy="0" r="1" fill="#1A1A1A" />
-                <circle cx="60" cy="0" r="1" fill="#1A1A1A" />
-                <circle cx="0" cy="60" r="1" fill="#1A1A1A" />
-                <circle cx="60" cy="60" r="1" fill="#1A1A1A" />
+                <circle cx="30" cy="30" r="1.5" fill="#07203A" />
+                <circle cx="0" cy="0" r="1" fill="#07203A" />
+                <circle cx="60" cy="0" r="1" fill="#07203A" />
+                <circle cx="0" cy="60" r="1" fill="#07203A" />
+                <circle cx="60" cy="60" r="1" fill="#07203A" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#molecular-grid)" />
@@ -300,7 +300,7 @@ export default function ProductDetailPage() {
               <span className="text-[10px] sm:text-xs font-medium text-ink bg-surface px-2 sm:px-3 py-1 rounded-full border border-line">
                 {product.category}
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold text-bronze bg-bronze-50 px-2 sm:px-3 py-1 rounded-full border border-bronze/20">
+              <span className="text-[10px] sm:text-xs font-semibold text-teal-dark bg-teal-50 px-2 sm:px-3 py-1 rounded-full border border-teal/20">
                 {product.purity} Purity
               </span>
             </div>
@@ -363,7 +363,7 @@ export default function ProductDetailPage() {
               <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
                 <div className="bg-surface rounded-lg sm:rounded-xl p-3 sm:p-4 text-center border border-line">
                   <div className="text-[9px] sm:text-[10px] text-ink-muted uppercase tracking-wider mb-1">Purity</div>
-                  <div className="text-bronze font-bold text-sm sm:text-base">{product.purity}</div>
+                  <div className="text-teal-dark font-bold text-sm sm:text-base">{product.purity}</div>
                 </div>
                 <div className="bg-surface rounded-lg sm:rounded-xl p-3 sm:p-4 text-center border border-line">
                   <div className="text-[9px] sm:text-[10px] text-ink-muted uppercase tracking-wider mb-1">Strength</div>
@@ -379,7 +379,7 @@ export default function ProductDetailPage() {
               {product.coa_url && product.coa_url.length > 0 && (
                 <button
                   onClick={() => { setActiveCoa(product.coa_url![0]); setShowCoaModal(true); }}
-                  className="w-full mb-4 sm:mb-6 flex items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 rounded-xl bg-bronze text-white font-semibold hover:bg-bronze/90 active:scale-[0.98] transition-all shadow-md shadow-bronze/30 group"
+                  className="w-full mb-4 sm:mb-6 flex items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-4 rounded-xl bg-teal-dark text-white font-semibold hover:bg-teal/90 active:scale-[0.98] transition-all shadow-md shadow-teal/30 group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 bg-white/20 rounded-lg p-1.5">
@@ -404,7 +404,7 @@ export default function ProductDetailPage() {
                   <ul className="space-y-1.5 sm:space-y-2">
                     {product.benefits.split(',').map((benefit, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <Check className="w-4 h-4 text-bronze flex-shrink-0 mt-0.5" />
+                        <Check className="w-4 h-4 text-teal-dark flex-shrink-0 mt-0.5" />
                         <span className="text-ink-muted text-xs sm:text-sm">{benefit.trim()}</span>
                       </li>
                     ))}
@@ -480,19 +480,19 @@ export default function ProductDetailPage() {
                 <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-line">
                   <div className="flex flex-col items-center text-center">
                     <div className="w-8 sm:w-10 h-8 sm:h-10 bg-surface rounded-lg sm:rounded-xl flex items-center justify-center mb-1.5 sm:mb-2 border border-line">
-                      <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+                      <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
                     </div>
                     <span className="text-[10px] sm:text-xs text-ink-muted">Lab Tested</span>
                   </div>
                   <div className="flex flex-col items-center text-center">
                     <div className="w-8 sm:w-10 h-8 sm:h-10 bg-surface rounded-lg sm:rounded-xl flex items-center justify-center mb-1.5 sm:mb-2 border border-line">
-                      <Package className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+                      <Package className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
                     </div>
                     <span className="text-[10px] sm:text-xs text-ink-muted">Secure Pack</span>
                   </div>
                   <div className="flex flex-col items-center text-center">
                     <div className="w-8 sm:w-10 h-8 sm:h-10 bg-surface rounded-lg sm:rounded-xl flex items-center justify-center mb-1.5 sm:mb-2 border border-line">
-                      <Truck className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+                      <Truck className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
                     </div>
                     <span className="text-[10px] sm:text-xs text-ink-muted">Fast Ship</span>
                   </div>
@@ -510,8 +510,8 @@ export default function ProductDetailPage() {
               className="bg-surface rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-line mb-8 sm:mb-10"
             >
               <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                <div className="w-9 sm:w-10 h-9 sm:h-10 bg-bronze/10 rounded-lg sm:rounded-xl flex items-center justify-center">
-                  <FlaskConical className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+                <div className="w-9 sm:w-10 h-9 sm:h-10 bg-teal/10 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <FlaskConical className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
                 </div>
                 <h2 className="text-base sm:text-lg md:text-xl font-bold text-ink">Mechanism of Action</h2>
               </div>
@@ -545,7 +545,7 @@ export default function ProductDetailPage() {
                     )}
                   </div>
                   <div className="flex-1 text-center sm:text-left">
-                    <div className="text-[10px] sm:text-xs font-medium text-bronze mb-0.5 sm:mb-1">You&apos;ll also need</div>
+                    <div className="text-[10px] sm:text-xs font-medium text-teal-light mb-0.5 sm:mb-1">You&apos;ll also need</div>
                     <h3 className="text-base sm:text-lg font-bold mb-0.5 sm:mb-1">{batWater.name}</h3>
                     <p className="text-white/60 text-xs sm:text-sm">
                       Essential for reconstituting lyophilized peptides.
@@ -576,8 +576,8 @@ export default function ProductDetailPage() {
               <h2 className="text-base sm:text-lg md:text-xl font-bold text-white mb-4 sm:mb-6 text-center">Quality Certifications</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                 <div className="flex flex-col items-center text-center p-3 sm:p-4 bg-white/5 rounded-lg sm:rounded-xl border border-white/10">
-                  <div className="w-10 sm:w-12 h-10 sm:h-12 bg-bronze/20 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3">
-                    <Beaker className="w-5 sm:w-6 h-5 sm:h-6 text-bronze" />
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 bg-teal/20 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3">
+                    <Beaker className="w-5 sm:w-6 h-5 sm:h-6 text-teal-light" />
                   </div>
                   <h3 className="font-semibold text-white mb-0.5 sm:mb-1 text-xs sm:text-sm">99%+ Purity</h3>
                   <p className="text-[10px] sm:text-xs text-white/50">Third-party verified</p>
@@ -686,8 +686,8 @@ export default function ProductDetailPage() {
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-line flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-bronze/10 rounded-lg flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-bronze" />
+                <div className="w-8 h-8 bg-teal/10 rounded-lg flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-teal-dark" />
                 </div>
                 <div>
                   <p className="text-[10px] text-ink-muted uppercase tracking-wider font-medium">Certificate of Analysis</p>
@@ -699,7 +699,7 @@ export default function ProductDetailPage() {
                   href={activeCoa}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-bronze hover:underline font-medium"
+                  className="text-xs text-teal-dark hover:underline font-medium"
                 >
                   Open in new tab
                 </a>
@@ -721,7 +721,7 @@ export default function ProductDetailPage() {
                     onClick={() => setActiveCoa(url)}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       activeCoa === url
-                        ? 'bg-bronze/10 text-bronze border border-bronze/25'
+                        ? 'bg-teal/10 text-teal-dark border border-teal/25'
                         : 'text-ink-muted hover:text-ink hover:bg-surface'
                     }`}
                   >
@@ -744,8 +744,8 @@ export default function ProductDetailPage() {
               {/* Mobile: inline PDF iframes are unreliable on iOS/Android, so
                   offer a prominent button that always opens the PDF directly. */}
               <div className="sm:hidden flex flex-col items-center justify-center text-center gap-4 px-6 py-10">
-                <div className="w-14 h-14 bg-bronze/10 rounded-2xl flex items-center justify-center">
-                  <FileText className="w-7 h-7 text-bronze" />
+                <div className="w-14 h-14 bg-teal/10 rounded-2xl flex items-center justify-center">
+                  <FileText className="w-7 h-7 text-teal-dark" />
                 </div>
                 <p className="text-sm text-ink-muted leading-relaxed">
                   Third-party lab certificate for {product.name}.
@@ -754,7 +754,7 @@ export default function ProductDetailPage() {
                   href={activeCoa}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-bronze text-white font-semibold hover:bg-bronze/90 active:scale-[0.98] transition-all shadow-md shadow-bronze/30"
+                  className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl bg-teal-dark text-white font-semibold hover:bg-teal/90 active:scale-[0.98] transition-all shadow-md shadow-teal/30"
                 >
                   <FileText className="w-4 h-4" />
                   Open Certificate of Analysis (PDF)

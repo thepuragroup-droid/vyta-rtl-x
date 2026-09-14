@@ -88,7 +88,7 @@ export default function LeadPanel({
   return (
     <div
       className={`rounded-xl border p-5 md:p-6 ${
-        claimed ? 'border-emerald-200 bg-emerald-50/60' : 'border-bronze/30 bg-bronze/5'
+        claimed ? 'border-emerald-200 bg-emerald-50/60' : 'border-teal/30 bg-teal/5'
       }`}
     >
       {/* Claim header */}
@@ -96,10 +96,10 @@ export default function LeadPanel({
         <div className="flex items-start gap-3">
           <div
             className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
-              claimed ? 'bg-emerald-100' : 'bg-bronze/15'
+              claimed ? 'bg-emerald-100' : 'bg-teal/15'
             }`}
           >
-            <UserCheck className={`h-5 w-5 ${claimed ? 'text-emerald-700' : 'text-bronze'}`} />
+            <UserCheck className={`h-5 w-5 ${claimed ? 'text-emerald-700' : 'text-teal-dark'}`} />
           </div>
           <div>
             <h2 className="text-sm font-bold text-ink">
@@ -192,7 +192,7 @@ export default function LeadPanel({
                 value={method}
                 onChange={(e) => setMethod(e.target.value as ContactMethod | '')}
                 disabled={!canEdit}
-                className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
               >
                 <option value="">Not set</option>
                 {CONTACT_METHODS.map((m) => (
@@ -207,7 +207,7 @@ export default function LeadPanel({
                 value={lastContacted}
                 onChange={(e) => setLastContacted(e.target.value)}
                 disabled={!canEdit}
-                className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
               />
             </div>
             <div>
@@ -217,7 +217,7 @@ export default function LeadPanel({
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
                 disabled={!canEdit}
-                className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60 ${
+                className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60 ${
                   overdue ? 'border-red-300' : 'border-line'
                 }`}
               />
@@ -237,7 +237,7 @@ export default function LeadPanel({
               disabled={!canEdit}
               rows={4}
               placeholder="What you've discussed, what they're after, what to do next…"
-              className="w-full resize-y rounded-lg border border-line bg-white px-3 py-2 text-sm leading-relaxed text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+              className="w-full resize-y rounded-lg border border-line bg-white px-3 py-2 text-sm leading-relaxed text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
             />
           </div>
 

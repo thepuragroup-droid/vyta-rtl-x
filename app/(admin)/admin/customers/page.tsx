@@ -533,7 +533,7 @@ export default function AdminCustomers() {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="mb-1 flex items-center gap-2.5">
-            <Users className="h-6 w-6 text-bronze" />
+            <Users className="h-6 w-6 text-teal-dark" />
             <h1 className="text-xl font-bold text-ink">Customers</h1>
           </div>
           <p className="max-w-2xl text-sm text-ink-muted">
@@ -595,7 +595,7 @@ export default function AdminCustomers() {
             placeholder="Search name, email, phone or city…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-4 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-4 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
       </div>
@@ -688,7 +688,7 @@ export default function AdminCustomers() {
                     ? 'Tick the customers you want to write to first.'
                     : `Write one email and send it to ${mailable.ids.length} customer${mailable.ids.length === 1 ? '' : 's'} — each gets their own copy`
                 }
-                className="inline-flex items-center gap-2 rounded-lg bg-bronze px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-bronze/90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-lg bg-teal-dark px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal/90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Send className="h-4 w-4" />
                 {mailable.ids.length > 0
@@ -711,7 +711,7 @@ export default function AdminCustomers() {
                       onChange={toggleAllVisible}
                       disabled={visible.length === 0}
                       aria-label="Select every customer in this list"
-                      className="h-4 w-4 cursor-pointer rounded border-line text-bronze focus:ring-bronze/40 disabled:cursor-not-allowed"
+                      className="h-4 w-4 cursor-pointer rounded border-line text-teal-dark focus:ring-teal/40 disabled:cursor-not-allowed"
                     />
                   </th>
                 )}
@@ -861,7 +861,7 @@ function CustomerRow({
             checked={selected}
             onChange={onToggleSelected}
             aria-label={`Select ${name}`}
-            className="h-4 w-4 cursor-pointer rounded border-line text-bronze focus:ring-bronze/40"
+            className="h-4 w-4 cursor-pointer rounded border-line text-teal-dark focus:ring-teal/40"
           />
         </td>
       )}
@@ -1023,7 +1023,7 @@ function CustomerRow({
                 label={row.role === 'admin' ? 'Remove admin' : 'Make admin'}
                 onClick={onToggleAdmin}
                 disabled={busy}
-                tone={row.role === 'admin' ? 'danger' : 'bronze'}
+                tone={row.role === 'admin' ? 'danger' : 'teal'}
               >
                 {row.role === 'admin' ? <ShieldOff className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
               </IconAction>
@@ -1125,9 +1125,9 @@ function RowLink({
       }}
       tabIndex={0}
       role="link"
-      className={`cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-bronze/50 ${
+      className={`cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal/50 ${
         selected
-          ? 'bg-bronze/5 hover:bg-bronze/10'
+          ? 'bg-teal/5 hover:bg-teal/10'
           : isPuramass
             ? 'bg-indigo-50/40 hover:bg-indigo-50'
             : 'hover:bg-surface'
@@ -1252,13 +1252,13 @@ function IconAction({
   onClick: () => void;
   children: React.ReactNode;
   disabled?: boolean;
-  tone?: 'neutral' | 'bronze' | 'danger';
+  tone?: 'neutral' | 'teal' | 'danger';
 }) {
   const toneCls =
     tone === 'danger'
       ? 'text-ink-muted hover:text-red-600 hover:bg-red-50'
-      : tone === 'bronze'
-      ? 'text-ink-muted hover:text-bronze hover:bg-bronze/10'
+      : tone === 'teal'
+      ? 'text-ink-muted hover:text-teal-dark hover:bg-teal/10'
       : 'text-ink-muted hover:text-ink hover:bg-surface';
   return (
     <div className="relative group">

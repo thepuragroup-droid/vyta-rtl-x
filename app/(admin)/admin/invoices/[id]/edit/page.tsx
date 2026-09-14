@@ -37,7 +37,7 @@ export default function EditInvoicePage() {
     return (
       <div className="text-center py-20">
         <p className="text-ink-muted mb-4">Invoice not found</p>
-        <Link href="/admin/invoices" className="text-bronze hover:text-bronze/80 text-sm">
+        <Link href="/admin/invoices" className="text-teal-dark hover:text-teal-dark/80 text-sm">
           Back to Invoices
         </Link>
       </div>

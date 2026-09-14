@@ -18,7 +18,7 @@ import { DEFAULT_FLAT_SHIPPING } from '@/lib/payments/puramass-settings';
 
 const INPUT =
   'px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink ' +
-  'placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 ' +
+  'placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 ' +
   'disabled:opacity-50';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -383,8 +383,8 @@ export default function SettingsPage() {
     <div className="max-w-4xl space-y-6">
       {/* 1. Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-bronze/10 flex items-center justify-center">
-          <SettingsIcon className="w-5 h-5 text-bronze" />
+        <div className="w-10 h-10 rounded-lg bg-teal/10 flex items-center justify-center">
+          <SettingsIcon className="w-5 h-5 text-teal-dark" />
         </div>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-ink">Site Settings</h1>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
 
       {/* 2. Account security — personal to the signed-in user, so it is NOT
           gated by isReadOnly: assistants can still change their own password. */}
-      <Card icon={<KeyRound className="w-4 h-4 text-bronze" />} title="Change Password"
+      <Card icon={<KeyRound className="w-4 h-4 text-teal-dark" />} title="Change Password"
         subtitle="Update the password for your admin account.">
         <div className="max-w-md">
           <ChangePasswordForm variant="admin" />
@@ -404,7 +404,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 3. Checkout Type */}
-      <Card icon={<CreditCard className="w-4 h-4 text-bronze" />} title="Checkout Type"
+      <Card icon={<CreditCard className="w-4 h-4 text-teal-dark" />} title="Checkout Type"
         subtitle="How customers pay at checkout.">
         <div className="grid sm:grid-cols-2 gap-3">
           <SelectCard
@@ -421,7 +421,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 4. Admin Email Notifications */}
-      <Card icon={<Mail className="w-4 h-4 text-bronze" />} title="Admin Email Notifications"
+      <Card icon={<Mail className="w-4 h-4 text-teal-dark" />} title="Admin Email Notifications"
         subtitle="Recipients for operational alerts (orders, low stock).">
         <div className="flex gap-2">
           <input
@@ -439,7 +439,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 4b. Registration Alerts */}
-      <Card icon={<Bell className="w-4 h-4 text-bronze" />} title="Registration Alerts"
+      <Card icon={<Bell className="w-4 h-4 text-teal-dark" />} title="Registration Alerts"
         subtitle="Email the admin recipients above when a customer registers, and again if they never check out.">
         <div className="space-y-5">
           <div>
@@ -527,7 +527,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 5. Invoice Emails */}
-      <Card icon={<FileText className="w-4 h-4 text-bronze" />} title="Invoice Emails"
+      <Card icon={<FileText className="w-4 h-4 text-teal-dark" />} title="Invoice Emails"
         subtitle="BCC recipients and the editable invoice email templates.">
         <div className="flex gap-2">
           <input
@@ -550,7 +550,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 5b. Error Tracking */}
-      <Card icon={<AlertTriangle className="w-4 h-4 text-bronze" />} title="Error Tracking"
+      <Card icon={<AlertTriangle className="w-4 h-4 text-teal-dark" />} title="Error Tracking"
         subtitle="Fallback log for background failures. Order emails now send after checkout completes, so this is where a failed send shows up.">
         <Link href="/admin/settings/error-log"
           className="w-full flex items-center justify-between px-4 py-3 bg-ink text-white rounded-lg text-sm font-medium hover:bg-ink/90">
@@ -560,7 +560,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 6. Pickup Address */}
-      <Card icon={<MapPin className="w-4 h-4 text-bronze" />} title="Pickup Address"
+      <Card icon={<MapPin className="w-4 h-4 text-teal-dark" />} title="Pickup Address"
         subtitle="Shown to customers who choose local pickup.">
         <div className="flex gap-2">
           <input
@@ -579,7 +579,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 6b. e-Transfer Instructions */}
-      <Card icon={<Wallet className="w-4 h-4 text-bronze" />} title="e-Transfer Instructions"
+      <Card icon={<Wallet className="w-4 h-4 text-teal-dark" />} title="e-Transfer Instructions"
         subtitle="Interac details for the payment-instructions email sent automatically when a shipment order is placed (and when you resend from an order).">
         <div className="space-y-2">
           <div>
@@ -614,7 +614,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 7. Guest Checkout */}
-      <Card icon={<Users className="w-4 h-4 text-bronze" />} title="Guest Checkout"
+      <Card icon={<Users className="w-4 h-4 text-teal-dark" />} title="Guest Checkout"
         subtitle="Allow customers to check out without an account.">
         <div className="grid sm:grid-cols-2 gap-3">
           <SelectCard
@@ -631,7 +631,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 7b. PuraMass Hosted Checkout */}
-      <Card icon={<ShieldCheck className="w-4 h-4 text-bronze" />} title="PuraMass Checkout"
+      <Card icon={<ShieldCheck className="w-4 h-4 text-teal-dark" />} title="PuraMass Checkout"
         subtitle="Hand the cart off to the PuraMass hosted checkout instead of the on-site flow. Pricing, shipping, and fulfilment are handled by PuraMass.">
         {/* Credential status banner */}
         <div className={`mb-4 rounded-lg border px-4 py-3 text-sm flex items-center gap-2 ${
@@ -698,7 +698,7 @@ export default function SettingsPage() {
                 placeholder={String(DEFAULT_FLAT_SHIPPING)}
                 className={`${INPUT} max-w-[12rem]`} />
               <button onClick={handleSavePuramassFlatShipping} disabled={isReadOnly || saving}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-bronze/40 disabled:opacity-50">
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-teal/40 disabled:opacity-50">
                 <Check className="w-4 h-4" /> Save
               </button>
             </div>
@@ -728,7 +728,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2">
               <button onClick={runCleanupSkus} disabled={isReadOnly || puramassCleaning}
                 title="Clear mappings whose SKU is not prefixed aminocan-"
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-bronze/40 disabled:opacity-50">
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-teal/40 disabled:opacity-50">
                 <Trash2 className={`w-4 h-4 ${puramassCleaning ? 'animate-pulse' : ''}`} />
                 {puramassCleaning ? 'Cleaning…' : 'Clean up non-aminocan SKUs'}
               </button>
@@ -805,7 +805,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 8. Shipping (Easyship) */}
-      <Card icon={<Truck className="w-4 h-4 text-bronze" />} title="Shipping (Easyship)"
+      <Card icon={<Truck className="w-4 h-4 text-teal-dark" />} title="Shipping (Easyship)"
         subtitle="Live-rate or flat-rate shipping via Easyship.">
         <div className="grid sm:grid-cols-2 gap-3 mb-4">
           <SelectCard
@@ -944,7 +944,7 @@ export default function SettingsPage() {
             <Check className="w-4 h-4" /> Save shipping settings
           </button>
           <button onClick={runDiagnose} disabled={diagLoading}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-bronze/40 disabled:opacity-50">
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-teal/40 disabled:opacity-50">
             <Truck className="w-4 h-4" /> {diagLoading ? 'Testing…' : 'Test connection'}
           </button>
         </div>
@@ -1018,14 +1018,14 @@ function SelectCard({ selected, disabled, onClick, icon, title, desc }: {
   return (
     <button type="button" onClick={onClick} disabled={disabled}
       className={`relative text-left p-4 rounded-lg border transition-colors disabled:opacity-50 ${
-        selected ? 'border-bronze bg-bronze/5' : 'border-line bg-surface hover:border-bronze/40'
+        selected ? 'border-teal bg-teal/5' : 'border-line bg-surface hover:border-teal/40'
       }`}>
       {selected && (
-        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-bronze flex items-center justify-center">
+        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-teal flex items-center justify-center">
           <Check className="w-3 h-3 text-white" />
         </div>
       )}
-      <div className={`mb-2 ${selected ? 'text-bronze' : 'text-ink-muted'}`}>{icon}</div>
+      <div className={`mb-2 ${selected ? 'text-teal-dark' : 'text-ink-muted'}`}>{icon}</div>
       <p className="font-medium text-ink text-sm">{title}</p>
       <p className="text-xs text-ink-muted mt-0.5">{desc}</p>
     </button>
@@ -1071,8 +1071,8 @@ function EmailList({ items, onRemove, disabled }: {
       {items.map((email) => (
         <div key={email} className="flex items-center justify-between bg-surface rounded-lg px-3 py-2">
           <span className="flex items-center gap-2 text-sm text-ink">
-            <span className="w-6 h-6 rounded bg-bronze/10 flex items-center justify-center">
-              <Mail className="w-3.5 h-3.5 text-bronze" />
+            <span className="w-6 h-6 rounded bg-teal/10 flex items-center justify-center">
+              <Mail className="w-3.5 h-3.5 text-teal-dark" />
             </span>
             {email}
           </span>

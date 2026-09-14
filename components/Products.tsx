@@ -103,9 +103,9 @@ export default function Products() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-bronze/10 border border-bronze/20 rounded-full mb-3">
-              <Beaker className="w-3.5 h-3.5 text-bronze" />
-              <span className="text-xs font-medium text-bronze">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal/10 border border-teal/20 rounded-full mb-3">
+              <Beaker className="w-3.5 h-3.5 text-teal-dark" />
+              <span className="text-xs font-medium text-teal-dark">
                 Featured Compounds
               </span>
             </div>
@@ -153,7 +153,7 @@ export default function Products() {
                   )}
                   {/* Purity Badge */}
                   <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
-                    <span className="text-[8px] sm:text-[10px] font-semibold text-bronze bg-bronze-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-bronze/20">
+                    <span className="text-[8px] sm:text-[10px] font-semibold text-teal-dark bg-teal-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-teal/20">
                       {product.purity}
                     </span>
                   </div>

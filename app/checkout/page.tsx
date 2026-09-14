@@ -155,7 +155,7 @@ function SectionStatus({
   if (status === "loading") {
     return (
       <span className="group relative shrink-0">
-        <span className="flex items-center gap-1.5 rounded-full bg-bronze/10 px-2 py-1 text-bronze">
+        <span className="flex items-center gap-1.5 rounded-full bg-teal/10 px-2 py-1 text-teal-dark">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         </span>
         {reason && <CheckoutTooltip content={reason} align="right" />}
@@ -263,7 +263,7 @@ function AddressStatusLine({
   const q = value.trim();
   if (loading) {
     return (
-      <p className="mt-2 flex items-center gap-1.5 text-xs text-bronze">
+      <p className="mt-2 flex items-center gap-1.5 text-xs text-teal-dark">
         <Loader2 className="h-3 w-3 animate-spin" />
         Looking up address…
       </p>
@@ -280,7 +280,7 @@ function AddressStatusLine({
     <button
       type="button"
       onClick={onManual}
-      className="mt-2 text-xs text-bronze underline underline-offset-2 hover:text-bronze-dark"
+      className="mt-2 text-xs text-teal-dark underline underline-offset-2 hover:text-teal-dark"
     >
       Can&apos;t find your address? Enter it manually
     </button>
@@ -968,11 +968,9 @@ function CheckoutContent() {
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-3 mb-6">
               <div className="relative w-10 h-10 flex items-center justify-center">
-                <div className="relative w-10 h-10 bg-ink rounded-xl flex items-center justify-center">
-                  <Beaker className="w-5 h-5 text-white" />
-                </div>
+                <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="relative w-10 h-10 object-contain" />
               </div>
-              <span className="text-lg font-bold text-ink">Aminocan</span>
+              <span className="text-lg font-bold text-ink">VYTA</span>
             </Link>
           </div>
 
@@ -1010,9 +1008,9 @@ function CheckoutContent() {
                 un-payable with no on-page fallback). */}
             {etransferConfirmed.fulfillment === "shipment" &&
             etransferConfirmed.etransfer ? (
-              <div className="bg-bronze/5 border border-bronze/30 rounded-xl p-4 mb-6 text-left">
+              <div className="bg-teal/5 border border-teal/30 rounded-xl p-4 mb-6 text-left">
                 <p className="text-sm font-semibold text-ink mb-1 flex items-center gap-2">
-                  <Wallet className="w-4 h-4 text-bronze" />
+                  <Wallet className="w-4 h-4 text-teal-dark" />
                   Complete your payment by Interac e-Transfer
                 </p>
                 <p className="text-xs text-ink-muted mb-3">
@@ -1035,7 +1033,7 @@ function CheckoutContent() {
                             "address",
                           )
                         }
-                        className="p-1 text-ink-muted hover:text-bronze"
+                        className="p-1 text-ink-muted hover:text-teal-dark"
                       >
                         <Copy className="w-3.5 h-3.5" />
                       </button>
@@ -1056,7 +1054,7 @@ function CheckoutContent() {
                             "amount",
                           )
                         }
-                        className="p-1 text-ink-muted hover:text-bronze"
+                        className="p-1 text-ink-muted hover:text-teal-dark"
                       >
                         <Copy className="w-3.5 h-3.5" />
                       </button>
@@ -1080,7 +1078,7 @@ function CheckoutContent() {
                       {etransferConfirmed.etransfer.securityAnswerHint}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-bronze/20">
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-teal/20">
                     <span className="text-xs text-ink-muted">Message / memo</span>
                     <span className="text-sm font-mono text-ink">
                       {etransferConfirmed.orderNumber}
@@ -1149,11 +1147,9 @@ function CheckoutContent() {
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center gap-3 mb-6">
               <div className="relative w-10 h-10 flex items-center justify-center">
-                <div className="relative w-10 h-10 bg-ink rounded-xl flex items-center justify-center">
-                  <Beaker className="w-5 h-5 text-white" />
-                </div>
+                <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="relative w-10 h-10 object-contain" />
               </div>
-              <span className="text-lg font-bold text-ink">Aminocan</span>
+              <span className="text-lg font-bold text-ink">VYTA</span>
             </Link>
           </div>
 
@@ -1175,7 +1171,7 @@ function CheckoutContent() {
               <p className="text-green-600 text-xs font-medium mb-4">
                 You can safely close this page.
               </p>
-              <Loader2 className="w-5 h-5 text-bronze animate-spin mx-auto" />
+              <Loader2 className="w-5 h-5 text-teal-dark animate-spin mx-auto" />
             </div>
           ) : paymentStatus === "received" ? (
             <div className="bg-white rounded-2xl border border-line overflow-hidden">
@@ -1393,7 +1389,7 @@ function CheckoutContent() {
               <div className="mt-6 text-center">
                 <Link
                   href="/products"
-                  className="text-ink-muted hover:text-bronze transition-colors text-sm"
+                  className="text-ink-muted hover:text-teal-dark transition-colors text-sm"
                 >
                   &larr; Continue Shopping
                 </Link>
@@ -1514,21 +1510,19 @@ function CheckoutContent() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <div className="relative w-10 h-10 flex items-center justify-center">
-                <div className="relative w-10 h-10 bg-ink rounded-xl flex items-center justify-center">
-                  <Beaker className="w-5 h-5 text-white" />
-                </div>
+                <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="relative w-10 h-10 object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-ink tracking-tight leading-none">
-                  Aminocan
+                  VYTA
                 </span>
-                <span className="text-[10px] text-bronze tracking-[0.15em] font-medium uppercase mt-0.5">
+                <span className="text-[10px] text-teal-dark tracking-[0.15em] font-medium uppercase mt-0.5">
                   Secure Checkout
                 </span>
               </div>
             </Link>
             <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-full border border-line">
-              <Lock className="w-4 h-4 text-bronze" />
+              <Lock className="w-4 h-4 text-teal-dark" />
               <span className="text-sm font-medium text-ink-muted">
                 SSL Encrypted
               </span>
@@ -1570,7 +1564,7 @@ function CheckoutContent() {
                         Already have an account?{" "}
                         <Link
                           href="/login?redirect=/checkout"
-                          className="text-bronze hover:underline font-medium"
+                          className="text-teal-dark hover:underline font-medium"
                         >
                           Sign in
                         </Link>{" "}
@@ -1610,7 +1604,7 @@ function CheckoutContent() {
                         name="firstName"
                         value={shippingData.firstName}
                         onChange={handleShippingChange}
-                        className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
+                        className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
                         placeholder="John"
                       />
                     </div>
@@ -1623,7 +1617,7 @@ function CheckoutContent() {
                         name="lastName"
                         value={shippingData.lastName}
                         onChange={handleShippingChange}
-                        className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
+                        className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
                         placeholder="Doe"
                       />
                     </div>
@@ -1636,7 +1630,7 @@ function CheckoutContent() {
                         name="email"
                         value={shippingData.email}
                         onChange={handleShippingChange}
-                        className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
+                        className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -1650,7 +1644,7 @@ function CheckoutContent() {
                         name="phone"
                         value={shippingData.phone}
                         onChange={handleShippingChange}
-                        className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
+                        className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
                         placeholder="+1 (555) 123-4567"
                       />
                     </div>
@@ -1741,7 +1735,7 @@ function CheckoutContent() {
                                   name="city"
                                   value={shippingData.city}
                                   onChange={handleShippingChange}
-                                  className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
+                                  className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
                                   placeholder="Toronto"
                                 />
                               </div>
@@ -1754,7 +1748,7 @@ function CheckoutContent() {
                                   name="state"
                                   value={shippingData.state}
                                   onChange={handleShippingChange}
-                                  className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
+                                  className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
                                   placeholder="ON"
                                 />
                               </div>
@@ -1769,7 +1763,7 @@ function CheckoutContent() {
                                   name="postalCode"
                                   value={shippingData.postalCode}
                                   onChange={handleShippingChange}
-                                  className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
+                                  className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink placeholder-ink-muted"
                                   placeholder="M5V 1A1"
                                 />
                               </div>
@@ -1781,7 +1775,7 @@ function CheckoutContent() {
                                   name="country"
                                   value={shippingData.country}
                                   onChange={handleShippingChange}
-                                  className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm bg-white text-ink"
+                                  className="w-full px-4 py-3 border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm bg-white text-ink"
                                 >
                                   <option value="CA">Canada</option>
                                 </select>
@@ -1804,10 +1798,10 @@ function CheckoutContent() {
                   expanded={expanded.payment}
                   onToggle={() => toggleSection("payment")}
                 >
-                  <div className="rounded-xl border-2 border-bronze bg-bronze/5 p-4">
+                  <div className="rounded-xl border-2 border-teal bg-teal/5 p-4">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-lg bg-white border border-line flex items-center justify-center flex-shrink-0">
-                        <Wallet className="w-5 h-5 text-bronze" />
+                        <Wallet className="w-5 h-5 text-teal-dark" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-ink">
@@ -1820,7 +1814,7 @@ function CheckoutContent() {
                           to confirm — we'll fulfill once payment is received.
                         </p>
                       </div>
-                      <div className="w-5 h-5 bg-bronze rounded-full flex items-center justify-center flex-shrink-0">
+                      <div className="w-5 h-5 bg-teal rounded-full flex items-center justify-center flex-shrink-0">
                         <Check className="w-3 h-3 text-white" />
                       </div>
                     </div>
@@ -1867,7 +1861,7 @@ function CheckoutContent() {
                           ? "border-green-500 bg-green-50 text-green-700"
                           : validationError
                             ? "border-red-500 bg-red-50 text-red-700"
-                            : "border-line bg-white text-ink focus:border-bronze/40"
+                            : "border-line bg-white text-ink focus:border-teal/40"
                       }`}
                     />
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -2008,8 +2002,8 @@ function CheckoutContent() {
                     <div className="bg-white rounded-2xl border border-line overflow-hidden">
                       <div className="px-5 py-4 border-b border-line bg-surface/50">
                         <div className="flex items-center gap-2.5">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-bronze/20 bg-bronze/10">
-                            <Droplets className="w-4 h-4 text-bronze" />
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-teal/20 bg-teal/10">
+                            <Droplets className="w-4 h-4 text-teal-dark" />
                           </div>
                           <div>
                             <h2 className="text-sm font-semibold leading-tight text-ink">
@@ -2059,7 +2053,7 @@ function CheckoutContent() {
                                   ${vialPrice.toFixed(2)}{" "}
                                   <span className="font-normal">/ vial</span>
                                   {vialsInOrder > 0 && (
-                                    <span className="ml-1.5 inline-flex items-center rounded-full border border-bronze/20 bg-bronze-50 px-1.5 py-[1px] text-[9px] font-semibold text-bronze">
+                                    <span className="ml-1.5 inline-flex items-center rounded-full border border-teal/20 bg-teal-50 px-1.5 py-[1px] text-[9px] font-semibold text-teal-dark">
                                       In order ×{vialsInOrder}
                                     </span>
                                   )}
@@ -2094,7 +2088,7 @@ function CheckoutContent() {
                       {ratesLoading ? (
                         <div className="rounded-xl border border-line bg-surface/50 p-4">
                           <div className="flex items-center gap-2 mb-3">
-                            <Truck className="w-4 h-4 text-bronze" />
+                            <Truck className="w-4 h-4 text-teal-dark" />
                             <span className="text-sm font-medium text-ink">
                               Shipping
                             </span>
@@ -2138,8 +2132,8 @@ function CheckoutContent() {
                                   onClick={() => setSelectedRate(r)}
                                   className={`w-full text-left rounded-lg border px-3 py-2 text-xs transition ${
                                     selectedRate?.courier_id === r.courier_id
-                                      ? "border-bronze bg-bronze/5"
-                                      : "border-line bg-white hover:border-bronze/40"
+                                      ? "border-teal bg-teal/5"
+                                      : "border-line bg-white hover:border-teal/40"
                                   }`}
                                 >
                                   <div className="flex items-center justify-between gap-2">
@@ -2163,7 +2157,7 @@ function CheckoutContent() {
                                 <button
                                   type="button"
                                   onClick={() => setShowAllCouriers((v) => !v)}
-                                  className="flex items-center gap-1 text-xs font-medium text-bronze hover:text-bronze-dark"
+                                  className="flex items-center gap-1 text-xs font-medium text-teal-dark hover:text-teal-dark"
                                 >
                                   {showAllCouriers
                                     ? "Show fewer options"
@@ -2264,11 +2258,11 @@ function CheckoutContent() {
                     {/* Trust badges */}
                     <div className="flex items-center justify-center gap-6 mt-5 pt-5 border-t border-line">
                       <div className="flex items-center gap-2 text-ink-muted">
-                        <ShieldCheck className="w-4 h-4 text-bronze" />
+                        <ShieldCheck className="w-4 h-4 text-teal-dark" />
                         <span className="text-xs">Secure Checkout</span>
                       </div>
                       <div className="flex items-center gap-2 text-ink-muted">
-                        <Lock className="w-4 h-4 text-bronze" />
+                        <Lock className="w-4 h-4 text-teal-dark" />
                         <span className="text-xs">SSL Encrypted</span>
                       </div>
                     </div>
@@ -2282,9 +2276,9 @@ function CheckoutContent() {
           <div className="mt-8 text-center">
             <Link
               href="/"
-              className="text-ink-muted hover:text-bronze transition-colors text-sm"
+              className="text-ink-muted hover:text-teal-dark transition-colors text-sm"
             >
-              &larr; Back to Aminocan Peptides
+              &larr; Back to VYTA Biosciences
             </Link>
           </div>
         </div>
@@ -2367,15 +2361,15 @@ function CheckoutLoadingScreen() {
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-ink tracking-tight leading-none">
-                  Aminocan
+                  VYTA
                 </span>
-                <span className="text-[10px] text-bronze tracking-[0.15em] font-medium uppercase mt-0.5">
+                <span className="text-[10px] text-teal-dark tracking-[0.15em] font-medium uppercase mt-0.5">
                   Secure Checkout
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-full border border-line">
-              <Loader2 className="w-4 h-4 text-bronze animate-spin" />
+              <Loader2 className="w-4 h-4 text-teal-dark animate-spin" />
               <span className="text-sm font-medium text-ink-muted">
                 Loading checkout…
               </span>

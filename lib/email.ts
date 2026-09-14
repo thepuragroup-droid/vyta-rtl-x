@@ -71,37 +71,37 @@ export async function sendOrderConfirmation(data: {
     .map(
       (item) =>
         `<tr>
-          <td style="padding: 12px 0; border-bottom: 1px solid #E5E7EB; font-size: 14px; color: #1A1A1A;">${item.name}${item.strength ? ` - ${item.strength}` : ""}</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #E5E7EB; font-size: 14px; color: #6B7280; text-align: center;">${item.quantity}</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #E5E7EB; font-size: 14px; color: #1A1A1A; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #DCE7EB; font-size: 14px; color: #07203A;">${item.name}${item.strength ? ` - ${item.strength}` : ""}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #DCE7EB; font-size: 14px; color: #56707F; text-align: center;">${item.quantity}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #DCE7EB; font-size: 14px; color: #07203A; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
         </tr>`,
     )
     .join("");
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Canadian Peptides</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Biosciences</p>
       </div>
 
       <div style="padding: 32px 24px;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Order Confirmed</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Order Confirmed</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           Hi ${customerName}, thank you for your order!
         </p>
 
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Order Number</p>
-          <p style="font-size: 16px; font-weight: 600; color: #1A1A1A; margin: 0; font-family: monospace;">${orderNumber}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Order Number</p>
+          <p style="font-size: 16px; font-weight: 600; color: #07203A; margin: 0; font-family: monospace;">${orderNumber}</p>
         </div>
 
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
           <thead>
             <tr>
-              <th style="text-align: left; padding: 8px 0; border-bottom: 2px solid #E5E7EB; font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em;">Item</th>
-              <th style="text-align: center; padding: 8px 0; border-bottom: 2px solid #E5E7EB; font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em;">Qty</th>
-              <th style="text-align: right; padding: 8px 0; border-bottom: 2px solid #E5E7EB; font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em;">Price</th>
+              <th style="text-align: left; padding: 8px 0; border-bottom: 2px solid #DCE7EB; font-size: 11px; color: #56707F; text-transform: uppercase; letter-spacing: 0.05em;">Item</th>
+              <th style="text-align: center; padding: 8px 0; border-bottom: 2px solid #DCE7EB; font-size: 11px; color: #56707F; text-transform: uppercase; letter-spacing: 0.05em;">Qty</th>
+              <th style="text-align: right; padding: 8px 0; border-bottom: 2px solid #DCE7EB; font-size: 11px; color: #56707F; text-transform: uppercase; letter-spacing: 0.05em;">Price</th>
             </tr>
           </thead>
           <tbody>
@@ -109,27 +109,27 @@ export async function sendOrderConfirmation(data: {
           </tbody>
         </table>
 
-        <div style="border-top: 1px solid #E5E7EB; padding-top: 16px;">
+        <div style="border-top: 1px solid #DCE7EB; padding-top: 16px;">
           <table style="width: 100%;">
             <tr>
-              <td style="font-size: 14px; color: #6B7280; padding: 4px 0;">Subtotal</td>
-              <td style="font-size: 14px; color: #1A1A1A; text-align: right; padding: 4px 0;">$${subtotal.toFixed(2)}</td>
+              <td style="font-size: 14px; color: #56707F; padding: 4px 0;">Subtotal</td>
+              <td style="font-size: 14px; color: #07203A; text-align: right; padding: 4px 0;">$${subtotal.toFixed(2)}</td>
             </tr>
             <tr>
-              <td style="font-size: 14px; color: #6B7280; padding: 4px 0;">Shipping</td>
-              <td style="font-size: 14px; color: #1A1A1A; text-align: right; padding: 4px 0;">$${shipping.toFixed(2)}</td>
+              <td style="font-size: 14px; color: #56707F; padding: 4px 0;">Shipping</td>
+              <td style="font-size: 14px; color: #07203A; text-align: right; padding: 4px 0;">$${shipping.toFixed(2)}</td>
             </tr>
             <tr>
-              <td style="font-size: 16px; font-weight: 700; color: #1A1A1A; padding: 12px 0 0; border-top: 2px solid #1A1A1A;">Total</td>
-              <td style="font-size: 16px; font-weight: 700; color: #1A1A1A; text-align: right; padding: 12px 0 0; border-top: 2px solid #1A1A1A;">$${total.toFixed(2)} ${currency}</td>
+              <td style="font-size: 16px; font-weight: 700; color: #07203A; padding: 12px 0 0; border-top: 2px solid #07203A;">Total</td>
+              <td style="font-size: 16px; font-weight: 700; color: #07203A; text-align: right; padding: 12px 0 0; border-top: 2px solid #07203A;">$${total.toFixed(2)} ${currency}</td>
             </tr>
           </table>
         </div>
       </div>
 
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">
-          Aminocan Peptides &bull; Canada<br/>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">
+          VYTA Biosciences &bull; Canada<br/>
           Questions? Reply to this email.
         </p>
       </div>
@@ -169,35 +169,35 @@ export async function sendShippingNotification(data: {
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Canadian Peptides</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Biosciences</p>
       </div>
 
       <div style="padding: 32px 24px;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Your Order Has Shipped!</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Your Order Has Shipped!</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           Hi ${customerName}, great news! Your order is on its way.
         </p>
 
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 20px; margin-bottom: 16px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Order Number</p>
-          <p style="font-size: 16px; font-weight: 600; color: #1A1A1A; margin: 0; font-family: monospace;">${orderNumber}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 20px; margin-bottom: 16px;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Order Number</p>
+          <p style="font-size: 16px; font-weight: 600; color: #07203A; margin: 0; font-family: monospace;">${orderNumber}</p>
         </div>
 
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Tracking Number</p>
-          <p style="font-size: 16px; font-weight: 600; color: #1A1A1A; margin: 0; font-family: monospace;">${trackingNumber}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Tracking Number</p>
+          <p style="font-size: 16px; font-weight: 600; color: #07203A; margin: 0; font-family: monospace;">${trackingNumber}</p>
         </div>
 
-        <p style="font-size: 14px; color: #6B7280; margin: 0;">
+        <p style="font-size: 14px; color: #56707F; margin: 0;">
           You can track your package using the tracking number above with your carrier's website.
         </p>
       </div>
 
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">
-          Aminocan Peptides &bull; Canada<br/>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">
+          VYTA Biosciences &bull; Canada<br/>
           Questions? Reply to this email.
         </p>
       </div>
@@ -235,24 +235,24 @@ export async function sendCustomerWelcome(data: {
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Canadian Peptides</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Biosciences</p>
       </div>
 
       <div style="padding: 32px 24px; text-align: center;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Welcome to Aminocan!</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Welcome to VYTA!</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           Hi ${customerName}, thanks for creating an account. You're all set to start shopping for premium Canadian peptides.
         </p>
-        <a href="${SITE_URL}/products" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+        <a href="${SITE_URL}/products" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
           Browse Products
         </a>
       </div>
 
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">
-          Aminocan Peptides &bull; Canada<br/>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">
+          VYTA Biosciences &bull; Canada<br/>
           Questions? Reply to this email.
         </p>
       </div>
@@ -263,7 +263,7 @@ export async function sendCustomerWelcome(data: {
     const { data: result, error } = await getResend().emails.send({
       from: fromEmail,
       to,
-      subject: "Welcome to Aminocan!",
+      subject: "Welcome to VYTA!",
       html,
     });
 
@@ -292,37 +292,37 @@ export async function sendAffiliateWelcome(data: {
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Affiliate Program</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Affiliate Program</p>
       </div>
 
       <div style="padding: 32px 24px;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Welcome to the Affiliate Program!</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Welcome to the Affiliate Program!</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           Hi ${affiliateName}, your affiliate account is ready. Start sharing your referral code and earn commission on every sale.
         </p>
 
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 24px; margin-bottom: 24px; text-align: center;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Your Referral Code</p>
-          <p style="font-size: 28px; font-weight: 700; color: #1A1A1A; margin: 0; font-family: monospace; letter-spacing: 0.1em;">${referralCode}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 24px; margin-bottom: 24px; text-align: center;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Your Referral Code</p>
+          <p style="font-size: 28px; font-weight: 700; color: #07203A; margin: 0; font-family: monospace; letter-spacing: 0.1em;">${referralCode}</p>
         </div>
 
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Your Referral URL</p>
-          <p style="font-size: 13px; color: #1A1A1A; margin: 0; font-family: monospace; word-break: break-all;">${baseUrl}?ref=${referralCode}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Your Referral URL</p>
+          <p style="font-size: 13px; color: #07203A; margin: 0; font-family: monospace; word-break: break-all;">${baseUrl}?ref=${referralCode}</p>
         </div>
 
         <div style="text-align: center;">
-          <a href="${baseUrl}/affiliate/dashboard" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="${baseUrl}/affiliate/dashboard" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
             Go to Dashboard
           </a>
         </div>
       </div>
 
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">
-          Aminocan Peptides &bull; Canada<br/>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">
+          VYTA Biosciences &bull; Canada<br/>
           Questions? Reply to this email.
         </p>
       </div>
@@ -333,7 +333,7 @@ export async function sendAffiliateWelcome(data: {
     const { data: result, error } = await getResend().emails.send({
       from: fromEmail,
       to,
-      subject: "Welcome to the Aminocan Affiliate Program!",
+      subject: "Welcome to the VYTA Affiliate Program!",
       html,
     });
 
@@ -378,37 +378,37 @@ export async function sendReferralCodeChanged(data: {
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Affiliate Program</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Affiliate Program</p>
       </div>
 
       <div style="padding: 32px 24px;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Your referral code has changed</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Your referral code has changed</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           ${greeting}our customers should use the code below from now on.
         </p>
 
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 24px; margin-bottom: 24px; text-align: center;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Your New Referral Code</p>
-          <p style="font-size: 28px; font-weight: 700; color: #1A1A1A; margin: 0; font-family: monospace; letter-spacing: 0.1em;">${escapeHtml(newCode)}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 24px; margin-bottom: 24px; text-align: center;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Your New Referral Code</p>
+          <p style="font-size: 28px; font-weight: 700; color: #07203A; margin: 0; font-family: monospace; letter-spacing: 0.1em;">${escapeHtml(newCode)}</p>
         </div>
 ${retiredBlock}
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Your Referral URL</p>
-          <p style="font-size: 13px; color: #1A1A1A; margin: 0; font-family: monospace; word-break: break-all;">${baseUrl}?ref=${escapeHtml(newCode)}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Your Referral URL</p>
+          <p style="font-size: 13px; color: #07203A; margin: 0; font-family: monospace; word-break: break-all;">${baseUrl}?ref=${escapeHtml(newCode)}</p>
         </div>
 
         <div style="text-align: center;">
-          <a href="${baseUrl}/affiliate/dashboard" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="${baseUrl}/affiliate/dashboard" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
             Go to Dashboard
           </a>
         </div>
       </div>
 
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">
-          Aminocan Peptides &bull; Canada<br/>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">
+          VYTA Biosciences &bull; Canada<br/>
           Questions? Reply to this email.
         </p>
       </div>
@@ -419,7 +419,7 @@ ${retiredBlock}
     const { data: result, error } = await getResend().emails.send({
       from: fromEmail,
       to,
-      subject: `Your Aminocan referral code is now ${newCode}`,
+      subject: `Your VYTA referral code is now ${newCode}`,
       html,
     });
 
@@ -447,27 +447,27 @@ export async function sendPaymentConfirmed(data: {
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Canadian Peptides</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Biosciences</p>
       </div>
       <div style="padding: 32px 24px; text-align: center;">
         <div style="width: 48px; height: 48px; background: #ECFDF5; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
           <span style="font-size: 24px;">&#10003;</span>
         </div>
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Payment Confirmed!</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Payment Confirmed!</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           Your payment for order <strong>${orderNumber}</strong> has been received and confirmed on the blockchain.
         </p>
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 4px;">Your order is now being processed and will ship within 24-48 hours.</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 4px;">Your order is now being processed and will ship within 24-48 hours.</p>
         </div>
-        <a href="${baseUrl}/order/track?order=${orderNumber}" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+        <a href="${baseUrl}/order/track?order=${orderNumber}" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
           Track Your Order
         </a>
       </div>
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Aminocan Peptides &bull; Canada<br/>Questions? Reply to this email.</p>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">VYTA Biosciences &bull; Canada<br/>Questions? Reply to this email.</p>
       </div>
     </div>
   `;
@@ -509,15 +509,15 @@ export async function sendAdminPaymentNotification(data: {
   const itemList = items
     .map(
       (i) =>
-        `<li style="font-size: 14px; color: #1A1A1A; padding: 4px 0;">${i.name} x${i.quantity}</li>`,
+        `<li style="font-size: 14px; color: #07203A; padding: 4px 0;">${i.name} x${i.quantity}</li>`,
     )
     .join("");
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Admin Notification</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Admin Notification</p>
       </div>
 
       <div style="padding: 32px 24px;">
@@ -525,25 +525,25 @@ export async function sendAdminPaymentNotification(data: {
           <h2 style="font-size: 18px; font-weight: 600; color: #065F46; margin: 0;">Payment Received!</h2>
         </div>
 
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
           <table style="width: 100%;">
             <tr>
-              <td style="font-size: 12px; color: #6B7280; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Order</td>
-              <td style="font-size: 14px; font-weight: 600; color: #1A1A1A; padding: 6px 0; text-align: right; font-family: monospace;">${orderNumber}</td>
+              <td style="font-size: 12px; color: #56707F; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Order</td>
+              <td style="font-size: 14px; font-weight: 600; color: #07203A; padding: 6px 0; text-align: right; font-family: monospace;">${orderNumber}</td>
             </tr>
             <tr>
-              <td style="font-size: 12px; color: #6B7280; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Total (CAD)</td>
-              <td style="font-size: 14px; font-weight: 600; color: #1A1A1A; padding: 6px 0; text-align: right;">$${total.toFixed(2)}</td>
+              <td style="font-size: 12px; color: #56707F; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Total (CAD)</td>
+              <td style="font-size: 14px; font-weight: 600; color: #07203A; padding: 6px 0; text-align: right;">$${total.toFixed(2)}</td>
             </tr>
             <tr>
-              <td style="font-size: 12px; color: #6B7280; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Paid</td>
-              <td style="font-size: 14px; font-weight: 600; color: #1A1A1A; padding: 6px 0; text-align: right;">${paymentAmount} ${crypto.toUpperCase()}</td>
+              <td style="font-size: 12px; color: #56707F; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Paid</td>
+              <td style="font-size: 14px; font-weight: 600; color: #07203A; padding: 6px 0; text-align: right;">${paymentAmount} ${crypto.toUpperCase()}</td>
             </tr>
             ${
               customerEmail
                 ? `<tr>
-              <td style="font-size: 12px; color: #6B7280; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Customer</td>
-              <td style="font-size: 14px; color: #1A1A1A; padding: 6px 0; text-align: right;">${customerEmail}</td>
+              <td style="font-size: 12px; color: #56707F; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Customer</td>
+              <td style="font-size: 14px; color: #07203A; padding: 6px 0; text-align: right;">${customerEmail}</td>
             </tr>`
                 : ""
             }
@@ -551,12 +551,12 @@ export async function sendAdminPaymentNotification(data: {
         </div>
 
         <div style="margin-bottom: 24px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Items</p>
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Items</p>
           <ul style="margin: 0; padding: 0 0 0 20px;">${itemList}</ul>
         </div>
 
         <div style="text-align: center;">
-          <a href="${baseUrl}/admin/orders" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="${baseUrl}/admin/orders" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
             View in Admin
           </a>
         </div>
@@ -598,42 +598,42 @@ export async function sendAffiliateRequestDecision(data: {
 
   const body = approved
     ? `
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">You're an Affiliate!</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">You're an Affiliate!</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           Hi ${customerName}, your affiliate application has been approved. Start sharing your referral code to earn commission on every sale.
         </p>
         ${
           referralCode
-            ? `<div style="background: #F7F7F7; border-radius: 8px; padding: 24px; margin-bottom: 24px; text-align: center;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Your Referral Code</p>
-          <p style="font-size: 28px; font-weight: 700; color: #1A1A1A; margin: 0; font-family: monospace; letter-spacing: 0.1em;">${referralCode}</p>
-          <p style="font-size: 13px; color: #1A1A1A; margin: 12px 0 0; font-family: monospace; word-break: break-all;">${baseUrl}?ref=${referralCode}</p>
+            ? `<div style="background: #F7FAFB; border-radius: 8px; padding: 24px; margin-bottom: 24px; text-align: center;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Your Referral Code</p>
+          <p style="font-size: 28px; font-weight: 700; color: #07203A; margin: 0; font-family: monospace; letter-spacing: 0.1em;">${referralCode}</p>
+          <p style="font-size: 13px; color: #07203A; margin: 12px 0 0; font-family: monospace; word-break: break-all;">${baseUrl}?ref=${referralCode}</p>
         </div>`
             : ""
         }
         <div style="text-align: center;">
-          <a href="${baseUrl}/admin" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="${baseUrl}/admin" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
             Go to Dashboard
           </a>
         </div>`
     : `
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Affiliate Application Update</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Affiliate Application Update</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           Hi ${customerName}, thank you for your interest in our affiliate program. After review, we're unable to approve your application at this time. Feel free to reach out if you have any questions.
         </p>`;
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Affiliate Program</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Affiliate Program</p>
       </div>
       <div style="padding: 32px 24px;">
         ${body}
       </div>
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">
-          Aminocan Peptides &bull; Canada<br/>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">
+          VYTA Biosciences &bull; Canada<br/>
           Questions? Reply to this email.
         </p>
       </div>
@@ -645,8 +645,8 @@ export async function sendAffiliateRequestDecision(data: {
       from: fromEmail,
       to,
       subject: approved
-        ? "Your Aminocan Affiliate Application is Approved!"
-        : "Aminocan Affiliate Application Update",
+        ? "Your VYTA Affiliate Application is Approved!"
+        : "VYTA Affiliate Application Update",
       html,
     });
 
@@ -678,29 +678,29 @@ export async function sendAffiliateRequestAdminNotification(data: {
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Admin Notification</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Admin Notification</p>
       </div>
       <div style="padding: 32px 24px;">
-        <div style="background: #FAF8F3; border: 1px solid #E5DCC7; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
-          <h2 style="font-size: 18px; font-weight: 600; color: #7D6F48; margin: 0;">New Affiliate Application</h2>
+        <div style="background: #F1F8F9; border: 1px solid #C4DFE3; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
+          <h2 style="font-size: 18px; font-weight: 600; color: #1B5D83; margin: 0;">New Affiliate Application</h2>
         </div>
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
           <table style="width: 100%;">
             <tr>
-              <td style="font-size: 12px; color: #6B7280; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Name</td>
-              <td style="font-size: 14px; font-weight: 600; color: #1A1A1A; padding: 6px 0; text-align: right;">${customerName}</td>
+              <td style="font-size: 12px; color: #56707F; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Name</td>
+              <td style="font-size: 14px; font-weight: 600; color: #07203A; padding: 6px 0; text-align: right;">${customerName}</td>
             </tr>
             <tr>
-              <td style="font-size: 12px; color: #6B7280; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Email</td>
-              <td style="font-size: 14px; color: #1A1A1A; padding: 6px 0; text-align: right;">${customerEmail}</td>
+              <td style="font-size: 12px; color: #56707F; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Email</td>
+              <td style="font-size: 14px; color: #07203A; padding: 6px 0; text-align: right;">${customerEmail}</td>
             </tr>
             ${
               walletAddress
                 ? `<tr>
-              <td style="font-size: 12px; color: #6B7280; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Wallet</td>
-              <td style="font-size: 13px; color: #1A1A1A; padding: 6px 0; text-align: right; font-family: monospace;">${walletAddress}</td>
+              <td style="font-size: 12px; color: #56707F; padding: 6px 0; text-transform: uppercase; letter-spacing: 0.05em;">Wallet</td>
+              <td style="font-size: 13px; color: #07203A; padding: 6px 0; text-align: right; font-family: monospace;">${walletAddress}</td>
             </tr>`
                 : ""
             }
@@ -709,13 +709,13 @@ export async function sendAffiliateRequestAdminNotification(data: {
         ${
           message
             ? `<div style="margin-bottom: 24px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Message</p>
-          <p style="font-size: 14px; color: #1A1A1A; margin: 0; white-space: pre-wrap;">${message}</p>
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em;">Message</p>
+          <p style="font-size: 14px; color: #07203A; margin: 0; white-space: pre-wrap;">${message}</p>
         </div>`
             : ""
         }
         <div style="text-align: center;">
-          <a href="${baseUrl}/admin/affiliates" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="${baseUrl}/admin/affiliates" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
             Review in Admin
           </a>
         </div>
@@ -764,33 +764,33 @@ export async function sendBackInStockNotification(data: {
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Canadian Peptides</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Biosciences</p>
       </div>
       <div style="padding: 32px 24px;">
         <div style="width: 48px; height: 48px; background: #ECFDF5; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
           <span style="font-size: 24px;">&#10003;</span>
         </div>
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px; text-align: center;">Back in stock!</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px; text-align: center;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px; text-align: center;">Back in stock!</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px; text-align: center;">
           Good news &mdash; a product you asked about is available again.
         </p>
-        <div style="display: flex; align-items: center; gap: 16px; background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-          ${imageUrl ? `<img src="${imageUrl}" alt="" width="64" height="64" style="border-radius: 8px; object-fit: cover; border: 1px solid #E5E7EB;" />` : ""}
+        <div style="display: flex; align-items: center; gap: 16px; background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          ${imageUrl ? `<img src="${imageUrl}" alt="" width="64" height="64" style="border-radius: 8px; object-fit: cover; border: 1px solid #DCE7EB;" />` : ""}
           <div>
-            <p style="font-size: 15px; font-weight: 600; color: #1A1A1A; margin: 0 0 2px;">${productName}${strength ? ` &middot; ${strength}` : ""}</p>
-            ${price != null ? `<p style="font-size: 14px; color: #9C8B5A; margin: 0; font-weight: 600;">$${Number(price).toFixed(2)}</p>` : ""}
+            <p style="font-size: 15px; font-weight: 600; color: #07203A; margin: 0 0 2px;">${productName}${strength ? ` &middot; ${strength}` : ""}</p>
+            ${price != null ? `<p style="font-size: 14px; color: #438B9E; margin: 0; font-weight: 600;">$${Number(price).toFixed(2)}</p>` : ""}
           </div>
         </div>
         <div style="text-align: center;">
-          <a href="${productUrl}" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="${productUrl}" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
             Shop now
           </a>
         </div>
       </div>
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Aminocan Peptides &bull; Canada<br/>You received this because you signed up for a back-in-stock alert.</p>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">VYTA Biosciences &bull; Canada<br/>You received this because you signed up for a back-in-stock alert.</p>
       </div>
     </div>
   `;
@@ -829,30 +829,30 @@ export async function sendLowStockAlert(data: {
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #E5E7EB;">
-        <h1 style="font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0;">AMINOCAN</h1>
-        <p style="font-size: 11px; letter-spacing: 0.15em; color: #9C8B5A; margin: 4px 0 0; text-transform: uppercase;">Admin Alert</p>
+      <div style="padding: 32px 24px; text-align: center; border-bottom: 1px solid #DCE7EB;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #07203A; margin: 0;">VYTA</h1>
+        <p style="font-size: 11px; letter-spacing: 0.15em; color: #438B9E; margin: 4px 0 0; text-transform: uppercase;">Admin Alert</p>
       </div>
       <div style="padding: 32px 24px;">
         <div style="width: 48px; height: 48px; background: #FEF3C7; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
           <span style="font-size: 24px;">&#9888;</span>
         </div>
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px; text-align: center;">Low stock alert</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px; text-align: center;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px; text-align: center;">Low stock alert</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px; text-align: center;">
           A product has dropped to or below its reorder threshold.
         </p>
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-          <p style="font-size: 15px; font-weight: 600; color: #1A1A1A; margin: 0 0 4px;">${productName}${sku ? ` <span style="color:#9CA3AF; font-weight:400;">(${sku})</span>` : ""}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <p style="font-size: 15px; font-weight: 600; color: #07203A; margin: 0 0 4px;">${productName}${sku ? ` <span style="color:#6E8898; font-weight:400;">(${sku})</span>` : ""}</p>
           <p style="font-size: 14px; color: #B45309; margin: 0; font-weight: 600;">${stockQuantity} in stock &middot; threshold ${threshold}</p>
         </div>
         <div style="text-align: center;">
-          <a href="${baseUrl}/admin/products" style="display: inline-block; padding: 12px 24px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+          <a href="${baseUrl}/admin/products" style="display: inline-block; padding: 12px 24px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
             Manage products
           </a>
         </div>
       </div>
-      <div style="padding: 24px; text-align: center; background: #F7F7F7; border-top: 1px solid #E5E7EB;">
-        <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Aminocan Peptides &bull; Operational alert</p>
+      <div style="padding: 24px; text-align: center; background: #F7FAFB; border-top: 1px solid #DCE7EB;">
+        <p style="font-size: 12px; color: #6E8898; margin: 0;">VYTA Biosciences &bull; Operational alert</p>
       </div>
     </div>
   `;
@@ -923,12 +923,12 @@ function renderItemRows(items: ETransferLine[]): string {
             ? "Single vial"
             : "";
       const unitTag = unitLabel
-        ? `<span style="display: inline-block; margin-left: 8px; padding: 1px 6px; border-radius: 999px; background: #F7F7F7; border: 1px solid #E5E7EB; font-size: 11px; color: #6B7280;">${escapeHtml(unitLabel)}</span>`
+        ? `<span style="display: inline-block; margin-left: 8px; padding: 1px 6px; border-radius: 999px; background: #F7FAFB; border: 1px solid #DCE7EB; font-size: 11px; color: #56707F;">${escapeHtml(unitLabel)}</span>`
         : "";
       return `<tr>
-          <td style="padding: 12px 0; border-bottom: 1px solid #E5E7EB; font-size: 14px; color: #1A1A1A;">${escapeHtml(item.name)}${item.strength ? ` — ${escapeHtml(item.strength)}` : ""}${unitTag}</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #E5E7EB; font-size: 14px; color: #6B7280; text-align: center;">${item.quantity}</td>
-          <td style="padding: 12px 0; border-bottom: 1px solid #E5E7EB; font-size: 14px; color: #1A1A1A; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #DCE7EB; font-size: 14px; color: #07203A;">${escapeHtml(item.name)}${item.strength ? ` — ${escapeHtml(item.strength)}` : ""}${unitTag}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #DCE7EB; font-size: 14px; color: #56707F; text-align: center;">${item.quantity}</td>
+          <td style="padding: 12px 0; border-bottom: 1px solid #DCE7EB; font-size: 14px; color: #07203A; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
         </tr>`;
     })
     .join("");
@@ -943,12 +943,12 @@ export function escapeHtml(s: string): string {
 }
 
 /**
- * The chrome every Aminocan email is served in: a dark masthead over a white
+ * The chrome every VYTA email is served in: a dark masthead over a white
  * card, floated on a warm off-white page, with the footer outside the card.
  *
- * The wordmark is set in the display serif (Didot and Bodoni ship with macOS
- * and iOS, where most of these are opened; Georgia catches everything else),
- * reversed out of near-black — so an order confirmation and a recovery email
+ * The wordmark is set in Inter (VYTA's display face), falling through to the
+ * platform UI sans where the client has no webfont, reversed out of Midnight
+ * Navy — so an order confirmation and a recovery email
  * open with the same masthead.
  *
  * Table-built rather than nested divs so Outlook honours the 600px measure
@@ -961,27 +961,27 @@ export function escapeHtml(s: string): string {
  * has to stay free of server-only imports — so the two are meant to look
  * alike: a change here belongs there too.
  */
-export function aminocanShell(inner: string): string {
-  const display = `Didot, 'Bodoni MT', 'Playfair Display', Garamond, Georgia, 'Times New Roman', serif`;
+export function vytaShell(inner: string): string {
+  const display = `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif`;
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; background: #F2F0EB;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; background: #EDF3F5;">
       <tr>
         <td align="center" style="padding: 36px 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
           <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 600px; border-collapse: separate;">
             <tr>
-              <td style="background: #121110; border-radius: 20px 20px 0 0; padding: 38px 32px 34px; text-align: center;">
-                <p style="font-family: ${display}; font-size: 26px; font-weight: 400; letter-spacing: 0.34em; text-indent: 0.34em; color: #D8D1C4; margin: 0;">AMINOCAN</p>
-                <p style="font-size: 9px; font-weight: 600; letter-spacing: 0.3em; text-indent: 0.3em; text-transform: uppercase; color: #B99B5E; margin: 10px 0 0;">Canadian Peptides</p>
+              <td style="background: #05182B; border-radius: 20px 20px 0 0; padding: 38px 32px 34px; text-align: center;">
+                <p style="font-family: ${display}; font-size: 26px; font-weight: 400; letter-spacing: 0.34em; text-indent: 0.34em; color: #C4DFE3; margin: 0;">VYTA</p>
+                <p style="font-size: 9px; font-weight: 600; letter-spacing: 0.3em; text-indent: 0.3em; text-transform: uppercase; color: #6EB2B8; margin: 10px 0 0;">Biosciences</p>
               </td>
             </tr>
             <tr>
-              <td style="background: #FFFFFF; border: 1px solid #E7E3DA; border-top: 0; border-radius: 0 0 20px 20px;">
+              <td style="background: #FFFFFF; border: 1px solid #DCE7EB; border-top: 0; border-radius: 0 0 20px 20px;">
                 ${inner}
               </td>
             </tr>
             <tr>
               <td style="padding: 22px 12px 4px; text-align: center;">
-                <p style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #948E85; margin: 0;">Aminocan · Canadian research peptides</p>
+                <p style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #6E8898; margin: 0;">VYTA · Canadian research peptides</p>
               </td>
             </tr>
           </table>
@@ -1003,24 +1003,24 @@ export async function sendETransferOrderAck(args: ETransferAckArgs) {
 
   const html =
     args.customBodyHtml ??
-    aminocanShell(`
+    vytaShell(`
       <div style="padding: 32px 24px;">
-        <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Thanks for your order</h2>
-        <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Thanks for your order</h2>
+        <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
           Hi ${escapeHtml(args.customerName)}, we've received your order.
         </p>
 
-        <div style="background: #F7F7F7; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-          <p style="font-size: 12px; color: #6B7280; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Order Number</p>
-          <p style="font-size: 16px; font-weight: 600; color: #1A1A1A; margin: 0; font-family: monospace;">${escapeHtml(args.orderNumber)}</p>
+        <div style="background: #F7FAFB; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+          <p style="font-size: 12px; color: #56707F; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.05em;">Order Number</p>
+          <p style="font-size: 16px; font-weight: 600; color: #07203A; margin: 0; font-family: monospace;">${escapeHtml(args.orderNumber)}</p>
         </div>
 
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
           <thead>
             <tr>
-              <th style="text-align: left; padding: 8px 0; border-bottom: 2px solid #E5E7EB; font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em;">Item</th>
-              <th style="text-align: center; padding: 8px 0; border-bottom: 2px solid #E5E7EB; font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em;">Qty</th>
-              <th style="text-align: right; padding: 8px 0; border-bottom: 2px solid #E5E7EB; font-size: 11px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em;">Total</th>
+              <th style="text-align: left; padding: 8px 0; border-bottom: 2px solid #DCE7EB; font-size: 11px; color: #56707F; text-transform: uppercase; letter-spacing: 0.05em;">Item</th>
+              <th style="text-align: center; padding: 8px 0; border-bottom: 2px solid #DCE7EB; font-size: 11px; color: #56707F; text-transform: uppercase; letter-spacing: 0.05em;">Qty</th>
+              <th style="text-align: right; padding: 8px 0; border-bottom: 2px solid #DCE7EB; font-size: 11px; color: #56707F; text-transform: uppercase; letter-spacing: 0.05em;">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -1029,24 +1029,24 @@ export async function sendETransferOrderAck(args: ETransferAckArgs) {
         </table>
 
         <div style="margin-bottom: 24px;">
-          <div style="display:flex; justify-content:space-between; padding: 4px 0; font-size: 14px; color:#6B7280;">
-            <span>Subtotal</span><span style="color:#1A1A1A;">$${args.subtotal.toFixed(2)}</span>
+          <div style="display:flex; justify-content:space-between; padding: 4px 0; font-size: 14px; color:#56707F;">
+            <span>Subtotal</span><span style="color:#07203A;">$${args.subtotal.toFixed(2)}</span>
           </div>
-          <div style="display:flex; justify-content:space-between; padding: 4px 0; font-size: 14px; color:#6B7280;">
-            <span>Shipping</span><span style="color:#1A1A1A;">${args.shipping > 0 ? `$${args.shipping.toFixed(2)}` : "Free"}</span>
+          <div style="display:flex; justify-content:space-between; padding: 4px 0; font-size: 14px; color:#56707F;">
+            <span>Shipping</span><span style="color:#07203A;">${args.shipping > 0 ? `$${args.shipping.toFixed(2)}` : "Free"}</span>
           </div>
-          <div style="display:flex; justify-content:space-between; padding: 12px 0 4px; font-size: 16px; font-weight: 700; color:#1A1A1A; border-top: 1px solid #E5E7EB; margin-top:8px;">
+          <div style="display:flex; justify-content:space-between; padding: 12px 0 4px; font-size: 16px; font-weight: 700; color:#07203A; border-top: 1px solid #DCE7EB; margin-top:8px;">
             <span>Total</span><span>$${args.total.toFixed(2)} CAD</span>
           </div>
         </div>
 
-        <div style="background: #FAF8F3; border: 1px solid #E5DCC7; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-          <p style="margin: 0; font-size: 14px; color: #1A1A1A; line-height: 1.5;">
+        <div style="background: #F1F8F9; border: 1px solid #C4DFE3; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <p style="margin: 0; font-size: 14px; color: #07203A; line-height: 1.5;">
             ${instructionsLine}
           </p>
         </div>
 
-        <p style="font-size: 13px; color: #6B7280; margin: 0;">
+        <p style="font-size: 13px; color: #56707F; margin: 0;">
           Questions? Just reply to this email.
         </p>
       </div>
@@ -1102,40 +1102,40 @@ Security A hint: ${args.securityAnswerHint}
 Please include your order number ${args.orderNumber} in the message field so we can match the payment. Once we confirm receipt we'll start fulfilling your order.
 
 Thank you,
-Aminocan`;
+VYTA`;
 
   // When the admin edits the body, honour that edit in the HTML the customer
   // actually sees — render the plain text into the branded shell (escaped,
   // with newlines preserved) instead of the fixed instructions table.
   const html = args.customBodyText
-    ? aminocanShell(`
+    ? vytaShell(`
     <div style="padding: 32px 24px;">
-      <p style="font-size: 14px; color: #1A1A1A; line-height: 1.6; margin: 0; white-space: pre-wrap;">${escapeHtml(args.customBodyText)}</p>
+      <p style="font-size: 14px; color: #07203A; line-height: 1.6; margin: 0; white-space: pre-wrap;">${escapeHtml(args.customBodyText)}</p>
     </div>
   `)
-    : aminocanShell(`
+    : vytaShell(`
     <div style="padding: 32px 24px;">
-      <h2 style="font-size: 20px; font-weight: 600; color: #1A1A1A; margin: 0 0 8px;">Payment instructions</h2>
-      <p style="font-size: 14px; color: #6B7280; margin: 0 0 24px;">
+      <h2 style="font-size: 20px; font-weight: 600; color: #07203A; margin: 0 0 8px;">Payment instructions</h2>
+      <p style="font-size: 14px; color: #56707F; margin: 0 0 24px;">
         Hi ${escapeHtml(args.customerName)}, here are the Interac e-Transfer details for order
-        <span style="font-family: monospace; color:#1A1A1A;">${escapeHtml(args.orderNumber)}</span>.
+        <span style="font-family: monospace; color:#07203A;">${escapeHtml(args.orderNumber)}</span>.
       </p>
 
       <table style="width:100%; border-collapse: collapse; margin-bottom: 24px;">
         <tbody>
-          <tr><td style="padding: 8px 0; font-size: 13px; color:#6B7280; width:160px;">Send to</td>
-              <td style="padding: 8px 0; font-size: 14px; color:#1A1A1A; font-family: monospace;">${escapeHtml(args.recipientEmail)}</td></tr>
-          <tr><td style="padding: 8px 0; font-size: 13px; color:#6B7280;">Amount</td>
-              <td style="padding: 8px 0; font-size: 14px; color:#1A1A1A; font-weight:600;">$${args.total.toFixed(2)} CAD</td></tr>
-          <tr><td style="padding: 8px 0; font-size: 13px; color:#6B7280;">Security question</td>
-              <td style="padding: 8px 0; font-size: 14px; color:#1A1A1A;">${escapeHtml(args.securityQuestion)}</td></tr>
-          <tr><td style="padding: 8px 0; font-size: 13px; color:#6B7280;">Security answer hint</td>
-              <td style="padding: 8px 0; font-size: 14px; color:#1A1A1A;">${escapeHtml(args.securityAnswerHint)}</td></tr>
+          <tr><td style="padding: 8px 0; font-size: 13px; color:#56707F; width:160px;">Send to</td>
+              <td style="padding: 8px 0; font-size: 14px; color:#07203A; font-family: monospace;">${escapeHtml(args.recipientEmail)}</td></tr>
+          <tr><td style="padding: 8px 0; font-size: 13px; color:#56707F;">Amount</td>
+              <td style="padding: 8px 0; font-size: 14px; color:#07203A; font-weight:600;">$${args.total.toFixed(2)} CAD</td></tr>
+          <tr><td style="padding: 8px 0; font-size: 13px; color:#56707F;">Security question</td>
+              <td style="padding: 8px 0; font-size: 14px; color:#07203A;">${escapeHtml(args.securityQuestion)}</td></tr>
+          <tr><td style="padding: 8px 0; font-size: 13px; color:#56707F;">Security answer hint</td>
+              <td style="padding: 8px 0; font-size: 14px; color:#07203A;">${escapeHtml(args.securityAnswerHint)}</td></tr>
         </tbody>
       </table>
 
-      <div style="background: #FAF8F3; border: 1px solid #E5DCC7; border-radius: 8px; padding: 16px;">
-        <p style="margin: 0; font-size: 13px; color: #1A1A1A; line-height: 1.5;">
+      <div style="background: #F1F8F9; border: 1px solid #C4DFE3; border-radius: 8px; padding: 16px;">
+        <p style="margin: 0; font-size: 13px; color: #07203A; line-height: 1.5;">
           Please include your order number <strong>${escapeHtml(args.orderNumber)}</strong> in the e-Transfer message so we can match the payment. Once we confirm receipt we'll start fulfilling your order.
         </p>
       </div>
@@ -1181,25 +1181,25 @@ export async function sendAdminETransferNotice(args: AdminETransferNoticeArgs) {
     return { success: false, error: "no admin recipients", messageId: null as string | null };
   }
   const subject = `[e-Transfer] New order ${args.orderNumber} — $${args.total.toFixed(2)}`;
-  const html = aminocanShell(`
+  const html = vytaShell(`
     <div style="padding: 24px;">
-      <h2 style="font-size: 18px; margin: 0 0 8px; color:#1A1A1A;">New e-Transfer order</h2>
-      <p style="margin: 0 0 16px; font-size: 13px; color:#6B7280;">
+      <h2 style="font-size: 18px; margin: 0 0 8px; color:#07203A;">New e-Transfer order</h2>
+      <p style="margin: 0 0 16px; font-size: 13px; color:#56707F;">
         A new Interac e-Transfer order needs payment instructions sent.
       </p>
       <table style="width:100%; border-collapse:collapse;">
         <tbody>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280; width:140px;">Order</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A; font-family:monospace;">${escapeHtml(args.orderNumber)}</td></tr>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280;">Customer</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A;">${escapeHtml(args.customerName)} (${escapeHtml(args.customerEmail)})</td></tr>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280;">Total</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A; font-weight:600;">$${args.total.toFixed(2)} CAD</td></tr>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280;">Fulfillment</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A;">${args.fulfillmentType ?? "shipment"}</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F; width:140px;">Order</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A; font-family:monospace;">${escapeHtml(args.orderNumber)}</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F;">Customer</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A;">${escapeHtml(args.customerName)} (${escapeHtml(args.customerEmail)})</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F;">Total</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A; font-weight:600;">$${args.total.toFixed(2)} CAD</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F;">Fulfillment</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A;">${args.fulfillmentType ?? "shipment"}</td></tr>
         </tbody>
       </table>
-      <p style="margin: 16px 0 0; font-size:13px; color:#6B7280;">
+      <p style="margin: 16px 0 0; font-size:13px; color:#56707F;">
         Open the order in /admin/orders and click <strong>Send e-Transfer instructions</strong> when ready.
       </p>
     </div>
@@ -1241,11 +1241,11 @@ function insightsButton(url: string, label: string): string {
   return `
     <div style="text-align: center; margin: 8px 0 4px;">
       <a href="${url}"
-         style="display: inline-block; padding: 14px 32px; background: #1A1A1A; color: #FFFFFF; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 700; letter-spacing: 0.01em; box-shadow: 0 2px 6px rgba(26,26,26,0.25); border: 1px solid #1A1A1A;">
+         style="display: inline-block; padding: 14px 32px; background: #07203A; color: #FFFFFF; text-decoration: none; border-radius: 10px; font-size: 15px; font-weight: 700; letter-spacing: 0.01em; box-shadow: 0 2px 6px rgba(7,32,58,0.25); border: 1px solid #07203A;">
         ${escapeHtml(label)} &nbsp;&rarr;
       </a>
     </div>
-    <p style="text-align:center; font-size:11px; color:#9CA3AF; margin: 12px 0 0;">
+    <p style="text-align:center; font-size:11px; color:#6E8898; margin: 12px 0 0;">
       You'll be asked to sign in as an admin to view this page.
     </p>
   `;
@@ -1270,26 +1270,26 @@ export async function sendRegistrationAlert(data: {
   const baseUrl = SITE_URL;
   const insightsUrl = `${baseUrl}/admin/customers/${customerId}`;
 
-  const html = aminocanShell(`
+  const html = vytaShell(`
     <div style="padding: 32px 24px;">
-      <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
-        <h2 style="font-size: 18px; font-weight: 600; color: #1E3A8A; margin: 0;">New customer registered</h2>
+      <div style="background: #F1F8F9; border: 1px solid #C4DFE3; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
+        <h2 style="font-size: 18px; font-weight: 600; color: #07203A; margin: 0;">New customer registered</h2>
       </div>
 
       <table style="width:100%; border-collapse:collapse; margin-bottom: 24px;">
         <tbody>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280; width:140px;">Name</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A; font-weight:600;">${escapeHtml(customerName)}</td></tr>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280;">Email</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A;">${escapeHtml(customerEmail)}</td></tr>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280;">Contact consent</td>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F; width:140px;">Name</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A; font-weight:600;">${escapeHtml(customerName)}</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F;">Email</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A;">${escapeHtml(customerEmail)}</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F;">Contact consent</td>
               <td style="padding:6px 0; font-size:14px; color:${contactConsent ? "#047857" : "#B45309"}; font-weight:600;">
                 ${contactConsent ? "Yes — happy to be contacted" : "No consent given"}
               </td></tr>
         </tbody>
       </table>
 
-      <p style="font-size: 14px; color: #6B7280; margin: 0 0 20px; text-align:center;">
+      <p style="font-size: 14px; color: #56707F; margin: 0 0 20px; text-align:center;">
         Open their insights page to see what they searched for, viewed and added to cart — and claim them as your customer.
       </p>
 
@@ -1334,7 +1334,7 @@ export async function sendAbandonedRegistrationAlert(data: {
   const baseUrl = SITE_URL;
   const insightsUrl = `${baseUrl}/admin/customers/${customerId}`;
 
-  const html = aminocanShell(`
+  const html = vytaShell(`
     <div style="padding: 32px 24px;">
       <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
         <h2 style="font-size: 18px; font-weight: 600; color: #92400E; margin: 0;">Registered but hasn't checked out</h2>
@@ -1342,20 +1342,20 @@ export async function sendAbandonedRegistrationAlert(data: {
 
       <table style="width:100%; border-collapse:collapse; margin-bottom: 24px;">
         <tbody>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280; width:140px;">Name</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A; font-weight:600;">${escapeHtml(customerName)}</td></tr>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280;">Email</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A;">${escapeHtml(customerEmail)}</td></tr>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280;">Waited</td>
-              <td style="padding:6px 0; font-size:14px; color:#1A1A1A;">~${Math.round(hoursElapsed)} hours since registering</td></tr>
-          <tr><td style="padding:6px 0; font-size:13px; color:#6B7280;">Contact consent</td>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F; width:140px;">Name</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A; font-weight:600;">${escapeHtml(customerName)}</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F;">Email</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A;">${escapeHtml(customerEmail)}</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F;">Waited</td>
+              <td style="padding:6px 0; font-size:14px; color:#07203A;">~${Math.round(hoursElapsed)} hours since registering</td></tr>
+          <tr><td style="padding:6px 0; font-size:13px; color:#56707F;">Contact consent</td>
               <td style="padding:6px 0; font-size:14px; color:${contactConsent ? "#047857" : "#B45309"}; font-weight:600;">
                 ${contactConsent ? "Yes — happy to be contacted" : "No consent given"}
               </td></tr>
         </tbody>
       </table>
 
-      <p style="font-size: 14px; color: #6B7280; margin: 0 0 20px; text-align:center;">
+      <p style="font-size: 14px; color: #56707F; margin: 0 0 20px; text-align:center;">
         This might be a good moment to reach out. Review what they were interested in and claim them below.
       </p>
 

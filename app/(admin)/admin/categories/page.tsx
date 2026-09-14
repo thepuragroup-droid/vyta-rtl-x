@@ -219,7 +219,7 @@ export default function CategoriesManagementPage() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2">
-            <Tags className="w-6 h-6 text-bronze" />
+            <Tags className="w-6 h-6 text-teal-dark" />
             Categories
           </h1>
           <p className="text-ink-muted text-sm mt-1">
@@ -313,7 +313,7 @@ export default function CategoriesManagementPage() {
                         value={d.name}
                         disabled={!canManage}
                         onChange={(e) => setDraft(c.id, { name: e.target.value })}
-                        className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                       />
                     </div>
                     <div>
@@ -323,7 +323,7 @@ export default function CategoriesManagementPage() {
                         value={d.slug}
                         disabled={!canManage}
                         onChange={(e) => setDraft(c.id, { slug: e.target.value })}
-                        className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                       />
                       <p className="mt-1 text-[10px] text-ink-muted">Renaming updates all linked products.</p>
                     </div>
@@ -333,7 +333,7 @@ export default function CategoriesManagementPage() {
                         value={d.icon}
                         disabled={!canManage}
                         onChange={(e) => setDraft(c.id, { icon: e.target.value })}
-                        className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                       >
                         {CATEGORY_ICON_KEYS.map((k) => (
                           <option key={k} value={k}>{k}</option>
@@ -347,7 +347,7 @@ export default function CategoriesManagementPage() {
                         value={d.description}
                         disabled={!canManage}
                         onChange={(e) => setDraft(c.id, { description: e.target.value })}
-                        className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                        className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                       />
                     </div>
                   </div>
@@ -368,7 +368,7 @@ export default function CategoriesManagementPage() {
                       onClick={() => canManage && setDraft(c.id, { featured: !d.featured })}
                       disabled={!canManage}
                       className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:cursor-not-allowed ${
-                        d.featured ? 'bg-bronze/10 text-bronze' : 'bg-gray-500/10 text-ink-muted'
+                        d.featured ? 'bg-teal/10 text-teal-dark' : 'bg-gray-500/10 text-ink-muted'
                       }`}
                     >
                       <Star className="w-3.5 h-3.5" />
@@ -423,7 +423,7 @@ export default function CategoriesManagementPage() {
                   value={addForm.slug}
                   onChange={(e) => setAddForm({ ...addForm, slug: e.target.value })}
                   placeholder="Weight Loss / Metabolic"
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
                 <p className="mt-1 text-[10px] text-ink-muted">Stable key — must equal the products&apos; category string. Cannot be changed later.</p>
               </div>
@@ -434,7 +434,7 @@ export default function CategoriesManagementPage() {
                   value={addForm.name}
                   onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                   placeholder="Metabolic"
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div>
@@ -442,7 +442,7 @@ export default function CategoriesManagementPage() {
                 <select
                   value={addForm.icon}
                   onChange={(e) => setAddForm({ ...addForm, icon: e.target.value })}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                 >
                   {CATEGORY_ICON_KEYS.map((k) => (
                     <option key={k} value={k}>{k}</option>
@@ -455,16 +455,16 @@ export default function CategoriesManagementPage() {
                   type="text"
                   value={addForm.description}
                   onChange={(e) => setAddForm({ ...addForm, description: e.target.value })}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer text-sm text-ink">
-                  <input type="checkbox" checked={addForm.active} onChange={(e) => setAddForm({ ...addForm, active: e.target.checked })} className="w-4 h-4 text-bronze border-line rounded focus:ring-bronze/40" />
+                  <input type="checkbox" checked={addForm.active} onChange={(e) => setAddForm({ ...addForm, active: e.target.checked })} className="w-4 h-4 text-teal-dark border-line rounded focus:ring-teal/40" />
                   Active
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer text-sm text-ink">
-                  <input type="checkbox" checked={addForm.featured} onChange={(e) => setAddForm({ ...addForm, featured: e.target.checked })} className="w-4 h-4 text-bronze border-line rounded focus:ring-bronze/40" />
+                  <input type="checkbox" checked={addForm.featured} onChange={(e) => setAddForm({ ...addForm, featured: e.target.checked })} className="w-4 h-4 text-teal-dark border-line rounded focus:ring-teal/40" />
                   Featured (homepage)
                 </label>
               </div>

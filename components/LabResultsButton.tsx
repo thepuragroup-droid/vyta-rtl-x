@@ -29,7 +29,7 @@ export default function LabResultsButton({
         href={href}
         className={`shrink-0 font-semibold py-3 sm:py-4 px-4 sm:px-5 rounded-xl border border-line bg-white text-ink hover:border-ink/30 hover:bg-surface transition-all flex items-center justify-center gap-2 text-sm ${className}`}
       >
-        <FlaskConical className="w-5 h-5 text-bronze" />
+        <FlaskConical className="w-5 h-5 text-teal-dark" />
         <span>Lab Results</span>
       </Link>
     );
@@ -43,7 +43,7 @@ export default function LabResultsButton({
       aria-label="Lab Results"
       className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-line bg-white text-ink-muted hover:text-ink hover:border-ink/20 transition-all text-xs font-medium ${className}`}
     >
-      <FlaskConical className="w-3.5 h-3.5 text-bronze" />
+      <FlaskConical className="w-3.5 h-3.5 text-teal-dark" />
       <span className="hidden sm:inline">Lab</span>
     </Link>
   );

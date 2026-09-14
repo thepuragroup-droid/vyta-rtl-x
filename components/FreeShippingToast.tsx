@@ -120,7 +120,7 @@ export default function FreeShippingToast() {
                 className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${
                   progress.unlocked
                     ? "bg-emerald-500 text-white"
-                    : "bg-bronze/15 text-bronze"
+                    : "bg-teal/15 text-teal-dark"
                 }`}
               >
                 {progress.unlocked ? (
@@ -153,7 +153,7 @@ export default function FreeShippingToast() {
                     className={`h-full rounded-full ${
                       progress.unlocked
                         ? "bg-emerald-500"
-                        : "bg-gradient-to-r from-bronze/70 to-bronze"
+                        : "bg-gradient-to-r from-teal/70 to-teal"
                     }`}
                     initial={false}
                     animate={{ width: `${progress.pct}%` }}
@@ -178,7 +178,7 @@ export default function FreeShippingToast() {
                       cover the shipping.{" "}
                       <Link
                         href="/products"
-                        className="font-medium text-bronze underline-offset-2 hover:underline"
+                        className="font-medium text-teal-dark underline-offset-2 hover:underline"
                       >
                         Keep shopping
                       </Link>

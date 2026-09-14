@@ -86,7 +86,7 @@ export default function PurchaseOrdersPage() {
             placeholder="Search by PO number or supplier..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
         <div className="relative">
@@ -94,7 +94,7 @@ export default function PurchaseOrdersPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as PurchaseOrderStatus | 'all')}
-            className="pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none"
+            className="pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -131,7 +131,7 @@ export default function PurchaseOrdersPage() {
                 return (
                   <tr key={po.id} className="hover:bg-surface transition-colors">
                     <td className="px-5 py-4">
-                      <Link href={`/admin/purchase-orders/${po.id}`} className="font-mono text-sm font-semibold text-ink hover:text-bronze transition-colors">{po.po_number}</Link>
+                      <Link href={`/admin/purchase-orders/${po.id}`} className="font-mono text-sm font-semibold text-ink hover:text-teal-dark transition-colors">{po.po_number}</Link>
                     </td>
                     <td className="px-5 py-4"><p className="text-sm font-medium text-ink">{po.supplier?.name ?? '—'}</p></td>
                     <td className="px-5 py-4 text-sm text-ink-muted tabular-nums">{po.item_count}</td>

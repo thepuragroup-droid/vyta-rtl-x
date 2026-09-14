@@ -9,9 +9,9 @@ const db = createClient(
 );
 
 // Mappings must live in our own partner namespace; anything else is stale.
-const AMINOCAN_SKU_PREFIX = 'aminocan-';
+const VYTA_SKU_PREFIX = 'aminocan-';
 const isPartnerSku = (s: string | null | undefined) =>
-  (s ?? '').trim().toLowerCase().startsWith(AMINOCAN_SKU_PREFIX);
+  (s ?? '').trim().toLowerCase().startsWith(VYTA_SKU_PREFIX);
 
 async function verifyAdmin(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');

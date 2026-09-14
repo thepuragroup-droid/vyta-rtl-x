@@ -30,12 +30,12 @@ export const INVOICE_STATUS_META: Record<InvoiceStatus, InvoiceStatusMeta> = {
   draft: {
     label: 'Draft',
     badge: 'bg-gray-500/10 text-gray-600',
-    pdf: { fg: '#4b5563', bg: '#f3f4f6' },
+    pdf: { fg: '#56707f', bg: '#edf3f5' },
   },
   sent: {
     label: 'Sent',
     badge: 'bg-blue-500/10 text-blue-600',
-    pdf: { fg: '#2563eb', bg: '#eff6ff' },
+    pdf: { fg: '#1b5d83', bg: '#f1f8f9' },
   },
   partial: {
     label: 'Partial',
@@ -57,7 +57,7 @@ export const INVOICE_STATUS_META: Record<InvoiceStatus, InvoiceStatusMeta> = {
     // Line-through matches the spec — a cancelled invoice reads as "voided"
     // in the list, so figures don't look like an outstanding amount.
     badge: 'bg-gray-500/10 text-gray-500 line-through',
-    pdf: { fg: '#6B7280', bg: '#F3F4F6' },
+    pdf: { fg: '#56707F', bg: '#EDF3F5' },
   },
 };
 

@@ -113,7 +113,7 @@ export default function ReferralCodePanel() {
   return (
     <div className="rounded-xl border border-line bg-white p-5 shadow-sm sm:p-6 md:p-8">
       <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-ink sm:text-base">
-        <Tag className="h-4 w-4 text-bronze" />
+        <Tag className="h-4 w-4 text-teal-dark" />
         Referral Code
       </h2>
 
@@ -129,7 +129,7 @@ export default function ReferralCodePanel() {
             <button
               type="button"
               onClick={copy}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-bronze/40 hover:text-ink"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-teal/40 hover:text-ink"
             >
               {copied ? (
                 <>

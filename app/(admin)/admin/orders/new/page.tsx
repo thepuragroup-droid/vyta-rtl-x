@@ -140,7 +140,7 @@ export default function NewOrderPage() {
           type="text"
           value={addr[field] ?? ''}
           onChange={(e) => updateAddr(setter, field, e.target.value)}
-          className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+          className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
         />
       </div>
     );
@@ -251,7 +251,7 @@ export default function NewOrderPage() {
                   }
                 }
               }}
-              className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
             >
               <option value="">— Walk-in / Offline Customer —</option>
               {customers.map((c) => (
@@ -268,7 +268,7 @@ export default function NewOrderPage() {
               <h2 className="font-semibold text-ink text-sm">Order Items</h2>
               <button
                 onClick={() => setShowVariantPicker(true)}
-                className="text-xs text-bronze hover:text-bronze/80 flex items-center gap-1"
+                className="text-xs text-teal-dark hover:text-teal-dark/80 flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Item
               </button>
@@ -278,7 +278,7 @@ export default function NewOrderPage() {
                 <p className="text-ink-muted text-sm mb-3">No items added</p>
                 <button
                   onClick={() => setShowVariantPicker(true)}
-                  className="text-sm text-bronze hover:text-bronze/80"
+                  className="text-sm text-teal-dark hover:text-teal-dark/80"
                 >
                   + Add a product variant
                 </button>
@@ -404,7 +404,7 @@ export default function NewOrderPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
               />
             </div>
             <div>
@@ -413,7 +413,7 @@ export default function NewOrderPage() {
                 value={staffNotes}
                 onChange={(e) => setStaffNotes(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
               />
             </div>
           </div>
@@ -431,7 +431,7 @@ export default function NewOrderPage() {
                   value={shippingMethod}
                   onChange={(e) => setShippingMethod(e.target.value)}
                   placeholder="e.g. Canada Post Xpresspost"
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div>
@@ -440,7 +440,7 @@ export default function NewOrderPage() {
                   type="number" min="0" max="100" step="0.1"
                   value={taxPct}
                   onChange={(e) => setTaxPct(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div>
@@ -449,7 +449,7 @@ export default function NewOrderPage() {
                   type="number" min="0" step="0.01"
                   value={shippingCost}
                   onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
             </div>
@@ -502,7 +502,7 @@ export default function NewOrderPage() {
                   value={variantSearch}
                   onChange={(e) => setVariantSearch(e.target.value)}
                   autoFocus
-                  className="w-full pl-10 pr-4 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full pl-10 pr-4 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
             </div>

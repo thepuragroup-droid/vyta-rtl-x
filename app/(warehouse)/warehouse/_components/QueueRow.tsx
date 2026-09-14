@@ -49,10 +49,10 @@ export default function QueueRow({
     <div
       className={`flex items-stretch gap-2 rounded-lg border bg-white transition ${
         active
-          ? 'border-bronze ring-1 ring-bronze/40 shadow-sm'
+          ? 'border-teal ring-1 ring-teal/40 shadow-sm'
           : selected
-            ? 'border-bronze/60'
-            : 'border-line hover:border-bronze/50'
+            ? 'border-teal/60'
+            : 'border-line hover:border-teal/50'
       }`}
     >
       {selectable && (
@@ -64,7 +64,7 @@ export default function QueueRow({
             type="checkbox"
             checked={selected}
             onChange={() => onToggleSelect?.()}
-            className="h-4 w-4 accent-bronze"
+            className="h-4 w-4 accent-teal"
             aria-label={`Select ${item.invoice_number}`}
           />
         </label>
@@ -93,7 +93,7 @@ export default function QueueRow({
             </span>
           )}
           {isNew && (
-            <span className="text-[10px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-bronze text-white shrink-0">
+            <span className="text-[10px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-teal-dark text-white shrink-0">
               New
             </span>
           )}
@@ -125,7 +125,7 @@ export default function QueueRow({
           {/* Product labels — reflects the invoice's "Ship with labels" toggle. */}
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${
-              item.with_labels ? 'bg-bronze/10 text-bronze' : 'bg-gray-500/10 text-ink-muted'
+              item.with_labels ? 'bg-teal/10 text-teal-dark' : 'bg-gray-500/10 text-ink-muted'
             }`}
           >
             <Tag className="w-3 h-3" />

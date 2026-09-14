@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, Lock, User, ArrowRight, ArrowLeft, AlertCircle, Check, Beaker, Loader2, XCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, ArrowRight, ArrowLeft, AlertCircle, Check, Loader2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signUpCustomer } from '@/lib/customer/api';
@@ -150,10 +150,8 @@ function SignupContent() {
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
             <Link href="/login" className="inline-flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-ink rounded-xl flex items-center justify-center">
-                <Beaker className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-lg font-bold text-ink tracking-tight">Aminocan</span>
+              <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="w-12 h-12 object-contain" />
+              <span className="text-lg font-bold text-ink tracking-tight">VYTA</span>
             </Link>
           </div>
           <div className="bg-white rounded-xl p-5 sm:p-6 md:p-8 border border-line text-center shadow-sm">
@@ -167,7 +165,7 @@ function SignupContent() {
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-bronze hover:text-bronze-dark font-semibold text-sm"
+              className="inline-flex items-center gap-2 text-teal-dark hover:text-teal-dark font-semibold text-sm"
             >
               Go to Login
               <ArrowRight className="w-4 h-4" />
@@ -192,10 +190,8 @@ function SignupContent() {
         {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/login" className="inline-flex flex-col items-center gap-2">
-            <div className="w-12 h-12 bg-ink rounded-xl flex items-center justify-center">
-              <Beaker className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-lg font-bold text-ink tracking-tight">Aminocan</span>
+            <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="w-12 h-12 object-contain" />
+            <span className="text-lg font-bold text-ink tracking-tight">VYTA</span>
           </Link>
         </div>
 
@@ -223,7 +219,7 @@ function SignupContent() {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-2 sm:pr-3 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
+                    className="w-full pl-10 pr-2 sm:pr-3 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
                     placeholder="John"
                   />
                 </div>
@@ -235,7 +231,7 @@ function SignupContent() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full px-3 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
+                  className="w-full px-3 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
                   placeholder="Doe"
                 />
               </div>
@@ -250,7 +246,7 @@ function SignupContent() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-surface rounded-lg border focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted ${
+                  className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-surface rounded-lg border focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted ${
                     emailExists === true
                       ? 'border-red-400'
                       : emailExists === false
@@ -286,7 +282,7 @@ function SignupContent() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
                   placeholder="Min. 8 characters"
                 />
               </div>
@@ -304,7 +300,7 @@ function SignupContent() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-surface rounded-lg border focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted ${
+                  className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-surface rounded-lg border focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted ${
                     formData.confirmPassword
                       ? formData.password === formData.confirmPassword
                         ? 'border-emerald-300'
@@ -326,7 +322,7 @@ function SignupContent() {
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-[#3d2c1e] flex-shrink-0 cursor-pointer"
+                  className="mt-0.5 w-4 h-4 accent-[#07203a] flex-shrink-0 cursor-pointer"
                 />
                 <span className="text-xs text-ink-muted leading-relaxed">
                   I agree to the{' '}
@@ -334,7 +330,7 @@ function SignupContent() {
                     href="/terms"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-bronze underline hover:text-bronze-dark"
+                    className="text-teal-dark underline hover:text-teal-dark"
                   >
                     Terms and Conditions
                   </a>{' '}
@@ -347,7 +343,7 @@ function SignupContent() {
                   type="checkbox"
                   checked={agreedToResearcher}
                   onChange={(e) => setAgreedToResearcher(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-[#3d2c1e] flex-shrink-0 cursor-pointer"
+                  className="mt-0.5 w-4 h-4 accent-[#07203a] flex-shrink-0 cursor-pointer"
                 />
                 <span className="text-xs text-ink-muted leading-relaxed">
                   I am a professional researcher and understand how to properly handle and use these products
@@ -361,10 +357,10 @@ function SignupContent() {
                   type="checkbox"
                   checked={consentToContact}
                   onChange={(e) => setConsentToContact(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-[#3d2c1e] flex-shrink-0 cursor-pointer"
+                  className="mt-0.5 w-4 h-4 accent-[#07203a] flex-shrink-0 cursor-pointer"
                 />
                 <span className="text-xs text-ink-muted leading-relaxed">
-                  I consent to being contacted by an Aminocan representative if I run into any issues on the
+                  I consent to being contacted by an VYTA representative if I run into any issues on the
                   site, or for information and guidance about peptides. <span className="text-ink-muted/70">(Optional)</span>
                 </span>
               </label>
@@ -390,7 +386,7 @@ function SignupContent() {
           <div className="mt-5 sm:mt-6 text-center">
             <p className="text-ink-muted text-xs sm:text-sm">
               Already have an account?{' '}
-              <Link href="/login" className="text-bronze hover:text-bronze-dark font-medium">
+              <Link href="/login" className="text-teal-dark hover:text-teal-dark font-medium">
                 Sign in
               </Link>
             </p>

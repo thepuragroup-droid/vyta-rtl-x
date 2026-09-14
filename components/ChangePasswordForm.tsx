@@ -89,7 +89,7 @@ export default function ChangePasswordForm({ variant = 'customer' }: { variant?:
   const isAdmin = variant === 'admin';
 
   const inputClass = isAdmin
-    ? 'w-full pl-10 pr-10 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50'
+    ? 'w-full pl-10 pr-10 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50'
     : 'w-full pl-10 pr-10 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent';
 
   const iconClass = isAdmin

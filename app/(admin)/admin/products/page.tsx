@@ -5,7 +5,7 @@ import {
   Plus, Search, Edit2, Trash2, Save, X, AlertCircle, Upload,
   Image as ImageIcon, Check, FileUp, FileText, Pencil, History,
   Package, Mail, Send, SlidersHorizontal, ChevronLeft, ChevronRight,
-  Beaker, Bell, Table2, Grid2x2, ChevronDown, TrendingUp, Calendar, Loader2,
+  Bell, Table2, Grid2x2, ChevronDown, TrendingUp, Calendar, Loader2,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { appendAdminViewParam } from '@/lib/admin/admin-view';
@@ -421,7 +421,7 @@ export default function ProductsManagementPage() {
       tab.document.write(
         '<!doctype html><title>Generating report…</title>' +
         '<body style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;' +
-        'color:#6E6E6E;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">' +
+        'color:#56707F;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">' +
         'Generating report…</body>',
       );
       tab.document.close();
@@ -1079,7 +1079,7 @@ export default function ProductsManagementPage() {
                       disabled={downloading || !canDownloadReport}
                       className="flex-1 flex items-start gap-2.5 text-left px-2.5 py-2 rounded-lg hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <FileText className="w-4 h-4 text-bronze mt-0.5 flex-shrink-0" />
+                      <FileText className="w-4 h-4 text-teal-dark mt-0.5 flex-shrink-0" />
                       <span>
                         <span className="block text-sm font-medium text-ink">Products Report</span>
                         <span className="block text-xs text-ink-muted">Catalog, inventory &amp; pricing</span>
@@ -1102,7 +1102,7 @@ export default function ProductsManagementPage() {
                       disabled={downloadingStock}
                       className="flex-1 flex items-start gap-2.5 text-left px-2.5 py-2 rounded-lg hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Package className="w-4 h-4 text-bronze mt-0.5 flex-shrink-0" />
+                      <Package className="w-4 h-4 text-teal-dark mt-0.5 flex-shrink-0" />
                       <span>
                         <span className="block text-sm font-medium text-ink">Stock Report</span>
                         <span className="block text-xs text-ink-muted">On-hand &amp; reorder levels</span>
@@ -1124,7 +1124,7 @@ export default function ProductsManagementPage() {
                     disabled={downloadingChanges}
                     className="w-full flex items-start gap-2.5 text-left px-2.5 py-2 rounded-lg hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <TrendingUp className="w-4 h-4 text-bronze mt-0.5 flex-shrink-0" />
+                    <TrendingUp className="w-4 h-4 text-teal-dark mt-0.5 flex-shrink-0" />
                     <span>
                       <span className="block text-sm font-medium text-ink">Stock Changes</span>
                       <span className="block text-xs text-ink-muted">Movement over a date range</span>
@@ -1204,7 +1204,7 @@ export default function ProductsManagementPage() {
             placeholder="Search products…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-surface rounded-xl border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-ink placeholder-ink-muted text-sm"
+            className="w-full pl-11 pr-4 py-3 bg-surface rounded-xl border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-ink placeholder-ink-muted text-sm"
           />
         </div>
         {/* View mode — full table vs. spreadsheet cell editing */}
@@ -1262,7 +1262,7 @@ export default function ProductsManagementPage() {
       {viewMode === 'cells' ? (
         loading ? (
           <div className="bg-white rounded-xl border border-line p-12 flex items-center justify-center gap-3 text-sm text-ink-muted">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-bronze" />
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal" />
             Loading catalog…
           </div>
         ) : (
@@ -1380,8 +1380,8 @@ export default function ProductsManagementPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 rounded-lg bg-bronze/10 flex items-center justify-center">
-                <Bell className="w-4 h-4 text-bronze" />
+              <div className="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center">
+                <Bell className="w-4 h-4 text-teal-dark" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-ink">Notify waitlist?</h2>
@@ -1508,11 +1508,11 @@ export default function ProductsManagementPage() {
                     if (e.key === 'Enter') handleInlineSave();
                     if (e.key === 'Escape') setInlineEdit(null);
                   }}
-                  className="w-24 px-2 py-1 border border-bronze/60 rounded text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-24 px-2 py-1 border border-teal/60 rounded text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               ) : inlineSaving && isInline('price_usd') ? (
                 <span className="inline-flex items-center gap-1.5 text-ink-muted">
-                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-bronze" />
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-teal" />
                   <span className="text-sm">{inlineEdit!.value || 'auto'}</span>
                 </span>
               ) : (
@@ -1524,7 +1524,7 @@ export default function ProductsManagementPage() {
                   })}
                   className={`group inline-flex items-center gap-1 ${
                     canEdit
-                      ? 'border-b border-dashed border-ink-muted/40 hover:border-bronze hover:text-bronze cursor-pointer'
+                      ? 'border-b border-dashed border-ink-muted/40 hover:border-teal hover:text-teal-dark cursor-pointer'
                       : ''
                   }`}
                   title={canEdit ? 'Click to override; blank to reset to auto' : ''}
@@ -1533,7 +1533,7 @@ export default function ProductsManagementPage() {
                   {product.price_usd == null && (
                     <span className="ml-1 text-[10px] font-medium text-ink-muted uppercase tracking-wide">auto</span>
                   )}
-                  {canEdit && <Pencil className="w-3 h-3 text-ink-muted/40 group-hover:text-bronze" />}
+                  {canEdit && <Pencil className="w-3 h-3 text-ink-muted/40 group-hover:text-teal-dark" />}
                 </button>
               )
             )}
@@ -1553,11 +1553,11 @@ export default function ProductsManagementPage() {
                     if (e.key === 'Enter') handleInlineSave();
                     if (e.key === 'Escape') setInlineEdit(null);
                   }}
-                  className="w-28 px-2 py-1 border border-bronze/60 rounded text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-28 px-2 py-1 border border-teal/60 rounded text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               ) : inlineSaving && isInline('vial_price') ? (
                 <span className="inline-flex items-center gap-1.5 text-ink-muted">
-                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-bronze" />
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-teal" />
                   <span className="text-sm">{inlineEdit!.value || 'auto'}</span>
                 </span>
               ) : (
@@ -1569,7 +1569,7 @@ export default function ProductsManagementPage() {
                   })}
                   className={`group inline-flex items-center gap-1 text-ink ${
                     canEdit
-                      ? 'border-b border-dashed border-ink-muted/40 hover:border-bronze hover:text-bronze cursor-pointer'
+                      ? 'border-b border-dashed border-ink-muted/40 hover:border-teal hover:text-teal-dark cursor-pointer'
                       : ''
                   }`}
                   title={canEdit ? 'Click to override; blank to reset to auto' : ''}
@@ -1578,7 +1578,7 @@ export default function ProductsManagementPage() {
                   {product.vial_price == null && (
                     <span className="ml-1 text-[10px] font-medium text-ink-muted uppercase tracking-wide">auto</span>
                   )}
-                  {canEdit && <Pencil className="w-3 h-3 text-ink-muted/40 group-hover:text-bronze" />}
+                  {canEdit && <Pencil className="w-3 h-3 text-ink-muted/40 group-hover:text-teal-dark" />}
                 </button>
               )
             ) : (
@@ -1630,7 +1630,7 @@ export default function ProductsManagementPage() {
               {product.active ? 'Active' : 'Inactive'}
             </span>
             {product.featured && (
-              <span className="ml-2 inline-flex px-2 py-0.5 rounded text-xs font-medium bg-bronze/10 text-bronze">
+              <span className="ml-2 inline-flex px-2 py-0.5 rounded text-xs font-medium bg-teal/10 text-teal-dark">
                 Featured
               </span>
             )}
@@ -1643,7 +1643,7 @@ export default function ProductsManagementPage() {
                 onClick={() => setHistoryOpen((cur) => (cur === product.id ? null : product.id))}
                 className={`p-2 rounded-lg transition-colors ${
                   historyOpen === product.id
-                    ? 'bg-bronze/10 text-bronze'
+                    ? 'bg-teal/10 text-teal-dark'
                     : 'hover:bg-surface text-ink-muted hover:text-ink'
                 }`}
                 title="History"
@@ -1676,7 +1676,7 @@ export default function ProductsManagementPage() {
           <tr>
             <td colSpan={8} className="px-5 pb-5 pt-0 bg-surface/40 border-b border-line">
               <div className="flex items-center gap-2 mb-3 text-sm font-medium text-ink">
-                <History className="w-4 h-4 text-bronze" />
+                <History className="w-4 h-4 text-teal-dark" />
                 Change history — {product.name}
               </div>
               <ProductHistoryPanel productId={product.id} />
@@ -1715,7 +1715,7 @@ export default function ProductsManagementPage() {
     if (inlineSaving && isThis) {
       return (
         <div className="flex items-center gap-1.5 text-ink-muted">
-          <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-bronze" />
+          <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-teal" />
           <span className="text-sm">{inlineEdit!.value}</span>
         </div>
       );
@@ -1731,7 +1731,7 @@ export default function ProductsManagementPage() {
             if (e.key === 'Enter') handleInlineSave();
             if (e.key === 'Escape') setInlineEdit(null);
           }}
-          className={`${inputWidth} px-2 py-1 border border-bronze/60 rounded text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40`}
+          className={`${inputWidth} px-2 py-1 border border-teal/60 rounded text-sm focus:outline-none focus:ring-2 focus:ring-teal/40`}
         />
       );
     }
@@ -1742,11 +1742,11 @@ export default function ProductsManagementPage() {
             id: product.id, field,
             value: rawVal != null ? String(rawVal) : '',
           })}
-          className={`group inline-flex items-center gap-1 border-b border-dashed border-ink-muted/40 hover:border-bronze hover:bg-bronze/5 cursor-pointer text-sm font-medium ${stockColor} ${lowColor}`}
+          className={`group inline-flex items-center gap-1 border-b border-dashed border-ink-muted/40 hover:border-teal hover:bg-teal/5 cursor-pointer text-sm font-medium ${stockColor} ${lowColor}`}
           title="Click to edit"
         >
           {displayValue}
-          <Pencil className="w-3 h-3 text-ink-muted/40 group-hover:text-bronze" />
+          <Pencil className="w-3 h-3 text-ink-muted/40 group-hover:text-teal-dark" />
         </button>
       );
     }
@@ -1777,7 +1777,7 @@ export default function ProductsManagementPage() {
             <button
               onClick={() => setModalTab('details')}
               className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                modalTab === 'details' ? 'border-bronze text-bronze' : 'border-transparent text-ink-muted hover:text-ink'
+                modalTab === 'details' ? 'border-teal text-teal-dark' : 'border-transparent text-ink-muted hover:text-ink'
               }`}
             >
               <FileText className="w-4 h-4" /> Details
@@ -1785,12 +1785,12 @@ export default function ProductsManagementPage() {
             <button
               onClick={() => setModalTab('images')}
               className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                modalTab === 'images' ? 'border-bronze text-bronze' : 'border-transparent text-ink-muted hover:text-ink'
+                modalTab === 'images' ? 'border-teal text-teal-dark' : 'border-transparent text-ink-muted hover:text-ink'
               }`}
             >
               <ImageIcon className="w-4 h-4" /> Images &amp; Files
               {imageCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-semibold bg-bronze/15 text-bronze rounded-full px-1">
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-semibold bg-teal/15 text-teal-dark rounded-full px-1">
                   {imageCount}
                 </span>
               )}
@@ -1856,7 +1856,7 @@ export default function ProductsManagementPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-ink truncate">COA #{idx + 1}</p>
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-bronze hover:underline">
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-teal-dark hover:underline">
                         View {decodeURIComponent(fileName)}
                       </a>
                     </div>
@@ -1889,7 +1889,7 @@ export default function ProductsManagementPage() {
             >
               {uploading ? (
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-bronze mx-auto mb-1" />
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal mx-auto mb-1" />
                   <p className="text-xs text-ink-muted">Uploading...</p>
                 </div>
               ) : (
@@ -1945,7 +1945,7 @@ export default function ProductsManagementPage() {
             >
               {uploading ? (
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-bronze mx-auto mb-2" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal mx-auto mb-2" />
                   <p className="text-sm text-ink-muted">Uploading...</p>
                 </div>
               ) : (
@@ -1973,7 +1973,7 @@ export default function ProductsManagementPage() {
             <input
               type="text" value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-ink text-sm"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-ink text-sm"
               placeholder="Product name"
             />
           </div>
@@ -1982,7 +1982,7 @@ export default function ProductsManagementPage() {
             <input
               type="text" value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-ink text-sm"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-ink text-sm"
               placeholder="auto-generated if empty"
             />
           </div>
@@ -1994,7 +1994,7 @@ export default function ProductsManagementPage() {
           <input
             type="text" value={formData.sku}
             onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-ink text-sm"
+            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-ink text-sm"
             placeholder="e.g., SKU-001"
           />
         </div>
@@ -2010,7 +2010,7 @@ export default function ProductsManagementPage() {
             <input
               type="number" step="0.01" min="0" value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="0.00"
             />
           </div>
@@ -2019,7 +2019,7 @@ export default function ProductsManagementPage() {
             <input
               type="number" step="0.01" min="0" value={formData.price_usd}
               onChange={(e) => setFormData({ ...formData, price_usd: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="auto"
             />
             <p className="mt-1 text-[11px] text-ink-muted">
@@ -2031,7 +2031,7 @@ export default function ProductsManagementPage() {
             <input
               type="number" step="0.01" min="0" value={formData.vial_price}
               onChange={(e) => setFormData({ ...formData, vial_price: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="auto"
             />
             <p className="mt-1 text-[11px] text-ink-muted">
@@ -2046,7 +2046,7 @@ export default function ProductsManagementPage() {
             <input
               type="number" min="0" value={formData.stock_quantity}
               onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="0"
             />
           </div>
@@ -2055,7 +2055,7 @@ export default function ProductsManagementPage() {
             <input
               type="number" min="1" value={formData.vials_per_box}
               onChange={(e) => setFormData({ ...formData, vials_per_box: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="10"
             />
             <p className="mt-1 text-[11px] text-ink-muted">Defaults to 10.</p>
@@ -2065,7 +2065,7 @@ export default function ProductsManagementPage() {
             <input
               type="number" min="0" value={formData.low_stock_threshold}
               onChange={(e) => setFormData({ ...formData, low_stock_threshold: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="10"
             />
           </div>
@@ -2079,7 +2079,7 @@ export default function ProductsManagementPage() {
             <input
               type="text" value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="e.g., Peptides"
             />
           </div>
@@ -2088,7 +2088,7 @@ export default function ProductsManagementPage() {
             <input
               type="text" value={formData.strength}
               onChange={(e) => setFormData({ ...formData, strength: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="e.g., 5mg"
             />
           </div>
@@ -2101,7 +2101,7 @@ export default function ProductsManagementPage() {
             <input
               type="text" value={formData.purity}
               onChange={(e) => setFormData({ ...formData, purity: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="e.g., 99%"
             />
           </div>
@@ -2110,7 +2110,7 @@ export default function ProductsManagementPage() {
             <input
               type="text" value={formData.form}
               onChange={(e) => setFormData({ ...formData, form: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+              className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               placeholder="e.g., Lyophilized Powder"
             />
           </div>
@@ -2123,7 +2123,7 @@ export default function ProductsManagementPage() {
             value={formData.description_short}
             onChange={(e) => setFormData({ ...formData, description_short: e.target.value })}
             rows={2}
-            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
             placeholder="Brief product description"
           />
         </div>
@@ -2133,7 +2133,7 @@ export default function ProductsManagementPage() {
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
             placeholder="Detailed product description"
           />
         </div>
@@ -2143,7 +2143,7 @@ export default function ProductsManagementPage() {
             value={formData.benefits}
             onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
             rows={2}
-            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
         <div>
@@ -2152,7 +2152,7 @@ export default function ProductsManagementPage() {
             value={formData.mechanism}
             onChange={(e) => setFormData({ ...formData, mechanism: e.target.value })}
             rows={2}
-            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
 
@@ -2163,7 +2163,7 @@ export default function ProductsManagementPage() {
             <input
               type="checkbox" checked={formData.featured}
               onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-              className="w-4 h-4 text-bronze bg-surface border-line rounded focus:ring-bronze/40"
+              className="w-4 h-4 text-teal-dark bg-surface border-line rounded focus:ring-teal/40"
             />
             <span className="text-sm font-medium text-ink">Featured Product</span>
           </label>
@@ -2171,7 +2171,7 @@ export default function ProductsManagementPage() {
             <input
               type="checkbox" checked={formData.active}
               onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-              className="w-4 h-4 text-bronze bg-surface border-line rounded focus:ring-bronze/40"
+              className="w-4 h-4 text-teal-dark bg-surface border-line rounded focus:ring-teal/40"
             />
             <span className="text-sm font-medium text-ink">Active</span>
           </label>
@@ -2179,7 +2179,7 @@ export default function ProductsManagementPage() {
             <input
               type="checkbox" checked={formData.is_checkout_addon}
               onChange={(e) => setFormData({ ...formData, is_checkout_addon: e.target.checked })}
-              className="w-4 h-4 text-bronze bg-surface border-line rounded focus:ring-bronze/40"
+              className="w-4 h-4 text-teal-dark bg-surface border-line rounded focus:ring-teal/40"
             />
             <span className="text-sm font-medium text-ink">Checkout add-on</span>
           </label>
@@ -2218,7 +2218,7 @@ export default function ProductsManagementPage() {
             >
               {importFile ? (
                 <>
-                  <FileUp className="w-8 h-8 text-bronze mb-2" />
+                  <FileUp className="w-8 h-8 text-teal-dark mb-2" />
                   <p className="text-sm font-medium text-ink">{importFile.name}</p>
                   <p className="text-xs text-ink-muted mt-1">
                     {(importFile.size / 1024).toFixed(1)} KB — click to change
@@ -2236,7 +2236,7 @@ export default function ProductsManagementPage() {
             </label>
           </div>
           <div className="mb-5 text-center">
-            <button onClick={downloadCsvTemplate} className="text-xs text-bronze hover:underline inline-flex items-center gap-1">
+            <button onClick={downloadCsvTemplate} className="text-xs text-teal-dark hover:underline inline-flex items-center gap-1">
               <FileText className="w-3 h-3" />
               Download template
             </button>
@@ -2286,7 +2286,7 @@ export default function ProductsManagementPage() {
               <Plus className="w-3.5 h-3.5" />
               {importPreview!.newProducts.length} New
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bronze/10 text-bronze text-sm font-medium">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal/10 text-teal-dark text-sm font-medium">
               <Edit2 className="w-3.5 h-3.5" />
               {importPreview!.updateProducts.length} Updates
             </span>
@@ -2319,7 +2319,7 @@ export default function ProductsManagementPage() {
                         {row._status === 'new' ? (
                           <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-700">New</span>
                         ) : (
-                          <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-bronze/10 text-bronze">Update</span>
+                          <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-teal/10 text-teal-dark">Update</span>
                         )}
                       </td>
                       <td className="px-4 py-2.5 text-xs text-ink-muted font-mono">{row.slug}</td>
@@ -2389,13 +2389,13 @@ export default function ProductsManagementPage() {
               <label
                 key={opt.key}
                 className={`flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer transition-colors ${
-                  on ? 'border-bronze bg-bronze-50' : 'border-line hover:bg-surface'
+                  on ? 'border-teal bg-teal-50' : 'border-line hover:bg-surface'
                 }`}
               >
                 <input
                   type="radio" name="stockUnit" checked={on}
                   onChange={() => setStockUnit(opt.key)}
-                  className="mt-0.5 w-4 h-4 border-line text-bronze focus:ring-bronze/40"
+                  className="mt-0.5 w-4 h-4 border-line text-teal-dark focus:ring-teal/40"
                 />
                 <div>
                   <div className="text-sm font-medium text-ink">{opt.label}</div>
@@ -2415,7 +2415,7 @@ export default function ProductsManagementPage() {
             checked={showRemainder}
             disabled={stockUnit !== 'boxes'}
             onChange={(e) => setShowRemainder(e.target.checked)}
-            className="mt-0.5 w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40"
+            className="mt-0.5 w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40"
           />
           <div className="text-sm text-ink">
             Show leftover vials in parentheses (e.g. 24 boxes (3 vials))
@@ -2432,7 +2432,7 @@ export default function ProductsManagementPage() {
         <div className="bg-white rounded-xl max-w-lg w-full p-6 my-8">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-bronze" /> Customize Report
+              <SlidersHorizontal className="w-5 h-5 text-teal-dark" /> Customize Report
             </h2>
             <button
               onClick={() => setShowReportModal(false)}
@@ -2454,7 +2454,7 @@ export default function ProductsManagementPage() {
                 <div className="text-xs">
                   <button
                     onClick={() => setReportGroups(ALL_GROUPS_ON)}
-                    className="text-bronze hover:underline mr-2"
+                    className="text-teal-dark hover:underline mr-2"
                   >
                     All
                   </button>
@@ -2475,13 +2475,13 @@ export default function ProductsManagementPage() {
                     <label
                       key={g.key}
                       className={`flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer transition-colors ${
-                        on ? 'border-bronze bg-bronze-50' : 'border-line hover:bg-surface'
+                        on ? 'border-teal bg-teal-50' : 'border-line hover:bg-surface'
                       }`}
                     >
                       <input
                         type="checkbox" checked={on}
                         onChange={() => setReportGroups({ ...reportGroups, [g.key]: !on })}
-                        className="mt-0.5 w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40"
+                        className="mt-0.5 w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40"
                       />
                       <div>
                         <div className="text-sm font-medium text-ink">{g.label}</div>
@@ -2506,13 +2506,13 @@ export default function ProductsManagementPage() {
                     <label
                       key={opt.key}
                       className={`flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer transition-colors ${
-                        on ? 'border-bronze bg-bronze-50' : 'border-line hover:bg-surface'
+                        on ? 'border-teal bg-teal-50' : 'border-line hover:bg-surface'
                       }`}
                     >
                       <input
                         type="radio" name="reportStockStatus" checked={on}
                         onChange={() => setReportStockStatus(opt.key)}
-                        className="mt-0.5 w-4 h-4 border-line text-bronze focus:ring-bronze/40"
+                        className="mt-0.5 w-4 h-4 border-line text-teal-dark focus:ring-teal/40"
                       />
                       <div>
                         <div className="text-sm font-medium text-ink">{opt.label}</div>
@@ -2560,7 +2560,7 @@ export default function ProductsManagementPage() {
         <div className="bg-white rounded-xl max-w-md w-full p-6 my-8">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-              <Package className="w-5 h-5 text-bronze" /> Customize Stock Report
+              <Package className="w-5 h-5 text-teal-dark" /> Customize Stock Report
             </h2>
             <button
               onClick={() => setShowStockReportModal(false)}
@@ -2582,7 +2582,7 @@ export default function ProductsManagementPage() {
                 <input
                   type="checkbox" checked={stockShowCards}
                   onChange={(e) => setStockShowCards(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40"
+                  className="mt-0.5 w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40"
                 />
                 <div>
                   <div className="text-sm font-medium text-ink">Summary cards</div>
@@ -2593,7 +2593,7 @@ export default function ProductsManagementPage() {
                 <input
                   type="checkbox" checked={stockShowOnOrder}
                   onChange={(e) => setStockShowOnOrder(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40"
+                  className="mt-0.5 w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40"
                 />
                 <div>
                   <div className="text-sm font-medium text-ink">&quot;On Order&quot; explanation footer</div>
@@ -2612,7 +2612,7 @@ export default function ProductsManagementPage() {
                 <div className="text-xs">
                   <button
                     onClick={() => setStockColumns(ALL_STOCK_COLUMNS_ON)}
-                    className="text-bronze hover:underline mr-2"
+                    className="text-teal-dark hover:underline mr-2"
                   >
                     All
                   </button>
@@ -2637,13 +2637,13 @@ export default function ProductsManagementPage() {
                     <label
                       key={c.key}
                       className={`flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer transition-colors ${
-                        on ? 'border-bronze bg-bronze-50' : 'border-line hover:bg-surface'
+                        on ? 'border-teal bg-teal-50' : 'border-line hover:bg-surface'
                       }`}
                     >
                       <input
                         type="checkbox" checked={on}
                         onChange={() => setStockColumns({ ...stockColumns, [c.key]: !on })}
-                        className="mt-0.5 w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40"
+                        className="mt-0.5 w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40"
                       />
                       <div>
                         <div className="text-sm font-medium text-ink">{c.label}</div>
@@ -2709,7 +2709,7 @@ export default function ProductsManagementPage() {
         <div className="bg-white rounded-xl max-w-md w-full p-6 my-8">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-bronze" /> Stock Changes
+              <TrendingUp className="w-5 h-5 text-teal-dark" /> Stock Changes
             </h2>
             <button
               onClick={() => setShowChangeReportModal(false)}
@@ -2732,7 +2732,7 @@ export default function ProductsManagementPage() {
                   value={changeRange.from}
                   max={changeRange.to}
                   onChange={(e) => setChangeRange({ ...changeRange, from: e.target.value })}
-                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div>
@@ -2742,7 +2742,7 @@ export default function ProductsManagementPage() {
                   value={changeRange.to}
                   min={changeRange.from}
                   onChange={(e) => setChangeRange({ ...changeRange, to: e.target.value })}
-                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
             </div>
@@ -2789,7 +2789,7 @@ export default function ProductsManagementPage() {
         <div className="bg-white rounded-xl max-w-lg w-full p-6 my-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-ink flex items-center gap-2">
-              <Mail className="w-5 h-5 text-bronze" /> Stock Report Email
+              <Mail className="w-5 h-5 text-teal-dark" /> Stock Report Email
             </h2>
             <button
               onClick={() => setShowScheduleModal(false)}
@@ -2805,7 +2805,7 @@ export default function ProductsManagementPage() {
 
           {scheduleLoading ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="w-5 h-5 animate-spin text-bronze" />
+              <Loader2 className="w-5 h-5 animate-spin text-teal-dark" />
             </div>
           ) : (
             <div className="space-y-4">
@@ -2829,7 +2829,7 @@ export default function ProductsManagementPage() {
                   type="text" value={schedule.recipients}
                   onChange={(e) => setSchedule({ ...schedule, recipients: e.target.value })}
                   placeholder="warehouse@aminocan.com, buyer@aminocan.com"
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
                 <p className="mt-1 text-[11px] text-ink-muted">
                   Separate multiple addresses with commas.

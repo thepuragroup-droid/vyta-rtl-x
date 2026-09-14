@@ -242,7 +242,7 @@ export default function ErrorLogPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Recipient, subject, or error text…"
-          className="w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+          className="w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
         />
       </div>
 
@@ -278,7 +278,7 @@ export default function ErrorLogPage() {
                   return (
                     <React.Fragment key={e.id}>
                       <tr
-                        className="border-t border-line hover:bg-surface/50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-bronze/40"
+                        className="border-t border-line hover:bg-surface/50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-teal/40"
                         role="button"
                         tabIndex={0}
                         aria-expanded={isOpen}
@@ -307,7 +307,7 @@ export default function ErrorLogPage() {
                             <Link
                               href="/admin/orders"
                               onClick={(ev) => ev.stopPropagation()}
-                              className="text-bronze hover:underline"
+                              className="text-teal-dark hover:underline"
                             >
                               Order
                             </Link>
@@ -315,7 +315,7 @@ export default function ErrorLogPage() {
                             <Link
                               href="/admin/invoices"
                               onClick={(ev) => ev.stopPropagation()}
-                              className="text-bronze hover:underline"
+                              className="text-teal-dark hover:underline"
                             >
                               Invoice
                             </Link>

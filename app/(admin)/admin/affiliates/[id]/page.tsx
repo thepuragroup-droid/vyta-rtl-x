@@ -386,8 +386,8 @@ export default function AffiliateProfilePage() {
       <div className="rounded-xl border border-line bg-white p-5 md:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-bronze/10">
-              <Users className="h-6 w-6 text-bronze" />
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-teal/10">
+              <Users className="h-6 w-6 text-teal-dark" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-ink sm:text-2xl">{name}</h1>
@@ -403,7 +403,7 @@ export default function AffiliateProfilePage() {
                   {a.active ? 'Active' : 'Inactive'}
                 </Badge>
                 {activeCode && (
-                  <Badge tone="bronze">
+                  <Badge tone="teal">
                     <Tag className="h-3.5 w-3.5" />
                     <span className="font-mono">{activeCode.code}</span>
                   </Badge>
@@ -457,7 +457,7 @@ export default function AffiliateProfilePage() {
             <>
               <button
                 onClick={() => setComposing(true)}
-                className="inline-flex items-center gap-2 rounded-lg bg-bronze px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-bronze/90"
+                className="inline-flex items-center gap-2 rounded-lg bg-teal-dark px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal/90"
               >
                 <Send className="h-4 w-4" /> Send email
               </button>
@@ -498,19 +498,19 @@ export default function AffiliateProfilePage() {
           hint={`${fmtAmount(data.stats.paidEarnings)} paid · ${fmtAmount(data.stats.pendingEarnings)} pending`}
         />
         <StatCard
-          icon={<UserPlus className="h-4 w-4 text-bronze" />}
+          icon={<UserPlus className="h-4 w-4 text-teal-dark" />}
           label="Customers referred"
           value={String(data.stats.boundCustomers)}
           hint={`${data.stats.convertedCustomers} have ordered (${conversion}%)`}
         />
         <StatCard
-          icon={<TrendingUp className="h-4 w-4 text-bronze" />}
+          icon={<TrendingUp className="h-4 w-4 text-teal-dark" />}
           label="Customer sales"
           value={fmtAmount(data.stats.customerRevenue)}
           hint="Spend by everyone bound to them"
         />
         <StatCard
-          icon={<Tag className="h-4 w-4 text-bronze" />}
+          icon={<Tag className="h-4 w-4 text-teal-dark" />}
           label="Referral uses"
           value={String(data.stats.referralUses)}
           hint={`${data.stats.activeCodes} active code${data.stats.activeCodes === 1 ? '' : 's'} · ${data.stats.commissionCount} commissions`}
@@ -532,7 +532,7 @@ export default function AffiliateProfilePage() {
 
       {/* Payout + account */}
       <div className="grid gap-5 md:grid-cols-2">
-        <Panel icon={<Wallet className="h-4 w-4 text-bronze" />} title="Payout details">
+        <Panel icon={<Wallet className="h-4 w-4 text-teal-dark" />} title="Payout details">
           <dl className="divide-y divide-line/60">
             <DetailRow
               label="Wallet address"
@@ -559,7 +559,7 @@ export default function AffiliateProfilePage() {
           </dl>
         </Panel>
 
-        <Panel icon={<Users className="h-4 w-4 text-bronze" />} title="Account details">
+        <Panel icon={<Users className="h-4 w-4 text-teal-dark" />} title="Account details">
           <dl className="divide-y divide-line/60">
             <DetailRow label="Affiliate ID" value={<span className="font-mono text-xs">{a.id}</span>} />
             <DetailRow label="Email" value={a.email} />
@@ -576,7 +576,7 @@ export default function AffiliateProfilePage() {
 
       {/* What their referrals buy */}
       <Panel
-        icon={<Package className="h-4 w-4 text-bronze" />}
+        icon={<Package className="h-4 w-4 text-teal-dark" />}
         title="What their referrals buy"
         count={data.products?.length ?? 0}
       >
@@ -598,7 +598,7 @@ export default function AffiliateProfilePage() {
                     </span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
-                    <div className="h-full rounded-full bg-bronze" style={{ width: `${pct}%` }} />
+                    <div className="h-full rounded-full bg-teal" style={{ width: `${pct}%` }} />
                   </div>
                   <p className="mt-1 text-[11px] text-ink-muted">
                     across {p.orders} order{p.orders === 1 ? '' : 's'} · last {fmtDate(p.lastAt)}
@@ -618,7 +618,7 @@ export default function AffiliateProfilePage() {
       {/* Their own site journey */}
       <div className="grid gap-5 md:grid-cols-2">
         <Panel
-          icon={<Route className="h-4 w-4 text-bronze" />}
+          icon={<Route className="h-4 w-4 text-teal-dark" />}
           title="Pages they visit"
           count={data.pages?.length ?? 0}
         >
@@ -646,7 +646,7 @@ export default function AffiliateProfilePage() {
         </Panel>
 
         <Panel
-          icon={<History className="h-4 w-4 text-bronze" />}
+          icon={<History className="h-4 w-4 text-teal-dark" />}
           title="Recent journey"
           count={data.journey?.length ?? 0}
         >
@@ -671,7 +671,7 @@ export default function AffiliateProfilePage() {
 
       {/* Earnings over time */}
       <Panel
-        icon={<BarChart3 className="h-4 w-4 text-bronze" />}
+        icon={<BarChart3 className="h-4 w-4 text-teal-dark" />}
         title="Earnings by month"
         count={data.earningsByMonth.length}
       >
@@ -690,7 +690,7 @@ export default function AffiliateProfilePage() {
                     </span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
-                    <div className="h-full rounded-full bg-bronze" style={{ width: `${pct}%` }} />
+                    <div className="h-full rounded-full bg-teal" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               );
@@ -700,7 +700,7 @@ export default function AffiliateProfilePage() {
       </Panel>
 
       {/* Referral link */}
-      <Panel icon={<Tag className="h-4 w-4 text-bronze" />} title="Referral link">
+      <Panel icon={<Tag className="h-4 w-4 text-teal-dark" />} title="Referral link">
         <div className="space-y-4 px-4 py-4">
           {activeCode ? (
             <div className="flex flex-wrap items-center gap-3">
@@ -713,7 +713,7 @@ export default function AffiliateProfilePage() {
               {referralLink && (
                 <button
                   onClick={() => copy(referralLink, 'Referral link')}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-bronze/40 hover:text-ink"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-teal/40 hover:text-ink"
                 >
                   <Copy className="h-3 w-3" /> {referralLink}
                 </button>
@@ -721,7 +721,7 @@ export default function AffiliateProfilePage() {
               {editable && (
                 <button
                   onClick={() => setEditingCode(true)}
-                  className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-bronze/40 hover:text-ink"
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-teal/40 hover:text-ink"
                 >
                   <Pencil className="h-3 w-3" /> Change
                 </button>
@@ -733,7 +733,7 @@ export default function AffiliateProfilePage() {
               {editable && (
                 <button
                   onClick={() => setEditingCode(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-bronze/40 hover:text-ink"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] font-medium text-ink-muted transition-colors hover:border-teal/40 hover:text-ink"
                 >
                   <Tag className="h-3 w-3" /> Set code
                 </button>
@@ -777,7 +777,7 @@ export default function AffiliateProfilePage() {
                       type="checkbox"
                       checked={notifyOnCodeApprove}
                       onChange={(e) => setNotifyOnCodeApprove(e.target.checked)}
-                      className="accent-bronze"
+                      className="accent-teal"
                     />
                     Email on approve
                   </label>
@@ -815,7 +815,7 @@ export default function AffiliateProfilePage() {
       </Panel>
 
       {/* Referred customers */}
-      <Panel icon={<UserPlus className="h-4 w-4 text-bronze" />} title="Customers referred" count={data.customers.length}>
+      <Panel icon={<UserPlus className="h-4 w-4 text-teal-dark" />} title="Customers referred" count={data.customers.length}>
         {data.customers.length === 0 ? (
           <Empty>Nobody is bound to this affiliate yet.</Empty>
         ) : (
@@ -834,7 +834,7 @@ export default function AffiliateProfilePage() {
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/customers/${c.id}`}
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-bronze"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-teal-dark"
                     >
                       {c.name}
                       <ExternalLink className="h-3 w-3" />
@@ -856,7 +856,7 @@ export default function AffiliateProfilePage() {
       </Panel>
 
       {/* Commissions */}
-      <Panel icon={<DollarSign className="h-4 w-4 text-bronze" />} title="Commissions" count={data.stats.commissionCount}>
+      <Panel icon={<DollarSign className="h-4 w-4 text-teal-dark" />} title="Commissions" count={data.stats.commissionCount}>
         {data.commissions.length === 0 ? (
           <Empty>No commissions recorded yet.</Empty>
         ) : (
@@ -903,7 +903,7 @@ export default function AffiliateProfilePage() {
       </Panel>
 
       {/* Outreach history */}
-      <Panel icon={<Send className="h-4 w-4 text-bronze" />} title="Emails sent" count={data.emails?.length ?? 0}>
+      <Panel icon={<Send className="h-4 w-4 text-teal-dark" />} title="Emails sent" count={data.emails?.length ?? 0}>
         {(data.emails ?? []).length === 0 ? (
           <Empty>
             {data.capabilities?.emailLog === false
@@ -924,7 +924,7 @@ export default function AffiliateProfilePage() {
                 </p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   {e.promo_code && (
-                    <span className="inline-flex items-center gap-1 rounded bg-bronze/10 px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-bronze">
+                    <span className="inline-flex items-center gap-1 rounded bg-teal/10 px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-teal-dark">
                       {e.promo_code}
                     </span>
                   )}
@@ -1024,12 +1024,12 @@ function MetaRow({ icon, label, value }: { icon: React.ReactNode; label: string;
   );
 }
 
-function Badge({ tone, children }: { tone: 'green' | 'red' | 'gray' | 'bronze'; children: React.ReactNode }) {
+function Badge({ tone, children }: { tone: 'green' | 'red' | 'gray' | 'teal'; children: React.ReactNode }) {
   const cls: Record<string, string> = {
     green: 'bg-emerald-100 text-emerald-700',
     red: 'bg-red-100 text-red-700',
     gray: 'bg-gray-100 text-ink-muted',
-    bronze: 'bg-bronze/10 text-bronze',
+    teal: 'bg-teal/10 text-teal-dark',
   };
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${cls[tone]}`}>
@@ -1084,7 +1084,7 @@ function Panel({
     <div className="overflow-hidden rounded-xl border border-line bg-white">
       <div className="flex items-center justify-between border-b border-line px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-bronze/10">{icon}</div>
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-teal/10">{icon}</div>
           <h3 className="text-sm font-semibold text-ink">{title}</h3>
         </div>
         {count !== undefined && <span className="text-xs tabular-nums text-ink-muted">{count}</span>}

@@ -345,7 +345,7 @@ function FlyerTile({ flyer, onDone }: { flyer: Flyer; onDone: (id: number) => vo
           className="h-full w-full object-contain p-1"
         />
       ) : (
-        <Beaker className="h-4 w-4 text-bronze" />
+        <Beaker className="h-4 w-4 text-teal-dark" />
       )}
     </motion.div>
   );

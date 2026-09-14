@@ -85,7 +85,7 @@ export default function SettlementInvoicePage() {
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <p className="text-sm text-ink-muted">That settlement invoice could not be found.</p>
         <button onClick={() => router.push('/admin/stealth-health')}
-          className="text-sm text-bronze hover:underline">Back to Stealth Health</button>
+          className="text-sm text-teal-dark hover:underline">Back to Stealth Health</button>
       </div>
     );
   }
@@ -121,7 +121,7 @@ export default function SettlementInvoicePage() {
             </button>
             {isAdmin && invoice.status === 'draft' && (
               <button onClick={() => setStatus('sent')} disabled={busy}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-50">
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-50">
                 <Send className="w-4 h-4" /> Mark as sent
               </button>
             )}
@@ -174,7 +174,7 @@ export default function SettlementInvoicePage() {
         {payouts.length > 0 && (
           <div className="bg-white rounded-xl border border-line p-5 mb-6">
             <h3 className="text-sm font-semibold text-ink mb-3 flex items-center gap-2">
-              <Wallet className="w-4 h-4 text-bronze" /> Payouts against this invoice
+              <Wallet className="w-4 h-4 text-teal-dark" /> Payouts against this invoice
             </h3>
             <div className="divide-y divide-line -my-2">
               {payouts.map((p) => (
@@ -195,7 +195,7 @@ export default function SettlementInvoicePage() {
         <div className="bg-white rounded-xl border border-line overflow-hidden mb-6">
           <div className="px-5 py-3.5 border-b border-line flex items-center justify-between">
             <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
-              <FileText className="w-4 h-4 text-bronze" /> Hand-offs on this invoice
+              <FileText className="w-4 h-4 text-teal-dark" /> Hand-offs on this invoice
             </h3>
             <span className="text-xs text-ink-muted">{fmtInt(orders.length)} orders</span>
           </div>

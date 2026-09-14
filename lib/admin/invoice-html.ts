@@ -74,11 +74,11 @@ export interface BuildInvoiceHtmlOptions {
   autoPrint?: boolean;
 }
 
-const BRONZE = '#9C8B5A';
-const INK = '#1A1A1A';
-const MUTED = '#6E6E6E';
-const RULE = '#C9CCD1';
-const SURFACE = '#F7F7F7';
+const BRONZE = '#438B9E';
+const INK = '#07203A';
+const MUTED = '#56707F';
+const RULE = '#DCE7EB';
+const SURFACE = '#F7FAFB';
 
 function escape(s: unknown): string {
   return String(s ?? '')
@@ -333,7 +333,7 @@ export function buildInvoiceHtml(
   thead th.num, tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
   tbody td {
     padding: 8px 6px;
-    border-bottom: 1px solid #EEF0F2;
+    border-bottom: 1px solid #EDF3F5;
     vertical-align: top;
   }
   tbody td.sku {
@@ -352,8 +352,8 @@ export function buildInvoiceHtml(
     letter-spacing: 0.06em;
     vertical-align: 1px;
   }
-  .pt-box { background: #EEF2F7; color: #334155; }
-  .pt-vial { background: #F5EEE0; color: ${BRONZE}; }
+  .pt-box { background: #EDF3F5; color: #0E3F5F; }
+  .pt-vial { background: #E1EFF1; color: ${BRONZE}; }
   tbody tr:last-child td { border-bottom: none; }
   .totals { display: flex; justify-content: flex-end; margin-bottom: 24px; }
   .totals-inner { width: 280px; }
@@ -397,7 +397,7 @@ export function buildInvoiceHtml(
     display: flex;
     justify-content: space-between;
     padding: 5px 0;
-    border-bottom: 1px solid #EEF0F2;
+    border-bottom: 1px solid #EDF3F5;
     font-size: 11px;
   }
   .muted { color: ${MUTED}; }
@@ -507,7 +507,7 @@ export function buildInvoiceHtml(
       : ''
   }
 
-  <footer>Thank you for your business. &middot; PuraMass by Aminocan</footer>
+  <footer>Thank you for your business. &middot; PuraMass by VYTA</footer>
 </div>
 ${autoPrintScript}
 </body>

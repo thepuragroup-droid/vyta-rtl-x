@@ -33,7 +33,7 @@ export default function AffiliateLogin() {
 
   return (
     <main className="min-h-screen bg-white flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-bronze border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-teal border-t-transparent rounded-full animate-spin" />
     </main>
   );
 }

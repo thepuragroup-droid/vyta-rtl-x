@@ -20,7 +20,7 @@ const db = createClient(
 
 // Only our own partner SKUs (this namespace) are mapped. Any other SKU in the
 // catalog response is ignored by the sync and purged by the cleanup route.
-const AMINOCAN_SKU_PREFIX = 'aminocan-';
+const VYTA_SKU_PREFIX = 'aminocan-';
 
 type Mapping = 'box' | 'vial';
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
   // Only target our own partner SKUs — those prefixed `aminocan-`. Any other
   // SKU in the catalog response (general / other-partner) is left alone.
   const partnerCatalog = catalog.filter((c) =>
-    c.sku.toLowerCase().startsWith(AMINOCAN_SKU_PREFIX),
+    c.sku.toLowerCase().startsWith(VYTA_SKU_PREFIX),
   );
   // Split by SKU suffix: vial set = …-vial; box set = everything else
   // (…-10-pack and general products within the aminocan- namespace).
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     // Only ever write a SKU in our own namespace. A match that somehow lands on
     // a non-`aminocan-` SKU is treated as unmatched (never written).
     const matchedIsPartner =
-      !!result.sku && result.sku.toLowerCase().startsWith(AMINOCAN_SKU_PREFIX);
+      !!result.sku && result.sku.toLowerCase().startsWith(VYTA_SKU_PREFIX);
 
     if ((result.status === 'exact' || result.status === 'matched') && matchedIsPartner) {
       const current = (p[column] ?? '').trim();

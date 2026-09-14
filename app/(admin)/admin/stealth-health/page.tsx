@@ -97,7 +97,7 @@ export default function StealthHealthPage() {
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <p className="text-sm text-ink-muted">Could not load the settlement dashboard.</p>
         <button onClick={load}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90">
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90">
           <RefreshCw className="w-4 h-4" /> Try again
         </button>
       </div>
@@ -114,7 +114,7 @@ export default function StealthHealthPage() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
         <div>
           <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
-            <Handshake className="w-6 h-6 text-bronze" /> Stealth Health
+            <Handshake className="w-6 h-6 text-teal-dark" /> Stealth Health
           </h1>
           <p className="text-sm text-ink-muted mt-1 max-w-2xl">
             Stealth Health collects payment on its hosted checkout and we ship the goods, so every
@@ -132,7 +132,7 @@ export default function StealthHealthPage() {
       {/* The balance — always all-time, never filtered by the date range, because
           "what do they owe us" has one answer. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <KpiCard tint="bronze" icon={DollarSign} label="Earned all-time"
+        <KpiCard tint="teal" icon={DollarSign} label="Earned all-time"
           value={money(b.earned_cents, cur)}
           sub="net of refunds and their cut"
           hint="Every paid hand-off, settled under the current terms." />
@@ -159,7 +159,7 @@ export default function StealthHealthPage() {
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
                 active
-                  ? 'border-bronze text-bronze'
+                  ? 'border-teal text-teal-dark'
                   : 'border-transparent text-ink-muted hover:text-ink'
               }`}>
               <Icon className="w-4 h-4" /> {t.label}
@@ -213,7 +213,7 @@ function OverviewTab({ summary, from, to, setFrom, setTo, hasRange, onGoToInvoic
               <button key={p.label}
                 onClick={() => { setFrom(daysAgo(p.days)); setTo(isoDay(new Date())); }}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                  active ? 'bg-bronze text-white border-bronze'
+                  active ? 'bg-teal-dark text-white border-teal'
                          : 'bg-white text-ink-muted border-line hover:bg-surface hover:text-ink'
                 }`}>
                 {p.label}
@@ -240,7 +240,7 @@ function OverviewTab({ summary, from, to, setFrom, setTo, hasRange, onGoToInvoic
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <KpiCard tint="bronze" icon={DollarSign} label={`Earned ${hasRange ? 'in range' : 'all-time'}`}
+            <KpiCard tint="teal" icon={DollarSign} label={`Earned ${hasRange ? 'in range' : 'all-time'}`}
               value={money(e.due_cents, cur)}
               sub={`across ${fmtInt(e.order_count)} paid order${e.order_count === 1 ? '' : 's'}`} />
             <KpiCard tint="blue" icon={Receipt} label="Buyers paid Stealth Health"
@@ -283,7 +283,7 @@ function OverviewTab({ summary, from, to, setFrom, setTo, hasRange, onGoToInvoic
               <div className="mt-auto pt-4">
                 {summary.balance.uninvoiced_cents > 0 ? (
                   <button onClick={onGoToInvoices}
-                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90">
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90">
                     Invoice {money(summary.balance.uninvoiced_cents, cur)} <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
@@ -315,7 +315,7 @@ function OverviewTab({ summary, from, to, setFrom, setTo, hasRange, onGoToInvoic
                       className="flex items-center justify-between gap-3 py-2.5 group">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-ink group-hover:text-bronze truncate">
+                          <span className="text-sm font-medium text-ink group-hover:text-teal-dark truncate">
                             {inv.invoice_number}
                           </span>
                           <StatusBadge status={inv.status} />

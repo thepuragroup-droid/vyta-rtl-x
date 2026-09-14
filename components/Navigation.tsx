@@ -27,6 +27,7 @@ import { siteConfig } from "@/lib/config";
 import { canAccessAdmin, canAccessWarehouse } from "@/lib/permissions";
 import Link from "next/link";
 import PeptideLoader from "./PeptideLoader";
+import BrandLockup from "./BrandLockup";
 import AdDiscountNotice, { useAdOfferNotice } from "./AdDiscountNotice";
 
 export default function Navigation() {
@@ -115,41 +116,15 @@ export default function Navigation() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
           <div className="flex justify-between items-center h-[72px]">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-10 h-10 flex items-center justify-center">
-                <div className="absolute inset-0 bg-bronze/10 rounded-xl blur-lg group-hover:bg-bronze/20 transition-all duration-300" />
-                {config.logo_url ? (
-                  <img
-                    src={config.logo_url}
-                    alt={config.store_name}
-                    className="relative w-10 h-10 rounded-xl object-contain"
-                  />
-                ) : (
-                  <div
-                    className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 ${
-                      overlay ? "bg-white/10 border border-white/20 backdrop-blur-md" : "bg-ink"
-                    }`}
-                  >
-                    <Beaker className="w-5 h-5 text-white" />
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span
-                  className={`text-lg font-bold tracking-tight leading-none transition-colors duration-300 ${
-                    overlay ? "text-white" : "text-ink"
-                  }`}
-                >
-                  {config.store_name}
-                </span>
-                <span
-                  className={`text-[10px] tracking-[0.15em] font-medium uppercase mt-0.5 transition-colors duration-300 ${
-                    overlay ? "text-bronze-light" : "text-bronze"
-                  }`}
-                >
-                  {config.store_tagline}
-                </span>
-              </div>
+            <Link href="/" className="group flex items-center" aria-label={config.store_name}>
+              <BrandLockup
+                name={config.store_name}
+                tagline={config.store_tagline}
+                logoUrl={config.logo_url}
+                tone={overlay ? "dark" : "light"}
+                size="md"
+                className="transition-opacity duration-300 group-hover:opacity-90"
+              />
             </Link>
 
             {/* Desktop Navigation */}
@@ -254,8 +229,8 @@ export default function Navigation() {
                   href={affiliate ? "/affiliate/dashboard" : "/affiliate/signup"}
                   className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
                     overlay
-                      ? "text-bronze-light hover:text-bronze-light hover:bg-white/10"
-                      : "text-bronze hover:text-bronze-dark hover:bg-bronze-50"
+                      ? "text-teal-light hover:text-teal-light hover:bg-white/10"
+                      : "text-teal-dark hover:text-teal-dark hover:bg-teal-50"
                   }`}
                 >
                   {affiliate ? "My Affiliate" : "Affiliates"}
@@ -341,7 +316,7 @@ export default function Navigation() {
                             <div className="p-2 border-b border-slate-100">
                               <Link
                                 href="/admin"
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-bronze-50 transition-colors text-bronze"
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-teal-50 transition-colors text-teal-dark"
                                 onClick={() => setActiveDropdown(null)}
                               >
                                 <LayoutDashboard className="w-4 h-4" />
@@ -355,7 +330,7 @@ export default function Navigation() {
                             <div className="p-2 border-b border-slate-100">
                               <Link
                                 href="/warehouse"
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-bronze-50 transition-colors text-bronze"
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-teal-50 transition-colors text-teal-dark"
                                 onClick={() => setActiveDropdown(null)}
                               >
                                 <Warehouse className="w-4 h-4" />
@@ -465,7 +440,7 @@ export default function Navigation() {
               overlay ? "text-white/60" : "text-ink-muted"
             }`}
           >
-            <Beaker className={`w-3 h-3 flex-shrink-0 ${overlay ? "text-bronze-light" : "text-bronze"}`} />
+            <Beaker className={`w-3 h-3 flex-shrink-0 ${overlay ? "text-teal-light" : "text-teal-dark"}`} />
             <span>Research Only</span>
             <span className={`hidden sm:inline ${overlay ? "text-white/25" : "text-line"}`}>•</span>
             <span className="hidden sm:inline">Shipping to Canada Only</span>
@@ -543,7 +518,7 @@ export default function Navigation() {
               {siteConfig.ecommerceEnabled && (
                 <Link
                   href={affiliate ? "/affiliate/dashboard" : "/affiliate/signup"}
-                  className="block px-4 py-3 text-bronze hover:bg-bronze-50 rounded-xl transition-colors text-sm font-medium"
+                  className="block px-4 py-3 text-teal-dark hover:bg-teal-50 rounded-xl transition-colors text-sm font-medium"
                   onClick={() => setIsOpen(false)}
                 >
                   {affiliate ? "My Affiliate" : "Affiliate Program"}
@@ -559,7 +534,7 @@ export default function Navigation() {
                         {isStaff && (
                           <Link
                             href="/admin"
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-bronze text-white text-sm font-semibold rounded-xl"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-teal-dark text-white text-sm font-semibold rounded-xl"
                             onClick={() => setIsOpen(false)}
                           >
                             <LayoutDashboard className="w-4 h-4" />
@@ -569,7 +544,7 @@ export default function Navigation() {
                         {isWarehouse && (
                           <Link
                             href="/warehouse"
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-bronze text-white text-sm font-semibold rounded-xl"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-teal-dark text-white text-sm font-semibold rounded-xl"
                             onClick={() => setIsOpen(false)}
                           >
                             <Warehouse className="w-4 h-4" />

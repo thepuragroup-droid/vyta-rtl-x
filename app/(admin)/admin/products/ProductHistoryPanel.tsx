@@ -45,7 +45,7 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 const SOURCE_META: Record<string, { label: string; className: string }> = {
-  admin_edit: { label: 'Admin edit', className: 'bg-bronze/10 text-bronze' },
+  admin_edit: { label: 'Admin edit', className: 'bg-teal/10 text-teal-dark' },
   csv_import: { label: 'CSV import', className: 'bg-indigo-500/10 text-indigo-600' },
   invoice_paid: { label: 'Invoice paid', className: 'bg-blue-500/10 text-blue-600' },
   order_confirmed: { label: 'Order confirmed', className: 'bg-purple-500/10 text-purple-600' },
@@ -159,7 +159,7 @@ export default function ProductHistoryPanel({ productId }: { productId: string }
 
       {loading ? (
         <div className="flex items-center gap-2 py-8 justify-center text-ink-muted text-sm">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-bronze" />
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal" />
           Loading history…
         </div>
       ) : error ? (

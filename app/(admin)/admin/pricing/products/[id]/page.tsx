@@ -128,9 +128,9 @@ export default function ProductPricingDetailPage() {
                       {o.customer?.email && <div className="text-xs text-ink-muted">{o.customer.email}</div>}
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded ${cur === 'USD' ? 'bg-blue-500/10 text-blue-600' : 'bg-bronze/10 text-bronze'}`}>{cur}</span>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded ${cur === 'USD' ? 'bg-blue-500/10 text-blue-600' : 'bg-teal/10 text-teal-dark'}`}>{cur}</span>
                     </td>
-                    <td className="px-5 py-4 text-right text-sm tabular-nums text-bronze font-medium">{formatMoney(ovp, cur)}</td>
+                    <td className="px-5 py-4 text-right text-sm tabular-nums text-teal-dark font-medium">{formatMoney(ovp, cur)}</td>
                     <td className="px-5 py-4 text-right text-sm tabular-nums">
                       {def > 0 && pct !== 0
                         ? <span className={pct > 0 ? 'text-emerald-600 font-medium' : 'text-red-600 font-medium'}>{pct > 0 ? '-' : '+'}{Math.abs(pct).toFixed(1)}%</span>

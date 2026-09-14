@@ -68,8 +68,8 @@ export default function AcquisitionSection({
   const header = (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-1">
-        <div className="w-8 h-8 rounded-lg bg-bronze/10 flex items-center justify-center">
-          <Megaphone className="w-4 h-4 text-bronze" />
+        <div className="w-8 h-8 rounded-lg bg-teal/10 flex items-center justify-center">
+          <Megaphone className="w-4 h-4 text-teal-dark" />
         </div>
         <h2 className="text-lg font-bold text-ink">Acquisition by Channel</h2>
       </div>
@@ -102,7 +102,7 @@ export default function AcquisitionSection({
           <p className="text-sm text-ink-muted">Could not load acquisition data.</p>
           <button
             onClick={load}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90"
           >
             <RefreshCw className="w-4 h-4" aria-hidden /> Try again
           </button>
@@ -150,8 +150,8 @@ export default function AcquisitionSection({
     <section className="mb-8">
       {header}
 
-      <div className="rounded-xl border border-bronze/30 bg-bronze/[0.04] p-4 mb-5 flex gap-3">
-        <Info className="w-4 h-4 text-bronze shrink-0 mt-0.5" />
+      <div className="rounded-xl border border-teal/30 bg-teal/[0.04] p-4 mb-5 flex gap-3">
+        <Info className="w-4 h-4 text-teal-dark shrink-0 mt-0.5" />
         <p className="text-xs text-ink-muted leading-relaxed">
           <span className="font-semibold text-ink">Two currencies, never summed.</span>{' '}
           Storefront orders are billed in CAD and hosted-checkout orders in USD, so they are shown
@@ -159,7 +159,7 @@ export default function AcquisitionSection({
           payment happens on the partner&apos;s domain — see{' '}
           <Link
             href="/admin/marketing"
-            className="text-bronze hover:text-bronze/80 font-medium"
+            className="text-teal-dark hover:text-teal-dark/80 font-medium"
           >
             Marketing → Branding &amp; Tracking
           </Link>{' '}
@@ -179,7 +179,7 @@ export default function AcquisitionSection({
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <Kpi
-          tint="bronze"
+          tint="teal"
           label="Paid visitors"
           value={fmtInt(paidTotals.visitors)}
           sub={`${fmtInt(data.totals.visitors)} total visitors`}
@@ -323,11 +323,11 @@ export default function AcquisitionSection({
 
 function ChannelTableRow({ row }: { row: ChannelRow }) {
   return (
-    <tr className={row.paid ? 'bg-bronze/[0.03]' : undefined}>
+    <tr className={row.paid ? 'bg-teal/[0.03]' : undefined}>
       <td className="px-4 py-2.5">
         <span className="font-medium text-ink">{channelLabel(row.channel)}</span>
         {row.paid && (
-          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-bronze/10 text-bronze uppercase tracking-wide">
+          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal/10 text-teal-dark uppercase tracking-wide">
             Paid
           </span>
         )}
@@ -358,7 +358,7 @@ function ChannelTableRow({ row }: { row: ChannelRow }) {
 const TINTS: Record<string, { fg: string; bg: string }> = {
   emerald: { fg: 'text-emerald-700', bg: 'bg-emerald-100' },
   blue: { fg: 'text-blue-700', bg: 'bg-blue-100' },
-  bronze: { fg: 'text-bronze', bg: 'bg-bronze/10' },
+  teal: { fg: 'text-teal-dark', bg: 'bg-teal/10' },
 };
 
 function Kpi({
@@ -372,7 +372,7 @@ function Kpi({
   value: string;
   sub?: string;
 }) {
-  const t = TINTS[tint] ?? TINTS.bronze;
+  const t = TINTS[tint] ?? TINTS.teal;
   return (
     <div className="bg-white rounded-xl border border-line p-4">
       <div className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide mb-2 ${t.bg} ${t.fg}`}>

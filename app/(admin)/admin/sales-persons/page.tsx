@@ -157,7 +157,7 @@ export default function SalesPersonsPage() {
           placeholder="Search sales people…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
         />
       </div>
 
@@ -299,7 +299,7 @@ export default function SalesPersonsPage() {
                     type="text"
                     value={form.first_name}
                     onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
                 <div>
@@ -308,7 +308,7 @@ export default function SalesPersonsPage() {
                     type="text"
                     value={form.last_name}
                     onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
               </div>
@@ -318,7 +318,7 @@ export default function SalesPersonsPage() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -328,7 +328,7 @@ export default function SalesPersonsPage() {
                     type="tel"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
                 <div>
@@ -340,7 +340,7 @@ export default function SalesPersonsPage() {
                     step="0.1"
                     value={form.commission_rate}
                     onChange={(e) => setForm({ ...form, commission_rate: e.target.value })}
-                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
               </div>
@@ -350,7 +350,7 @@ export default function SalesPersonsPage() {
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
             </div>

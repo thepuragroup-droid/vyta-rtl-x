@@ -102,7 +102,7 @@ Thank you for your order ${orderNumber}. Please complete payment by Interac e-Tr
 Once we receive your transfer we'll confirm and begin fulfilling your order. Orders are sent out 1 business day after payment is received.
 
 Thank you,
-Aminocan`;
+VYTA`;
 
   const renderedSubject = render(cfg.etransfer_instructions_subject).trim();
   const renderedBody = render(cfg.etransfer_instructions_body).trim();

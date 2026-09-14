@@ -52,7 +52,7 @@ export default function NumericStepper({
   }
 
   return (
-    <div className="flex items-center border border-line rounded-lg overflow-hidden bg-surface focus-within:ring-2 focus-within:ring-bronze/40">
+    <div className="flex items-center border border-line rounded-lg overflow-hidden bg-surface focus-within:ring-2 focus-within:ring-teal/40">
       <button
         type="button"
         onClick={decrement}

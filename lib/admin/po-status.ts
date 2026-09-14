@@ -30,7 +30,7 @@ export const PO_STATUS_META: Record<PurchaseOrderStatus, PoStatusMeta> = {
   partially_fulfilled: {
     label: 'Partially Fulfilled',
     badge: 'bg-blue-500/10 text-blue-700 border-blue-200',
-    pdfBg: '#2563eb', pdfFg: '#ffffff',
+    pdfBg: '#1b5d83', pdfFg: '#ffffff',
   },
   fulfilled: {
     label: 'Fulfilled',

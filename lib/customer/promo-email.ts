@@ -70,7 +70,7 @@ export const PROMO_TEMPLATES: PromoTemplate[] = [
     key: 'new_product',
     label: 'New product',
     description: 'Announce something new, optionally with a launch code.',
-    subject: 'New in stock at Aminocan',
+    subject: 'New in stock at VYTA',
     body: [
       'Hi {{first_name}},',
       '',
@@ -434,9 +434,9 @@ export function renderSubject(input: PromoEmailInput): string {
  * rule or a radius belongs in this object rather than in the markup.
  *
  * `display` is the reason the message reads as a brand rather than a receipt.
- * Didot and Bodoni ship with macOS and iOS, which is where most of these are
- * opened; everywhere else falls back through Georgia, so the figure is still
- * set in a serif with real contrast rather than dropping to the body sans.
+ * VYTA sets headings in Inter Display; email clients almost never have a
+ * webfont, so the stack falls through to the platform UI sans — the same
+ * shapes at a heavier weight and a wide letterspacing that echoes the lockup.
  *
  * The contrast pairs are deliberate: `muted` clears 4.5:1 on `card` and on
  * `paper`, and `heroText` / `champagne` clear it against `hero`. The faint
@@ -445,25 +445,25 @@ export function renderSubject(input: PromoEmailInput): string {
  */
 const T = {
   font: `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`,
-  display: `Didot, 'Bodoni MT', 'Playfair Display', Garamond, Georgia, 'Times New Roman', serif`,
+  display: `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif`,
   mono: `'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace`,
-  paper: '#F2F0EB',
+  paper: '#EDF3F5',
   card: '#FFFFFF',
-  hero: '#121110',
-  heroRule: '#6B5A38',
-  heroText: '#D8D1C4',
-  heroMuted: '#A29B8E',
-  champagne: '#F0DEB4',
-  ink: '#14130F',
-  body: '#45423C',
-  muted: '#6E6A63',
-  faint: '#948E85',
-  hairline: '#EEEBE3',
-  border: '#E7E3DA',
-  cream: '#FBF8F1',
-  creamLine: '#EADFC6',
-  gold: '#9C8B5A',
-  goldSoft: '#B99B5E',
+  hero: '#05182B',
+  heroRule: '#1B5D83',
+  heroText: '#C4DFE3',
+  heroMuted: '#6E8898',
+  champagne: '#C4DFE3',
+  ink: '#05182B',
+  body: '#0E3F5F',
+  muted: '#56707F',
+  faint: '#6E8898',
+  hairline: '#EDF3F5',
+  border: '#DCE7EB',
+  cream: '#F1F8F9',
+  creamLine: '#C4DFE3',
+  gold: '#438B9E',
+  goldSoft: '#6EB2B8',
   save: '#0F7A57',
   radius: '20px',
 } as const;
@@ -566,7 +566,7 @@ function goldRule(color: string = T.gold, margin = '18px auto 0'): string {
  */
 function heroBlock(input: PromoEmailInput): string {
   const wordmark = `
-    <p style="font-family: ${T.display}; font-size: 26px; font-weight: 400; letter-spacing: 0.34em; text-indent: 0.34em; color: ${T.heroText}; margin: 0;">AMINOCAN</p>
+    <p style="font-family: ${T.display}; font-size: 26px; font-weight: 400; letter-spacing: 0.34em; text-indent: 0.34em; color: ${T.heroText}; margin: 0;">VYTA</p>
     <p style="font-size: 9px; font-weight: 600; letter-spacing: 0.3em; text-indent: 0.3em; text-transform: uppercase; color: ${T.goldSoft}; margin: 10px 0 0;">Canadian Peptides</p>`;
 
   if (!input.discount) {
@@ -770,7 +770,7 @@ function checkoutBlock(input: PromoEmailInput): string {
  * hence the `width` attribute beside the `max-width`, and the radius split
  * across the two cells to keep the card's corners round where they meet.
  *
- * Mirrors `aminocanShell` from lib/email.ts, restated here so this module stays
+ * Mirrors `vytaShell` from lib/email.ts, restated here so this module stays
  * free of server-only imports; the two are meant to look alike, so a change to
  * one belongs in the other.
  */
@@ -797,14 +797,14 @@ ${heroBlock(input)}
                     ? `<p style="font-family: ${T.display}; font-size: 17px; font-style: italic; line-height: 1.5; color: ${T.ink}; margin: 28px 0 0;">— ${escapeHtml(
                         signature,
                       )}</p>
-                       <p style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: ${T.faint}; margin: 6px 0 0;">Aminocan Peptides</p>`
+                       <p style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: ${T.faint}; margin: 6px 0 0;">VYTA Biosciences</p>`
                     : ''
                 }
               </td>
             </tr>
             <tr>
               <td style="padding: 22px 12px 4px; text-align: center;">
-                <p style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: ${T.faint}; margin: 0;">Aminocan · Canadian research peptides</p>
+                <p style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: ${T.faint}; margin: 0;">VYTA · Canadian research peptides</p>
               </td>
             </tr>
           </table>
@@ -870,7 +870,7 @@ export function renderPromoEmailText(input: PromoEmailInput): string {
   }
 
   const signature = (input.senderName ?? '').trim();
-  if (signature) parts.push(`— ${signature}\nAminocan Peptides`);
+  if (signature) parts.push(`— ${signature}\nVYTA Biosciences`);
   return parts.join('\n\n');
 }
 
