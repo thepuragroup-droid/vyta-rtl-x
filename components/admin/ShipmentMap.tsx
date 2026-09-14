@@ -18,7 +18,7 @@ const TILE_ATTRIBUTION = MAPBOX
   : '© OpenStreetMap contributors';
 
 const INK = '#07203A';
-const BRONZE = '#438B9E';
+const ACCENT = '#438B9E';
 const EMERALD = '#059669';
 
 async function geocode(queries: string[]): Promise<Record<string, LatLng | null>> {
@@ -116,8 +116,8 @@ export default function ShipmentMap({ checkpointLocations, destination }: Props)
           const isCurrent = i === checkpointPts.length - 1;
           L.circleMarker([p.pos.lat, p.pos.lng], {
             radius: isCurrent ? 7 : 5,
-            color: isCurrent ? BRONZE : INK,
-            fillColor: isCurrent ? BRONZE : INK,
+            color: isCurrent ? ACCENT : INK,
+            fillColor: isCurrent ? ACCENT : INK,
             fillOpacity: isCurrent ? 1 : 0.55,
             weight: 2,
           })
@@ -135,7 +135,7 @@ export default function ShipmentMap({ checkpointLocations, destination }: Props)
                 [last.lat, last.lng],
                 [destPos.lat, destPos.lng],
               ],
-              { color: BRONZE, weight: 2, opacity: 0.7, dashArray: '5 6' },
+              { color: ACCENT, weight: 2, opacity: 0.7, dashArray: '5 6' },
             ).addTo(map);
           }
           L.circleMarker([destPos.lat, destPos.lng], {

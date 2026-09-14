@@ -17,7 +17,7 @@ import { vytaShell, escapeHtml } from '@/lib/email';
 import { formatAddressLines } from './puramass-address';
 import { formatSummaryMoney, type OrderSummary } from './puramass-order-summary';
 
-const BRONZE = '#438B9E';
+const ACCENT = '#438B9E';
 const INK = '#07203A';
 const MUTED = '#56707F';
 
@@ -85,7 +85,7 @@ function referenceRows(summary: OrderSummary): string {
       cell(
         'Transaction',
         summary.transaction_link
-          ? `<a href="${escapeHtml(summary.transaction_link)}" style="color:${BRONZE}; text-decoration:underline;">${id}</a>`
+          ? `<a href="${escapeHtml(summary.transaction_link)}" style="color:${ACCENT}; text-decoration:underline;">${id}</a>`
           : id,
       ),
     );
@@ -131,7 +131,7 @@ export function buildMissingAddressEmailHtml(args: {
 
       ${
         note
-          ? `<div style="background:#F1F8F9; border-left:3px solid ${BRONZE}; padding:12px 16px; margin:0 0 24px;">
+          ? `<div style="background:#F1F8F9; border-left:3px solid ${ACCENT}; padding:12px 16px; margin:0 0 24px;">
                <p style="font-size:13px; line-height:1.6; color:${INK}; margin:0;">${escapeHtml(note)}</p>
              </div>`
           : ''

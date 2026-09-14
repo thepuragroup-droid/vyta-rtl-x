@@ -109,6 +109,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; }
   .brand-name { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #07203A; }
   .brand-name span { color: #438b9e; }
+  .brand-kicker { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #438b9e; margin-top: 3px; }
   .brand-tagline { font-size: 11px; color: #56707f; margin-top: 4px; }
   .po-meta { text-align: right; }
   .po-title { font-size: 28px; font-weight: 700; color: #07203A; }
@@ -147,7 +148,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 <div class="page">
   <div class="header">
     <div class="brand">
-      <div class="brand-name">PURAMASS</div>
+      <div class="brand-name">VYTA</div>
+      <div class="brand-kicker">Biosciences</div>
       <div class="brand-tagline">aminocan.com &nbsp;·&nbsp; info@aminocan.com</div>
     </div>
     <div class="po-meta">
@@ -176,7 +178,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     </div>
     <div class="info-block">
       <h3>Issued By</h3>
-      <p>PuraMass Procurement</p>
+      <p>VYTA Procurement</p>
       <h3 style="margin-top:16px">PO Number</h3>
       <p class="strong" style="font-family:monospace">${esc(po.po_number)}</p>
     </div>
@@ -217,7 +219,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   ${po.notes ? `<div class="notes"><h3>Notes</h3><p>${esc(po.notes)}</p></div>` : ''}
 
   <footer>
-    <span>PURAMASS &nbsp;·&nbsp; aminocan.com</span>
+    <span>VYTA BIOSCIENCES &nbsp;·&nbsp; aminocan.com</span>
     <span>Generated ${esc(new Date().toLocaleDateString('en-CA'))} &nbsp;·&nbsp; ${esc(po.po_number)}</span>
   </footer>
 </div>

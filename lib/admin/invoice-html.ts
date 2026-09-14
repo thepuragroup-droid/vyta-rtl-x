@@ -74,7 +74,7 @@ export interface BuildInvoiceHtmlOptions {
   autoPrint?: boolean;
 }
 
-const BRONZE = '#438B9E';
+const ACCENT = '#438B9E';
 const INK = '#07203A';
 const MUTED = '#56707F';
 const RULE = '#DCE7EB';
@@ -251,6 +251,14 @@ export function buildInvoiceHtml(
     letter-spacing: 2px;
     color: ${INK};
   }
+  .brand-kicker {
+    margin-top: 3px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: ${ACCENT};
+  }
   .brand-contact {
     margin-top: 6px;
     font-size: 11px;
@@ -353,7 +361,7 @@ export function buildInvoiceHtml(
     vertical-align: 1px;
   }
   .pt-box { background: #EDF3F5; color: #0E3F5F; }
-  .pt-vial { background: #E1EFF1; color: ${BRONZE}; }
+  .pt-vial { background: #E1EFF1; color: ${ACCENT}; }
   tbody tr:last-child td { border-bottom: none; }
   .totals { display: flex; justify-content: flex-end; margin-bottom: 24px; }
   .totals-inner { width: 280px; }
@@ -374,7 +382,7 @@ export function buildInvoiceHtml(
     font-size: 14px;
   }
   .totals-row.due {
-    color: ${BRONZE};
+    color: ${ACCENT};
     font-weight: 700;
     font-size: 14px;
     border-top: 1px solid ${RULE};
@@ -405,7 +413,7 @@ export function buildInvoiceHtml(
     margin-top: 24px;
     padding: 14px 16px;
     background: ${SURFACE};
-    border-left: 3px solid ${BRONZE};
+    border-left: 3px solid ${ACCENT};
     border-radius: 4px;
     font-size: 11px;
     line-height: 1.55;
@@ -427,7 +435,8 @@ export function buildInvoiceHtml(
 <div class="page">
   <header>
     <div>
-      <div class="brand-name">PURAMASS</div>
+      <div class="brand-name">VYTA</div>
+      <div class="brand-kicker">Biosciences</div>
       <div class="brand-contact">aminocan.com &middot; info@aminocan.com</div>
     </div>
     <div class="doc-meta">
@@ -507,7 +516,7 @@ export function buildInvoiceHtml(
       : ''
   }
 
-  <footer>Thank you for your business. &middot; PuraMass by VYTA</footer>
+  <footer>Thank you for your business. &middot; VYTA Biosciences</footer>
 </div>
 ${autoPrintScript}
 </body>
