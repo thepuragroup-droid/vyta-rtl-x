@@ -1,0 +1,168 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { canEditProductDescriptors } from '@/lib/permissions';
+import { logAuditServer } from '@/lib/admin/audit';
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
+}
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
+}
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
+);
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+async function verifyAdminRole(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return { authorized: false, role: 'customer' as const, actor_id: null, actor_email: null };
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return { authorized: false, role: 'customer' as const, actor_id: null, actor_email: null };
+    }
+
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('id, email, role')
+      .eq('id', user.id)
+      .single();
+
+    const role = customer?.role || 'customer';
+    const actor_id = customer?.id ?? user.id;
+    const actor_email = customer?.email ?? user.email ?? null;
+
+    return { authorized: canEditProductDescriptors(role), role, actor_id, actor_email };
+  } catch (error) {
+    console.error('Error verifying admin role:', error);
+    return { authorized: false, role: 'customer' as const, actor_id: null, actor_email: null };
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const { authorized, actor_id, actor_email } = await verifyAdminRole(request);
+
+  if (!authorized) {
+    return NextResponse.json({ error: 'Unauthorized - Admin role required' }, { status: 403 });
+  }
+
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        { error: 'Invalid file type. Only images (JPEG, PNG, WebP, GIF) are allowed' },
+        { status: 400 }
+      );
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'File size exceeds 20MB limit' },
+        { status: 400 }
+      );
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const { data, error } = await supabase.storage
+      .from('products')
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) {
+      console.error('Error uploading to Supabase Storage:', error);
+
+      if (error.message.includes('row-level security') || error.message.includes('RLS')) {
+        return NextResponse.json({
+          error: 'Storage bucket not configured. Please ensure the products bucket exists in Supabase Storage.',
+        }, { status: 500 });
+      }
+      if (error.message.includes('Bucket not found')) {
+        return NextResponse.json({
+          error: 'Products storage bucket does not exist. Please create it in Supabase Storage.',
+        }, { status: 500 });
+      }
+
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('products')
+      .getPublicUrl(data.path);
+
+    await logAuditServer(supabase, { actor_id, actor_email }, {
+      action: 'product.image_upload',
+      entity_type: 'product_image',
+      entity_id: fileName,
+    });
+
+    return NextResponse.json({ url: publicUrl, path: data.path, fileName });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const { authorized, actor_id, actor_email } = await verifyAdminRole(request);
+
+  if (!authorized) {
+    return NextResponse.json({ error: 'Unauthorized - Admin role required' }, { status: 403 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const path = searchParams.get('path');
+
+    if (!path) {
+      return NextResponse.json({ error: 'No file path provided' }, { status: 400 });
+    }
+
+    const { error } = await supabase.storage.from('products').remove([path]);
+
+    if (error) {
+      console.error('Error deleting from Supabase Storage:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    await logAuditServer(supabase, { actor_id, actor_email }, {
+      action: 'product.image_delete',
+      entity_type: 'product_image',
+      entity_id: path,
+    });
+
+    return NextResponse.json({ success: true, message: 'Image deleted successfully' });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

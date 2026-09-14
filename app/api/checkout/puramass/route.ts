@@ -1,0 +1,651 @@
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'node:crypto';
+import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import {
+  isPuramassConfigured,
+  createPuramassOrder,
+  PuramassApiError,
+  PURAMASS_CURRENCY,
+  type PuramassOrderLine,
+} from '@/lib/payments/puramass';
+import {
+  readVisitorContext,
+  attributionColumns,
+  linkVisitorIdentity,
+  stampVisitorMilestone,
+} from '@/lib/analytics/attribution-server';
+import {
+  flatHostedRate,
+  freeHostedRate,
+  PURAMASS_FLAT_COURIER_ID,
+  selectHostedRate,
+  type HostedShippingRate,
+} from '@/lib/payments/puramass-shipping';
+import {
+  quoteHostedRates,
+  type HostedQuoteDestination,
+} from '@/lib/payments/puramass-rates-server';
+import {
+  qualifiesForFreeShipping,
+  shapeHostedShippingSettings,
+  type HostedShippingSettings,
+} from '@/lib/payments/puramass-settings';
+import { validateShippingAddress } from '@/lib/payments/puramass-address';
+import { isMissingColumnError } from '@/lib/payments/puramass-columns';
+import {
+  distributeAdDiscount,
+  isAdTraffic,
+  qualifiesForAdDiscount,
+  shapeAdDiscountSettings,
+  type AdDiscountSettings,
+} from '@/lib/promos/ad-discount';
+import { isCustomerFirstOrder } from '@/lib/promos/first-order';
+import { resolvePriceMap } from '@/lib/pricing/resolve';
+import { casePriceFor, vialPriceFor } from '@/lib/pricing';
+
+// All access is server-side against the service-role client (RLS-bypassing).
+const db = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const clampPacks = (n: number) => Math.min(99, Math.max(1, n));
+
+interface IncomingLine {
+  id: string;
+  packSize: number;
+  quantity: number;
+}
+
+/**
+ * Re-quote couriers and resolve the option the buyer picked into an amount we
+ * are willing to charge.
+ *
+ * The browser sends back only a `courier_id` — never a price. Shipping is
+ * money, so the only figure that may reach PuraMass is one Easyship has just
+ * confirmed, or the flat fee. Goes through the same `quoteHostedRates` helper
+ * the rates endpoint uses, so the list priced here is the list the buyer was
+ * shown.
+ *
+ * A courier that has dropped off the list since they chose it yields a null
+ * rate, so the caller can hand the fresh options back and ask them to pick
+ * again rather than silently charging something else. When there is nothing
+ * live to offer, the flat fee stands — which is what the picker was showing.
+ *
+ * `freeShipping` zeroes the price of whatever they picked without discarding
+ * the courier: a parcel still travels by a service, and the shipment booked
+ * later needs to know which.
+ */
+async function resolveHostedShipping(
+  settings: HostedShippingSettings,
+  courierId: string | null,
+  destination: HostedQuoteDestination,
+  vials: number,
+  freeShipping: boolean,
+): Promise<{ rate: HostedShippingRate | null; rates: HostedShippingRate[] }> {
+  const price = (rate: HostedShippingRate | null) =>
+    rate && freeShipping ? freeHostedRate(rate) : rate;
+
+  if (!settings.ratesEnabled) {
+    const flat = flatHostedRate(settings.flatShipping);
+    return { rate: price(flat), rates: [flat] };
+  }
+
+  const quote = await quoteHostedRates(db, destination, vials, settings);
+  if (!quote.live) return { rate: price(quote.rates[0]), rates: quote.rates };
+  return { rate: price(selectHostedRate(quote.rates, courierId)), rates: quote.rates };
+}
+
+/**
+ * The `site_settings` singleton, read once for everything this route decides:
+ * whether the hosted checkout is live at all, what shipping costs, and whether
+ * a paid-ads discount is running.
+ *
+ * `select('*')` for the same reason every other reader of this table uses it —
+ * naming a column PostgREST has not seen yet fails the WHOLE query, and these
+ * columns arrive across several migrations. Each shaper defaults what is
+ * absent, and a read that fails outright yields an empty row, which reads as
+ * "nothing is switched on" rather than "everything is".
+ */
+async function readSiteSettings(): Promise<Record<string, any>> {
+  try {
+    const { data, error } = await db
+      .from('site_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      console.error('[puramass] settings read failed:', error.message);
+      return {};
+    }
+    return (data as Record<string, any>) ?? {};
+  } catch (err: any) {
+    console.error('[puramass] settings read threw:', err?.message ?? err);
+    return {};
+  }
+}
+
+/**
+ * Price every cart line from the catalog, in cents.
+ *
+ * Derived here rather than taken from the request because both things that
+ * depend on it are money: the free-shipping threshold, and the paid-ads
+ * discount that is subtracted from these very prices before the hand-off. A
+ * browser that could name its own prices could hand itself either.
+ *
+ * Priced through the same chain the storefront quotes from (customer override >
+ * active pricelist > products.price, then the vial/pack rule), so what is
+ * checked here is what the buyer saw in their cart. A line we cannot price at
+ * all comes back at zero and simply contributes nothing to the subtotal — the
+ * same behaviour the threshold has always had.
+ */
+async function priceCartLines(
+  lines: { id: string; mapping: 'box' | 'vial'; units: number }[],
+  products: Map<string, any>,
+  customerId: string | null,
+): Promise<Map<string, number>> {
+  const ids = [...new Set(lines.map((l) => l.id))];
+  let priceMap = new Map<string, { price: number }>();
+  try {
+    priceMap = await resolvePriceMap(db, { customerId, productIds: ids });
+  } catch (err) {
+    console.error('[puramass] price resolution failed:', err);
+  }
+
+  // Keyed by product + mapping: the same product can appear as both a pack and
+  // a single vial, at two different unit prices.
+  const unitCents = new Map<string, number>();
+  for (const line of lines) {
+    const product = products.get(line.id);
+    if (!product) continue;
+    const priced = {
+      price: priceMap.get(line.id)?.price ?? Number(product.price ?? 0),
+      vial_price: product.vial_price ?? null,
+      vials_per_box: product.vials_per_box ?? null,
+    };
+    const unit = line.mapping === 'vial' ? vialPriceFor(priced) : casePriceFor(priced);
+    unitCents.set(
+      `${line.id}::${line.mapping}`,
+      Number.isFinite(unit) && unit > 0 ? Math.round(unit * 100) : 0,
+    );
+  }
+  return unitCents;
+}
+
+/**
+ * Is this buyer owed the paid-ads welcome discount?
+ *
+ * Decided entirely server-side. The browser says nothing about it — it only
+ * displays what it expects — because this is what lowers the prices that get
+ * charged.
+ *
+ * Their channel is looked for in both places it is recorded: the attribution
+ * cookies `middleware.ts` wrote, and the snapshot frozen onto their customer
+ * row at signup. Either is proof, because a buyer who cleared their cookies
+ * since creating the account is still a buyer that ad won.
+ *
+ * It is a WELCOME offer, so it is also their first order or nothing:
+ * `isCustomerFirstOrder` decides that from the legacy first-order flag and this
+ * customer's existing hosted hand-offs. The storefront asks the same function
+ * through `/api/promos/first-order`, but nothing it says is trusted here — a
+ * repeat buyer whose browser claims otherwise is still charged list price.
+ */
+async function earnsAdDiscount(
+  settings: AdDiscountSettings,
+  customerId: string | null,
+  visitor: { first: { channel: string } | null; last: { channel: string } | null },
+): Promise<boolean> {
+  if (!settings.enabled || !customerId) return false;
+
+  let frozen: string | null = null;
+  try {
+    const { data } = await db
+      .from('customers')
+      .select('attribution_channel')
+      .eq('id', customerId)
+      .maybeSingle();
+    frozen = (data?.attribution_channel as string | null) ?? null;
+  } catch {
+    // The column arrives with marketing-attribution-migration.sql. Without it
+    // the cookies still decide; they are the same fact, freshly read.
+  }
+
+  // Cheapest first: if the channel does not qualify there is no reason to ask
+  // the database whether they have ordered before.
+  const fromAd = isAdTraffic([
+    frozen,
+    visitor.first?.channel ?? null,
+    visitor.last?.channel ?? null,
+  ]);
+  if (!fromAd) return false;
+
+  const firstOrder = await isCustomerFirstOrder(db, customerId);
+
+  return qualifiesForAdDiscount(settings, {
+    signedIn: true,
+    firstOrder,
+    channels: [frozen, visitor.first?.channel ?? null, visitor.last?.channel ?? null],
+  });
+}
+
+/**
+ * POST /api/checkout/puramass — hand the cart off to the PuraMass hosted
+ * checkout. Resolves each cart product to its PuraMass SKU server-side (never
+ * trusting a client-sent SKU or price), converts cart quantity to packs,
+ * creates the hosted order, records a ledger row, and returns the payment link
+ * the storefront redirects to.
+ *
+ * The hand-off is denominated in CAD (`PURAMASS_CURRENCY`), so the hosted page
+ * prices and charges in Canadian dollars instead of converting our catalog to
+ * its own USD listings. Goods prices are normally PuraMass's own — ours are
+ * sent only when the paid-ads welcome discount applies, because lowering the
+ * line prices is the only way this API has of taking money off (step 8b). The
+ * shipping total is always ours, and only when hosted rates are enabled (see
+ * `resolveHostedShipping`).
+ */
+export async function POST(req: NextRequest) {
+  // 1. Rate-limit by IP (same budget as the crypto/e-transfer checkout).
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`puramass:${ip}`, RATE_LIMITS.orders);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again shortly.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    );
+  }
+
+  // 2. Configured?
+  if (!isPuramassConfigured()) {
+    return NextResponse.json(
+      { error: 'Hosted checkout is not available right now.' },
+      { status: 503 },
+    );
+  }
+
+  // 3. Enabled? Everything this route reads from site_settings comes off this
+  //    one row — the checkout toggle here, shipping and the promos below.
+  const settingsRow = await readSiteSettings();
+  if (!settingsRow.puramass_checkout_enabled) {
+    return NextResponse.json({ error: 'Hosted checkout is disabled.' }, { status: 403 });
+  }
+
+  // 4. Parse + validate.
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  const rawItems: IncomingLine[] = Array.isArray(body?.items) ? body.items : [];
+  if (rawItems.length === 0) {
+    return NextResponse.json({ error: 'Your cart is empty.' }, { status: 400 });
+  }
+
+  const email = String(body?.customer?.email ?? '').trim();
+  if (!emailRegex.test(email)) {
+    return NextResponse.json({ error: 'Enter a valid email address.' }, { status: 400 });
+  }
+  const firstName = String(body?.customer?.firstName ?? '').trim() || undefined;
+  const lastName = String(body?.customer?.lastName ?? '').trim() || undefined;
+  const referralCode = String(body?.referralCode ?? '').trim() || null;
+
+  // 4b. Ship-to. Only collected when the buyer picks a live courier rate —
+  //     with the flat fee there is nothing to quote, so PuraMass goes on
+  //     collecting the address on its own hosted page as it always has.
+  //
+  //     The same validator the /shipping-address/<token> form uses, so the
+  //     browser and the server can't disagree about what a complete address is.
+  const shippingSettings = shapeHostedShippingSettings(settingsRow);
+  const address = validateShippingAddress({
+    full_name:
+      [firstName, lastName].filter(Boolean).join(' ').trim() ||
+      String(body?.shipping?.full_name ?? '').trim(),
+    phone: body?.shipping?.phone,
+    address: body?.shipping?.address,
+    address2: body?.shipping?.address2,
+    city: body?.shipping?.city,
+    state: body?.shipping?.state,
+    zip: body?.shipping?.zip,
+    country: body?.shipping?.country,
+  });
+  if (shippingSettings.ratesEnabled && !address.ok) {
+    return NextResponse.json(
+      { error: 'Enter a complete shipping address.', fields: address.errors },
+      { status: 400 },
+    );
+  }
+
+  // 5. Normalise lines → catalog units + which mapping to use. `quantity` is the
+  //    total vials in the line. A single-vial line (packSize === 1) uses the
+  //    vial SKU with units = vials; any other line uses the 10-pack SKU with
+  //    units = round(vials / packSize) packs. Clamp 1–99 either way.
+  const normalized: { id: string; mapping: 'box' | 'vial'; units: number }[] = [];
+  // Whole cart counted in single vials — what the parcel weight is derived from.
+  let totalVials = 0;
+  for (const line of rawItems) {
+    const id = String(line?.id ?? '').trim();
+    const packSize = Number(line?.packSize);
+    const quantity = Number(line?.quantity);
+    if (!id || !Number.isFinite(packSize) || packSize <= 0 || !Number.isFinite(quantity) || quantity <= 0) {
+      continue;
+    }
+    totalVials += Math.round(quantity);
+    if (packSize === 1) {
+      normalized.push({ id, mapping: 'vial', units: clampPacks(Math.round(quantity)) });
+    } else {
+      normalized.push({ id, mapping: 'box', units: clampPacks(Math.round(quantity / packSize)) });
+    }
+  }
+  if (normalized.length === 0) {
+    return NextResponse.json({ error: 'Your cart is empty.' }, { status: 400 });
+  }
+
+  // 6. Best-effort customer id from a bearer token (guests → null).
+  let customerId: string | null = null;
+  const token = req.headers.get('authorization')?.replace('Bearer ', '');
+  if (token) {
+    try {
+      const { data: { user } } = await db.auth.getUser(token);
+      customerId = user?.id ?? null;
+    } catch {
+      customerId = null;
+    }
+  }
+
+  // 7. Load the products' server-side SKU mapping, and the prices the
+  //    free-shipping threshold is measured against. Never trust client SKUs or
+  //    client prices.
+  //    Fall back to a box-only select if the vial column migration hasn't run.
+  const ids = [...new Set(normalized.map((l) => l.id))];
+  let products: any[] = [];
+  const withVial = await db
+    .from('products')
+    .select('id, name, price, vial_price, vials_per_box, puramass_sku, puramass_sku_vial')
+    .in('id', ids);
+  if (withVial.error) {
+    const boxOnly = await db
+      .from('products')
+      .select('id, name, price, vial_price, vials_per_box, puramass_sku')
+      .in('id', ids);
+    if (boxOnly.error) {
+      return NextResponse.json({ error: 'Could not load your cart.' }, { status: 500 });
+    }
+    products = boxOnly.data ?? [];
+  } else {
+    products = withVial.data ?? [];
+  }
+  const byId = new Map(products.map((p) => [p.id, p]));
+
+  // 8. Merge lines by resolved SKU, carrying our own unit price alongside the
+  //    quantity; collect any unmapped products. A vial line with no vial
+  //    mapping is tagged so the customer sees the specific form.
+  //
+  //    Two cart lines can land on one SKU (the same product added twice), so
+  //    quantities are summed and re-clamped — and the discount below is worked
+  //    out from THESE merged lines, after the clamp, so what it is measured
+  //    against is exactly what gets sent.
+  const unitCentsByLine = await priceCartLines(normalized, byId, customerId);
+  const linesBySku = new Map<string, { quantity: number; unitPriceCents: number }>();
+  const unmapped: string[] = [];
+  for (const line of normalized) {
+    const product = byId.get(line.id);
+    const sku = (line.mapping === 'vial' ? product?.puramass_sku_vial : product?.puramass_sku)?.trim();
+    if (!sku) {
+      const base = product?.name ?? line.id;
+      const label = line.mapping === 'vial' ? `${base} (single vial)` : base;
+      if (!unmapped.includes(label)) unmapped.push(label);
+      continue;
+    }
+    const merged = linesBySku.get(sku);
+    linesBySku.set(sku, {
+      quantity: clampPacks((merged?.quantity ?? 0) + line.units),
+      // `||` rather than `??`: two products can share one PuraMass SKU, and a
+      // line we failed to price (0) must not shut out a sibling we did.
+      unitPriceCents:
+        merged?.unitPriceCents || unitCentsByLine.get(`${line.id}::${line.mapping}`) || 0,
+    });
+  }
+
+  if (unmapped.length > 0) {
+    return NextResponse.json(
+      {
+        error: 'Some items are not available for hosted checkout.',
+        unmapped,
+      },
+      { status: 409 },
+    );
+  }
+
+  // 8b. The paid-ads welcome discount.
+  //
+  //     The hosted order has no discount field, so the only way to take money
+  //     off is to send lower prices: `distributeAdDiscount` splits the
+  //     percentage across the lines and each one travels as its own
+  //     `unit_price_cents`. Lines are otherwise sent WITHOUT a price, which
+  //     leaves goods pricing to PuraMass's own catalog — the behaviour every
+  //     undiscounted hand-off has always had, and the reason the prices only
+  //     appear when there is something to take off them.
+  //
+  //     Eligibility is decided here from the cookies and the customer row; the
+  //     browser is not asked and not believed.
+  //
+  //     Two guards, both because a zero `unit_price_cents` does NOT mean "free"
+  //     to this API — `buildPuramassOrderBody` omits it, and PuraMass then
+  //     charges its own catalog price. So a split is only sent when every line
+  //     has a real price to discount AND every discounted price is still above
+  //     zero. Either way out is a hand-off with no prices at all, which is what
+  //     an undiscounted order has always been: the buyer pays list rather than
+  //     being handed free product by a pricing failure.
+  const visitor = readVisitorContext(req.cookies);
+  const adDiscountSettings = shapeAdDiscountSettings(settingsRow);
+  const earned = await earnsAdDiscount(adDiscountSettings, customerId, visitor);
+  const everyLinePriced = [...linesBySku.values()].every((line) => line.unitPriceCents > 0);
+
+  let adDiscount: ReturnType<typeof distributeAdDiscount> | null = null;
+  if (earned && everyLinePriced) {
+    const split = distributeAdDiscount(
+      [...linesBySku.entries()].map(([sku, line]) => ({
+        key: sku,
+        unitPriceCents: line.unitPriceCents,
+        quantity: line.quantity,
+      })),
+      adDiscountSettings.percent,
+    );
+    if (split.lines.every((l) => l.discountedUnitPriceCents > 0)) {
+      adDiscount = split;
+    } else {
+      console.error(
+        '[puramass] ad discount skipped: %s%% would zero a line price, which this API reads as "use your own price"',
+        adDiscountSettings.percent,
+      );
+    }
+  } else if (earned) {
+    console.error(
+      '[puramass] ad discount skipped: the catalog could not price every line, and a zero price would be charged at full list',
+    );
+  }
+
+  const discountedBySku = new Map(
+    (adDiscount?.lines ?? []).map((l) => [l.key, l.discountedUnitPriceCents]),
+  );
+  const items: PuramassOrderLine[] = [...linesBySku.entries()].map(([sku, line]) => ({
+    sku,
+    quantity: line.quantity,
+    ...(discountedBySku.has(sku)
+      ? { unit_price_cents: discountedBySku.get(sku) }
+      : {}),
+  }));
+
+  // 9. Price the shipping. Re-quoted here rather than trusted from the
+  //    browser; a courier that is no longer on offer sends the buyer back to
+  //    the picker with the fresh list instead of being charged something else.
+  //    The free-shipping promo is settled against a subtotal derived from the
+  //    catalog, never one the browser supplied.
+  //
+  //    Measured at LIST price, before any ad discount: the threshold is what
+  //    the cart's progress bar counts toward, and the two must agree or a buyer
+  //    watching it fill would lose the free shipping at the last step.
+  const goodsSubtotal = [...linesBySku.values()].reduce(
+    (total, line) => total + (line.unitPriceCents * line.quantity) / 100,
+    0,
+  );
+  const freeShipping = shippingSettings.freeShippingEnabled
+    ? qualifiesForFreeShipping(shippingSettings, Math.round(goodsSubtotal * 100) / 100)
+    : false;
+  const { rate: shippingRate, rates: shippingRates } = await resolveHostedShipping(
+    shippingSettings,
+    String(body?.shipping?.courier_id ?? '').trim() || null,
+    {
+      country: address.value.address.country ?? '',
+      postal_code: address.value.address.zip ?? '',
+      city: address.value.address.city ?? '',
+      state: address.value.address.state ?? undefined,
+    },
+    totalVials,
+    freeShipping,
+  );
+  if (!shippingRate) {
+    return NextResponse.json(
+      {
+        error: 'Those shipping options have changed. Please choose a delivery method again.',
+        rates: shippingRates,
+      },
+      { status: 409 },
+    );
+  }
+  const shippingTotalCents = Math.round(shippingRate.total_charge * 100);
+
+  // 10. Our idempotency key, echoed back by PuraMass and unique in the ledger.
+  const partnerReference = `amc_${crypto.randomUUID()}`;
+
+  // 11. Create the hosted order.
+  let order;
+  try {
+    order = await createPuramassOrder({
+      items,
+      customer: { email, first_name: firstName, last_name: lastName },
+      partnerReference,
+      currency: PURAMASS_CURRENCY,
+      shippingTotalCents,
+    });
+  } catch (err) {
+    if (err instanceof PuramassApiError) {
+      // Surface 4xx messages (client can act on them); collapse the rest to 502
+      // so partner-side detail never leaks and no charge is implied.
+      if (err.status >= 400 && err.status < 500) {
+        return NextResponse.json({ error: err.detail }, { status: err.status });
+      }
+      return NextResponse.json({ error: 'Checkout is temporarily unavailable.' }, { status: 502 });
+    }
+    return NextResponse.json({ error: 'Checkout is temporarily unavailable.' }, { status: 502 });
+  }
+
+  // 12. Record the hand-off (best-effort — never block the redirect).
+  //
+  // The attribution snapshot is the important part of this row. Once the buyer
+  // is redirected to PuraMass they leave our cookies behind, and the payment
+  // comes back through a webhook that knows nothing but an email address — so
+  // the channel has to be frozen here, on the way out, or it is lost.
+  const attribution = attributionColumns(visitor);
+
+  // Columns the base puramass-hosted-checkout migration created — always safe.
+  const base: Record<string, unknown> = {
+    partner_reference: partnerReference,
+    transaction_id: order.transaction_id,
+    payment_link: order.payment_link,
+    status: order.status || 'payment_pending',
+    // Stamped at hand-off so reporting reads CAD from the start instead of
+    // defaulting to USD while the order waits for its first webhook.
+    currency: order.currency ?? PURAMASS_CURRENCY,
+    subtotal_cents: order.subtotal_cents ?? null,
+    customer_id: customerId,
+    customer_email: email,
+    items,
+    referral_code: referralCode,
+  };
+
+  // The ship-to the buyer typed here. Marked `customer` so a later partner
+  // payload can't overwrite it — see `buildPuramassContactPatch`. Only written
+  // when we actually collected one, so a flat-fee hand-off still leaves
+  // PuraMass's own reported address to fill the row in.
+  const addressColumns: Record<string, unknown> = address.ok
+    ? {
+        shipping_address: address.value.address,
+        shipping_address_source: 'customer',
+        shipping_address_updated_at: new Date().toISOString(),
+        customer_name: address.value.full_name || null,
+        customer_phone: address.value.phone,
+      }
+    : {};
+
+  // What we charged for shipping, so the fulfillment invoice can stamp the
+  // real amount instead of the flat fallback.
+  const pickedCourier = shippingRate.courier_id !== PURAMASS_FLAT_COURIER_ID;
+  const shippingColumns: Record<string, unknown> = {
+    shipping_total_cents: shippingTotalCents,
+    shipping_courier: pickedCourier
+      ? `${shippingRate.courier_name} · ${shippingRate.service_name}`.trim() +
+        (freeShipping ? ' (free shipping)' : '')
+      : null,
+    // The Easyship service id, so the shipment booked once the order is paid
+    // is the one the buyer paid for rather than one re-picked by preference.
+    shipping_courier_id: pickedCourier ? shippingRate.courier_id : null,
+  };
+
+  // Try the richest row first and shed the optional column groups one at a
+  // time when the database says it doesn't know them. The hand-off has already
+  // been created on PuraMass's side, so the row MUST land — but an unmigrated
+  // column must not cost us the marketing attribution either, which is why the
+  // newest group is dropped before the older one.
+  // What the ad discount took off, so a discounted order can be told from a
+  // cheaper cart when the settlement ledger is reconciled against the catalog.
+  // Null on every order that did not earn one.
+  const discountColumns: Record<string, unknown> = adDiscount
+    ? {
+        ad_discount_percent: adDiscount.percent,
+        ad_discount_cents: adDiscount.discountCents,
+      }
+    : {};
+
+  const attempts: Record<string, unknown>[] = [
+    { ...base, ...attribution, ...addressColumns, ...shippingColumns, ...discountColumns },
+    { ...base, ...attribution, ...addressColumns, ...shippingColumns },
+    { ...base, ...attribution, ...addressColumns },
+    { ...base, ...attribution },
+    base,
+  ];
+  try {
+    for (const row of attempts) {
+      const { error } = await db.from('puramass_orders').insert(row);
+      if (!error) break;
+      if (!isMissingColumnError(error)) {
+        console.error('[puramass] ledger insert failed:', error.message);
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('[puramass] ledger insert threw:', err);
+  }
+
+  // Tie the email to this visitor so the webhook/poller can attribute the
+  // payment when it lands, and mark them as having reached a checkout.
+  void linkVisitorIdentity(db, visitor.anonymousId, { email, customerId });
+  void stampVisitorMilestone(db, visitor.anonymousId, 'checkout_at');
+
+  // 13. Redirect target.
+  return NextResponse.json({
+    payment_link: order.payment_link,
+    transaction_id: order.transaction_id,
+    status: order.status,
+    shipping_total: shippingRate.total_charge,
+    free_shipping: freeShipping,
+    // Echoed back so the screen that is about to redirect can confirm the
+    // discount landed, rather than asserting it from its own guess.
+    ad_discount_percent: adDiscount ? adDiscount.percent : 0,
+    ad_discount: adDiscount ? adDiscount.discountCents / 100 : 0,
+  });
+}

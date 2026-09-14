@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "aminocan": {
+      "command": "node",
+      "args": ["./tools/aminocan-mcp/server.mjs"]
+    }
+  }
+}

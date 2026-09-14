@@ -1,0 +1,17 @@
+{
+  "name": "aminocan-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Project-scoped MCP server for cross-analysing doc-ports specs against current Aminocan implementation.",
+  "bin": {
+    "aminocan-mcp": "./server.mjs"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "smoke": "node server.mjs --smoke"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  }
+}
