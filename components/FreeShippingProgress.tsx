@@ -41,13 +41,13 @@ export default function FreeShippingProgress({
       className={`rounded-xl border p-3.5 transition-colors duration-300 ${
         unlocked
           ? "border-emerald-200 bg-emerald-50"
-          : "border-bronze/25 bg-bronze/5"
+          : "border-teal/25 bg-teal/5"
       } ${className}`}
     >
       <div className="flex items-start gap-2.5">
         <div
           className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${
-            unlocked ? "bg-emerald-500 text-white" : "bg-bronze/15 text-bronze"
+            unlocked ? "bg-emerald-500 text-white" : "bg-teal/15 text-teal-dark"
           }`}
         >
           {unlocked ? (
@@ -90,7 +90,7 @@ export default function FreeShippingProgress({
               className={`h-full rounded-full ${
                 unlocked
                   ? "bg-emerald-500"
-                  : "bg-gradient-to-r from-bronze/70 to-bronze"
+                  : "bg-gradient-to-r from-teal/70 to-teal"
               }`}
               initial={false}
               animate={{ width: `${pct}%` }}

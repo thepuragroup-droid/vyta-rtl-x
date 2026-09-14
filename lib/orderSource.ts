@@ -23,7 +23,7 @@ const LABELS: Record<string, string> = {
 
 const BADGES: Record<string, string> = {
   storefront: 'bg-blue-500/10 text-blue-700',
-  manual: 'bg-bronze/10 text-bronze',
+  manual: 'bg-teal/10 text-teal-dark',
   affiliate: 'bg-emerald-500/10 text-emerald-700',
   import: 'bg-purple-500/10 text-purple-700',
   stealth_health: 'bg-indigo-500/10 text-indigo-700',

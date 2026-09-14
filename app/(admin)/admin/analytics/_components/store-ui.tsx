@@ -47,10 +47,10 @@ export function fmtDayLong(day: string): string {
  * every chart ships direct end-labels and a table view.
  */
 export const VIZ = {
-  sales: '#2a78d6',
+  sales: '#1b5d83',
   orders: '#eb6834',
   visitors: '#1baf7a',
-  grid: '#E4E6E9',
+  grid: '#DCE7EB',
   surface: '#FFFFFF',
 } as const;
 
@@ -227,7 +227,7 @@ export function Panel({ title, icon: Icon, action, subtitle, children }: {
       <div className="px-5 py-3.5 border-b border-line flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="font-semibold text-ink text-sm flex items-center gap-2">
-            {Icon && <Icon className="w-4 h-4 text-bronze" aria-hidden />} {title}
+            {Icon && <Icon className="w-4 h-4 text-teal-dark" aria-hidden />} {title}
           </h3>
           {subtitle && <p className="text-[11px] text-ink-muted mt-0.5">{subtitle}</p>}
         </div>

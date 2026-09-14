@@ -42,10 +42,10 @@ export const MERGE_VARS: MergeVar[] = [
   { token: 'issue_date', description: 'Invoice issue date', sample: 'Jun 12, 2026' },
   { token: 'currency', description: 'Invoice currency code', sample: 'CAD' },
   { token: 'sent_by_email', description: 'Email of the admin who sent it', sample: 'admin@aminocan.com' },
-  { token: 'company_name', description: 'Your company name', sample: 'Aminocan Peptides' },
+  { token: 'company_name', description: 'Your company name', sample: 'VYTA Biosciences' },
 ];
 
-export const COMPANY_NAME = 'Aminocan Peptides';
+export const COMPANY_NAME = 'VYTA Biosciences';
 
 export const DEFAULT_CUSTOMER_SUBJECT = 'Invoice {{invoice_number}} from {{company_name}}';
 export const DEFAULT_CUSTOMER_BODY = [
@@ -107,5 +107,5 @@ export function plainTextToHtml(text: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;color:#1A1A1A;line-height:1.6;white-space:pre-wrap;">${escaped}</div>`;
+  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;color:#07203A;line-height:1.6;white-space:pre-wrap;">${escaped}</div>`;
 }

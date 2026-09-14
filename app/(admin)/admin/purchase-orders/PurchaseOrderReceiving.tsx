@@ -104,7 +104,7 @@ export default function PurchaseOrderReceiving({ po, onReceived }: Props) {
                           disabled={remaining === 0}
                           placeholder="0"
                           onChange={(e) => setQty(it.id, parseInt(e.target.value) || 0, remaining)}
-                          className="w-20 mx-auto block text-center px-2 py-1 bg-surface border border-line rounded-lg text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-40"
+                          className="w-20 mx-auto block text-center px-2 py-1 bg-surface border border-line rounded-lg text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-40"
                         />
                       </td>
                     </tr>
@@ -114,13 +114,13 @@ export default function PurchaseOrderReceiving({ po, onReceived }: Props) {
             </table>
           </div>
 
-          <button onClick={fillRemaining} className="mt-3 text-xs text-bronze hover:text-bronze/80 transition-colors">
+          <button onClick={fillRemaining} className="mt-3 text-xs text-teal-dark hover:text-teal-dark/80 transition-colors">
             Fill all remaining
           </button>
 
           <div className="mt-4">
             <label className="block text-xs font-medium text-ink-muted mb-1">Receipt note (optional)</label>
-            <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Carrier, packing slip #, condition…" className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+            <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Carrier, packing slip #, condition…" className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40" />
           </div>
 
           <button onClick={handleReceive} disabled={saving || totalToReceive === 0} className="mt-4 w-full py-2.5 bg-ink text-white rounded-lg text-sm font-semibold hover:bg-ink/90 transition-colors disabled:opacity-40 flex items-center justify-center gap-2">

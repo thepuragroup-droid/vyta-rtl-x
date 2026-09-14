@@ -335,7 +335,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${
               item.with_labels
-                ? 'bg-bronze/10 text-bronze'
+                ? 'bg-teal/10 text-teal-dark'
                 : 'bg-gray-500/10 text-ink-muted'
             }`}
           >
@@ -352,7 +352,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
             rel="noreferrer"
             className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm ${
               item.has_label
-                ? 'border-line text-bronze hover:border-bronze'
+                ? 'border-line text-teal-dark hover:border-teal'
                 : 'border-line text-ink-muted pointer-events-none opacity-70'
             }`}
           >
@@ -363,7 +363,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
             type="button"
             onClick={() => openInvoice(false)}
             disabled={busy === 'invoice-view'}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-ink-muted px-3 py-1.5 hover:border-bronze disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-ink-muted px-3 py-1.5 hover:border-teal disabled:opacity-60"
           >
             <FileText className="w-4 h-4" /> View invoice
           </button>
@@ -371,7 +371,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
             type="button"
             onClick={() => openInvoice(true)}
             disabled={busy === 'invoice-download'}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-ink-muted px-3 py-1.5 hover:border-bronze disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-ink-muted px-3 py-1.5 hover:border-teal disabled:opacity-60"
           >
             <Download className="w-4 h-4" /> Download
           </button>
@@ -381,7 +381,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
                 type="button"
                 onClick={createShipment}
                 disabled={busy === 'shipment'}
-                className="inline-flex items-center gap-1.5 rounded-md border border-bronze text-sm text-bronze px-3 py-1.5 hover:bg-bronze/5 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-md border border-teal text-sm text-teal-dark px-3 py-1.5 hover:bg-teal/5 disabled:opacity-60"
               >
                 <Truck className="w-4 h-4" />
                 {busy === 'shipment'
@@ -415,7 +415,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
         </h3>
         {item.fulfillment_type === 'pickup' ? (
           <div className="flex items-start gap-2 text-sm text-ink">
-            <Store className="w-4 h-4 text-bronze mt-0.5 shrink-0" />
+            <Store className="w-4 h-4 text-teal-dark mt-0.5 shrink-0" />
             <div>
               <div className="font-medium">In-store pickup</div>
               <div className="text-xs text-ink-muted">
@@ -446,7 +446,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
                   i < idx
                     ? 'border-emerald-500/40 bg-emerald-500/5'
                     : i === idx
-                      ? 'border-bronze bg-bronze/5'
+                      ? 'border-teal bg-teal/5'
                       : 'border-line'
                 }`}
               >
@@ -454,7 +454,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
                   {i < idx ? (
                     <Check className="w-4 h-4 text-emerald-600" />
                   ) : i === idx ? (
-                    <ChevronRight className="w-4 h-4 text-bronze" />
+                    <ChevronRight className="w-4 h-4 text-teal-dark" />
                   ) : (
                     <div className="w-4 h-4 rounded-full border border-line" />
                   )}
@@ -474,7 +474,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
               type="button"
               disabled={busy === 'advance'}
               onClick={advance}
-              className="rounded-md bg-bronze text-white text-sm font-medium px-4 py-2 hover:bg-bronze-dark disabled:opacity-60"
+              className="rounded-md bg-teal-dark text-white text-sm font-medium px-4 py-2 hover:bg-ocean disabled:opacity-60"
             >
               {STATUS_LABEL_FOR[item.fulfillment_status]}
             </button>
@@ -484,7 +484,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
               <button
                 type="button"
                 onClick={() => setNotifyKind('packed')}
-                className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-ink-muted px-3 py-2 hover:border-bronze"
+                className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-ink-muted px-3 py-2 hover:border-teal"
               >
                 <Mail className="w-4 h-4" /> Notify packed
                 {item.packed_emailed_at && (
@@ -495,7 +495,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
                 <button
                   type="button"
                   onClick={() => setNotifyKind('shipped')}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-ink-muted px-3 py-2 hover:border-bronze"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-ink-muted px-3 py-2 hover:border-teal"
                 >
                   <Send className="w-4 h-4" /> Notify shipped
                   {item.shipped_emailed_at && (
@@ -555,8 +555,8 @@ export default function QueueDetail({ item, onMutate }: Props) {
             {/* capture="environment" opens the rear camera directly on phones;
                 on desktop it falls back to the file picker. */}
             <label
-              className={`inline-flex items-center gap-1.5 rounded-md border border-line text-sm px-3 py-1.5 cursor-pointer hover:border-bronze ${
-                busy === 'photo' ? 'opacity-60 pointer-events-none' : 'text-bronze'
+              className={`inline-flex items-center gap-1.5 rounded-md border border-line text-sm px-3 py-1.5 cursor-pointer hover:border-teal ${
+                busy === 'photo' ? 'opacity-60 pointer-events-none' : 'text-teal-dark'
               }`}
             >
               <Camera className="w-4 h-4" /> Take photo
@@ -574,7 +574,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
               />
             </label>
             <label
-              className={`inline-flex items-center gap-1.5 rounded-md border border-line text-sm px-3 py-1.5 cursor-pointer hover:border-bronze ${
+              className={`inline-flex items-center gap-1.5 rounded-md border border-line text-sm px-3 py-1.5 cursor-pointer hover:border-teal ${
                 busy === 'photo' ? 'opacity-60 pointer-events-none' : 'text-ink-muted'
               }`}
             >
@@ -792,7 +792,7 @@ function ShipToBlock({
 
   return (
     <div className="flex items-start gap-2 text-sm text-ink">
-      <MapPin className="w-4 h-4 text-bronze mt-0.5 shrink-0" />
+      <MapPin className="w-4 h-4 text-teal-dark mt-0.5 shrink-0" />
       <address className="not-italic leading-relaxed">
         {name && <div className="font-medium">{name}</div>}
         {a.address && <div>{a.address}</div>}
@@ -839,8 +839,8 @@ function LineActionInput({
         onClick={() => onSubmit(qty)}
         className={`text-xs rounded px-2 py-1 ${
           tone === 'primary'
-            ? 'bg-bronze text-white hover:bg-bronze-dark'
-            : 'border border-line text-ink-muted hover:border-bronze'
+            ? 'bg-teal-dark text-white hover:bg-ocean'
+            : 'border border-line text-ink-muted hover:border-teal'
         } disabled:opacity-60`}
       >
         {label}
@@ -970,7 +970,7 @@ function NotifyModal({
                     key={v}
                     type="button"
                     onClick={() => insertVar(v)}
-                    className="text-[11px] rounded border border-line px-2 py-0.5 text-ink-muted hover:border-bronze"
+                    className="text-[11px] rounded border border-line px-2 py-0.5 text-ink-muted hover:border-teal"
                   >
                     {`{{${v}}}`}
                   </button>
@@ -994,7 +994,7 @@ function NotifyModal({
           <button
             disabled={loading || sending || !to}
             onClick={send}
-            className="text-sm rounded-md bg-bronze text-white px-4 py-1.5 hover:bg-bronze-dark disabled:opacity-60"
+            className="text-sm rounded-md bg-teal-dark text-white px-4 py-1.5 hover:bg-ocean disabled:opacity-60"
           >
             {sending ? 'Sending…' : 'Send'}
           </button>

@@ -167,7 +167,7 @@ export default function AdminLabResultsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
-            <FlaskConical className="w-6 h-6 text-bronze" />
+            <FlaskConical className="w-6 h-6 text-teal-dark" />
             Lab Results
           </h1>
           <p className="text-sm text-ink-muted mt-1">
@@ -193,7 +193,7 @@ export default function AdminLabResultsPage() {
         <StatCard
           label="Avg. Purity"
           value={stats.avgPurity === null ? '—' : `${stats.avgPurity.toFixed(1)}%`}
-          tone="bronze"
+          tone="teal"
         />
       </div>
 
@@ -205,7 +205,7 @@ export default function AdminLabResultsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search product, compound, sample ID, lab…"
-          className="w-full pl-10 pr-4 py-2.5 bg-white rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+          className="w-full pl-10 pr-4 py-2.5 bg-white rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
         />
       </div>
 
@@ -270,13 +270,13 @@ function StatCard({
 }: {
   label: string;
   value: string;
-  tone: 'ink' | 'emerald' | 'amber' | 'bronze';
+  tone: 'ink' | 'emerald' | 'amber' | 'teal';
 }) {
   const toneClasses: Record<string, string> = {
     ink: 'text-ink',
     emerald: 'text-emerald-600',
     amber: 'text-amber-600',
-    bronze: 'text-bronze-dark',
+    teal: 'text-teal-dark',
   };
   return (
     <div className="bg-white border border-line rounded-xl px-4 py-3">
@@ -414,7 +414,7 @@ function Field({
 }
 
 const inputClass =
-  'w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink';
+  'w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink';
 
 function LabResultModal({
   mode,
@@ -621,7 +621,7 @@ function LabResultModal({
               type="checkbox"
               checked={form.active}
               onChange={(e) => set('active', e.target.checked)}
-              className="w-4 h-4 rounded border-line text-ink focus:ring-bronze/40"
+              className="w-4 h-4 rounded border-line text-ink focus:ring-teal/40"
             />
             <span className="text-sm text-ink">Visible on the public site</span>
           </label>

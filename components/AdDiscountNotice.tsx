@@ -113,7 +113,7 @@ export default function AdDiscountNotice({ overlay }: { overlay: boolean }) {
         >
           <BadgePercent
             className={`h-3 w-3 flex-shrink-0 transition-colors duration-300 ${
-              overlay ? "text-bronze-light" : "text-bronze"
+              overlay ? "text-teal-light" : "text-teal-dark"
             }`}
           />
           <span>

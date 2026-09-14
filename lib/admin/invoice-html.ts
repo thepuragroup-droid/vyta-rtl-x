@@ -74,11 +74,11 @@ export interface BuildInvoiceHtmlOptions {
   autoPrint?: boolean;
 }
 
-const BRONZE = '#9C8B5A';
-const INK = '#1A1A1A';
-const MUTED = '#6E6E6E';
-const RULE = '#C9CCD1';
-const SURFACE = '#F7F7F7';
+const ACCENT = '#438B9E';
+const INK = '#07203A';
+const MUTED = '#56707F';
+const RULE = '#DCE7EB';
+const SURFACE = '#F7FAFB';
 
 function escape(s: unknown): string {
   return String(s ?? '')
@@ -251,6 +251,14 @@ export function buildInvoiceHtml(
     letter-spacing: 2px;
     color: ${INK};
   }
+  .brand-kicker {
+    margin-top: 3px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: ${ACCENT};
+  }
   .brand-contact {
     margin-top: 6px;
     font-size: 11px;
@@ -333,7 +341,7 @@ export function buildInvoiceHtml(
   thead th.num, tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
   tbody td {
     padding: 8px 6px;
-    border-bottom: 1px solid #EEF0F2;
+    border-bottom: 1px solid #EDF3F5;
     vertical-align: top;
   }
   tbody td.sku {
@@ -352,8 +360,8 @@ export function buildInvoiceHtml(
     letter-spacing: 0.06em;
     vertical-align: 1px;
   }
-  .pt-box { background: #EEF2F7; color: #334155; }
-  .pt-vial { background: #F5EEE0; color: ${BRONZE}; }
+  .pt-box { background: #EDF3F5; color: #0E3F5F; }
+  .pt-vial { background: #E1EFF1; color: ${ACCENT}; }
   tbody tr:last-child td { border-bottom: none; }
   .totals { display: flex; justify-content: flex-end; margin-bottom: 24px; }
   .totals-inner { width: 280px; }
@@ -374,7 +382,7 @@ export function buildInvoiceHtml(
     font-size: 14px;
   }
   .totals-row.due {
-    color: ${BRONZE};
+    color: ${ACCENT};
     font-weight: 700;
     font-size: 14px;
     border-top: 1px solid ${RULE};
@@ -397,7 +405,7 @@ export function buildInvoiceHtml(
     display: flex;
     justify-content: space-between;
     padding: 5px 0;
-    border-bottom: 1px solid #EEF0F2;
+    border-bottom: 1px solid #EDF3F5;
     font-size: 11px;
   }
   .muted { color: ${MUTED}; }
@@ -405,7 +413,7 @@ export function buildInvoiceHtml(
     margin-top: 24px;
     padding: 14px 16px;
     background: ${SURFACE};
-    border-left: 3px solid ${BRONZE};
+    border-left: 3px solid ${ACCENT};
     border-radius: 4px;
     font-size: 11px;
     line-height: 1.55;
@@ -427,7 +435,8 @@ export function buildInvoiceHtml(
 <div class="page">
   <header>
     <div>
-      <div class="brand-name">PURAMASS</div>
+      <div class="brand-name">VYTA</div>
+      <div class="brand-kicker">Biosciences</div>
       <div class="brand-contact">aminocan.com &middot; info@aminocan.com</div>
     </div>
     <div class="doc-meta">
@@ -507,7 +516,7 @@ export function buildInvoiceHtml(
       : ''
   }
 
-  <footer>Thank you for your business. &middot; PuraMass by Aminocan</footer>
+  <footer>Thank you for your business. &middot; VYTA Biosciences</footer>
 </div>
 ${autoPrintScript}
 </body>

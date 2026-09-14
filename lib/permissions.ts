@@ -234,7 +234,7 @@ export function getRoleBadgeClasses(role: UserRole): string {
     customer: 'bg-gray-500/10 text-ink-muted',
     affiliate: 'bg-emerald-500/10 text-emerald-600',
     assistant: 'bg-blue-500/10 text-blue-400',
-    admin: 'bg-bronze/10 text-bronze',
+    admin: 'bg-teal/10 text-teal-dark',
     warehouse: 'bg-amber-500/10 text-amber-600',
     analytics: 'bg-violet-500/10 text-violet-500',
   };

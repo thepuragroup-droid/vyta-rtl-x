@@ -86,7 +86,7 @@ export default function CustomerPricingDetailPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-ink">{loading ? '…' : fullName(customer)}</h1>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded ${cur === 'USD' ? 'bg-blue-500/10 text-blue-600' : 'bg-bronze/10 text-bronze'}`}>{cur}</span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded ${cur === 'USD' ? 'bg-blue-500/10 text-blue-600' : 'bg-teal/10 text-teal-dark'}`}>{cur}</span>
           </div>
           <p className="text-sm text-ink-muted mt-1">
             {customer?.email}{customer?.email ? ' · ' : ''}{overrides.length} override{overrides.length !== 1 ? 's' : ''}
@@ -132,7 +132,7 @@ export default function CustomerPricingDetailPage() {
                   <tr key={o.id} className="hover:bg-surface transition-colors">
                     <td className="px-5 py-4 text-sm text-ink">{o.product?.name ?? '—'}</td>
                     <td className="px-5 py-4 text-right text-sm tabular-nums text-ink-muted">{money(def)}</td>
-                    <td className="px-5 py-4 text-right text-sm tabular-nums text-bronze font-medium">{money(ovp)}</td>
+                    <td className="px-5 py-4 text-right text-sm tabular-nums text-teal-dark font-medium">{money(ovp)}</td>
                     <td className="px-5 py-4 text-right text-sm tabular-nums">
                       {def > 0 && pct !== 0
                         ? <span className={pct > 0 ? 'text-emerald-600 font-medium' : 'text-red-600 font-medium'}>{pct > 0 ? '-' : '+'}{Math.abs(pct).toFixed(1)}%</span>

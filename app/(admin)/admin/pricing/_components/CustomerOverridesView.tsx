@@ -194,7 +194,7 @@ export default function CustomerOverridesView() {
             <button onClick={() => setShowImport(true)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink-muted hover:text-ink transition-colors">
               <Upload className="w-4 h-4" /> Import CSV
             </button>
-            <button onClick={() => { setShowBulk(true); }} className="inline-flex items-center gap-2 px-4 py-2.5 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 transition-colors">
+            <button onClick={() => { setShowBulk(true); }} className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 transition-colors">
               <Users className="w-4 h-4" /> Bulk Edit Pricing
             </button>
             <button onClick={() => openAdd()} className="inline-flex items-center gap-2 px-4 py-2.5 bg-ink text-white rounded-lg text-sm font-medium hover:bg-ink/90 transition-colors">
@@ -225,7 +225,7 @@ export default function CustomerOverridesView() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={isCustomer ? 'Search by customer…' : 'Search by product…'}
-          className="w-full pl-11 pr-4 py-3 bg-surface border border-line rounded-xl text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+          className="w-full pl-11 pr-4 py-3 bg-surface border border-line rounded-xl text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
         />
       </div>
 
@@ -374,7 +374,7 @@ function CustomerCard({
           <p className="font-semibold text-ink truncate">{fullName(customer)}</p>
           <p className="text-xs text-ink-muted truncate">{customer.email}</p>
         </div>
-        <span className="flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-bronze/10 text-bronze">
+        <span className="flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-teal/10 text-teal-dark">
           {overrides.length} override{overrides.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -414,7 +414,7 @@ function CustomerCard({
           onClick={() => onToggleCurrency(customer.id, cur)} />
         <Link
           href={`/admin/pricing/customers/${customer.id}`}
-          className="ml-auto text-xs font-medium text-bronze hover:text-bronze/80 inline-flex items-center gap-1"
+          className="ml-auto text-xs font-medium text-teal-dark hover:text-teal-dark/80 inline-flex items-center gap-1"
         >
           See all <ArrowRight className="w-3.5 h-3.5" />
         </Link>
@@ -461,7 +461,7 @@ function ProductCard({
           <p className="font-semibold text-ink truncate">{product?.name ?? '—'}</p>
           <p className="text-xs text-ink-muted">Default {formatMoney(def, 'CAD')}</p>
         </div>
-        <span className="flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-bronze/10 text-bronze">
+        <span className="flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-teal/10 text-teal-dark">
           {overrides.length} customer{overrides.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -498,7 +498,7 @@ function ProductCard({
         )}
         <Link
           href={`/admin/pricing/products/${productId}`}
-          className="ml-auto text-xs font-medium text-bronze hover:text-bronze/80 inline-flex items-center gap-1"
+          className="ml-auto text-xs font-medium text-teal-dark hover:text-teal-dark/80 inline-flex items-center gap-1"
         >
           See all <ArrowRight className="w-3.5 h-3.5" />
         </Link>
@@ -716,7 +716,7 @@ function BulkPricingModal({
         <div className="bg-white rounded-2xl border border-line w-full max-w-lg max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-line">
             <h2 className="font-semibold text-ink flex items-center gap-2">
-              <Users className="w-4 h-4 text-bronze" /> Select Customers
+              <Users className="w-4 h-4 text-teal-dark" /> Select Customers
             </h2>
             <button onClick={onClose} className="text-ink-muted hover:text-ink"><X className="w-5 h-5" /></button>
           </div>
@@ -733,7 +733,7 @@ function BulkPricingModal({
             <button
               onClick={() => setStep(2)}
               disabled={selected.length === 0}
-              className="flex-1 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-40 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-40 flex items-center justify-center gap-2"
             >
               Next: Set Prices <ArrowRight className="w-4 h-4" />
             </button>
@@ -743,7 +743,7 @@ function BulkPricingModal({
         <div className="bg-white rounded-2xl border border-line w-full max-w-5xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-line">
             <h2 className="font-semibold text-ink flex items-center gap-2">
-              <Users className="w-4 h-4 text-bronze" /> Bulk Edit Pricing — Step 2 of 3
+              <Users className="w-4 h-4 text-teal-dark" /> Bulk Edit Pricing — Step 2 of 3
             </h2>
             <button onClick={onClose} className="text-ink-muted hover:text-ink"><X className="w-5 h-5" /></button>
           </div>
@@ -807,7 +807,7 @@ function BulkPricingModal({
             <button
               onClick={() => setStep(3)}
               disabled={!hasChanges}
-              className="flex-1 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-40 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-40 flex items-center justify-center gap-2"
             >
               Next: Review <ArrowRight className="w-4 h-4" />
             </button>
@@ -817,7 +817,7 @@ function BulkPricingModal({
         <div className="bg-white rounded-2xl border border-line w-full max-w-3xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-line">
             <h2 className="font-semibold text-ink flex items-center gap-2">
-              <ArrowRightCircle className="w-4 h-4 text-bronze" /> Review & Confirm — Step 3 of 3
+              <ArrowRightCircle className="w-4 h-4 text-teal-dark" /> Review & Confirm — Step 3 of 3
             </h2>
             <button onClick={onClose} className="text-ink-muted hover:text-ink"><X className="w-5 h-5" /></button>
           </div>
@@ -881,7 +881,7 @@ function BulkPricingModal({
             <button
               onClick={save}
               disabled={busy || totalRows === 0}
-              className="flex-1 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-40 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-40 flex items-center justify-center gap-2"
             >
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Confirm & Save {totalRows} Override{totalRows !== 1 ? 's' : ''}
             </button>

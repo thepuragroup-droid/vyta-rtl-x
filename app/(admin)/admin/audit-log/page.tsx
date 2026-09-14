@@ -86,7 +86,7 @@ export default function AuditLogPage() {
             value={actorFilter}
             onChange={(e) => setActorFilter(e.target.value)}
             placeholder="admin@..."
-            className="w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+            className="w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
           />
         </div>
         <div className="flex-1 min-w-[180px]">
@@ -96,7 +96,7 @@ export default function AuditLogPage() {
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
             placeholder="invoice.payment_recorded"
-            className="w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+            className="w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
           />
         </div>
         <div className="flex-1 min-w-[180px]">
@@ -104,7 +104,7 @@ export default function AuditLogPage() {
           <select
             value={entityFilter}
             onChange={(e) => setEntityFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+            className="w-full px-3 py-2 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
           >
             <option value="all">All</option>
             {entityTypes.map((t) => (

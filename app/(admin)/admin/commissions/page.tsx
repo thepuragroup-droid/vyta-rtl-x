@@ -191,7 +191,7 @@ export default function AdminCommissions() {
         </div>
         <div className="flex items-center gap-2 bg-white border border-line rounded-lg px-4 py-2.5">
           <span className="w-2 h-2 rounded-full bg-amber-500" />
-          <span className="text-bronze font-semibold tabular-nums">${pendingTotal.toFixed(2)}</span>
+          <span className="text-teal-dark font-semibold tabular-nums">${pendingTotal.toFixed(2)}</span>
           <span className="text-ink-muted">pending</span>
         </div>
         <div className="flex items-center gap-2 bg-white border border-line rounded-lg px-4 py-2.5">
@@ -210,13 +210,13 @@ export default function AdminCommissions() {
             placeholder="Search by name, email, or order/invoice..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
         <select
           value={recipientFilter}
           onChange={(e) => setRecipientFilter(e.target.value)}
-          className="px-3 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none max-w-[240px]"
+          className="px-3 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none max-w-[240px]"
         >
           <option value="all">All Recipients</option>
           {recipients.map((r) => (
@@ -226,7 +226,7 @@ export default function AdminCommissions() {
         <select
           value={sourceFilter}
           onChange={(e) => setSourceFilter(e.target.value as 'all' | Source)}
-          className="px-3 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none"
+          className="px-3 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
         >
           <option value="all">All Sources</option>
           <option value="affiliate">Affiliate</option>
@@ -235,7 +235,7 @@ export default function AdminCommissions() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none"
+          className="px-3 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
         >
           <option value="all">All Statuses</option>
           <option value="pending">Pending</option>

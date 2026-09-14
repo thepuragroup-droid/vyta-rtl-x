@@ -117,7 +117,7 @@ export default function FulfillmentAlerts() {
           className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-surface transition-colors"
         >
           <div className="inline-flex items-center gap-2 text-sm font-semibold text-ink">
-            <Bell className="w-4 h-4 text-bronze" />
+            <Bell className="w-4 h-4 text-teal-dark" />
             Live fulfillment activity
             <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-[20px] rounded-full bg-ink text-white text-[11px] font-semibold px-1.5 tabular-nums">
               {visible.length}
@@ -132,11 +132,11 @@ export default function FulfillmentAlerts() {
               <li key={ev.key} className="flex items-center gap-3 px-4 py-2.5">
                 <div className="rounded-lg bg-surface p-1.5">
                   {ev.fulfillment_type === 'pickup' ? (
-                    <Store className="w-4 h-4 text-bronze" />
+                    <Store className="w-4 h-4 text-teal-dark" />
                   ) : ev.fulfillment_status === 'packed' ? (
-                    <PackageCheck className="w-4 h-4 text-bronze" />
+                    <PackageCheck className="w-4 h-4 text-teal-dark" />
                   ) : (
-                    <Truck className="w-4 h-4 text-bronze" />
+                    <Truck className="w-4 h-4 text-teal-dark" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -167,7 +167,7 @@ export default function FulfillmentAlerts() {
                 </button>
                 <Link
                   href={`/admin/invoices/${ev.id}`}
-                  className="text-xs text-bronze hover:underline hidden sm:inline"
+                  className="text-xs text-teal-dark hover:underline hidden sm:inline"
                 >
                   View
                 </Link>
@@ -203,7 +203,7 @@ function StatusChip({ status }: { status: FulfillmentStatus }) {
   // reads as a subtle accent rather than a filled colour box.
   const cfg: Record<FulfillmentStatus, { label: string; dot: string }> = {
     pending:     { label: 'Pending',      dot: 'bg-amber-500' },
-    packed:      { label: 'Packed',       dot: 'bg-bronze' },
+    packed:      { label: 'Packed',       dot: 'bg-teal' },
     shipped:     { label: 'Shipped',      dot: 'bg-emerald-500' },
     picked_up:   { label: 'Picked up',    dot: 'bg-emerald-500' },
     dropped_off: { label: 'Dropped off',  dot: 'bg-emerald-500' },

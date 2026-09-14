@@ -244,7 +244,7 @@ export default function InvoiceEasyshipPanel({
               href={t.label_url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border border-bronze px-2.5 py-1.5 text-xs text-bronze hover:bg-bronze/5"
+              className="inline-flex items-center gap-1.5 rounded-md border border-teal px-2.5 py-1.5 text-xs text-teal-dark hover:bg-teal/5"
             >
               <Download className="w-3.5 h-3.5" /> Download label
             </a>
@@ -259,7 +259,7 @@ export default function InvoiceEasyshipPanel({
                 <button
                   onClick={purchaseLabel}
                   disabled={buyingLabel}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-bronze px-2.5 py-1.5 text-xs text-bronze hover:bg-bronze/5 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-teal px-2.5 py-1.5 text-xs text-teal-dark hover:bg-teal/5 disabled:opacity-50"
                 >
                   {buyingLabel
                     ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -329,7 +329,7 @@ export default function InvoiceEasyshipPanel({
               href={t.url}
               target="_blank"
               rel="noreferrer"
-              className="inline-block mt-1 text-xs text-bronze hover:text-bronze/80"
+              className="inline-block mt-1 text-xs text-teal-dark hover:text-teal-dark/80"
             >
               Track shipment →
             </a>
@@ -346,7 +346,7 @@ export default function InvoiceEasyshipPanel({
           {!setupOpen ? (
             <button
               onClick={() => { setSetupOpen(true); if (!readiness) runReadiness(); }}
-              className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-bronze px-3 py-2 text-sm text-bronze hover:bg-bronze/5"
+              className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-teal px-3 py-2 text-sm text-teal-dark hover:bg-teal/5"
             >
               <Truck className="w-4 h-4" /> Create Easyship shipment
             </button>
@@ -416,7 +416,7 @@ export default function InvoiceEasyshipPanel({
                 <select
                   value={rateOptionValue}
                   onChange={(e) => selectCourierOption(e.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-xs text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-xs text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                 >
                   <option value="pref:cheapest">Cheapest allowed courier</option>
                   <option value="pref:ups">UPS — cheapest UPS service</option>

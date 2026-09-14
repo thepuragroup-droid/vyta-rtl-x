@@ -25,7 +25,7 @@ function cleanString(v: unknown): string | null {
 }
 
 /**
- * Aminocan's own tags, used when the `site_settings` row has no value — either
+ * VYTA's own tags, used when the `site_settings` row has no value — either
  * because gtm-ga4-tracking-migration.sql hasn't run yet or because the column
  * is still empty. Same "DB first, env var as the fallback" shape the Easyship
  * settings use (see .env.example), with the shipped constant as a last resort
@@ -48,8 +48,8 @@ const FALLBACK_GA4_MEASUREMENT_ID =
  * DB read fails or the migration hasn't run.
  */
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  store_name: 'Aminocan',
-  store_tagline: 'Peptide Research',
+  store_name: 'VYTA',
+  store_tagline: 'Biosciences',
   logo_url: null,
   favicon_url: null,
   gtm_container_id: FALLBACK_GTM_CONTAINER_ID,

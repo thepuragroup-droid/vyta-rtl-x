@@ -116,8 +116,8 @@ export default function RequestAddressDialog({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-line p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-bronze/10">
-              <MapPin className="h-5 w-5 text-bronze" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal/10">
+              <MapPin className="h-5 w-5 text-teal-dark" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-ink">Ask for the shipping address</h2>
@@ -247,7 +247,7 @@ export default function RequestAddressDialog({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="customer@example.com"
-                  className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               {!order.customer_email && (
@@ -273,7 +273,7 @@ export default function RequestAddressDialog({
                     value={cc}
                     onChange={(e) => setCc(e.target.value)}
                     placeholder="someone@example.com, another@example.com"
-                    className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
                 <p className="mt-1 text-xs text-ink-light">
@@ -285,7 +285,7 @@ export default function RequestAddressDialog({
               <button
                 type="button"
                 onClick={() => setShowCc(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-bronze transition-colors hover:text-bronze-dark"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-dark transition-colors hover:text-teal-dark"
               >
                 <Users className="h-3.5 w-3.5" />
                 Copy someone else
@@ -305,7 +305,7 @@ export default function RequestAddressDialog({
                 onChange={(e) => setNote(e.target.value.slice(0, 500))}
                 rows={3}
                 placeholder="Anything you'd like to say to them — appears in the email."
-                className="w-full resize-none rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="w-full resize-none rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
               />
             </div>
 
@@ -320,7 +320,7 @@ export default function RequestAddressDialog({
               <button
                 onClick={send}
                 disabled={sending}
-                className="inline-flex items-center gap-2 rounded-lg bg-bronze px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-bronze-dark disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-teal-dark px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ocean disabled:opacity-50"
               >
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 {alreadyAsked ? 'Send again' : 'Send request'}

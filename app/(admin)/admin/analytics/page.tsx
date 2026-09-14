@@ -41,11 +41,11 @@ function daysAgo(n: number) {
   return isoDay(d);
 }
 
-type Tint = 'emerald' | 'blue' | 'bronze' | 'amber' | 'neutral';
+type Tint = 'emerald' | 'blue' | 'teal' | 'amber' | 'neutral';
 const TINTS: Record<Tint, { fg: string; bg: string }> = {
   emerald: { fg: 'text-emerald-700', bg: 'bg-emerald-100' },
   blue: { fg: 'text-blue-700', bg: 'bg-blue-100' },
-  bronze: { fg: 'text-bronze', bg: 'bg-bronze/10' },
+  teal: { fg: 'text-teal-dark', bg: 'bg-teal/10' },
   amber: { fg: 'text-amber-700', bg: 'bg-amber-100' },
   neutral: { fg: 'text-ink', bg: 'bg-surface' },
 };
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-bronze" aria-hidden /> Analytics
+          <TrendingUp className="w-6 h-6 text-teal-dark" aria-hidden /> Analytics
         </h1>
         <p className="text-sm text-ink-muted mt-1">
           Date-wise sales and orders, product and location breakdowns, and the operational picture behind them.
@@ -113,8 +113,8 @@ export default function AnalyticsPage() {
       </div>
 
       {paidAdsOnly && (
-        <div className="rounded-xl border border-bronze/30 bg-bronze/5 p-3 mb-4 flex gap-2">
-          <Target className="w-4 h-4 text-bronze shrink-0 mt-0.5" aria-hidden />
+        <div className="rounded-xl border border-teal/30 bg-teal/5 p-3 mb-4 flex gap-2">
+          <Target className="w-4 h-4 text-teal-dark shrink-0 mt-0.5" aria-hidden />
           <p className="text-xs text-ink">
             <span className="font-semibold">Paid-ads view.</span>{' '}
             Every sales figure on this page counts only orders won by a paid ad — Google,
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
                 onClick={() => setTab(t.id)}
                 className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                   active
-                    ? 'border-bronze text-ink'
+                    ? 'border-teal text-ink'
                     : 'border-transparent text-ink-muted hover:text-ink hover:border-line'
                 }`}>
                 <Icon className="w-4 h-4" aria-hidden /> {t.label}
@@ -198,7 +198,7 @@ function OperationalTabs({
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <p className="text-sm text-ink-muted">Could not load analytics.</p>
         <button onClick={reload}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90">
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90">
           <RefreshCw className="w-4 h-4" aria-hidden /> Try again
         </button>
       </div>
@@ -226,7 +226,7 @@ function OperationalTabs({
                 onClick={() => { setFrom(daysAgo(p.days)); setTo(isoDay(new Date())); }}
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                   activePreset
-                    ? 'bg-bronze text-white border-bronze'
+                    ? 'bg-teal-dark text-white border-teal'
                     : 'bg-white text-ink-muted border-line hover:bg-surface hover:text-ink'
                 }`}>
                 {p.label}
@@ -269,7 +269,7 @@ function OperationalTabs({
             <KpiCard tint="blue" icon={ClipboardList} label="Incoming (Open POs)"
               value={fmtCurrency(incoming.value)}
               sub={`${incoming.units.toLocaleString()} units · ${incoming.po_count} PO${incoming.po_count !== 1 ? 's' : ''}`} />
-            <KpiCard tint="bronze" icon={DollarSign} label="Earnings — CAD 🇨🇦"
+            <KpiCard tint="teal" icon={DollarSign} label="Earnings — CAD 🇨🇦"
               value={fmtCAD(cad.paid)}
               sub={`${cad.paid_invoice_count} paid · ${fmtCAD(cad.outstanding)} outstanding`} />
             <KpiCard tint="blue" icon={DollarSign} label="Earnings — USD 🇺🇸"
@@ -291,7 +291,7 @@ function OperationalTabs({
                   icon: inventory.low_stock_count > 0 ? AlertTriangle : undefined,
                 },
               ]} />
-            <DetailCard title="Revenue" icon={DollarSign} tint="bronze"
+            <DetailCard title="Revenue" icon={DollarSign} tint="teal"
               link={{ href: '/admin/invoices', label: 'View invoices' }}
               rows={[
                 { label: 'Invoiced (non-draft)', value: fmtCurrency(revenue.invoiced) },
@@ -311,7 +311,7 @@ function OperationalTabs({
           {/* Revenue by currency */}
           <div className="mb-6">
             <h2 className="text-sm font-semibold text-ink mb-3 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-bronze" aria-hidden /> Revenue by currency
+              <DollarSign className="w-4 h-4 text-teal-dark" aria-hidden /> Revenue by currency
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <CurrencyRevenueCard label="Canadian" flag="🇨🇦" code="CAD" fmt={fmtCAD} bucket={cad} />
@@ -323,7 +323,7 @@ function OperationalTabs({
           <div className="bg-white rounded-xl border border-line overflow-hidden">
             <div className="p-5 border-b border-line">
               <h2 className="font-semibold text-ink text-sm flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 text-bronze" aria-hidden /> Open Purchase Orders
+                <ClipboardList className="w-4 h-4 text-teal-dark" aria-hidden /> Open Purchase Orders
               </h2>
             </div>
             {incoming.pos.length === 0 ? (
@@ -349,7 +349,7 @@ function OperationalTabs({
                         <tr key={po.id} className="hover:bg-surface transition-colors">
                           <td className="px-5 py-3">
                             <Link href={`/admin/purchase-orders/${po.id}`}
-                              className="inline-flex items-center gap-1.5 font-mono text-sm font-medium text-bronze hover:text-bronze/80">
+                              className="inline-flex items-center gap-1.5 font-mono text-sm font-medium text-teal-dark hover:text-teal-dark/80">
                               <FileText className="w-3.5 h-3.5" aria-hidden /> {po.po_number}
                             </Link>
                           </td>
@@ -416,7 +416,7 @@ function CurrencyRevenueCard({
         <h3 className="font-semibold text-ink text-sm flex items-center gap-2">
           <span className="text-base">{flag}</span> {label}
         </h3>
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-bronze/10 text-bronze">{code}</span>
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-teal/10 text-teal-dark">{code}</span>
       </div>
       <div className="p-4 space-y-2.5 text-sm">
         {rows.map((r) => (
@@ -469,7 +469,7 @@ function DetailCard({ title, icon: Icon, tint, rows, link }: {
         })}
       </div>
       <div className="px-5 py-3 border-t border-line">
-        <Link href={link.href} className="text-xs text-bronze hover:text-bronze/80">{link.label} →</Link>
+        <Link href={link.href} className="text-xs text-teal-dark hover:text-teal-dark/80">{link.label} →</Link>
       </div>
     </div>
   );
@@ -492,21 +492,21 @@ function DateField({ label, value, onChange }: {
 
 // Section-wide semantic colours, drawn from a CVD-validated categorical set.
 const C = {
-  shoppers: '#2a78d6', // blue — traffic
+  shoppers: '#1b5d83', // blue — traffic
   orders: '#eb6834',   // orange — orders placed
   paid: '#059669',     // emerald — paid / success
   pending: '#eda100',  // amber — payment in flight
   abandoned: '#e34948',// red — payment window lapsed
-  cancelled: '#8A8A8A',// grey — cancelled
-  other: '#C9CCD1',
+  cancelled: '#6E8898',// grey — cancelled
+  other: '#DCE7EB',
 };
 
 function AdBaselineSection({ funnel, hasRange }: { funnel: FunnelSummary; hasRange: boolean }) {
   return (
     <section className="mb-8">
       <div className="flex items-center gap-2 mb-1">
-        <div className="w-8 h-8 rounded-lg bg-bronze/10 flex items-center justify-center">
-          <Megaphone className="w-4 h-4 text-bronze" />
+        <div className="w-8 h-8 rounded-lg bg-teal/10 flex items-center justify-center">
+          <Megaphone className="w-4 h-4 text-teal-dark" />
         </div>
         <h2 className="text-lg font-bold text-ink">Traffic &amp; Conversion — Ad Baseline</h2>
       </div>
@@ -516,8 +516,8 @@ function AdBaselineSection({ funnel, hasRange }: { funnel: FunnelSummary; hasRan
       </p>
 
       {/* Explainer */}
-      <div className="rounded-xl border border-bronze/30 bg-bronze/[0.04] p-4 mb-5 flex gap-3">
-        <Info className="w-4 h-4 text-bronze shrink-0 mt-0.5" />
+      <div className="rounded-xl border border-teal/30 bg-teal/[0.04] p-4 mb-5 flex gap-3">
+        <Info className="w-4 h-4 text-teal-dark shrink-0 mt-0.5" />
         <p className="text-xs text-ink-muted leading-relaxed">
           <span className="font-semibold text-ink">Capture your baseline first.</span>{' '}
           Use the <span className="font-medium text-ink">7d / 30d / 90d</span> presets above to freeze the current
@@ -533,12 +533,12 @@ function AdBaselineSection({ funnel, hasRange }: { funnel: FunnelSummary; hasRan
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <KpiCard tint="blue" icon={Users} label="Active Shoppers"
           value={fmtInt(funnel.active_shoppers)} sub={`${fmtInt(funnel.registrations)} new sign-ups`} />
-        <KpiCard tint="bronze" icon={ShoppingCart} label="Orders Placed"
+        <KpiCard tint="teal" icon={ShoppingCart} label="Orders Placed"
           value={fmtInt(funnel.orders_placed)}
           sub={`${fmtInt(funnel.paid_orders)} paid · ${fmtInt(funnel.abandoned_orders)} abandoned`} />
         <KpiCard tint="emerald" icon={CheckCircle2} label="Paid Orders"
           value={fmtInt(funnel.paid_orders)} sub={`${fmtPct(funnel.rates.payment)} payment rate`} />
-        <KpiCard tint="bronze" icon={Percent} label="Overall Conversion"
+        <KpiCard tint="teal" icon={Percent} label="Overall Conversion"
           value={fmtPct(funnel.rates.overall)} sub="paid ÷ active shoppers" />
       </div>
 
@@ -597,8 +597,8 @@ function PuramassSection({ pm, hasRange, from, to }: {
   return (
     <section className="mb-8">
       <div className="flex items-center gap-2 mb-1">
-        <div className="w-8 h-8 rounded-lg bg-bronze/10 flex items-center justify-center">
-          <CreditCard className="w-4 h-4 text-bronze" />
+        <div className="w-8 h-8 rounded-lg bg-teal/10 flex items-center justify-center">
+          <CreditCard className="w-4 h-4 text-teal-dark" />
         </div>
         <h2 className="text-lg font-bold text-ink">Stealth Health / PuraMass — Paid Orders</h2>
       </div>
@@ -618,14 +618,14 @@ function PuramassSection({ pm, hasRange, from, to }: {
             <KpiCard tint="emerald" icon={CheckCircle2} label="Paid Orders"
               value={fmtInt(pm.paid_orders)}
               sub={`${fmtPct(pm.conversion)} of ${fmtInt(pm.total_handoffs)} hand-offs`} />
-            <KpiCard tint="bronze" icon={DollarSign} label={`Net Revenue — ${primary}`}
+            <KpiCard tint="teal" icon={DollarSign} label={`Net Revenue — ${primary}`}
               value={fmtCur(pm.net)}
               sub={pm.refunds > 0
                 ? `${fmtCur(pm.gross)} gross · ${fmtCur(pm.refunds)} refunded`
                 : `${fmtCur(pm.gross)} gross`} />
             <KpiCard tint="blue" icon={Receipt} label="Avg Order Value"
               value={fmtCur(pm.aov)} sub={`${primary} per paid order`} />
-            <KpiCard tint="bronze" icon={Package} label="Units Sold"
+            <KpiCard tint="teal" icon={Package} label="Units Sold"
               value={fmtInt(pm.units)} sub="across paid orders" />
           </div>
 
@@ -638,7 +638,7 @@ function PuramassSection({ pm, hasRange, from, to }: {
             <div className="bg-white rounded-xl border border-line p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
-                  <Receipt className="w-4 h-4 text-bronze" /> Hand-off outcomes
+                  <Receipt className="w-4 h-4 text-teal-dark" /> Hand-off outcomes
                 </h3>
                 <span className="text-xs text-ink-muted">{fmtInt(pm.total_handoffs)} total</span>
               </div>
@@ -674,7 +674,7 @@ function PuramassSection({ pm, hasRange, from, to }: {
             {/* Top products */}
             <div className="bg-white rounded-xl border border-line p-5">
               <h3 className="text-sm font-semibold text-ink mb-3 flex items-center gap-2">
-                <Package className="w-4 h-4 text-bronze" /> Top products (paid)
+                <Package className="w-4 h-4 text-teal-dark" /> Top products (paid)
               </h3>
               {pm.top_products.length === 0 ? (
                 <div className="text-xs text-ink-muted py-4 text-center">No line items on paid orders yet.</div>
@@ -691,7 +691,7 @@ function PuramassSection({ pm, hasRange, from, to }: {
                           </span>
                         </div>
                         <div className="h-1.5 bg-surface rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-bronze" style={{ width: `${w}%` }} />
+                          <div className="h-full rounded-full bg-teal" style={{ width: `${w}%` }} />
                         </div>
                       </div>
                     );
@@ -713,7 +713,7 @@ function PuramassSection({ pm, hasRange, from, to }: {
               title={`Daily paid revenue — ${primary}`}
               subtitle="Net of refunds, per day"
               points={dailyPoints}
-              series={[{ key: 'revenue', label: 'Revenue', color: '#7D6F48', fill: true }]}
+              series={[{ key: 'revenue', label: 'Revenue', color: '#1B5D83', fill: true }]}
               format={fmtCur}
             />
           </div>
@@ -725,9 +725,9 @@ function PuramassSection({ pm, hasRange, from, to }: {
 
 function ConversionFunnel({ funnel }: { funnel: FunnelSummary }) {
   const stages = [
-    { label: 'Active shoppers', value: funnel.active_shoppers, icon: Users, color: '#B8A876' },
-    { label: 'Added to cart', value: funnel.cart_shoppers, icon: ShoppingCart, color: '#9C8B5A' },
-    { label: 'Orders placed', value: funnel.orders_placed, icon: Receipt, color: '#7D6F48' },
+    { label: 'Active shoppers', value: funnel.active_shoppers, icon: Users, color: '#6EB2B8' },
+    { label: 'Added to cart', value: funnel.cart_shoppers, icon: ShoppingCart, color: '#438B9E' },
+    { label: 'Orders placed', value: funnel.orders_placed, icon: Receipt, color: '#1B5D83' },
     { label: 'Paid orders', value: funnel.paid_orders, icon: CheckCircle2, color: C.paid },
   ];
   const max = Math.max(1, ...stages.map((s) => s.value));
@@ -735,7 +735,7 @@ function ConversionFunnel({ funnel }: { funnel: FunnelSummary }) {
   return (
     <div className="bg-white rounded-xl border border-line p-5">
       <h3 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
-        <TrendingUp className="w-4 h-4 text-bronze" /> Conversion funnel
+        <TrendingUp className="w-4 h-4 text-teal-dark" /> Conversion funnel
       </h3>
       <div className="space-y-3">
         {stages.map((s, i) => {
@@ -787,7 +787,7 @@ function OrderOutcomes({ funnel }: { funnel: FunnelSummary }) {
     <div className="bg-white rounded-xl border border-line p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
-          <Receipt className="w-4 h-4 text-bronze" /> Order outcomes
+          <Receipt className="w-4 h-4 text-teal-dark" /> Order outcomes
         </h3>
         <span className="text-xs text-ink-muted">{fmtInt(funnel.orders_placed)} placed</span>
       </div>
@@ -828,7 +828,7 @@ function EngagementStats({ funnel }: { funnel: FunnelSummary }) {
   return (
     <div className="bg-white rounded-xl border border-line p-5">
       <h3 className="text-sm font-semibold text-ink mb-3 flex items-center gap-2">
-        <Users className="w-4 h-4 text-bronze" /> Engagement &amp; value
+        <Users className="w-4 h-4 text-teal-dark" /> Engagement &amp; value
       </h3>
       <div className="space-y-2.5 text-sm">
         {rows.map((r) => {
@@ -911,7 +911,7 @@ function MiniTrendChart({ title, subtitle, points, series, format }: {
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" onMouseLeave={() => setHover(null)}>
             {[0, 0.5, 1].map((t) => {
               const gy = padT + plotH * t;
-              return <line key={t} x1={padL} x2={W - padR} y1={gy} y2={gy} stroke="#C9CCD1" strokeWidth={1} strokeOpacity={0.4} />;
+              return <line key={t} x1={padL} x2={W - padR} y1={gy} y2={gy} stroke="#DCE7EB" strokeWidth={1} strokeOpacity={0.4} />;
             })}
             {series.filter((s) => s.fill).map((s) => (
               <path key={`a-${s.key}`} d={areaPath(s.key)} fill={s.color} fillOpacity={0.12} stroke="none" />
@@ -932,7 +932,7 @@ function MiniTrendChart({ title, subtitle, points, series, format }: {
             ))}
             {hover != null && (
               <g>
-                <line x1={x(hover)} x2={x(hover)} y1={padT} y2={baseY} stroke="#6E6E6E" strokeWidth={1} strokeDasharray="3 3" />
+                <line x1={x(hover)} x2={x(hover)} y1={padT} y2={baseY} stroke="#56707F" strokeWidth={1} strokeDasharray="3 3" />
                 {series.map((s) => (
                   <circle key={`h-${s.key}`} cx={x(hover)} cy={y(Number(points[hover][s.key] ?? 0))} r={3.5}
                     fill={s.color} stroke="#fff" strokeWidth={1.5} />
@@ -1004,16 +1004,16 @@ function StealthHealthEarningsStrip({ from, to }: { from: string; to: string }) 
     <div className="bg-white rounded-xl border border-line p-5 mb-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
-          <Handshake className="w-4 h-4 text-bronze" /> What we earn on it
+          <Handshake className="w-4 h-4 text-teal-dark" /> What we earn on it
         </h3>
         <Link href="/admin/stealth-health"
-          className="inline-flex items-center gap-1 text-xs font-medium text-bronze hover:underline">
+          className="inline-flex items-center gap-1 text-xs font-medium text-teal-dark hover:underline">
           Settlement dashboard <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <EarningsStat icon={DollarSign} tint="text-bronze" label="Earned"
+        <EarningsStat icon={DollarSign} tint="text-teal-dark" label="Earned"
           value={fmt(sh.earned.due_cents)}
           sub={`${fmtInt(sh.earned.order_count)} paid order${sh.earned.order_count === 1 ? '' : 's'}`} />
         <EarningsStat icon={Percent} tint="text-amber-700" label="Their cut"

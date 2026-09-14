@@ -45,7 +45,7 @@ export default function DeclineReferralCodeDialog({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Kept for the desk — the affiliate is only told it was declined."
-          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+          className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
         />
         <p className="mt-1 text-[11px] text-ink-muted">
           Shown here with your name, never on the affiliate&apos;s screen.

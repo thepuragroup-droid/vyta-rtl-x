@@ -10,13 +10,13 @@ import PDFDocument from 'pdfkit';
 import { drawInFooterStrip } from '../pdf-footer';
 import { PO_STATUS_LABEL, type StockReport } from './stock-report';
 
-const INK = '#161616';
-const MUTED = '#6B7280';
-const FAINT = '#9CA3AF';
-const RULE = '#D2D5DA';
-const ZEBRA = '#FAFAFA';
-const SURFACE = '#F4F4F5';
-const BRONZE = '#9C8B5A';
+const INK = '#07203A';
+const MUTED = '#56707F';
+const FAINT = '#6E8898';
+const RULE = '#DCE7EB';
+const ZEBRA = '#F7FAFB';
+const SURFACE = '#EDF3F5';
+const ACCENT = '#438B9E';
 const GREEN_BG = '#D1FAE5';
 const GREEN_FG = '#065F46';
 const AMBER_BG = '#FEF3C7';
@@ -87,7 +87,7 @@ function drawTitle(doc: any, left: number, width: number, generatedAt: Date): vo
   doc.font('Helvetica-Bold').fontSize(26).fillColor(INK).text('PURAMASS', left, top);
   const afterWordmark = doc.y;
 
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(BRONZE)
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(ACCENT)
     .text('STOCK REPORT', left, afterWordmark + 2, { characterSpacing: 2 });
   doc.font('Helvetica').fontSize(10).fillColor(MUTED)
     .text(
@@ -98,7 +98,7 @@ function drawTitle(doc: any, left: number, width: number, generatedAt: Date): vo
     );
 
   const ruleY = Math.max(doc.y, afterWordmark + 18) + 8;
-  doc.save().lineWidth(2).strokeColor(BRONZE)
+  doc.save().lineWidth(2).strokeColor(ACCENT)
     .moveTo(left, ruleY).lineTo(left + width, ruleY).stroke().restore();
   doc.y = ruleY + 18;
 }

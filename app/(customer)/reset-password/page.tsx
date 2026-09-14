@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, ArrowRight, AlertCircle, Beaker, Check } from 'lucide-react';
+import { Lock, ArrowRight, AlertCircle, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -120,7 +120,7 @@ function ResetPasswordContent() {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center px-4 sm:px-8 py-12">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-bronze border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="w-8 h-8 border-2 border-teal border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-ink-muted text-sm">Verifying reset link...</p>
         </div>
       </main>
@@ -135,7 +135,7 @@ function ResetPasswordContent() {
             <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
             <h2 className="text-xl font-bold text-ink mb-2">Invalid Reset Link</h2>
             <p className="text-ink-muted text-sm mb-5">{sessionError}</p>
-            <Link href="/forgot-password" className="inline-flex items-center gap-2 text-bronze hover:text-bronze-dark font-semibold text-sm">
+            <Link href="/forgot-password" className="inline-flex items-center gap-2 text-teal-dark hover:text-teal-dark font-semibold text-sm">
               Request a new link
               <ArrowRight className="w-4 h-4" />
             </Link>
@@ -151,10 +151,8 @@ function ResetPasswordContent() {
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
             <Link href="/login" className="inline-flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-ink rounded-xl flex items-center justify-center">
-                <Beaker className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-lg font-bold text-ink tracking-tight">Aminocan</span>
+              <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="w-12 h-12 object-contain" />
+              <span className="text-lg font-bold text-ink tracking-tight">VYTA</span>
             </Link>
           </div>
           <div className="bg-white rounded-xl p-6 sm:p-8 border border-line text-center shadow-sm">
@@ -175,10 +173,8 @@ function ResetPasswordContent() {
         {/* Logo */}
         <div className="text-center mb-6">
           <Link href="/login" className="inline-flex flex-col items-center gap-2">
-            <div className="w-12 h-12 bg-ink rounded-xl flex items-center justify-center">
-              <Beaker className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-lg font-bold text-ink tracking-tight">Aminocan</span>
+            <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="w-12 h-12 object-contain" />
+            <span className="text-lg font-bold text-ink tracking-tight">VYTA</span>
           </Link>
         </div>
 
@@ -204,7 +200,7 @@ function ResetPasswordContent() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted"
                   placeholder="Min. 8 characters"
                   autoComplete="new-password"
                 />
@@ -222,7 +218,7 @@ function ResetPasswordContent() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-surface rounded-lg border focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-sm text-ink placeholder-ink-muted ${
+                  className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-surface rounded-lg border focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-sm text-ink placeholder-ink-muted ${
                     confirmPassword
                       ? passwordsMatch
                         ? 'border-emerald-300'

@@ -126,22 +126,22 @@ export async function GET(req: NextRequest) {
 <html lang="en"><head><meta charset="utf-8" />
 <title>Commission Report</title>
 <style>
-  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1A1A1A; margin: 0; padding: 32px; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #07203A; margin: 0; padding: 32px; }
   .page { max-width: 900px; margin: 0 auto; }
   h1 { font-size: 22px; margin: 0; }
-  .logo span { color: #b8860b; }
-  .meta { color: #6B7280; font-size: 13px; margin: 4px 0 24px; }
+  .logo span { color: #438b9e; }
+  .meta { color: #56707F; font-size: 13px; margin: 4px 0 24px; }
   .totals { display: flex; gap: 16px; margin-bottom: 24px; }
-  .card { border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px 16px; font-size: 13px; }
+  .card { border: 1px solid #DCE7EB; border-radius: 8px; padding: 12px 16px; font-size: 13px; }
   .card b { display: block; font-size: 18px; margin-top: 4px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; text-transform: uppercase; font-size: 11px; color: #6B7280; border-bottom: 2px solid #E5E7EB; padding: 8px; }
-  td { padding: 10px 8px; border-bottom: 1px solid #F0F0F0; }
+  th { text-align: left; text-transform: uppercase; font-size: 11px; color: #56707F; border-bottom: 2px solid #DCE7EB; padding: 8px; }
+  td { padding: 10px 8px; border-bottom: 1px solid #EDF3F5; }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
   .mono { font-family: monospace; }
-  .muted { color: #9CA3AF; font-size: 11px; }
+  .muted { color: #6E8898; font-size: 11px; }
   .pill { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
-  .pill.affiliate { background: #EFF6FF; color: #2563EB; }
+  .pill.affiliate { background: #F1F8F9; color: #1B5D83; }
   .pill.sales { background: #F5F3FF; color: #7C3AED; }
   .status { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: capitalize; }
   .status.paid { background: #ECFDF5; color: #059669; }
@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
   </div>
   <table>
     <thead><tr><th>Date</th><th>Source</th><th>Recipient</th><th>Order / Invoice</th><th class="num">Total</th><th class="num">Commission</th><th>Status</th></tr></thead>
-    <tbody>${tableRows || '<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:32px;">No commissions match the filters</td></tr>'}</tbody>
+    <tbody>${tableRows || '<tr><td colspan="7" style="text-align:center;color:#6E8898;padding:32px;">No commissions match the filters</td></tr>'}</tbody>
   </table>
 </div></body></html>`;
 

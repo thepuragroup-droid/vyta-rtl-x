@@ -18,7 +18,7 @@ const db = createClient(
 // This route sends branded transactional mail. It used to be a fully open
 // relay: no auth, no rate limit, and both the recipient and the visible content
 // came straight from the request body — so anyone could send authentic-looking
-// "AMINOCAN" email to any address (phishing / spam / reputation damage). It is
+// "VYTA" email to any address (phishing / spam / reputation damage). It is
 // now (1) rate limited per IP and (2) gated so the recipient must actually be a
 // real party for the referenced resource: order emails require the order number
 // and that the address matches that order's email; welcome emails require the

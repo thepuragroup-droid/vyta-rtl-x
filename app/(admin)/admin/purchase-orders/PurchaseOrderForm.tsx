@@ -411,7 +411,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
                   {selectedSupplier.contact_name && <p className="text-xs text-ink-muted mt-0.5">{selectedSupplier.contact_name}</p>}
                   {selectedSupplier.email && <p className="text-xs text-ink-muted">{selectedSupplier.email}</p>}
                   {selectedSupplier.phone && <p className="text-xs text-ink-muted">{selectedSupplier.phone}</p>}
-                  {selectedSupplier.lead_time_days != null && <p className="text-xs text-bronze mt-1">Lead time: {selectedSupplier.lead_time_days} days</p>}
+                  {selectedSupplier.lead_time_days != null && <p className="text-xs text-teal-dark mt-1">Lead time: {selectedSupplier.lead_time_days} days</p>}
                 </div>
                 {!locked && (
                   <button onClick={clearSupplier} className="text-ink-muted hover:text-red-500 transition-colors ml-3 flex-shrink-0">
@@ -429,7 +429,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
                     onChange={(e) => { setSupplierQuery(e.target.value); setShowDropdown(true); }}
                     onFocus={() => supplierResults.length > 0 && setShowDropdown(true)}
                     placeholder="Search suppliers by name or email…"
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
                 {showDropdown && supplierResults.length > 0 && (
@@ -445,7 +445,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
                     ))}
                   </div>
                 )}
-                <button onClick={() => setShowNewSupplierForm((v) => !v)} className="mt-3 text-sm text-bronze hover:text-bronze/80 flex items-center gap-1.5 transition-colors">
+                <button onClick={() => setShowNewSupplierForm((v) => !v)} className="mt-3 text-sm text-teal-dark hover:text-teal-dark/80 flex items-center gap-1.5 transition-colors">
                   <Plus className="w-3.5 h-3.5" /> Create new supplier
                   {showNewSupplierForm ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 </button>
@@ -461,12 +461,12 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
                       ].map(({ label, key, type }) => (
                         <div key={key}>
                           <label className="block text-xs font-medium text-ink-muted mb-1">{label}</label>
-                          <input type={type} value={(newSupplier as any)[key]} onChange={(e) => setNewSupplier((p) => ({ ...p, [key]: e.target.value }))} className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+                          <input type={type} value={(newSupplier as any)[key]} onChange={(e) => setNewSupplier((p) => ({ ...p, [key]: e.target.value }))} className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40" />
                         </div>
                       ))}
                       <div>
                         <label className="block text-xs font-medium text-ink-muted mb-1">Lead Time (days)</label>
-                        <input type="number" min={1} value={newSupplier.lead_time_days} onChange={(e) => setNewSupplier((p) => ({ ...p, lead_time_days: parseInt(e.target.value) || 7 }))} className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+                        <input type="number" min={1} value={newSupplier.lead_time_days} onChange={(e) => setNewSupplier((p) => ({ ...p, lead_time_days: parseInt(e.target.value) || 7 }))} className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40" />
                       </div>
                     </div>
                     <div className="flex gap-2 pt-1">
@@ -502,7 +502,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
               </h2>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" />
-                <input type="text" placeholder="Filter by name or SKU…" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+                <input type="text" placeholder="Filter by name or SKU…" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40" />
               </div>
             </div>
             <div className="p-5">
@@ -518,13 +518,13 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
                       const price = defaultPrice(p.id, p.unit_price);
                       const cheaper = cheapest[p.id] && selectedSupplier && cheapest[p.id].supplier_id !== selectedSupplier.id && cheapest[p.id].price < price;
                       return (
-                        <button key={p.id} onClick={() => toggleProduct(p)} className={`text-left p-3 rounded-xl border transition-all ${isSel ? 'border-bronze bg-bronze/5 ring-1 ring-bronze/30 shadow-sm' : 'border-line hover:border-ink/20 hover:bg-surface'}`}>
+                        <button key={p.id} onClick={() => toggleProduct(p)} className={`text-left p-3 rounded-xl border transition-all ${isSel ? 'border-teal bg-teal/5 ring-1 ring-teal/30 shadow-sm' : 'border-line hover:border-ink/20 hover:bg-surface'}`}>
                           <div className="flex items-start justify-between gap-1">
                             <p className="font-medium text-sm text-ink leading-tight truncate flex-1">{p.product_name}</p>
-                            {isSel && <Check className="w-3.5 h-3.5 text-bronze flex-shrink-0 mt-0.5" />}
+                            {isSel && <Check className="w-3.5 h-3.5 text-teal-dark flex-shrink-0 mt-0.5" />}
                           </div>
                           <p className="text-xs text-ink-muted mt-0.5 truncate">{p.sku || 'No SKU'} · {p.stock_quantity} in stock</p>
-                          <p className="text-xs font-semibold text-bronze mt-1.5 tabular-nums flex items-center gap-1">
+                          <p className="text-xs font-semibold text-teal-dark mt-1.5 tabular-nums flex items-center gap-1">
                             ${price.toFixed(2)}
                             {cheaper && <TrendingDown className="w-3 h-3 text-emerald-600" />}
                           </p>
@@ -610,7 +610,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
                           ) : (
                             <div className="relative flex justify-end">
                               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-muted">$</span>
-                              <input type="number" min={0} step="0.01" value={item.unit_price} onChange={(e) => updatePrice(item.product_id, parseFloat(e.target.value) || 0)} className="w-24 pl-5 pr-2 py-1 bg-surface border border-line rounded-lg text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+                              <input type="number" min={0} step="0.01" value={item.unit_price} onChange={(e) => updatePrice(item.product_id, parseFloat(e.target.value) || 0)} className="w-24 pl-5 pr-2 py-1 bg-surface border border-line rounded-lg text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-teal/40" />
                             </div>
                           )}
                         </td>
@@ -621,7 +621,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
                             ) : (
                               <>
                                 <button onClick={() => updateQty(item.product_id, item.qty - 1)} disabled={item.qty <= 1} className="w-7 h-7 rounded-lg bg-surface border border-line text-ink-muted hover:text-ink transition-colors disabled:opacity-30 flex items-center justify-center font-bold">−</button>
-                                <input type="number" min={1} value={item.qty} onChange={(e) => updateQty(item.product_id, parseInt(e.target.value) || 1)} className="w-12 text-center px-1 py-1 bg-surface border border-line rounded-lg text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+                                <input type="number" min={1} value={item.qty} onChange={(e) => updateQty(item.product_id, parseInt(e.target.value) || 1)} className="w-12 text-center px-1 py-1 bg-surface border border-line rounded-lg text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-teal/40" />
                                 <button onClick={() => updateQty(item.product_id, item.qty + 1)} className="w-7 h-7 rounded-lg bg-surface border border-line text-ink-muted hover:text-ink transition-colors flex items-center justify-center font-bold">+</button>
                               </>
                             )}
@@ -637,7 +637,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
                                 className="inline-flex items-center gap-1 text-sm"
                                 title={`Includes ${share >= 0 ? '+' : ''}$${Math.abs(share).toFixed(4)} shipping/discount per unit`}
                               >
-                                <Truck className="w-3 h-3 text-bronze/70" />
+                                <Truck className="w-3 h-3 text-teal-dark/70" />
                                 ${landedUnit.toFixed(2)}
                               </span>
                             );
@@ -670,7 +670,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
               <label className="block text-xs font-medium text-ink-muted mb-1">Shipping Fee ($)</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">$</span>
-                <input type="number" min={0} step="0.01" value={shippingFee} onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)} className="w-full pl-8 pr-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+                <input type="number" min={0} step="0.01" value={shippingFee} onChange={(e) => setShippingFee(parseFloat(e.target.value) || 0)} className="w-full pl-8 pr-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40" />
               </div>
             </div>
 
@@ -686,7 +686,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
               </div>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{discountType === 'percentage' ? '%' : '$'}</span>
-                <input type="number" min={0} step={discountType === 'percentage' ? '0.1' : '0.01'} value={discountValue} onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)} className="w-full pl-8 pr-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+                <input type="number" min={0} step={discountType === 'percentage' ? '0.1' : '0.01'} value={discountValue} onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)} className="w-full pl-8 pr-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40" />
               </div>
             </div>
 
@@ -702,7 +702,7 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
               </div>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">{taxType === 'percentage' ? '%' : '$'}</span>
-                <input type="number" min={0} step={taxType === 'percentage' ? '0.1' : '0.01'} value={taxValue} onChange={(e) => setTaxValue(parseFloat(e.target.value) || 0)} className="w-full pl-8 pr-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+                <input type="number" min={0} step={taxType === 'percentage' ? '0.1' : '0.01'} value={taxValue} onChange={(e) => setTaxValue(parseFloat(e.target.value) || 0)} className="w-full pl-8 pr-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40" />
               </div>
             </div>
 
@@ -720,24 +720,24 @@ export default function PurchaseOrderForm({ mode, po, backorder, onUpdated }: Pr
           <div className={`bg-white rounded-xl border border-line p-5 space-y-4 ${dim}`}>
             <div>
               <label className="block text-xs font-medium text-ink-muted mb-2">Order Date</label>
-              <input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} disabled={locked} className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50" />
+              <input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} disabled={locked} className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50" />
             </div>
             <div>
               <label className="block text-xs font-medium text-ink-muted mb-2">Expected Delivery Date</label>
-              <input type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} disabled={locked} className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50" />
+              <input type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} disabled={locked} className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50" />
             </div>
           </div>
 
           {/* ---- Notes ---- */}
           <div className={`bg-white rounded-xl border border-line p-5 ${dim}`}>
             <label className="block text-xs font-medium text-ink-muted mb-2">Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} disabled={locked} placeholder="Payment terms, delivery instructions, references…" className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50" />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} disabled={locked} placeholder="Payment terms, delivery instructions, references…" className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-ink resize-none focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50" />
           </div>
 
           {/* ---- Create-as-fulfilled (create only) ---- */}
           {mode === 'create' && (
             <label className="flex items-center gap-2 bg-white rounded-xl border border-line p-4 cursor-pointer">
-              <input type="checkbox" checked={createAsFulfilled} onChange={(e) => setCreateAsFulfilled(e.target.checked)} className="rounded border-line text-bronze focus:ring-bronze/40" />
+              <input type="checkbox" checked={createAsFulfilled} onChange={(e) => setCreateAsFulfilled(e.target.checked)} className="rounded border-line text-teal-dark focus:ring-teal/40" />
               <span className="text-sm text-ink">Mark as fully received now <span className="text-ink-muted">(applies stock immediately)</span></span>
             </label>
           )}

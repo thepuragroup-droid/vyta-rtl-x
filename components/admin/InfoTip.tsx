@@ -151,7 +151,7 @@ export default function InfoTip({
         onMouseLeave={() => setHovered(false)}
         onFocus={() => setHovered(true)}
         onBlur={() => setHovered(false)}
-        className="inline-flex items-center justify-center rounded-full text-ink-light transition-colors hover:text-bronze focus:text-bronze focus:outline-none focus-visible:ring-2 focus-visible:ring-bronze/40"
+        className="inline-flex items-center justify-center rounded-full text-ink-light transition-colors hover:text-teal-dark focus:text-teal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-teal/40"
       >
         <HelpCircle className="h-3.5 w-3.5" aria-hidden />
       </button>

@@ -43,7 +43,7 @@ const STYLES: Record<ToastType, { ring: string; icon: React.ReactNode }> = {
   },
   info: {
     ring: 'border-line bg-white text-ink',
-    icon: <Info className="w-4 h-4 text-bronze" />,
+    icon: <Info className="w-4 h-4 text-teal-dark" />,
   },
 };
 

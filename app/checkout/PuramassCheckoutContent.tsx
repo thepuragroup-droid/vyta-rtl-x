@@ -94,7 +94,7 @@ function canQuote(f: ShippingForm): boolean {
 }
 
 const INPUT_CLASS =
-  "w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent transition";
+  "w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent transition";
 
 /** Matches bacteriostatic / BAC water products so they can be featured. */
 const isBacName = (name: string) => /bacteriostatic|bac[\s-]?water/i.test(name || "");
@@ -147,14 +147,14 @@ function RateOption({
       aria-pressed={selected}
       className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3.5 py-3 text-left transition-all duration-200 ${
         selected
-          ? "border-bronze bg-bronze/5 shadow-sm"
-          : "border-line bg-white hover:border-bronze/40"
+          ? "border-teal bg-teal/5 shadow-sm"
+          : "border-line bg-white hover:border-teal/40"
       }`}
     >
       <span className="flex min-w-0 items-center gap-2.5">
         <span
           className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border transition ${
-            selected ? "border-bronze bg-bronze text-white" : "border-line"
+            selected ? "border-teal bg-teal-dark text-white" : "border-line"
           }`}
         >
           {selected && <Check className="h-2.5 w-2.5" />}
@@ -198,7 +198,7 @@ function AddonSkeleton() {
   );
 }
 
-/** A single add-on row. `featured` gives the bronze "Essential" treatment. */
+/** A single add-on row. `featured` gives the teal "Essential" treatment. */
 function AddonRow({
   p,
   featured,
@@ -213,8 +213,8 @@ function AddonRow({
       variants={itemVariants}
       className={`group flex items-center gap-3 rounded-xl border p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
         featured
-          ? "border-bronze/40 bg-bronze/[0.04] hover:border-bronze/60"
-          : "border-line hover:border-bronze/40"
+          ? "border-teal/40 bg-teal/[0.04] hover:border-teal/60"
+          : "border-line hover:border-teal/40"
       }`}
     >
       <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-surface">
@@ -229,7 +229,7 @@ function AddonRow({
         <div className="flex items-center gap-1.5">
           <p className="truncate text-sm font-medium text-ink">{p.name}</p>
           {featured && (
-            <span className="inline-flex flex-shrink-0 items-center rounded-full border border-bronze/30 bg-bronze/10 px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-wide text-bronze-dark">
+            <span className="inline-flex flex-shrink-0 items-center rounded-full border border-teal/30 bg-teal/10 px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-wide text-teal-dark">
               Essential
             </span>
           )}
@@ -635,20 +635,18 @@ export default function PuramassCheckoutContent({
       <div className="max-w-6xl mx-auto px-5 sm:px-8 py-6">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="relative w-10 h-10 bg-ink rounded-xl flex items-center justify-center">
-              <Beaker className="w-5 h-5 text-white" />
-            </div>
+            <img src="/images/vyta-mark.png" alt="" aria-hidden="true" className="relative w-10 h-10 object-contain" />
             <div className="flex flex-col">
               <span className="text-lg font-bold text-ink tracking-tight leading-none">
-                Aminocan
+                VYTA
               </span>
-              <span className="text-[10px] text-bronze tracking-[0.15em] font-medium uppercase mt-0.5">
+              <span className="text-[10px] text-teal-dark tracking-[0.15em] font-medium uppercase mt-0.5">
                 Secure Checkout
               </span>
             </div>
           </Link>
           <div className="flex items-center gap-2 px-4 py-2 bg-surface rounded-full border border-line">
-            <Lock className="w-4 h-4 text-bronze" />
+            <Lock className="w-4 h-4 text-teal-dark" />
             <span className="text-sm font-medium text-ink-muted">SSL Encrypted</span>
           </div>
         </div>
@@ -700,8 +698,8 @@ export default function PuramassCheckoutContent({
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="max-w-lg mx-auto bg-white rounded-2xl p-8 md:p-10 text-center border border-line"
           >
-            <div className="w-16 h-16 bg-bronze/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-bronze" />
+            <div className="w-16 h-16 bg-teal/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-teal-dark" />
             </div>
             <h2 className="text-xl font-bold text-ink mb-2">Account required</h2>
             <p className="text-ink-muted mb-6 text-sm">
@@ -741,9 +739,9 @@ export default function PuramassCheckoutContent({
           {/* Redirect explainer */}
           <motion.div
             variants={itemVariants}
-            className="flex items-start gap-3 rounded-2xl border border-bronze/30 bg-bronze/5 p-4 mb-6"
+            className="flex items-start gap-3 rounded-2xl border border-teal/30 bg-teal/5 p-4 mb-6"
           >
-            <ShieldCheck className="w-5 h-5 text-bronze flex-shrink-0 mt-0.5" />
+            <ShieldCheck className="w-5 h-5 text-teal-dark flex-shrink-0 mt-0.5" />
             <div className="text-sm text-ink">
               <p className="font-semibold">You&apos;ll finish on our secure checkout partner.</p>
               <p className="text-ink-muted mt-0.5">
@@ -762,7 +760,7 @@ export default function PuramassCheckoutContent({
               <div className="h-full rounded-2xl border border-line bg-white p-5">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface">
-                    <User className="h-5 w-5 text-bronze" />
+                    <User className="h-5 w-5 text-teal-dark" />
                   </div>
                   <div>
                     <h2 className="text-base font-semibold text-ink">Contact information</h2>
@@ -775,7 +773,7 @@ export default function PuramassCheckoutContent({
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
-                      Email <span className="text-bronze">*</span>
+                      Email <span className="text-teal-dark">*</span>
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
@@ -785,7 +783,7 @@ export default function PuramassCheckoutContent({
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
                         autoComplete="email"
-                        className="w-full pl-10 pr-10 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent transition"
+                        className="w-full pl-10 pr-10 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent transition"
                       />
                       {emailValid && (
                         <motion.span
@@ -810,7 +808,7 @@ export default function PuramassCheckoutContent({
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="Optional"
                         autoComplete="given-name"
-                        className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent transition"
+                        className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent transition"
                       />
                     </div>
                     <div>
@@ -823,7 +821,7 @@ export default function PuramassCheckoutContent({
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="Optional"
                         autoComplete="family-name"
-                        className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent transition"
+                        className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent transition"
                       />
                     </div>
                   </div>
@@ -832,14 +830,14 @@ export default function PuramassCheckoutContent({
                   {shippingRatesEnabled && (
                     <div className="border-t border-line pt-4 mt-1">
                       <div className="flex items-center gap-2 mb-3">
-                        <MapPin className="h-4 w-4 text-bronze" />
+                        <MapPin className="h-4 w-4 text-teal-dark" />
                         <h3 className="text-sm font-semibold text-ink">Shipping address</h3>
                       </div>
 
                       <div className="space-y-3">
                         <div>
                           <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
-                            Country <span className="text-bronze">*</span>
+                            Country <span className="text-teal-dark">*</span>
                           </label>
                           <select
                             value={shipping.country}
@@ -857,7 +855,7 @@ export default function PuramassCheckoutContent({
 
                         <div>
                           <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
-                            Street address <span className="text-bronze">*</span>
+                            Street address <span className="text-teal-dark">*</span>
                           </label>
                           <AddressAutocomplete
                             value={shipping.address}
@@ -892,7 +890,7 @@ export default function PuramassCheckoutContent({
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
-                              City <span className="text-bronze">*</span>
+                              City <span className="text-teal-dark">*</span>
                             </label>
                             <input
                               type="text"
@@ -905,7 +903,7 @@ export default function PuramassCheckoutContent({
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
-                              {postalLabel(shipping.country)} <span className="text-bronze">*</span>
+                              {postalLabel(shipping.country)} <span className="text-teal-dark">*</span>
                             </label>
                             <input
                               type="text"
@@ -921,7 +919,7 @@ export default function PuramassCheckoutContent({
                         <div>
                           <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
                             {regionLabel(shipping.country)}
-                            {regions && <span className="text-bronze"> *</span>}
+                            {regions && <span className="text-teal-dark"> *</span>}
                           </label>
                           {regions ? (
                             <select
@@ -978,7 +976,7 @@ export default function PuramassCheckoutContent({
                       "No card data ever touches our servers",
                     ].map((line) => (
                       <li key={line} className="flex items-start gap-2 text-xs text-ink-muted">
-                        <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-bronze" />
+                        <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-teal-dark" />
                         <span>{line}</span>
                       </li>
                     ))}
@@ -991,8 +989,8 @@ export default function PuramassCheckoutContent({
             <motion.section variants={itemVariants}>
               <div className="h-full rounded-2xl border border-line bg-white p-5">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-bronze/20 bg-bronze/10">
-                    <Droplets className="h-5 w-5 text-bronze" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-teal/20 bg-teal/10">
+                    <Droplets className="h-5 w-5 text-teal-dark" />
                   </div>
                   <div>
                     <h2 className="text-base font-semibold text-ink">Complete your order</h2>
@@ -1001,7 +999,7 @@ export default function PuramassCheckoutContent({
                 </div>
 
                 {/* Why you need bacteriostatic water */}
-                <div className="rounded-xl border border-bronze/20 bg-bronze/5 p-3.5 mb-4">
+                <div className="rounded-xl border border-teal/20 bg-teal/5 p-3.5 mb-4">
                   <p className="text-xs leading-relaxed text-ink">
                     <span className="font-semibold">Most peptides ship freeze-dried</span>{" "}
                     (lyophilized) and must be reconstituted with{" "}
@@ -1009,7 +1007,7 @@ export default function PuramassCheckoutContent({
                     Add enough to mix everything in your cart.
                   </p>
                   {peptideVials > 0 && (
-                    <p className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-white/70 px-2.5 py-1.5 text-[11px] font-medium text-bronze-dark">
+                    <p className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-white/70 px-2.5 py-1.5 text-[11px] font-medium text-teal-dark">
                       <FlaskConical className="h-3.5 w-3.5 flex-shrink-0" />
                       {peptideVials} vial{peptideVials === 1 ? "" : "s"} in your cart — don&apos;t
                       forget the water to reconstitute {peptideVials === 1 ? "it" : "them"}.
@@ -1084,7 +1082,7 @@ export default function PuramassCheckoutContent({
                 <div className="rounded-2xl border border-line bg-white p-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface">
-                      <ShoppingCart className="h-5 w-5 text-bronze" />
+                      <ShoppingCart className="h-5 w-5 text-teal-dark" />
                     </div>
                     <div>
                       <h2 className="text-base font-semibold text-ink">Your order</h2>
@@ -1124,7 +1122,7 @@ export default function PuramassCheckoutContent({
                   {/* ---- Delivery ---- */}
                   <div className="mt-4 pt-4 border-t border-line">
                     <div className="flex items-center gap-2 mb-3">
-                      <Truck className="h-4 w-4 text-bronze" />
+                      <Truck className="h-4 w-4 text-teal-dark" />
                       <h3 className="text-sm font-semibold text-ink">Delivery</h3>
                     </div>
 
@@ -1293,8 +1291,8 @@ export default function PuramassCheckoutContent({
 
                   {/* What happens on the partner's page, so the extra step
                       doesn't come as a surprise mid-payment. */}
-                  <div className="mt-4 flex items-start gap-2 rounded-xl border border-bronze/20 bg-bronze/5 px-3.5 py-3">
-                    <HelpCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-bronze" />
+                  <div className="mt-4 flex items-start gap-2 rounded-xl border border-teal/20 bg-teal/5 px-3.5 py-3">
+                    <HelpCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal-dark" />
                     <p className="text-[11px] leading-relaxed text-ink-muted">
                       <span className="font-semibold text-ink">
                         A few quick questions first.
@@ -1309,11 +1307,11 @@ export default function PuramassCheckoutContent({
                   {/* Trust badges */}
                   <div className="mt-4 flex items-center justify-center gap-5 pt-4 border-t border-line">
                     <div className="flex items-center gap-1.5 text-ink-muted">
-                      <ShieldCheck className="h-3.5 w-3.5 text-bronze" />
+                      <ShieldCheck className="h-3.5 w-3.5 text-teal-dark" />
                       <span className="text-[11px]">Secure checkout</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-ink-muted">
-                      <Lock className="h-3.5 w-3.5 text-bronze" />
+                      <Lock className="h-3.5 w-3.5 text-teal-dark" />
                       <span className="text-[11px]">SSL encrypted</span>
                     </div>
                   </div>

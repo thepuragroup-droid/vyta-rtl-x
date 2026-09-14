@@ -441,7 +441,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
       {/* Section header */}
       <div className="flex items-center justify-between mb-4 pt-6 border-t border-line">
         <div className="flex items-center gap-2">
-          <Package className="w-5 h-5 text-bronze" />
+          <Package className="w-5 h-5 text-teal-dark" />
           <h2 className="text-lg font-bold text-ink">Order &amp; Fulfillment</h2>
           <span className="font-mono text-sm text-ink-muted">{order.order_number}</span>
         </div>
@@ -462,7 +462,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                   }`}>
                     {i <= currentStepIndex ? <Check className="w-4 h-4" /> : i + 1}
                   </div>
-                  <span className={`text-[10px] uppercase tracking-wider ${i <= currentStepIndex ? 'text-bronze' : 'text-ink-muted'}`}>
+                  <span className={`text-[10px] uppercase tracking-wider ${i <= currentStepIndex ? 'text-teal-dark' : 'text-ink-muted'}`}>
                     {step}
                   </span>
                 </div>
@@ -534,13 +534,13 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
           {(commission || order.referral_code) && (
             <div className="bg-white rounded-xl border border-line p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Tag className="w-4 h-4 text-bronze" />
+                <Tag className="w-4 h-4 text-teal-dark" />
                 <h3 className="font-semibold text-ink">Affiliate Commission</h3>
               </div>
               {order.referral_code && (
                 <div className="mb-3">
                   <p className="text-ink-muted text-sm mb-1">Referral Code Used</p>
-                  <span className="font-mono text-bronze bg-bronze/10 px-2 py-0.5 rounded text-sm">{order.referral_code}</span>
+                  <span className="font-mono text-teal-dark bg-teal/10 px-2 py-0.5 rounded text-sm">{order.referral_code}</span>
                 </div>
               )}
               {commission && (
@@ -645,7 +645,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                         href={order.tracking_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-bronze hover:underline inline-flex items-center gap-1 font-mono text-xs break-all"
+                        className="text-teal-dark hover:underline inline-flex items-center gap-1 font-mono text-xs break-all"
                       >
                         {order.tracking_number}
                         <ExternalLink className="w-3 h-3 flex-shrink-0" />
@@ -674,7 +674,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                       <button
                         onClick={handleBuyAndPrint}
                         disabled={shipBusy}
-                        className="w-full px-3 py-2 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg text-sm font-medium hover:bg-bronze/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full px-3 py-2 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg text-sm font-medium hover:bg-teal/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         {shipBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
                         Buy &amp; Print Label
@@ -701,7 +701,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                         value={courierId}
                         onChange={(e) => setCourierId(e.target.value)}
                         disabled={shipBusy || ratesLoading}
-                        className="w-full px-3 py-2 bg-surface border border-line text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50"
+                        className="w-full px-3 py-2 bg-surface border border-line text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
                       >
                         {ratesLoading && <option value="">Loading couriers…</option>}
                         {!ratesLoading && rates.length === 0 && (
@@ -718,7 +718,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                     <button
                       onClick={handleCreateShipment}
                       disabled={shipBusy}
-                      className="w-full px-3 py-2 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg text-sm font-medium hover:bg-bronze/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full px-3 py-2 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg text-sm font-medium hover:bg-teal/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {shipBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackagePlus className="w-4 h-4" />}
                       Create Shipment with Courier
@@ -743,12 +743,12 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                   value={trackingInput}
                   onChange={(e) => setTrackingInput(e.target.value)}
                   placeholder="Enter tracking number"
-                  className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
                 <button
                   onClick={handleSaveTracking}
                   disabled={savingTracking}
-                  className="px-3 py-2 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg text-sm hover:bg-bronze/20 transition-colors disabled:opacity-50"
+                  className="px-3 py-2 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg text-sm hover:bg-teal/20 transition-colors disabled:opacity-50"
                 >
                   {savingTracking ? '...' : <Save className="w-4 h-4" />}
                 </button>
@@ -764,7 +764,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                 value={order.status}
                 onChange={(e) => handleStatusChange(e.target.value)}
                 disabled={updating}
-                className="w-full px-3 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50"
+                className="w-full px-3 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50"
               >
                 <option value="pending">Pending</option>
                 <option value="received">Payment Received</option>
@@ -913,7 +913,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                     type="text"
                     value={etTo}
                     onChange={(e) => setEtTo(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                     placeholder="customer@email.com"
                   />
                 </div>
@@ -924,7 +924,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                     type="text"
                     value={etCc}
                     onChange={(e) => setEtCc(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                     placeholder="Comma-separated emails (optional)"
                   />
                 </div>
@@ -935,7 +935,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                     type="text"
                     value={etSubject}
                     onChange={(e) => setEtSubject(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
 
@@ -945,7 +945,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                     value={etBody}
                     onChange={(e) => setEtBody(e.target.value)}
                     rows={12}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-bronze/40 resize-y"
+                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-teal/40 resize-y"
                   />
                 </div>
 
@@ -969,7 +969,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                       </div>
                     ))}
                   </div>
-                  <label className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-line rounded-lg text-xs text-ink-muted hover:text-ink hover:border-bronze cursor-pointer transition-colors">
+                  <label className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-line rounded-lg text-xs text-ink-muted hover:text-ink hover:border-teal cursor-pointer transition-colors">
                     <Paperclip className="w-3.5 h-3.5" /> Attach images
                     <input
                       type="file"
@@ -1085,7 +1085,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                               },
                             }))
                           }
-                          className="w-16 px-2 py-1 bg-surface border border-line rounded text-sm text-ink disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                          className="w-16 px-2 py-1 bg-surface border border-line rounded text-sm text-ink disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal/40"
                         />
                         <span className="text-xs text-ink-muted">/ {v.max}</span>
                       </div>
@@ -1101,7 +1101,7 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                   onChange={(e) => setRefundReason(e.target.value)}
                   rows={3}
                   placeholder="Recorded on the inventory log entry"
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 resize-y"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 resize-y"
                 />
               </div>
 

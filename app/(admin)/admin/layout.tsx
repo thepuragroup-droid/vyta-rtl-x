@@ -304,8 +304,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-xl p-6 sm:p-8 border border-line shadow-sm">
             <div className="text-center mb-6">
-              <h1 className="text-xl font-bold text-ink">AMINOCAN</h1>
-              <p className="text-xs text-bronze font-semibold uppercase tracking-[0.15em] mt-1">Admin Panel</p>
+              <h1 className="font-display text-xl font-semibold tracking-[0.18em] text-ink">VYTA</h1>
+              <p className="text-xs text-teal-dark font-semibold uppercase tracking-[0.15em] mt-1">Admin Panel</p>
             </div>
 
             {loginError && (
@@ -324,7 +324,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
                     placeholder="admin@example.com"
                   />
                 </div>
@@ -337,7 +337,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -407,8 +407,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Menu className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-ink">AMINOCAN</span>
-          <span className="text-[10px] font-semibold text-bronze uppercase tracking-[0.15em]">
+          <span className="font-display text-sm font-semibold tracking-[0.18em] text-ink">VYTA</span>
+          <span className="text-[10px] font-semibold text-teal-dark uppercase tracking-[0.15em]">
             {roleLabel}
           </span>
         </div>
@@ -450,12 +450,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             href={adminLandingPage(effectiveRole)}
             className={`flex items-center gap-2.5 min-w-0 ${collapsed ? 'lg:w-full lg:justify-center' : ''}`}
           >
-            <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg bg-bronze text-sm font-bold text-white">
-              A
+            {/* Dark sidebar: the mark sits on a light tile rather than being
+                recoloured — the ground the brand guidelines prefer. */}
+            <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg bg-white/95 p-1">
+              <img
+                src="/images/vyta-mark.png"
+                alt=""
+                aria-hidden="true"
+                className="h-full w-full object-contain"
+              />
             </span>
             <span className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-              <span className="block truncate text-sm font-bold leading-tight text-white">AMINOCAN</span>
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.15em] text-bronze-light">
+              <span className="block truncate text-sm font-bold leading-tight text-white">VYTA</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.15em] text-teal-light">
                 {roleLabel}
                 {userRole === 'assistant' && <span className="ml-1 normal-case text-amber-400">· Read Only</span>}
               </span>

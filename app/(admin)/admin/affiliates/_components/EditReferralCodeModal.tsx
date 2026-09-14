@@ -103,7 +103,7 @@ export default function EditReferralCodeModal({
             type="checkbox"
             checked={notify}
             onChange={(e) => setNotify(e.target.checked)}
-            className="mt-0.5 accent-bronze"
+            className="mt-0.5 accent-teal"
           />
           <span>
             Email {affiliateName} their new code

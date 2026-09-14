@@ -13,13 +13,13 @@
  * SERVER ONLY — sends through the shared SMTP transport (lib/smtp.ts).
  */
 import { sendMail, defaultFrom } from '@/lib/smtp';
-import { aminocanShell, escapeHtml } from '@/lib/email';
+import { vytaShell, escapeHtml } from '@/lib/email';
 import { formatAddressLines } from './puramass-address';
 import { formatSummaryMoney, type OrderSummary } from './puramass-order-summary';
 
-const BRONZE = '#9C8B5A';
-const INK = '#1A1A1A';
-const MUTED = '#6B7280';
+const ACCENT = '#438B9E';
+const INK = '#07203A';
+const MUTED = '#56707F';
 
 function firstName(name: string | null | undefined): string {
   const first = (name ?? '').trim().split(/\s+/)[0];
@@ -39,12 +39,12 @@ function itemRows(summary: OrderSummary): string {
             ? `$${(item.unit_price * item.quantity).toFixed(2)}`
             : '';
       return `<tr>
-        <td style="padding:10px 0; border-bottom:1px solid #E5E7EB; font-size:14px; color:${INK};">
+        <td style="padding:10px 0; border-bottom:1px solid #DCE7EB; font-size:14px; color:${INK};">
           ${escapeHtml(item.name)}
-          ${item.sku ? `<div style="font-size:11px; color:#9CA3AF; font-family:monospace;">${escapeHtml(item.sku)}</div>` : ''}
+          ${item.sku ? `<div style="font-size:11px; color:#6E8898; font-family:monospace;">${escapeHtml(item.sku)}</div>` : ''}
         </td>
-        <td style="padding:10px 0; border-bottom:1px solid #E5E7EB; font-size:14px; color:${MUTED}; text-align:center;">×${item.quantity}</td>
-        <td style="padding:10px 0; border-bottom:1px solid #E5E7EB; font-size:14px; color:${INK}; text-align:right; white-space:nowrap;">${price}</td>
+        <td style="padding:10px 0; border-bottom:1px solid #DCE7EB; font-size:14px; color:${MUTED}; text-align:center;">×${item.quantity}</td>
+        <td style="padding:10px 0; border-bottom:1px solid #DCE7EB; font-size:14px; color:${INK}; text-align:right; white-space:nowrap;">${price}</td>
       </tr>`;
     })
     .join('');
@@ -85,7 +85,7 @@ function referenceRows(summary: OrderSummary): string {
       cell(
         'Transaction',
         summary.transaction_link
-          ? `<a href="${escapeHtml(summary.transaction_link)}" style="color:${BRONZE}; text-decoration:underline;">${id}</a>`
+          ? `<a href="${escapeHtml(summary.transaction_link)}" style="color:${ACCENT}; text-decoration:underline;">${id}</a>`
           : id,
       ),
     );
@@ -115,7 +115,7 @@ export function buildMissingAddressEmailHtml(args: {
   const { summary, link, note } = args;
   const existing = formatAddressLines(summary.shipping_address);
 
-  return aminocanShell(`
+  return vytaShell(`
     <div style="padding: 32px 24px;">
       <h2 style="font-size:20px; font-weight:600; color:${INK}; margin:0 0 12px;">
         Hey ${escapeHtml(firstName(summary.customer_name))} — where should we send this?
@@ -131,7 +131,7 @@ export function buildMissingAddressEmailHtml(args: {
 
       ${
         note
-          ? `<div style="background:#FAF8F3; border-left:3px solid ${BRONZE}; padding:12px 16px; margin:0 0 24px;">
+          ? `<div style="background:#F1F8F9; border-left:3px solid ${ACCENT}; padding:12px 16px; margin:0 0 24px;">
                <p style="font-size:13px; line-height:1.6; color:${INK}; margin:0;">${escapeHtml(note)}</p>
              </div>`
           : ''
@@ -142,19 +142,19 @@ export function buildMissingAddressEmailHtml(args: {
            style="display:inline-block; padding:14px 32px; background:${INK}; color:#FFFFFF; text-decoration:none; border-radius:8px; font-size:15px; font-weight:600;">
           Add my shipping address
         </a>
-        <p style="font-size:11px; color:#9CA3AF; margin:12px 0 0;">
+        <p style="font-size:11px; color:#6E8898; margin:12px 0 0;">
           Takes about a minute. The link is private to your order.
         </p>
       </div>
 
-      <div style="background:#F7F7F7; border-radius:8px; padding:16px 18px; margin:0 0 24px;">
+      <div style="background:#F7FAFB; border-radius:8px; padding:16px 18px; margin:0 0 24px;">
         <p style="font-size:11px; color:${MUTED}; margin:0 0 10px; text-transform:uppercase; letter-spacing:0.06em;">Your order</p>
         <table style="width:100%; border-collapse:collapse; margin:0 0 12px;">
           <thead>
             <tr>
-              <th style="text-align:left; padding:6px 0; border-bottom:2px solid #E5E7EB; font-size:10px; color:${MUTED}; text-transform:uppercase; letter-spacing:0.05em;">Item</th>
-              <th style="text-align:center; padding:6px 0; border-bottom:2px solid #E5E7EB; font-size:10px; color:${MUTED}; text-transform:uppercase; letter-spacing:0.05em;">Qty</th>
-              <th style="text-align:right; padding:6px 0; border-bottom:2px solid #E5E7EB; font-size:10px; color:${MUTED}; text-transform:uppercase; letter-spacing:0.05em;">Amount</th>
+              <th style="text-align:left; padding:6px 0; border-bottom:2px solid #DCE7EB; font-size:10px; color:${MUTED}; text-transform:uppercase; letter-spacing:0.05em;">Item</th>
+              <th style="text-align:center; padding:6px 0; border-bottom:2px solid #DCE7EB; font-size:10px; color:${MUTED}; text-transform:uppercase; letter-spacing:0.05em;">Qty</th>
+              <th style="text-align:right; padding:6px 0; border-bottom:2px solid #DCE7EB; font-size:10px; color:${MUTED}; text-transform:uppercase; letter-spacing:0.05em;">Amount</th>
             </tr>
           </thead>
           <tbody>${itemRows(summary)}</tbody>

@@ -447,7 +447,7 @@ export default function InvoicesIndex() {
         onClick={() => openInvoice(inv.id)}
         onMouseEnter={(e) => showPreview(inv, e)}
         onMouseLeave={schedulePreviewHide}
-        className={`cursor-pointer hover:bg-surface transition-colors ${selected.has(inv.id) ? 'bg-bronze/5' : ''}`}
+        className={`cursor-pointer hover:bg-surface transition-colors ${selected.has(inv.id) ? 'bg-teal/5' : ''}`}
       >
         {canDeleteInvoices && (
           <td className="px-5 py-4" onClick={stopRowClick}>
@@ -456,7 +456,7 @@ export default function InvoicesIndex() {
               checked={selected.has(inv.id)}
               onChange={() => toggleOne(inv.id)}
               aria-label={`Select invoice ${inv.invoice_number}`}
-              className="w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40 cursor-pointer"
+              className="w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40 cursor-pointer"
             />
           </td>
         )}
@@ -466,7 +466,7 @@ export default function InvoicesIndex() {
           <Link
             href={`/admin/invoices/${inv.id}`}
             onClick={stopRowClick}
-            className="font-mono text-sm text-ink hover:text-bronze"
+            className="font-mono text-sm text-ink hover:text-teal-dark"
           >
             {inv.invoice_number}
           </Link>
@@ -540,7 +540,7 @@ export default function InvoicesIndex() {
                     onChange={(e) => updateFulfillment(inv.id, e.target.value as any)}
                     onClick={(e) => e.stopPropagation()}
                     disabled={fulfillmentSaving.has(inv.id) || !canDeleteInvoices}
-                    className="text-xs bg-surface border border-line rounded px-1.5 py-0.5 focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                    className="text-xs bg-surface border border-line rounded px-1.5 py-0.5 focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                     aria-label="Fulfillment status"
                   >
                     {options.map((o) => (
@@ -552,7 +552,7 @@ export default function InvoicesIndex() {
                   )}
                 </div>
                 {bulkBusy.has(inv.id) && (
-                  <span className="text-[10px] text-bronze inline-flex items-center gap-1">
+                  <span className="text-[10px] text-teal-dark inline-flex items-center gap-1">
                     <Loader2 className="w-2.5 h-2.5 animate-spin" />
                     {bulkBusy.get(inv.id)}
                   </span>
@@ -632,7 +632,7 @@ export default function InvoicesIndex() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
-            <FileText className="w-6 h-6 text-bronze" /> Invoices
+            <FileText className="w-6 h-6 text-teal-dark" /> Invoices
           </h1>
           <p className="text-sm text-ink-muted mt-1">{stats.count} invoice{stats.count !== 1 ? 's' : ''}</p>
         </div>
@@ -642,7 +642,7 @@ export default function InvoicesIndex() {
               onClick={() => setShowAging((v) => !v)}
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-colors ${
                 showAging
-                  ? 'bg-bronze/10 border border-bronze text-bronze'
+                  ? 'bg-teal/10 border border-teal text-teal-dark'
                   : 'bg-white border border-line text-ink-muted hover:text-ink hover:border-ink/20'
               }`}
             >
@@ -729,7 +729,7 @@ export default function InvoicesIndex() {
             placeholder="Search by invoice # or customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
         <div className="relative">
@@ -737,7 +737,7 @@ export default function InvoicesIndex() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="w-full sm:w-auto pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none"
+            className="w-full sm:w-auto pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
           >
             <option value="all">All Statuses</option>
             {INVOICE_STATUSES.map((s) => (
@@ -751,7 +751,7 @@ export default function InvoicesIndex() {
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value as any)}
             title="Where the invoice came from"
-            className="w-full sm:w-auto pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 appearance-none"
+            className="w-full sm:w-auto pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
           >
             <option value="all">All Sources</option>
             <option value="puramass">PuraMass orders</option>
@@ -762,7 +762,7 @@ export default function InvoicesIndex() {
 
       {/* Bulk actions */}
       {canDeleteInvoices && selected.size > 0 && (
-        <div className="flex items-center justify-between gap-3 mb-4 px-4 py-3 bg-bronze/5 border border-bronze/30 rounded-lg flex-wrap">
+        <div className="flex items-center justify-between gap-3 mb-4 px-4 py-3 bg-teal/5 border border-teal/30 rounded-lg flex-wrap">
           <span className="text-sm text-ink">
             {selected.size} invoice{selected.size !== 1 ? 's' : ''} selected
           </span>
@@ -831,7 +831,7 @@ export default function InvoicesIndex() {
                       checked={allVisibleSelected}
                       onChange={toggleAll}
                       aria-label="Select all invoices on this page"
-                      className="w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40 cursor-pointer"
+                      className="w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40 cursor-pointer"
                     />
                   </th>
                 )}
@@ -854,7 +854,7 @@ export default function InvoicesIndex() {
                       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                         <div className="flex items-baseline gap-2">
                           {group.relative && (
-                            <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-bronze/10 text-bronze">
+                            <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-teal/10 text-teal-dark">
                               {group.relative}
                             </span>
                           )}
@@ -991,7 +991,7 @@ export default function InvoicesIndex() {
               <button
                 onClick={bulkConfirm === 'shipments' ? runBulkShipments : runBulkLabels}
                 className={`flex-1 px-4 py-2 text-white rounded-lg text-sm font-medium ${
-                  bulkConfirm === 'shipments' ? 'bg-ink hover:bg-ink/90' : 'bg-bronze hover:bg-bronze/90'
+                  bulkConfirm === 'shipments' ? 'bg-ink hover:bg-ink/90' : 'bg-teal hover:bg-teal/90'
                 }`}
               >
                 {bulkConfirm === 'shipments' ? 'Create' : 'Buy labels'}
@@ -1098,7 +1098,7 @@ function InvoicePreviewCard({
         {invoice.amount_due > 0 && (
           <div className="flex justify-between">
             <span className="text-ink-muted">Amount due</span>
-            <span className="tabular-nums text-bronze">{formatMoney(invoice.amount_due, cur)}</span>
+            <span className="tabular-nums text-teal-dark">{formatMoney(invoice.amount_due, cur)}</span>
           </div>
         )}
         <div className="flex justify-between">
@@ -1117,7 +1117,7 @@ function InvoicePreviewCard({
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-line/60 text-xs font-medium text-bronze">
+      <div className="mt-3 pt-3 border-t border-line/60 text-xs font-medium text-teal-dark">
         Open invoice →
       </div>
     </div>
@@ -1156,7 +1156,7 @@ function TabButton({
       onClick={onClick}
       className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
         active
-          ? 'border-bronze text-bronze'
+          ? 'border-teal text-teal-dark'
           : 'border-transparent text-ink-muted hover:text-ink'
       }`}
     >
@@ -1172,10 +1172,10 @@ function StatCard({
     tone === 'danger'
       ? 'text-red-600'
       : highlight
-        ? 'text-bronze'
+        ? 'text-teal-dark'
         : 'text-ink';
   return (
-    <div className={`bg-white rounded-xl border ${highlight ? 'border-bronze/40' : 'border-line'} p-4`}>
+    <div className={`bg-white rounded-xl border ${highlight ? 'border-teal/40' : 'border-line'} p-4`}>
       <div className="text-xs font-semibold text-ink-muted uppercase tracking-wider">{label}</div>
       <div className={`mt-1 text-xl font-bold tabular-nums ${valueColor}`}>{value}</div>
     </div>

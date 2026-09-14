@@ -349,7 +349,7 @@ function InvoiceCell({ row }: { row: PuramassOrderRow }) {
     <div className="flex flex-col items-start gap-1">
       <Link
         href={`/admin/invoices/${inv.id}`}
-        className="inline-flex items-center gap-1 font-mono text-xs text-ink hover:text-bronze"
+        className="inline-flex items-center gap-1 font-mono text-xs text-ink hover:text-teal-dark"
       >
         <FileText className="h-3.5 w-3.5" />
         {inv.invoice_number}
@@ -433,7 +433,7 @@ function ColumnPicker({
             <button
               onClick={reset}
               disabled={isDefault}
-              className="text-xs font-medium text-bronze hover:text-bronze-dark disabled:text-ink-light"
+              className="text-xs font-medium text-teal-dark hover:text-teal-dark disabled:text-ink-light"
             >
               Reset
             </button>
@@ -920,7 +920,7 @@ export default function OrdersTab() {
               {row.recovery_promo_code && (
                 <div className="font-mono text-[11px] text-ink-muted">{row.recovery_promo_code}</div>
               )}
-              {offer && <div className="text-[11px] text-bronze">{offer}</div>}
+              {offer && <div className="text-[11px] text-teal-dark">{offer}</div>}
             </div>
           );
         },
@@ -957,7 +957,7 @@ export default function OrdersTab() {
                 href={row.payment_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-mono text-xs text-ink hover:text-bronze"
+                className="inline-flex items-center gap-1 font-mono text-xs text-ink hover:text-teal-dark"
               >
                 {row.transaction_id.slice(0, 12)}…
                 <ExternalLink className="h-3 w-3" />
@@ -980,7 +980,7 @@ export default function OrdersTab() {
           if (!row.referral_code) return <span className="text-ink-muted">—</span>;
           return (
             <div className="min-w-0">
-              <span className="font-mono text-xs font-semibold text-bronze">
+              <span className="font-mono text-xs font-semibold text-teal-dark">
                 {row.referral_code}
               </span>
               {row.affiliate ? (
@@ -1024,7 +1024,7 @@ export default function OrdersTab() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="mb-1 flex items-center gap-3">
-            <CreditCard className="h-5 w-5 text-bronze" />
+            <CreditCard className="h-5 w-5 text-teal-dark" />
             <h2 className="text-base font-semibold text-ink">Stealth Health Orders</h2>
           </div>
           <p className="max-w-2xl text-sm text-ink-muted">
@@ -1052,7 +1052,7 @@ export default function OrdersTab() {
                 ? 'Re-read every order from PuraMass'
                 : `Re-read every ${filterLabel.toLowerCase()} order from PuraMass — picks up statuses and shipping addresses`
             }
-            className="inline-flex items-center gap-1.5 rounded-lg bg-bronze px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-bronze-dark disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-teal-dark px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ocean disabled:opacity-50"
           >
             {syncing ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -1094,13 +1094,13 @@ export default function OrdersTab() {
               onClick={() => setStatus(t.key)}
               title={t.hint}
               className={`-mb-px inline-flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-medium transition ${
-                active ? 'border-bronze text-ink' : 'border-transparent text-ink-muted hover:text-ink'
+                active ? 'border-teal text-ink' : 'border-transparent text-ink-muted hover:text-ink'
               }`}
             >
               {t.label}
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[11px] ${
-                  active ? 'bg-bronze text-white' : 'bg-surface text-ink-muted'
+                  active ? 'bg-teal-dark text-white' : 'bg-surface text-ink-muted'
                 }`}
               >
                 {count}
@@ -1111,8 +1111,8 @@ export default function OrdersTab() {
       </div>
 
       {status === 'abandoned' && (
-        <div className="mb-4 flex flex-wrap items-start gap-2 rounded-xl border border-bronze/30 bg-bronze/5 px-4 py-3">
-          <ShoppingCart className="mt-0.5 h-4 w-4 flex-shrink-0 text-bronze" />
+        <div className="mb-4 flex flex-wrap items-start gap-2 rounded-xl border border-teal/30 bg-teal/5 px-4 py-3">
+          <ShoppingCart className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal-dark" />
           <p className="text-xs leading-relaxed text-ink">
             Carts started more than {abandonedHours === 1 ? 'an hour' : `${abandonedHours} hours`} ago
             that never reached payment. Their PuraMass checkout links are still live, so the cart
@@ -1139,7 +1139,7 @@ export default function OrdersTab() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search email, name, transaction or reference…"
-            className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-9 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-9 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
           {search && (
             <button
@@ -1157,7 +1157,7 @@ export default function OrdersTab() {
               setStatus('paid');
               setSearch('');
             }}
-            className="text-xs font-medium text-bronze hover:text-bronze-dark"
+            className="text-xs font-medium text-teal-dark hover:text-teal-dark"
           >
             Reset filters
           </button>
@@ -1166,7 +1166,7 @@ export default function OrdersTab() {
 
       {/* Bulk actions */}
       {selected.size > 0 && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-bronze/30 bg-bronze/5 px-4 py-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal/30 bg-teal/5 px-4 py-3">
           <span className="text-sm text-ink">
             {selected.size} order{selected.size !== 1 ? 's' : ''} selected
           </span>
@@ -1181,7 +1181,7 @@ export default function OrdersTab() {
               <button
                 onClick={() => setBulkRecoverTarget(chaseableRows)}
                 title={`Email ${chaseableBuyers} buyer${chaseableBuyers === 1 ? '' : 's'} their own cart and payment link — one separate email each`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-bronze/40 bg-white px-3 py-1.5 text-sm font-medium text-bronze hover:bg-bronze/5"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-teal/40 bg-white px-3 py-1.5 text-sm font-medium text-teal-dark hover:bg-teal/5"
               >
                 <ShoppingCart className="h-4 w-4" />
                 Chase {chaseableBuyers} cart{chaseableBuyers === 1 ? '' : 's'}
@@ -1225,7 +1225,7 @@ export default function OrdersTab() {
                     checked={allVisibleSelected}
                     onChange={toggleAll}
                     aria-label="Select all orders on this page"
-                    className="h-4 w-4 cursor-pointer rounded border-line text-bronze focus:ring-bronze/40"
+                    className="h-4 w-4 cursor-pointer rounded border-line text-teal-dark focus:ring-teal/40"
                   />
                 </th>
                 {shownColumns.map((c) => (
@@ -1264,7 +1264,7 @@ export default function OrdersTab() {
                 <tr
                   key={row.id}
                   className={`align-top transition-colors hover:bg-surface ${
-                    selected.has(row.id) ? 'bg-bronze/5' : ''
+                    selected.has(row.id) ? 'bg-teal/5' : ''
                   }`}
                 >
                   <td className="px-5 py-4">
@@ -1273,7 +1273,7 @@ export default function OrdersTab() {
                       checked={selected.has(row.id)}
                       onChange={() => toggleOne(row.id)}
                       aria-label={`Select order ${row.partner_reference}`}
-                      className="h-4 w-4 cursor-pointer rounded border-line text-bronze focus:ring-bronze/40"
+                      className="h-4 w-4 cursor-pointer rounded border-line text-teal-dark focus:ring-teal/40"
                     />
                   </td>
                   {shownColumns.map((c) => (
@@ -1302,7 +1302,7 @@ export default function OrdersTab() {
                           aria-label="Email this abandoned checkout back to the customer"
                           className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-surface transition-colors hover:border-ink/20 hover:text-ink ${
                             (row.recovery_email_count ?? 0) === 0
-                              ? 'border-bronze/40 text-bronze'
+                              ? 'border-teal/40 text-teal-dark'
                               : 'border-line text-ink-muted'
                           }`}
                         >
@@ -1319,7 +1319,7 @@ export default function OrdersTab() {
                         aria-label="Ask the customer for their shipping address"
                         className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-surface transition-colors hover:border-ink/20 hover:text-ink ${
                           !toShippingAddress(row.shipping_address) && !row.address_requested_at
-                            ? 'border-bronze/40 text-bronze'
+                            ? 'border-teal/40 text-teal-dark'
                             : 'border-line text-ink-muted'
                         }`}
                       >

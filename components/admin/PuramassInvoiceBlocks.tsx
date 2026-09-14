@@ -41,7 +41,7 @@ function timeAgo(iso: string): string {
 }
 
 /**
- * Where an invoice came from. PuraMass hand-offs get a bronze chip; anything
+ * Where an invoice came from. PuraMass hand-offs get a teal chip; anything
  * else was raised in this admin and says so, so the two are never confused.
  *
  * Keyed on `invoices.source` rather than on the loaded hand-off, so it is right
@@ -58,7 +58,7 @@ export function InvoiceSourceBadge({
   if (isPuramassInvoice({ source })) {
     return (
       <span
-        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-bronze/10 text-bronze align-middle"
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-teal/10 text-teal-dark align-middle"
         title="Placed through the Stealth Health (PuraMass) hosted checkout. Payment, taxes and the shipping address are collected by the partner and reported back to us."
       >
         <Store className="w-3 h-3" /> Stealth Health
@@ -202,7 +202,7 @@ export function PuramassShipToPanel({ puramass }: { puramass: PuramassInvoiceCon
     <div className="bg-white rounded-xl border border-line p-5">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-semibold text-ink text-sm flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-bronze" /> Ship To
+          <MapPin className="w-4 h-4 text-teal-dark" /> Ship To
         </h2>
         <span className="text-[10px] uppercase tracking-wider text-ink-muted">via PuraMass</span>
       </div>
@@ -229,10 +229,10 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
   const cur = puramass.currency === 'CAD' ? 'CAD' : 'USD';
 
   return (
-    <div className="bg-white rounded-xl border border-bronze/30 p-5">
+    <div className="bg-white rounded-xl border border-teal/30 p-5">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-semibold text-ink text-sm flex items-center gap-2">
-          <CreditCard className="w-4 h-4 text-bronze" /> PuraMass Order
+          <CreditCard className="w-4 h-4 text-teal-dark" /> PuraMass Order
         </h2>
         <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-semibold ${badge}`}>
           {label}
@@ -343,7 +343,7 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
             href={puramass.payment_link}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-bronze hover:text-bronze/80"
+            className="inline-flex items-center gap-1 text-xs text-teal-dark hover:text-teal-dark/80"
           >
             <ExternalLink className="w-3.5 h-3.5" /> PuraMass transaction
           </a>

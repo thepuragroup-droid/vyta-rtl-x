@@ -253,11 +253,11 @@ export default function ProductsPage() {
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="molecular-grid" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-                <circle cx="30" cy="30" r="1.5" fill="#1A1A1A" />
-                <circle cx="0" cy="0" r="1" fill="#1A1A1A" />
-                <circle cx="60" cy="0" r="1" fill="#1A1A1A" />
-                <circle cx="0" cy="60" r="1" fill="#1A1A1A" />
-                <circle cx="60" cy="60" r="1" fill="#1A1A1A" />
+                <circle cx="30" cy="30" r="1.5" fill="#07203A" />
+                <circle cx="0" cy="0" r="1" fill="#07203A" />
+                <circle cx="60" cy="0" r="1" fill="#07203A" />
+                <circle cx="0" cy="60" r="1" fill="#07203A" />
+                <circle cx="60" cy="60" r="1" fill="#07203A" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#molecular-grid)" />
@@ -270,9 +270,9 @@ export default function ProductsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-bronze/10 border border-bronze/20 rounded-full mb-4">
-              <Beaker className="w-3.5 h-3.5 text-bronze" />
-              <span className="text-xs font-medium text-bronze">Pharmaceutical Grade Quality</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal/10 border border-teal/20 rounded-full mb-4">
+              <Beaker className="w-3.5 h-3.5 text-teal-dark" />
+              <span className="text-xs font-medium text-teal-dark">Pharmaceutical Grade Quality</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight text-ink">
               Research Compound Catalog
@@ -329,7 +329,7 @@ export default function ProductsPage() {
                 placeholder="Search compounds..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-surface rounded-xl border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent text-ink placeholder-ink-muted text-sm"
+                className="w-full pl-11 pr-4 py-3 bg-surface rounded-xl border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent text-ink placeholder-ink-muted text-sm"
               />
             </div>
 
@@ -359,7 +359,7 @@ export default function ProductsPage() {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as 'name' | 'price-asc' | 'price-desc')}
                   aria-label="Sort compounds"
-                  className="appearance-none pl-8 pr-8 py-2 bg-surface rounded-lg border border-line text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 focus:border-transparent cursor-pointer"
+                  className="appearance-none pl-8 pr-8 py-2 bg-surface rounded-lg border border-line text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent cursor-pointer"
                 >
                   <option value="name">Name: A–Z</option>
                   <option value="price-asc">Price: Low to High</option>
@@ -437,7 +437,7 @@ export default function ProductsPage() {
                       )}
                       {/* Purity Badge */}
                       <div className="absolute top-3 left-3">
-                        <span className="text-[10px] font-semibold text-bronze bg-bronze-50 px-2 py-1 rounded-full border border-bronze/20">
+                        <span className="text-[10px] font-semibold text-teal-dark bg-teal-50 px-2 py-1 rounded-full border border-teal/20">
                           {product.purity}
                         </span>
                       </div>
@@ -515,7 +515,7 @@ export default function ProductsPage() {
           <div className="bg-ink rounded-2xl p-6 sm:p-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-bronze mb-1 tabular-nums">99%+</div>
+                <div className="text-2xl sm:text-3xl font-bold text-teal-light mb-1 tabular-nums">99%+</div>
                 <div className="text-xs sm:text-sm text-white/60">Verified Purity</div>
               </div>
               <div className="text-center">

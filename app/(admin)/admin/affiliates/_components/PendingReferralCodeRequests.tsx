@@ -70,13 +70,13 @@ export default function PendingReferralCodeRequests({
 
   return (
     <>
-      <div className="mb-6 overflow-hidden rounded-xl border border-bronze/30 bg-white">
+      <div className="mb-6 overflow-hidden rounded-xl border border-teal/30 bg-white">
         <div className="flex flex-wrap items-center gap-2 border-b border-line p-5">
-          <Tag className="h-4 w-4 text-bronze" />
+          <Tag className="h-4 w-4 text-teal-dark" />
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-ink">
             Referral code requests
           </h2>
-          <span className="ml-1 rounded-full bg-bronze/10 px-2 py-0.5 text-xs font-semibold text-bronze">
+          <span className="ml-1 rounded-full bg-teal/10 px-2 py-0.5 text-xs font-semibold text-teal-dark">
             {requests.length}
           </span>
           {canReview && (
@@ -85,7 +85,7 @@ export default function PendingReferralCodeRequests({
                 type="checkbox"
                 checked={notify}
                 onChange={(e) => setNotify(e.target.checked)}
-                className="accent-bronze"
+                className="accent-teal"
               />
               Email the affiliate on approve
             </label>

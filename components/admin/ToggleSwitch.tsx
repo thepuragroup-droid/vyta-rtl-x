@@ -45,11 +45,11 @@ export default function ToggleSwitch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
-        checked ? 'border-bronze/40 bg-bronze/5' : 'border-line bg-white hover:bg-surface'
+        checked ? 'border-teal/40 bg-teal/5' : 'border-line bg-white hover:bg-surface'
       } ${disabled ? 'cursor-not-allowed opacity-60' : ''} ${className}`}
     >
       {icon && (
-        <span className={`mt-0.5 flex-shrink-0 ${checked ? 'text-bronze' : 'text-ink-muted'}`}>
+        <span className={`mt-0.5 flex-shrink-0 ${checked ? 'text-teal-dark' : 'text-ink-muted'}`}>
           {icon}
         </span>
       )}
@@ -63,7 +63,7 @@ export default function ToggleSwitch({
       <span
         aria-hidden="true"
         className={`mt-0.5 inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full p-0.5 transition-colors ${
-          checked ? 'bg-bronze' : 'bg-line'
+          checked ? 'bg-teal' : 'bg-line'
         }`}
       >
         <span

@@ -170,7 +170,7 @@ export default function InventoryPage() {
               {valuation.total_units.toLocaleString()} units ·{' '}
               <button
                 onClick={() => setShowValuation(!showValuation)}
-                className="text-bronze hover:underline"
+                className="text-teal-dark hover:underline"
               >
                 ${valuation.total_value.toFixed(2)} total value
               </button>
@@ -279,7 +279,7 @@ export default function InventoryPage() {
             placeholder="Search by name, SKU, category..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
         <div className="flex gap-2">
@@ -365,7 +365,7 @@ export default function InventoryPage() {
                         </div>
                         <Link
                           href={`/admin/inventory/${p.id}`}
-                          className="font-medium text-ink hover:text-bronze transition-colors text-sm"
+                          className="font-medium text-ink hover:text-teal-dark transition-colors text-sm"
                         >
                           {p.name}
                         </Link>

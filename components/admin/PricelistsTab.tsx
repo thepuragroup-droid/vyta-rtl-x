@@ -74,7 +74,7 @@ export default function PricelistsTab() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
-            <Tag className="w-6 h-6 text-bronze" /> Pricelists
+            <Tag className="w-6 h-6 text-teal-dark" /> Pricelists
           </h1>
           <p className="text-sm text-ink-muted mt-1">
             The active pricelist sets default invoice line prices.
@@ -108,7 +108,7 @@ export default function PricelistsTab() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="e.g. Wholesale 2026"
-                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               />
             </div>
             <div>
@@ -116,7 +116,7 @@ export default function PricelistsTab() {
               <select
                 value={cloneFrom}
                 onChange={(e) => setCloneFrom(e.target.value)}
-                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
               >
                 <option value="">Catalog defaults</option>
                 {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -144,8 +144,8 @@ export default function PricelistsTab() {
               <div key={pl.id}>
                 <div className="flex items-center justify-between px-5 py-4 hover:bg-surface transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-bronze/10 flex items-center justify-center flex-shrink-0">
-                      <Tag className="w-4 h-4 text-bronze" />
+                    <div className="w-9 h-9 rounded-xl bg-teal/10 flex items-center justify-center flex-shrink-0">
+                      <Tag className="w-4 h-4 text-teal-dark" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ function PricelistEditor({
       <div className="flex flex-col sm:flex-row gap-3 mb-3">
         {mayWrite && editingName ? (
           <div className="flex items-center gap-2">
-            <input value={draftName} onChange={(e) => setDraftName(e.target.value)} className="px-3 py-1.5 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+            <input value={draftName} onChange={(e) => setDraftName(e.target.value)} className="px-3 py-1.5 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40" />
           </div>
         ) : mayWrite ? (
           <button onClick={() => { setEditingName(true); setDraftName(name); }} className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink">
@@ -263,7 +263,7 @@ function PricelistEditor({
         ) : null}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter products…" className="w-full pl-9 pr-3 py-1.5 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter products…" className="w-full pl-9 pr-3 py-1.5 bg-white border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40" />
         </div>
         {mayWrite && (
           <button onClick={save} disabled={saving || (dirty === 0 && !editingName)} className="px-4 py-1.5 bg-ink text-white rounded-lg text-xs font-medium hover:bg-ink/90 disabled:opacity-40 flex items-center gap-1.5">
@@ -298,7 +298,7 @@ function PricelistEditor({
                         value={priceOf(i)}
                         disabled={!mayWrite}
                         onChange={(e) => setEdited((p) => ({ ...p, [i.product_id]: Math.max(0, parseFloat(e.target.value) || 0) }))}
-                        className={`w-28 pl-5 pr-2 py-1 border rounded-lg text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-bronze/40 ${i.product_id in edited ? 'bg-bronze/5 border-bronze/40' : 'bg-surface border-line'}`}
+                        className={`w-28 pl-5 pr-2 py-1 border rounded-lg text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-teal/40 ${i.product_id in edited ? 'bg-teal/5 border-teal/40' : 'bg-surface border-line'}`}
                       />
                     </div>
                   </td>

@@ -91,39 +91,39 @@ export function renderStockReportEmailHtml(
 
   const tileRow = tiles.map((t) => `
         <td style="padding:6px;vertical-align:top;width:25%">
-          <div style="border:1px solid #E5E7EB;border-radius:10px;padding:14px">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#6E6E6E">${t.label}</div>
-            <div style="font-size:18px;font-weight:700;color:${t.danger ? '#B91C1C' : '#1A1A1A'};margin-top:4px">${t.value}</div>
-            <div style="font-size:11px;color:#6E6E6E;margin-top:2px">${t.meta}</div>
+          <div style="border:1px solid #DCE7EB;border-radius:10px;padding:14px">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#56707F">${t.label}</div>
+            <div style="font-size:18px;font-weight:700;color:${t.danger ? '#B91C1C' : '#07203A'};margin-top:4px">${t.value}</div>
+            <div style="font-size:11px;color:#56707F;margin-top:2px">${t.meta}</div>
           </div>
         </td>`).join('');
 
   return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1A1A1A">
+<html><body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#07203A">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;margin:0 auto;background:#ffffff">
-    <tr><td style="padding:28px 24px;text-align:center;border-bottom:2px solid #1A1A1A">
+    <tr><td style="padding:28px 24px;text-align:center;border-bottom:2px solid #07203A">
       <div style="font-size:24px;font-weight:700">PURAMASS</div>
-      <div style="font-size:11px;letter-spacing:0.15em;color:#9C8B5A;text-transform:uppercase;margin-top:4px">Stock Report</div>
+      <div style="font-size:11px;letter-spacing:0.15em;color:#438B9E;text-transform:uppercase;margin-top:4px">Stock Report</div>
     </td></tr>
-    <tr><td style="padding:20px 18px 0;text-align:center;font-size:13px;color:#6E6E6E">
+    <tr><td style="padding:20px 18px 0;text-align:center;font-size:13px;color:#56707F">
       Generated ${generated.toLocaleString()}
     </td></tr>
     <tr><td style="padding:12px 12px 0">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>${tileRow}</tr></table>
     </td></tr>
     <tr><td style="padding:18px 18px 0">
-      <div style="background:#F7F7F7;border:1px solid #E5E7EB;border-radius:10px;padding:16px;text-align:center;font-size:13px;color:#374151">
+      <div style="background:#F7FAFB;border:1px solid #DCE7EB;border-radius:10px;padding:16px;text-align:center;font-size:13px;color:#0E3F5F">
         📎 Full Stock Report attached<br />
         <strong>stock-report-${stamp}.pdf</strong> &nbsp;·&nbsp; <strong>stock-report-${stamp}.csv</strong>
       </div>
     </td></tr>
     <tr><td style="padding:22px 18px;text-align:center">
       <a href="${baseUrl}/admin/products"
-         style="display:inline-block;background:#1A1A1A;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600">
+         style="display:inline-block;background:#07203A;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600">
         Open Products in Admin
       </a>
     </td></tr>
-    <tr><td style="background:#F7F7F7;border-top:1px solid #E5E7EB;padding:16px;text-align:center;font-size:11px;color:#9CA3AF">
+    <tr><td style="background:#F7FAFB;border-top:1px solid #DCE7EB;padding:16px;text-align:center;font-size:11px;color:#6E8898">
       Automated Stock Report from PuraMass Admin
     </td></tr>
   </table>

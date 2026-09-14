@@ -928,7 +928,7 @@ export default function CellEditGrid({
         onKeyDown={handleGridKeyDown}
         onCopy={handleCopy}
         onPaste={handlePaste}
-        className="overflow-auto max-h-[70vh] outline-none focus:ring-2 focus:ring-inset focus:ring-bronze/30"
+        className="overflow-auto max-h-[70vh] outline-none focus:ring-2 focus:ring-inset focus:ring-teal/30"
       >
         {/* `table-fixed` + explicit widths keeps the frozen-pane pixel offsets
             exact. The last column is left auto so a wide screen absorbs the
@@ -960,7 +960,7 @@ export default function CellEditGrid({
                     key={col.key}
                     scope="col"
                     className={`sticky top-0 ${pinned ? 'z-30' : 'z-20'} border-b border-r border-line px-3 py-2 text-left align-bottom ${
-                      highlighted ? 'bg-bronze/15' : 'bg-surface-2'
+                      highlighted ? 'bg-teal/15' : 'bg-surface-2'
                     }`}
                     style={pinned ? { left: FROZEN_LEFT[ci] } : undefined}
                   >
@@ -995,12 +995,12 @@ export default function CellEditGrid({
                     onClick={() => selectCell(ri, 0)}
                     title={rowErrors[view.product.id] || `Row ${ri + 1}`}
                     className={`${frozen ? 'sticky z-10' : ''} border-b border-r border-line text-center align-middle cursor-pointer select-none text-[11px] tabular-nums ${
-                      rowSelected ? 'bg-bronze/15 text-ink font-semibold' : 'bg-surface-2 text-ink-muted font-normal'
+                      rowSelected ? 'bg-teal/15 text-ink font-semibold' : 'bg-surface-2 text-ink-muted font-normal'
                     }`}
                     style={frozen ? { left: 0 } : undefined}
                   >
                     {status === 'saving' ? (
-                      <div className="mx-auto animate-spin rounded-full h-3 w-3 border-b-2 border-bronze" />
+                      <div className="mx-auto animate-spin rounded-full h-3 w-3 border-b-2 border-teal" />
                     ) : status === 'saved' ? (
                       <Check className="w-3.5 h-3.5 mx-auto text-emerald-600" />
                     ) : status === 'error' ? (
@@ -1131,7 +1131,7 @@ function GridCell({
   const background = isDirty
     ? (isSelected && !isActive ? 'bg-amber-100' : 'bg-amber-50')
     : isSelected && !isActive
-      ? 'bg-bronze/10'
+      ? 'bg-teal/10'
       : 'bg-white';
 
   return (
@@ -1150,7 +1150,7 @@ function GridCell({
       className={`relative border-b border-r border-line px-3 py-2 h-9 align-middle ${
         pinned ? 'sticky' : ''
       } ${background} ${
-        isActive ? 'ring-2 ring-inset ring-bronze z-20' : pinned ? 'z-10' : ''
+        isActive ? 'ring-2 ring-inset ring-teal z-20' : pinned ? 'z-10' : ''
       } ${col.numeric ? 'text-right tabular-nums' : 'text-left'} ${
         editable ? 'cursor-cell' : 'cursor-default'
       } ${isSaving ? 'opacity-60' : ''} ${hasError && isDirty ? 'ring-1 ring-inset ring-red-400' : ''}`}
@@ -1174,7 +1174,7 @@ function GridCell({
             else e.currentTarget.select();
           }}
           onMouseDown={(e) => e.stopPropagation()}
-          className="absolute inset-0 w-full h-full px-3 bg-white text-right tabular-nums text-sm text-ink outline-none ring-2 ring-inset ring-bronze"
+          className="absolute inset-0 w-full h-full px-3 bg-white text-right tabular-nums text-sm text-ink outline-none ring-2 ring-inset ring-teal"
         />
       ) : (
         <>
@@ -1257,7 +1257,7 @@ function selectionSum(
 
 function HelpPanel() {
   return (
-    <div className="grid gap-6 md:grid-cols-2 px-4 py-4 border-b border-line bg-bronze-50/60 text-xs text-ink-muted">
+    <div className="grid gap-6 md:grid-cols-2 px-4 py-4 border-b border-line bg-teal-50/60 text-xs text-ink-muted">
       <div>
         <h3 className="text-[11px] font-semibold text-ink uppercase tracking-wider mb-2">
           How cases &amp; vials interact
@@ -1349,8 +1349,8 @@ function RestockDialog({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
       <div className="bg-white rounded-xl max-w-md w-full p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-lg bg-bronze/10 flex items-center justify-center">
-            <Bell className="w-4 h-4 text-bronze" />
+          <div className="w-9 h-9 rounded-lg bg-teal/10 flex items-center justify-center">
+            <Bell className="w-4 h-4 text-teal-dark" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-ink">Notify waitlists?</h2>

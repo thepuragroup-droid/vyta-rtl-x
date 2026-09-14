@@ -88,7 +88,7 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 bg-white rounded-xl border border-line p-5 space-y-5">
         <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
-          <Settings2 className="w-4 h-4 text-bronze" /> Settlement terms
+          <Settings2 className="w-4 h-4 text-teal-dark" /> Settlement terms
         </h3>
 
         <fieldset disabled={!isAdmin} className="space-y-5 disabled:opacity-60">
@@ -148,7 +148,7 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
               <label className="flex items-start gap-2 pb-2 cursor-pointer">
                 <input type="checkbox" checked={terms.shipping_remitted}
                   onChange={(e) => set('shipping_remitted', e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-line text-bronze" />
+                  className="mt-0.5 w-4 h-4 rounded border-line text-teal-dark" />
                 <span className="text-sm text-ink leading-snug">
                   Remitted to us
                   <span className="block text-[11px] text-ink-muted">
@@ -176,7 +176,7 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
         {isAdmin ? (
           <div className="flex items-center justify-end pt-2 border-t border-line">
             <button onClick={save} disabled={saving}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-50">
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save terms
             </button>
           </div>

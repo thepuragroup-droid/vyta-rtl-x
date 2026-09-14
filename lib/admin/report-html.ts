@@ -164,51 +164,51 @@ const REPORT_CSS = `
   * { box-sizing: border-box;
       -webkit-print-color-adjust: exact; color-adjust: exact; print-color-adjust: exact; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-         color: #1A1A1A; margin: 0; padding: 28px; background: #fff; }
+         color: #07203A; margin: 0; padding: 28px; background: #fff; }
   .wrap { max-width: 920px; margin: 0 auto; }
   h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: 0.02em; }
-  .sub { font-size: 12px; color: #6E6E6E; margin: 0 0 18px; }
-  .filters { background: #F7F7F7; border-radius: 8px; padding: 12px 16px; font-size: 12px; margin-bottom: 18px; }
-  .filters strong { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #6E6E6E; margin-right: 6px; }
-  .filters span { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #fff; border: 1px solid #E5E7EB; margin-right: 6px; }
+  .sub { font-size: 12px; color: #56707F; margin: 0 0 18px; }
+  .filters { background: #F7FAFB; border-radius: 8px; padding: 12px 16px; font-size: 12px; margin-bottom: 18px; }
+  .filters strong { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #56707F; margin-right: 6px; }
+  .filters span { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #fff; border: 1px solid #DCE7EB; margin-right: 6px; }
   .stats { display: grid; gap: 12px; margin-bottom: 22px; }
-  .stat { padding: 14px; border: 1px solid #E5E7EB; border-radius: 10px; }
-  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #6E6E6E; margin-bottom: 6px; }
+  .stat { padding: 14px; border: 1px solid #DCE7EB; border-radius: 10px; }
+  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #56707F; margin-bottom: 6px; }
   .stat .value { font-size: 18px; font-weight: 700; }
   .stat.pending .value { color: #B45309; }
   .stat.paid .value { color: #047857; }
   .stat.danger .value { color: #B91C1C; }
-  .stat .meta { font-size: 11px; color: #6E6E6E; margin-top: 2px; }
-  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #6E6E6E; margin: 24px 0 8px; }
+  .stat .meta { font-size: 11px; color: #56707F; margin-top: 2px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #56707F; margin: 24px 0 8px; }
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-  th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #6E6E6E; padding: 8px 6px; border-bottom: 1px solid #C9CCD1; }
-  td { padding: 7px 6px; border-bottom: 1px solid #F2F2F2; vertical-align: top; }
+  th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #56707F; padding: 8px 6px; border-bottom: 1px solid #DCE7EB; }
+  td { padding: 7px 6px; border-bottom: 1px solid #EDF3F5; vertical-align: top; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .muted { font-size: 10px; color: #6E6E6E; }
+  .muted { font-size: 10px; color: #56707F; }
   .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
-  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; background: #EEF2F7; color: #374151; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; background: #EDF3F5; color: #0E3F5F; }
   .pill.green, .pill.active, .pill.paid, .pill.delivered { background: #D1FAE5; color: #065F46; }
   .pill.amber, .pill.pending, .pill.processing { background: #FEF3C7; color: #92400E; }
   .pill.red, .pill.inactive, .pill.cancelled, .pill.out { background: #FEE2E2; color: #991B1B; }
-  .pill.blue, .pill.shipped, .pill.confirmed { background: #DBEAFE; color: #1E40AF; }
+  .pill.blue, .pill.shipped, .pill.confirmed { background: #E1EFF1; color: #0E3F5F; }
   .pill.purple, .pill.admin { background: #EDE9FE; color: #6D28D9; }
-  .empty { padding: 24px; text-align: center; color: #6E6E6E; font-size: 12px; }
-  .foot { margin-top: 32px; padding-top: 12px; border-top: 1px solid #C9CCD1; font-size: 10px; color: #6E6E6E; display: flex; justify-content: space-between; }
+  .empty { padding: 24px; text-align: center; color: #56707F; font-size: 12px; }
+  .foot { margin-top: 32px; padding-top: 12px; border-top: 1px solid #DCE7EB; font-size: 10px; color: #56707F; display: flex; justify-content: space-between; }
 
   /* ---- Branded PURAMASS layout (admin/products reports) ---- */
   body.branded .brandhead { margin-bottom: 18px; }
-  body.branded .brandname { font-size: 26px; font-weight: 800; letter-spacing: 0.16em; color: #9C8B5A; margin: 0 0 2px; }
-  body.branded h1 { font-size: 20px; font-weight: 700; color: #1A1A1A; margin: 0 0 10px; }
-  body.branded .goldrule { height: 3px; background: #9C8B5A; border-radius: 2px; margin: 0 0 12px; }
-  body.branded .reportmeta { display: flex; flex-wrap: wrap; gap: 5px 16px; font-size: 11.5px; color: #4B4B4B; }
+  body.branded .brandname { font-size: 26px; font-weight: 800; letter-spacing: 0.16em; color: #438B9E; margin: 0 0 2px; }
+  body.branded h1 { font-size: 20px; font-weight: 700; color: #07203A; margin: 0 0 10px; }
+  body.branded .goldrule { height: 3px; background: #438B9E; border-radius: 2px; margin: 0 0 12px; }
+  body.branded .reportmeta { display: flex; flex-wrap: wrap; gap: 5px 16px; font-size: 11.5px; color: #56707F; }
   body.branded .reportmeta span { white-space: nowrap; }
-  body.branded .reportmeta span + span { border-left: 1px solid #E5DCC7; padding-left: 16px; }
-  body.branded th { background: #1A1A1A; color: #FFFFFF; border-bottom: none; white-space: nowrap; }
-  body.branded td { white-space: nowrap; border-bottom: 1px solid #ECE4D2; }
-  body.branded tbody tr:nth-child(even) td { background: #F4EEDD; }
+  body.branded .reportmeta span + span { border-left: 1px solid #C4DFE3; padding-left: 16px; }
+  body.branded th { background: #07203A; color: #FFFFFF; border-bottom: none; white-space: nowrap; }
+  body.branded td { white-space: nowrap; border-bottom: 1px solid #E1EFF1; }
+  body.branded tbody tr:nth-child(even) td { background: #E1EFF1; }
   body.branded tbody tr:nth-child(odd) td { background: #FFFFFF; }
-  body.branded .foot { border-top: 2px solid #9C8B5A; color: #6E6E6E; }
-  body.branded .foot strong { color: #9C8B5A; letter-spacing: 0.06em; }
+  body.branded .foot { border-top: 2px solid #438B9E; color: #56707F; }
+  body.branded .foot strong { color: #438B9E; letter-spacing: 0.06em; }
   @media print { body { padding: 0; } }
   /*
     Last-ditch legibility net for engines too old to know \`print-color-adjust\`
@@ -217,7 +217,7 @@ const REPORT_CSS = `
   */
   @supports not ((-webkit-print-color-adjust: exact) or (print-color-adjust: exact)) {
     @media print {
-      body.branded th { background: transparent; color: #1A1A1A; border-bottom: 2px solid #9C8B5A; }
+      body.branded th { background: transparent; color: #07203A; border-bottom: 2px solid #438B9E; }
     }
   }
 `;
@@ -357,25 +357,25 @@ export function legacyReportShell(args: ReportShellArgs): string {
 <style>
   * { box-sizing: border-box;
       -webkit-print-color-adjust: exact; color-adjust: exact; print-color-adjust: exact; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1A1A1A; margin: 32px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #07203A; margin: 32px; }
   h1 { font-size: 22px; margin: 0 0 4px; }
-  .sub { color: #6B7280; font-size: 13px; margin: 0 0 20px; }
+  .sub { color: #56707F; font-size: 13px; margin: 0 0 20px; }
   .cards { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
-  .card { border: 1px solid #E5E7EB; border-radius: 10px; padding: 14px 18px; min-width: 140px; }
+  .card { border: 1px solid #DCE7EB; border-radius: 10px; padding: 14px 18px; min-width: 140px; }
   .card .n { font-size: 22px; font-weight: 700; }
-  .card .l { font-size: 12px; color: #6B7280; text-transform: uppercase; letter-spacing: .05em; }
+  .card .l { font-size: 12px; color: #56707F; text-transform: uppercase; letter-spacing: .05em; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; background: #F7F7F7; padding: 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #6B7280; border-bottom: 1px solid #E5E7EB; }
+  th { text-align: left; background: #F7FAFB; padding: 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #56707F; border-bottom: 1px solid #DCE7EB; }
   th.num { text-align: right; }
-  td { padding: 8px 10px; border-bottom: 1px solid #EEE; vertical-align: top; }
+  td { padding: 8px 10px; border-bottom: 1px solid #DCE7EB; vertical-align: top; }
   td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #6B7280; font-size: 12px; }
+  td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #56707F; font-size: 12px; }
   tr.overdue td { color: #DC2626; font-weight: 600; }
-  tr.muted td { color: #9CA3AF; }
-  .footer { margin-top: 20px; color: #6B7280; font-size: 12px; }
+  tr.muted td { color: #6E8898; }
+  .footer { margin-top: 20px; color: #56707F; font-size: 12px; }
   @media print { body { margin: 0; } .noprint { display: none; } }
   .noprint { margin-bottom: 16px; }
-  button { padding: 8px 16px; border: 1px solid #E5E7EB; border-radius: 8px; background: #1A1A1A; color: #fff; cursor: pointer; }
+  button { padding: 8px 16px; border: 1px solid #DCE7EB; border-radius: 8px; background: #07203A; color: #fff; cursor: pointer; }
 </style></head>
 <body>
   <div class="noprint"><button onclick="window.print()">Print</button></div>

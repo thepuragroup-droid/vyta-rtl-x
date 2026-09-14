@@ -45,11 +45,11 @@ function StatCard({
   icon: React.ElementType;
   label: string;
   value: string;
-  tone: 'blue' | 'bronze' | 'emerald';
+  tone: 'blue' | 'teal' | 'emerald';
 }) {
   const toneClasses = {
     blue: 'bg-blue-500/10 text-blue-500',
-    bronze: 'bg-bronze/10 text-bronze',
+    teal: 'bg-teal/10 text-teal-dark',
     emerald: 'bg-emerald-500/10 text-emerald-500',
   }[tone];
   return (
@@ -103,7 +103,7 @@ function OverviewTab() {
         ) : (
           <>
             <StatCard icon={Users} tone="blue" label="Your Customers" value={String(data.boundCustomers)} />
-            <StatCard icon={Clock} tone="bronze" label="Pending Earnings" value={`$${data.pendingEarnings.toFixed(2)}`} />
+            <StatCard icon={Clock} tone="teal" label="Pending Earnings" value={`$${data.pendingEarnings.toFixed(2)}`} />
             <StatCard icon={DollarSign} tone="emerald" label="Paid Earnings" value={`$${data.paidEarnings.toFixed(2)}`} />
           </>
         )}
@@ -165,7 +165,7 @@ function CommissionsTab() {
           </>
         ) : (
           <>
-            <StatCard icon={Clock} tone="bronze" label="Pending" value={`$${data.pending.toFixed(2)}`} />
+            <StatCard icon={Clock} tone="teal" label="Pending" value={`$${data.pending.toFixed(2)}`} />
             <StatCard icon={DollarSign} tone="emerald" label="Paid" value={`$${data.paid.toFixed(2)}`} />
             <StatCard icon={Receipt} tone="blue" label="Total" value={`$${data.total.toFixed(2)}`} />
           </>

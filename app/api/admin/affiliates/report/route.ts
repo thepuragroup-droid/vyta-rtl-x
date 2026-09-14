@@ -88,17 +88,17 @@ export async function GET(req: NextRequest) {
 <html lang="en"><head><meta charset="utf-8" />
 <title>Affiliate Report</title>
 <style>
-  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1A1A1A; margin: 0; padding: 32px; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #07203A; margin: 0; padding: 32px; }
   .page { max-width: 900px; margin: 0 auto; }
   h1 { font-size: 22px; margin: 0; }
-  .logo span { color: #b8860b; }
-  .meta { color: #6B7280; font-size: 13px; margin: 4px 0 24px; }
+  .logo span { color: #438b9e; }
+  .meta { color: #56707F; font-size: 13px; margin: 4px 0 24px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; text-transform: uppercase; font-size: 11px; color: #6B7280; border-bottom: 2px solid #E5E7EB; padding: 8px; }
-  td { padding: 10px 8px; border-bottom: 1px solid #F0F0F0; }
+  th { text-align: left; text-transform: uppercase; font-size: 11px; color: #56707F; border-bottom: 2px solid #DCE7EB; padding: 8px; }
+  td { padding: 10px 8px; border-bottom: 1px solid #EDF3F5; }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
   .mono { font-family: monospace; }
-  .muted { color: #9CA3AF; font-size: 11px; }
+  .muted { color: #6E8898; font-size: 11px; }
   .status { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
   .status.active { background: #ECFDF5; color: #059669; }
   .status.inactive { background: #FEF2F2; color: #DC2626; }
@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
   <div class="meta">Affiliate Report &bull; ${rows.length} affiliates &bull; ${fmtDate(new Date().toISOString())}</div>
   <table>
     <thead><tr><th>Affiliate</th><th>Referral Code</th><th class="num">Referrals</th><th class="num">Total Earned</th><th class="num">Pending</th><th>Status</th></tr></thead>
-    <tbody>${tableRows || '<tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:32px;">No affiliates match the filters</td></tr>'}</tbody>
+    <tbody>${tableRows || '<tr><td colspan="6" style="text-align:center;color:#6E8898;padding:32px;">No affiliates match the filters</td></tr>'}</tbody>
   </table>
 </div></body></html>`;
 

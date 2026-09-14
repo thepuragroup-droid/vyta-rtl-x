@@ -147,7 +147,7 @@ export default function EmailTemplatesPage() {
         {(['customer', 'admin'] as TemplateKind[]).map((k) => (
           <button key={k} onClick={() => setTab(k)}
             className={`pb-2 text-sm font-medium capitalize transition-colors ${
-              tab === k ? 'border-b-2 border-bronze text-ink' : 'text-ink-muted hover:text-ink'
+              tab === k ? 'border-b-2 border-teal text-ink' : 'text-ink-muted hover:text-ink'
             }`}>
             {k} email
           </button>
@@ -162,13 +162,13 @@ export default function EmailTemplatesPage() {
               <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">Subject</label>
               <input type="text" value={subject} disabled={isReadOnly}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50" />
+                className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50" />
             </div>
             <div>
               <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">Body</label>
               <textarea value={body} disabled={isReadOnly} rows={12}
                 onChange={(e) => setBody(e.target.value)}
-                className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-50" />
+                className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-50" />
             </div>
             {!isReadOnly && (
               <button onClick={resetActive}
@@ -185,7 +185,7 @@ export default function EmailTemplatesPage() {
               {MERGE_VARS.map((v) => (
                 <button key={v.token} onClick={() => insertToken(v.token)} disabled={isReadOnly}
                   title={v.description}
-                  className="px-2.5 py-1 rounded-md bg-bronze/10 text-bronze font-mono text-xs hover:bg-bronze/20 disabled:opacity-50">
+                  className="px-2.5 py-1 rounded-md bg-teal/10 text-teal-dark font-mono text-xs hover:bg-teal/20 disabled:opacity-50">
                   {`{{${v.token}}}`}
                 </button>
               ))}

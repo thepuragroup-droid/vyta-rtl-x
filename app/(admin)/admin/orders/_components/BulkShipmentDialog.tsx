@@ -50,8 +50,8 @@ export default function BulkShipmentDialog({
         {/* Header */}
         <div className="p-6 border-b border-line flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-bronze/10 rounded-lg flex items-center justify-center">
-              <Icon className="w-5 h-5 text-bronze" />
+            <div className="w-10 h-10 bg-teal/10 rounded-lg flex items-center justify-center">
+              <Icon className="w-5 h-5 text-teal-dark" />
             </div>
             <h2 className="text-lg font-bold text-ink">{title}</h2>
           </div>
@@ -143,7 +143,7 @@ export default function BulkShipmentDialog({
             type="button"
             onClick={onConfirm}
             disabled={!canProceed}
-            className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-bronze hover:bg-bronze/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-teal-dark hover:bg-teal/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLabel
               ? `Buy ${eligible.length} label${eligible.length !== 1 ? 's' : ''}`

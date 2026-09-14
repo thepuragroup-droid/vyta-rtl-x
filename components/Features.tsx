@@ -159,9 +159,9 @@ export default function Features() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-bronze/10 border border-bronze/20 rounded-full mb-4">
-                <ShieldCheck className="w-3.5 h-3.5 text-bronze" />
-                <span className="text-xs font-medium text-bronze">Quality Assurance</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal/10 border border-teal/20 rounded-full mb-4">
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-dark" />
+                <span className="text-xs font-medium text-teal-dark">Quality Assurance</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-ink mb-4">
                 Pharmaceutical-Grade Standards
@@ -203,7 +203,7 @@ export default function Features() {
             >
               <div className="grid grid-cols-2 gap-3 sm:gap-6">
                 <div className="text-center p-2 sm:p-4">
-                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-bronze mb-1 sm:mb-2 tabular-nums">99%+</div>
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-teal-light mb-1 sm:mb-2 tabular-nums">99%+</div>
                   <div className="text-xs sm:text-sm text-white/60">Purity Standard</div>
                 </div>
                 <div className="text-center p-2 sm:p-4">
@@ -224,7 +224,7 @@ export default function Features() {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-9 sm:w-10 h-9 sm:h-10 bg-white/10 rounded-lg flex items-center justify-center">
-                      <Truck className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+                      <Truck className="w-4 sm:w-5 h-4 sm:h-5 text-teal-light" />
                     </div>
                     <div>
                       <div className="text-sm font-medium text-white">Discreet Shipping</div>
@@ -233,7 +233,7 @@ export default function Features() {
                   </div>
                   <Link
                     href="/products"
-                    className="text-sm font-medium text-bronze hover:text-bronze-light transition-colors"
+                    className="text-sm font-medium text-teal-light hover:text-teal-light transition-colors"
                   >
                     View Products →
                   </Link>
@@ -248,8 +248,8 @@ export default function Features() {
       <section className="py-6 sm:py-8 bg-ink">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-center sm:text-left">
-            <div className="w-9 sm:w-10 h-9 sm:h-10 bg-bronze/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Beaker className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+            <div className="w-9 sm:w-10 h-9 sm:h-10 bg-teal/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Beaker className="w-4 sm:w-5 h-4 sm:h-5 text-teal-light" />
             </div>
             <p className="text-xs sm:text-sm text-white/60">
               <span className="font-medium text-white">For Research Purposes Only.</span>{' '}

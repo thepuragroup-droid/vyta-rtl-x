@@ -127,7 +127,7 @@ export default function AffiliateDashboard() {
             className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 sm:mb-8 md:mb-10"
           >
             <div>
-              <span className="text-[10px] sm:text-xs font-semibold text-bronze uppercase tracking-[0.2em] mb-2 sm:mb-3 block">
+              <span className="text-[10px] sm:text-xs font-semibold text-teal-dark uppercase tracking-[0.2em] mb-2 sm:mb-3 block">
                 Affiliate Dashboard
               </span>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-ink mb-1 sm:mb-2">
@@ -258,7 +258,7 @@ export default function AffiliateDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h2 className="text-base sm:text-lg font-bold text-ink flex items-center gap-2 mb-2">
-                    <Code className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+                    <Code className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
                     Your Referral Code
                   </h2>
                   <div className="inline-block bg-surface rounded-lg px-4 py-2 border border-line">
@@ -315,7 +315,7 @@ export default function AffiliateDashboard() {
           >
             <div className="p-4 sm:p-5 md:p-6 border-b border-line">
               <h2 className="text-base sm:text-lg font-bold text-ink flex items-center gap-2">
-                <Receipt className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+                <Receipt className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
                 Recent Commissions
               </h2>
             </div>

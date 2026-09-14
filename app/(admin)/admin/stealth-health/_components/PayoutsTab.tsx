@@ -79,7 +79,7 @@ export default function PayoutsTab({ isAdmin, currency, onChanged, migrated }: {
         </p>
         {isAdmin && (
           <button onClick={() => setRecording(true)} disabled={!migrated}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-50"
             title={migrated ? undefined : 'Run the settlement migration first'}>
             <Plus className="w-4 h-4" /> Record a payout
           </button>
@@ -213,7 +213,7 @@ function RecordPayoutDialog({ currency, onClose, onSaved }: {
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-line sticky top-0 bg-white">
           <h3 className="text-base font-bold text-ink flex items-center gap-2">
-            <Wallet className="w-4 h-4 text-bronze" /> Record a payout
+            <Wallet className="w-4 h-4 text-teal-dark" /> Record a payout
           </h3>
           <button onClick={onClose} className="text-ink-muted hover:text-ink"><X className="w-4 h-4" /></button>
         </div>
@@ -273,7 +273,7 @@ function RecordPayoutDialog({ currency, onClose, onSaved }: {
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-line sticky bottom-0 bg-white">
           <button onClick={onClose} className="px-4 py-2 text-sm text-ink-muted hover:text-ink">Cancel</button>
           <button onClick={submit} disabled={saving || cents <= 0}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-50">
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-50">
             {saving && <Loader2 className="w-4 h-4 animate-spin" />} Record payout
           </button>
         </div>

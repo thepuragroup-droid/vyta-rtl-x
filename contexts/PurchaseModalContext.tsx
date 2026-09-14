@@ -271,10 +271,10 @@ function PurchaseModal({
 
         {/* Content */}
         <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
-          {/* Header — strength as a bronze pill above a larger product name */}
+          {/* Header — strength as a teal pill above a larger product name */}
           <div className="pr-10">
             {product.strength && (
-              <span className="mb-2 inline-flex items-center rounded-full border border-bronze/20 bg-bronze-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-bronze">
+              <span className="mb-2 inline-flex items-center rounded-full border border-teal/20 bg-teal-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-teal-dark">
                 {product.strength}
               </span>
             )}

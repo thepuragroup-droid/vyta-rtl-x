@@ -283,7 +283,7 @@ export default function AdminAffiliates() {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="mb-1 flex items-center gap-2.5">
-            <Users className="h-6 w-6 text-bronze" />
+            <Users className="h-6 w-6 text-teal-dark" />
             <h1 className="text-xl font-bold text-ink">Affiliates</h1>
           </div>
           <p className="max-w-2xl text-sm text-ink-muted">
@@ -358,7 +358,7 @@ export default function AdminAffiliates() {
             placeholder="Search name, email or referral code…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-4 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full rounded-lg border border-line bg-white py-2.5 pl-10 pr-4 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
       </div>
@@ -556,7 +556,7 @@ function AffiliateTableRow({
         <span className="block text-sm font-semibold tabular-nums text-emerald-600">
           {fmtAmount(row.total_earnings)}
         </span>
-        <span className="mt-0.5 block text-xs tabular-nums text-bronze">
+        <span className="mt-0.5 block text-xs tabular-nums text-teal-dark">
           {row.pending_earnings > 0 ? `${fmtAmount(row.pending_earnings)} pending` : 'nothing pending'}
         </span>
       </td>
@@ -618,7 +618,7 @@ function AffiliateTableRow({
                 label={row.active ? 'Deactivate' : 'Activate'}
                 onClick={onToggleActive}
                 disabled={toggling}
-                tone={row.active ? 'warning' : 'bronze'}
+                tone={row.active ? 'warning' : 'teal'}
               >
                 {toggling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
               </IconAction>
@@ -671,7 +671,7 @@ function RowLink({
       }}
       tabIndex={0}
       role="link"
-      className="cursor-pointer transition-colors hover:bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-bronze/50"
+      className="cursor-pointer transition-colors hover:bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal/50"
     >
       {children}
     </tr>
@@ -774,15 +774,15 @@ function IconAction({
   onClick: () => void;
   children: React.ReactNode;
   disabled?: boolean;
-  tone?: 'neutral' | 'bronze' | 'warning' | 'danger';
+  tone?: 'neutral' | 'teal' | 'warning' | 'danger';
 }) {
   const toneCls =
     tone === 'danger'
       ? 'text-ink-muted hover:text-red-600 hover:bg-red-50'
       : tone === 'warning'
       ? 'text-ink-muted hover:text-amber-600 hover:bg-amber-50'
-      : tone === 'bronze'
-      ? 'text-ink-muted hover:text-bronze hover:bg-bronze/10'
+      : tone === 'teal'
+      ? 'text-ink-muted hover:text-teal-dark hover:bg-teal/10'
       : 'text-ink-muted hover:text-ink hover:bg-surface';
   return (
     <div className="relative group">

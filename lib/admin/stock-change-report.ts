@@ -314,8 +314,8 @@ export function stockChangeReportPrintHtml(
     `<h2>Stock movement (${data.totals.productsChanged})</h2>` +
     table(columns, rows, 'No stock changes in this date range.') +
     `<div class="filters" style="margin-top:22px">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#6E6E6E;margin-bottom:6px">How to read this report</div>
-      <div style="font-size:11.5px;line-height:1.55;color:#374151">${escapeHtml(MOVEMENT_NOTE)}</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#56707F;margin-bottom:6px">How to read this report</div>
+      <div style="font-size:11.5px;line-height:1.55;color:#0E3F5F">${escapeHtml(MOVEMENT_NOTE)}</div>
     </div>`;
 
   const meta = [

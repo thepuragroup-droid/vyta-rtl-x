@@ -217,7 +217,7 @@ export function GuideBody({ blocks }: { blocks: GuideBlock[] }) {
               <ul key={i} className="space-y-2">
                 {block.items.map((item, j) => (
                   <li key={j} className="flex gap-2.5 text-sm leading-relaxed text-ink-muted">
-                    <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-bronze" />
+                    <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-teal" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -228,7 +228,7 @@ export function GuideBody({ blocks }: { blocks: GuideBlock[] }) {
               <ol key={i} className="space-y-3">
                 {block.items.map((item, j) => (
                   <li key={j} className="flex gap-3 text-sm leading-relaxed text-ink">
-                    <span className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-bronze/10 text-xs font-bold text-bronze">
+                    <span className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-teal/10 text-xs font-bold text-teal-dark">
                       {j + 1}
                     </span>
                     <span className="pt-0.5 text-ink-muted">{item}</span>
@@ -242,7 +242,7 @@ export function GuideBody({ blocks }: { blocks: GuideBlock[] }) {
                 key={i}
                 className="flex gap-3 rounded-xl border border-line bg-surface px-4 py-3"
               >
-                <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-bronze" />
+                <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal-dark" />
                 <p className="text-sm leading-relaxed text-ink-muted">{block.text}</p>
               </div>
             );
@@ -258,7 +258,7 @@ export function GuideBody({ blocks }: { blocks: GuideBlock[] }) {
                           key={k}
                           className="flex gap-2.5 text-sm leading-relaxed text-ink-muted"
                         >
-                          <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-bronze" />
+                          <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-teal" />
                           <span>{point}</span>
                         </li>
                       ))}

@@ -275,7 +275,7 @@ export default function PriceListsView() {
             placeholder="Search price lists…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
           />
         </div>
 
@@ -311,7 +311,7 @@ export default function PriceListsView() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-6 h-6 animate-spin text-bronze" />
+          <Loader2 className="w-6 h-6 animate-spin text-teal-dark" />
         </div>
       ) : layout === 'table' ? (
         renderTable()
@@ -325,7 +325,7 @@ export default function PriceListsView() {
           <div className="bg-white rounded-xl w-full max-w-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-ink flex items-center gap-2">
-                <Users2 className="w-5 h-5 text-bronze" /> Apply price list
+                <Users2 className="w-5 h-5 text-teal-dark" /> Apply price list
               </h2>
               <button onClick={closeApply} className="text-ink-muted hover:text-ink">
                 <X className="w-5 h-5" />
@@ -421,7 +421,7 @@ export default function PriceListsView() {
                   <button
                     onClick={confirmApply}
                     disabled={applyBusy || applyCustomerIds.length !== 1}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-bronze text-white rounded-lg text-sm font-semibold hover:bg-bronze/90 disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-dark text-white rounded-lg text-sm font-semibold hover:bg-teal/90 disabled:opacity-50"
                   >
                     {applyBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users2 className="w-4 h-4" />}
                     Apply to customer
@@ -439,7 +439,7 @@ export default function PriceListsView() {
           <div className="bg-white rounded-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-ink flex items-center gap-2">
-                <ListChecks className="w-5 h-5 text-bronze" /> New Price List
+                <ListChecks className="w-5 h-5 text-teal-dark" /> New Price List
               </h2>
               <button onClick={() => setShowCreate(false)} className="text-ink-muted hover:text-ink">
                 <X className="w-5 h-5" />
@@ -454,7 +454,7 @@ export default function PriceListsView() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g. Wholesale 2026"
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div>
@@ -464,7 +464,7 @@ export default function PriceListsView() {
                   onChange={(e) => setNewDescription(e.target.value)}
                   rows={2}
                   placeholder="Optional — shown next to the list in admin views"
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div>
@@ -474,7 +474,7 @@ export default function PriceListsView() {
                 <select
                   value={newSource}
                   onChange={(e) => setNewSource(e.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 >
                   <option value="">Default product prices</option>
                   {lists.map((l) => (
@@ -533,7 +533,7 @@ export default function PriceListsView() {
               {filtered.map((l) => (
                 <tr key={l.id} className="hover:bg-surface">
                   <td className="px-5 py-4">
-                    <Link href={`/admin/pricing/list/${l.id}`} className="text-ink font-medium hover:text-bronze">
+                    <Link href={`/admin/pricing/list/${l.id}`} className="text-ink font-medium hover:text-teal-dark">
                       {l.name}
                     </Link>
                     {l.description && (
@@ -568,7 +568,7 @@ export default function PriceListsView() {
                       {canCreate && (
                         <button
                           onClick={() => openApply(l)}
-                          className="p-1.5 hover:bg-surface rounded-lg text-ink-muted hover:text-bronze"
+                          className="p-1.5 hover:bg-surface rounded-lg text-ink-muted hover:text-teal-dark"
                           title="Apply to a customer"
                         >
                           <Users2 className="w-4 h-4" />
@@ -605,10 +605,10 @@ export default function PriceListsView() {
   function renderDefaultRow(isTableRow: boolean) {
     if (isTableRow) {
       return (
-        <tr className="bg-bronze/5">
+        <tr className="bg-teal/5">
           <td className="px-5 py-4">
             <div className="inline-flex items-center gap-2 text-ink font-medium">
-              <Lock className="w-3.5 h-3.5 text-bronze" /> Default Prices
+              <Lock className="w-3.5 h-3.5 text-teal-dark" /> Default Prices
             </div>
             <div className="text-xs text-ink-muted">Products' base CAD price — always available</div>
           </td>
@@ -652,10 +652,10 @@ export default function PriceListsView() {
     return (
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
         {showDefault && (
-          <div className="bg-bronze/5 rounded-xl border border-bronze/30 p-5 flex flex-col">
+          <div className="bg-teal/5 rounded-xl border border-teal/30 p-5 flex flex-col">
             <div className="flex items-start justify-between mb-2">
               <div className="inline-flex items-center gap-2 text-ink font-semibold">
-                <Lock className="w-4 h-4 text-bronze" /> Default Prices
+                <Lock className="w-4 h-4 text-teal-dark" /> Default Prices
               </div>
               <StatusBadge active={!anyCustomActive} />
             </div>
@@ -667,7 +667,7 @@ export default function PriceListsView() {
               <StatBox icon={Calendar} label="Created" value="—" />
               <StatBox icon={User} label="By" value="System" />
             </div>
-            <div className="mt-auto pt-3 border-t border-bronze/20 flex items-center">
+            <div className="mt-auto pt-3 border-t border-teal/20 flex items-center">
               {anyCustomActive ? (
                 <button
                   onClick={useDefault}
@@ -680,7 +680,7 @@ export default function PriceListsView() {
               )}
               <Link
                 href="/admin/products"
-                className="ml-auto inline-flex items-center gap-1 text-xs text-bronze hover:underline"
+                className="ml-auto inline-flex items-center gap-1 text-xs text-teal-dark hover:underline"
               >
                 Open Products <ExternalLink className="w-3 h-3" />
               </Link>
@@ -697,7 +697,7 @@ export default function PriceListsView() {
             <div className="flex items-start justify-between mb-2">
               <Link
                 href={`/admin/pricing/list/${l.id}`}
-                className="text-ink font-semibold hover:text-bronze truncate"
+                className="text-ink font-semibold hover:text-teal-dark truncate"
               >
                 {l.name}
               </Link>
@@ -734,7 +734,7 @@ export default function PriceListsView() {
               {canCreate && (
                 <button
                   onClick={() => openApply(l)}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-ink-muted hover:text-bronze hover:bg-bronze/5"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-ink-muted hover:text-teal-dark hover:bg-teal/5"
                   title="Apply to a customer"
                 >
                   <Users2 className="w-3 h-3" /> Apply
@@ -742,7 +742,7 @@ export default function PriceListsView() {
               )}
               <Link
                 href={`/admin/pricing/list/${l.id}`}
-                className="ml-auto inline-flex items-center gap-1 text-xs text-bronze hover:underline"
+                className="ml-auto inline-flex items-center gap-1 text-xs text-teal-dark hover:underline"
               >
                 Open <ArrowRight className="w-3 h-3" />
               </Link>

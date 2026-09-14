@@ -27,12 +27,12 @@ export default function GuideDetailPage() {
 
       <div className="rounded-2xl border border-line bg-white p-6 sm:p-8">
         <div className="mb-6 flex items-start gap-4 border-b border-line pb-6">
-          <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-bronze/10">
-            <Icon className="h-6 w-6 text-bronze" />
+          <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-teal/10">
+            <Icon className="h-6 w-6 text-teal-dark" />
           </div>
           <div className="min-w-0">
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-bronze">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-teal-dark">
                 {guide.category}
               </span>
               <span className="inline-flex items-center gap-1 text-xs text-ink-light">
@@ -58,13 +58,13 @@ export default function GuideDetailPage() {
                 <Link
                   key={g.slug}
                   href={`/admin/guides/${g.slug}`}
-                  className="group flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition-colors hover:border-bronze/40"
+                  className="group flex items-center gap-3 rounded-xl border border-line bg-white p-4 transition-colors hover:border-teal/40"
                 >
-                  <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg bg-bronze/10">
-                    <RIcon className="h-4 w-4 text-bronze" />
+                  <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg bg-teal/10">
+                    <RIcon className="h-4 w-4 text-teal-dark" />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-ink group-hover:text-bronze">
+                    <p className="truncate text-sm font-semibold text-ink group-hover:text-teal-dark">
                       {g.title}
                     </p>
                     <p className="truncate text-xs text-ink-muted">{g.summary}</p>

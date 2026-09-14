@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogOut, Warehouse, KeyRound, X } from 'lucide-react';
+import { LogOut, KeyRound, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api-fetch';
 import { canAccessWarehouse, type UserRole } from '@/lib/permissions';
@@ -96,7 +96,7 @@ export default function WarehouseLayout({
         <p className="text-ink-muted">Sign in to access the warehouse portal.</p>
         <Link
           href="/login?redirect=/warehouse"
-          className="px-6 py-2 rounded-md bg-bronze text-white text-sm font-medium hover:bg-bronze-dark"
+          className="px-6 py-2 rounded-md bg-teal-dark text-white text-sm font-medium hover:bg-ocean"
         >
           Sign in
         </Link>
@@ -125,8 +125,13 @@ export default function WarehouseLayout({
         <header className="border-b border-line bg-white">
           <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Warehouse className="w-5 h-5 text-bronze" />
-              <h1 className="font-semibold tracking-wide">AMINOCAN — Fulfillment</h1>
+              <img
+                src="/images/vyta-mark.png"
+                alt=""
+                aria-hidden="true"
+                className="h-7 w-7 object-contain"
+              />
+              <h1 className="font-display font-semibold tracking-wide">VYTA — Fulfillment</h1>
               <span className="text-xs text-ink-muted ml-2 hidden md:inline">
                 Signed in as {viewer.displayName} · {viewer.role}
               </span>
@@ -135,7 +140,7 @@ export default function WarehouseLayout({
               {viewer.role === 'admin' && (
                 <Link
                   href="/admin"
-                  className="text-sm text-bronze hover:underline"
+                  className="text-sm text-teal-dark hover:underline"
                 >
                   Back to admin
                 </Link>
@@ -171,7 +176,7 @@ export default function WarehouseLayout({
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-ink flex items-center gap-2">
-                  <KeyRound className="w-4 h-4 text-bronze" /> Change Password
+                  <KeyRound className="w-4 h-4 text-teal-dark" /> Change Password
                 </h2>
                 <button
                   onClick={() => setShowPassword(false)}

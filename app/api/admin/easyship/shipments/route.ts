@@ -18,7 +18,7 @@ async function verifyAdmin(req: NextRequest) {
 }
 
 const ORIGIN = {
-  name: process.env.EASYSHIP_ORIGIN_NAME ?? 'Aminocan Fulfillment',
+  name: process.env.EASYSHIP_ORIGIN_NAME ?? 'VYTA Fulfillment',
   address: process.env.EASYSHIP_ORIGIN_ADDRESS ?? '',
   city: process.env.EASYSHIP_ORIGIN_CITY ?? '',
   postal_code: process.env.EASYSHIP_ORIGIN_POSTAL ?? '',

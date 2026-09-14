@@ -98,7 +98,7 @@ export const ORDER_STATUS_META: Record<OrderStatusBucket, OrderStatusMeta> = {
   other: {
     label: 'Other',
     description: 'A status none of the buckets above claim — usually a lifecycle state added later.',
-    color: '#2a78d6',
+    color: '#1b5d83',
   },
 };
 

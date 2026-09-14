@@ -34,7 +34,7 @@ import { useUserRole } from '../layout';
 
 const INPUT =
   'px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink ' +
-  'placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-bronze/40 ' +
+  'placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 ' +
   'disabled:opacity-50';
 
 async function authHeaders(): Promise<Record<string, string>> {
@@ -172,8 +172,8 @@ export default function PromosPage() {
     <div className="max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-bronze/10">
-          <Sparkles className="h-5 w-5 text-bronze" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal/10">
+          <Sparkles className="h-5 w-5 text-teal-dark" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-ink sm:text-3xl">Promotions</h1>
@@ -186,7 +186,7 @@ export default function PromosPage() {
       {/* Free shipping */}
       <div className="rounded-xl border border-line bg-white p-5">
         <div className="mb-1 flex items-center gap-2">
-          <Truck className="h-4 w-4 text-bronze" />
+          <Truck className="h-4 w-4 text-teal-dark" />
           <h2 className="font-semibold text-ink">Free shipping over a spend</h2>
         </div>
         <p className="mb-4 text-xs text-ink-muted">
@@ -220,15 +220,15 @@ export default function PromosPage() {
             onClick={() => toggle(true)}
             disabled={locked}
             className={`relative rounded-lg border p-4 text-left transition-colors disabled:opacity-50 ${
-              enabled ? 'border-bronze bg-bronze/5' : 'border-line bg-surface hover:border-bronze/40'
+              enabled ? 'border-teal bg-teal/5' : 'border-line bg-surface hover:border-teal/40'
             }`}
           >
             {enabled && (
-              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-bronze">
+              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-teal">
                 <Check className="h-3 w-3 text-white" />
               </div>
             )}
-            <div className={`mb-2 ${enabled ? 'text-bronze' : 'text-ink-muted'}`}>
+            <div className={`mb-2 ${enabled ? 'text-teal-dark' : 'text-ink-muted'}`}>
               <ToggleRight className="h-5 w-5" />
             </div>
             <p className="text-sm font-medium text-ink">Running</p>
@@ -242,15 +242,15 @@ export default function PromosPage() {
             onClick={() => toggle(false)}
             disabled={locked}
             className={`relative rounded-lg border p-4 text-left transition-colors disabled:opacity-50 ${
-              !enabled ? 'border-bronze bg-bronze/5' : 'border-line bg-surface hover:border-bronze/40'
+              !enabled ? 'border-teal bg-teal/5' : 'border-line bg-surface hover:border-teal/40'
             }`}
           >
             {!enabled && (
-              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-bronze">
+              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-teal">
                 <Check className="h-3 w-3 text-white" />
               </div>
             )}
-            <div className={`mb-2 ${!enabled ? 'text-bronze' : 'text-ink-muted'}`}>
+            <div className={`mb-2 ${!enabled ? 'text-teal-dark' : 'text-ink-muted'}`}>
               <ToggleLeft className="h-5 w-5" />
             </div>
             <p className="text-sm font-medium text-ink">Off</p>
@@ -283,7 +283,7 @@ export default function PromosPage() {
               type="button"
               onClick={saveThreshold}
               disabled={locked || saving}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-bronze/40 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-teal/40 disabled:opacity-50"
             >
               <Check className="h-4 w-4" /> Save threshold
             </button>
@@ -307,7 +307,7 @@ export default function PromosPage() {
       {/* Paid-ads welcome discount */}
       <div className="rounded-xl border border-line bg-white p-5">
         <div className="mb-1 flex items-center gap-2">
-          <Megaphone className="h-4 w-4 text-bronze" />
+          <Megaphone className="h-4 w-4 text-teal-dark" />
           <h2 className="font-semibold text-ink">Paid-ads welcome discount</h2>
         </div>
         <p className="mb-4 text-xs text-ink-muted">
@@ -343,15 +343,15 @@ export default function PromosPage() {
             onClick={() => toggleAd(true)}
             disabled={adLocked}
             className={`relative rounded-lg border p-4 text-left transition-colors disabled:opacity-50 ${
-              adEnabled ? 'border-bronze bg-bronze/5' : 'border-line bg-surface hover:border-bronze/40'
+              adEnabled ? 'border-teal bg-teal/5' : 'border-line bg-surface hover:border-teal/40'
             }`}
           >
             {adEnabled && (
-              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-bronze">
+              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-teal">
                 <Check className="h-3 w-3 text-white" />
               </div>
             )}
-            <div className={`mb-2 ${adEnabled ? 'text-bronze' : 'text-ink-muted'}`}>
+            <div className={`mb-2 ${adEnabled ? 'text-teal-dark' : 'text-ink-muted'}`}>
               <ToggleRight className="h-5 w-5" />
             </div>
             <p className="text-sm font-medium text-ink">Running</p>
@@ -365,15 +365,15 @@ export default function PromosPage() {
             onClick={() => toggleAd(false)}
             disabled={adLocked}
             className={`relative rounded-lg border p-4 text-left transition-colors disabled:opacity-50 ${
-              !adEnabled ? 'border-bronze bg-bronze/5' : 'border-line bg-surface hover:border-bronze/40'
+              !adEnabled ? 'border-teal bg-teal/5' : 'border-line bg-surface hover:border-teal/40'
             }`}
           >
             {!adEnabled && (
-              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-bronze">
+              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-teal">
                 <Check className="h-3 w-3 text-white" />
               </div>
             )}
-            <div className={`mb-2 ${!adEnabled ? 'text-bronze' : 'text-ink-muted'}`}>
+            <div className={`mb-2 ${!adEnabled ? 'text-teal-dark' : 'text-ink-muted'}`}>
               <ToggleLeft className="h-5 w-5" />
             </div>
             <p className="text-sm font-medium text-ink">Off</p>
@@ -407,7 +407,7 @@ export default function PromosPage() {
               type="button"
               onClick={savePercent}
               disabled={adLocked || saving}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-bronze/40 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink hover:border-teal/40 disabled:opacity-50"
             >
               <Check className="h-4 w-4" /> Save discount
             </button>

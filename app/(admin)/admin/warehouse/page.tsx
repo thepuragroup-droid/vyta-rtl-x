@@ -131,7 +131,7 @@ export default function AdminWarehousePage() {
                       No warehouse accounts yet.{' '}
                       <button
                         onClick={() => setShowCreate(true)}
-                        className="text-bronze hover:underline"
+                        className="text-teal-dark hover:underline"
                       >
                         Create one
                       </button>
@@ -184,7 +184,7 @@ export default function AdminWarehousePage() {
 
           <section className="rounded-lg border border-line bg-white">
             <header className="px-5 py-3 border-b border-line flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-bronze" />
+              <ShieldCheck className="w-4 h-4 text-teal-dark" />
               <h2 className="font-semibold text-ink">Performance</h2>
             </header>
             <table className="w-full text-sm">

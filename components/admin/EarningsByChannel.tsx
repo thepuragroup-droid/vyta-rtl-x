@@ -161,7 +161,7 @@ export default function EarningsByChannel({
           {variant === 'compact' && (
             <Link
               href="/admin/analytics"
-              className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-bronze hover:text-bronze/80"
+              className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-teal-dark hover:text-teal-dark/80"
             >
               Full breakdown <ArrowRight className="w-3 h-3" aria-hidden />
             </Link>
@@ -203,8 +203,8 @@ export default function EarningsByChannel({
 function Header({ hasRange, compact }: { hasRange: boolean; compact?: boolean }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <div className="w-7 h-7 rounded-lg bg-bronze/10 flex items-center justify-center shrink-0">
-        <Wallet className="w-3.5 h-3.5 text-bronze" aria-hidden />
+      <div className="w-7 h-7 rounded-lg bg-teal/10 flex items-center justify-center shrink-0">
+        <Wallet className="w-3.5 h-3.5 text-teal-dark" aria-hidden />
       </div>
       <div className="min-w-0">
         <h3 className={`flex items-center gap-1.5 font-bold text-ink ${compact ? 'text-sm' : 'text-base'}`}>

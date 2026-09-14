@@ -149,7 +149,7 @@ export default function InventoryDetailPage() {
     return (
       <div className="text-center py-20">
         <p className="text-ink-muted mb-4">Product not found</p>
-        <Link href="/admin/inventory" className="text-bronze hover:text-bronze/80 text-sm">Back to Inventory</Link>
+        <Link href="/admin/inventory" className="text-teal-dark hover:text-teal-dark/80 text-sm">Back to Inventory</Link>
       </div>
     );
   }
@@ -199,7 +199,7 @@ export default function InventoryDetailPage() {
                           [key]: type === 'number' ? (e.target.value ? parseFloat(e.target.value) : null) : e.target.value,
                         } : p)
                       }
-                      className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                      className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                     />
                   </div>
                 ))}
@@ -232,7 +232,7 @@ export default function InventoryDetailPage() {
               {editable && (
                 <button
                   onClick={() => { setIsNewVariant(true); setEditVariant({ product_id: id, qty_on_hand: 0, reorder_threshold: 5 }); }}
-                  className="text-xs text-bronze hover:text-bronze/80 flex items-center gap-1"
+                  className="text-xs text-teal-dark hover:text-teal-dark/80 flex items-center gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add Variant
                 </button>
@@ -344,7 +344,7 @@ export default function InventoryDetailPage() {
                         [key]: type === 'number' ? parseInt(e.target.value, 10) || 0 : e.target.value,
                       } : v)
                     }
-                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                    className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
                   />
                 </div>
               ))}
@@ -384,7 +384,7 @@ export default function InventoryDetailPage() {
                   value={adjustQty}
                   onChange={(e) => setAdjustQty(e.target.value)}
                   placeholder="e.g. 10 or -5"
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
               <div>
@@ -392,7 +392,7 @@ export default function InventoryDetailPage() {
                 <select
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value as InventoryLog['reason'])}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 >
                   <option value="adjustment">Adjustment</option>
                   <option value="restock">Restock</option>
@@ -406,7 +406,7 @@ export default function InventoryDetailPage() {
                   type="text"
                   value={adjustNote}
                   onChange={(e) => setAdjustNote(e.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-bronze/40"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 />
               </div>
             </div>

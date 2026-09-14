@@ -45,7 +45,7 @@ export function defaultFrom(): string {
     process.env.SMTP_FROM ||
     process.env.SMTP_USER ||
     process.env.EMAIL_FROM ||
-    'Aminocan <noreply@aminocan.com>'
+    'VYTA <noreply@aminocan.com>'
   );
 }
 

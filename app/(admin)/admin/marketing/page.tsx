@@ -83,7 +83,7 @@ export default function MarketingManagementPage() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-ink flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-bronze" />
+            <Megaphone className="w-6 h-6 text-teal-dark" />
             Branding &amp; Tracking
           </h1>
           <p className="text-ink-muted text-sm mt-1">
@@ -133,7 +133,7 @@ export default function MarketingManagementPage() {
           {/* Store branding */}
           <section className="bg-white rounded-xl border border-line p-5 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
-              <ImageIcon className="w-5 h-5 text-bronze" />
+              <ImageIcon className="w-5 h-5 text-teal-dark" />
               <h2 className="text-base font-bold text-ink">Store branding</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -144,7 +144,7 @@ export default function MarketingManagementPage() {
                   value={form.store_name}
                   disabled={!canManage}
                   onChange={(e) => set('store_name', e.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                 />
               </div>
               <div>
@@ -154,7 +154,7 @@ export default function MarketingManagementPage() {
                   value={form.store_tagline}
                   disabled={!canManage}
                   onChange={(e) => set('store_tagline', e.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                 />
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function MarketingManagementPage() {
           {/* Tracking & consent */}
           <section className="bg-white rounded-xl border border-line p-5 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="w-5 h-5 text-bronze" />
+              <BarChart3 className="w-5 h-5 text-teal-dark" />
               <h2 className="text-base font-bold text-ink">Tracking &amp; consent</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
@@ -193,7 +193,7 @@ export default function MarketingManagementPage() {
                   disabled={!canManage}
                   placeholder="GTM-XXXXXXX"
                   onChange={(e) => set('gtm_container_id', e.target.value || null)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                 />
                 <p className="text-xs text-ink-muted mt-1.5">
                   Loads the container for Ads / remarketing tags. GA4 below runs
@@ -209,7 +209,7 @@ export default function MarketingManagementPage() {
                   disabled={!canManage}
                   placeholder="G-XXXXXXXXXX"
                   onChange={(e) => set('ga4_measurement_id', e.target.value || null)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                 />
               </div>
               <div>
@@ -220,7 +220,7 @@ export default function MarketingManagementPage() {
                   disabled={!canManage}
                   placeholder="000000000000000"
                   onChange={(e) => set('meta_pixel_id', e.target.value || null)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink font-mono focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
                 />
               </div>
             </div>
@@ -230,7 +230,7 @@ export default function MarketingManagementPage() {
                 checked={form.tracking_consent_required}
                 disabled={!canManage}
                 onChange={(e) => set('tracking_consent_required', e.target.checked)}
-                className="mt-0.5 w-4 h-4 text-bronze border-line rounded focus:ring-bronze/40"
+                className="mt-0.5 w-4 h-4 text-teal-dark border-line rounded focus:ring-teal/40"
               />
               <span>
                 <span className="flex items-center gap-1.5 text-sm font-medium text-ink">
@@ -303,7 +303,7 @@ function ImageField({
           disabled={disabled}
           placeholder="https://…"
           onChange={(e) => onChange(e.target.value || null)}
-          className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-bronze/40 disabled:opacity-60"
+          className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
         />
         {!disabled && (
           <>

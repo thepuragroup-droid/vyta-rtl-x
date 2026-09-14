@@ -76,7 +76,7 @@ export default function ReferralCodePage() {
             <div className="w-12 sm:w-14 h-12 sm:h-14 bg-ink rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <Beaker className="w-6 sm:w-7 h-6 sm:h-7 text-white" />
             </div>
-            <span className="text-[10px] sm:text-xs font-semibold text-bronze uppercase tracking-[0.2em] mb-2 sm:mb-3 block">
+            <span className="text-[10px] sm:text-xs font-semibold text-teal-dark uppercase tracking-[0.2em] mb-2 sm:mb-3 block">
               Your Referral Code
             </span>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-ink mb-2 sm:mb-3">
@@ -168,7 +168,7 @@ export default function ReferralCodePage() {
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg sm:text-2xl font-bold text-bronze mb-0.5 sm:mb-1"></div>
+                    <div className="text-lg sm:text-2xl font-bold text-teal-dark mb-0.5 sm:mb-1"></div>
                     <p className="text-[10px] sm:text-xs text-ink-muted">
                       Commission Rate
                     </p>
@@ -196,14 +196,14 @@ export default function ReferralCodePage() {
                 className="bg-white rounded-xl p-5 sm:p-6 md:p-8 border border-line"
               >
                 <h2 className="text-base sm:text-lg font-bold text-ink mb-4 sm:mb-6 flex items-center gap-2">
-                  <Share2 className="w-4 sm:w-5 h-4 sm:h-5 text-bronze" />
+                  <Share2 className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
                   How to Share Your Code
                 </h2>
 
                 <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
                   <div className="text-center">
-                    <div className="w-10 sm:w-12 h-10 sm:h-12 bg-bronze/10 rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                      <span className="text-base sm:text-lg font-bold text-bronze">
+                    <div className="w-10 sm:w-12 h-10 sm:h-12 bg-teal/10 rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <span className="text-base sm:text-lg font-bold text-teal-dark">
                         1
                       </span>
                     </div>
@@ -216,8 +216,8 @@ export default function ReferralCodePage() {
                   </div>
 
                   <div className="text-center">
-                    <div className="w-10 sm:w-12 h-10 sm:h-12 bg-bronze/10 rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                      <span className="text-base sm:text-lg font-bold text-bronze">
+                    <div className="w-10 sm:w-12 h-10 sm:h-12 bg-teal/10 rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <span className="text-base sm:text-lg font-bold text-teal-dark">
                         2
                       </span>
                     </div>
@@ -225,7 +225,7 @@ export default function ReferralCodePage() {
                       They Make a Purchase
                     </h3>
                     <p className="text-[10px] sm:text-xs text-ink-muted leading-relaxed">
-                      Customers use your code at checkout on Aminocan
+                      Customers use your code at checkout on VYTA
                     </p>
                   </div>
 
@@ -246,7 +246,7 @@ export default function ReferralCodePage() {
 
                 <div className="mt-4 sm:mt-6 bg-surface rounded-lg p-3 sm:p-4 border border-line">
                   <p className="text-center text-ink-muted text-[10px] sm:text-xs">
-                    <span className="text-bronze font-medium">Pro Tip:</span>{" "}
+                    <span className="text-teal-dark font-medium">Pro Tip:</span>{" "}
                     Share your referral URL on social media, blogs, or email to
                     make it even easier for people to use your code!
                   </p>
@@ -259,7 +259,7 @@ export default function ReferralCodePage() {
           <div className="mt-6 sm:mt-8 text-center">
             <Link
               href="/affiliate/dashboard"
-              className="text-bronze hover:text-bronze-dark transition-colors text-xs sm:text-sm font-medium"
+              className="text-teal-dark hover:text-teal-dark transition-colors text-xs sm:text-sm font-medium"
             >
               Back to Dashboard
             </Link>

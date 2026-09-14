@@ -400,7 +400,7 @@ async function createShipmentForSubject(
         },
         parcels: [
           {
-            description: 'Aminocan Order',
+            description: 'VYTA Order',
             // Single parcel carrying the whole shipment's quantity-scaled
             // weight — mirrors how the rate quote represents the shipment, so
             // the label weight equals the quoted weight.

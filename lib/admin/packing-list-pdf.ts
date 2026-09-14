@@ -49,10 +49,10 @@ export interface PackingListInput {
   line_items: PackingListLine[];
 }
 
-const INK = '#1A1A1A';
-const MUTED = '#6B7280';
-const RULE = '#E5E7EB';
-const BRONZE = '#9C8B5A';
+const INK = '#07203A';
+const MUTED = '#56707F';
+const RULE = '#DCE7EB';
+const ACCENT = '#438B9E';
 
 /**
  * Render a Packing List to a Buffer. Never throws — errors surface via
@@ -181,7 +181,7 @@ export async function renderPackingListPdf(input: PackingListInput): Promise<Buf
         // Type chip (right of description).
         if (li.price_type) {
           const chipText = li.price_type === 'vial' ? 'VIAL' : 'BOX';
-          doc.font('Helvetica-Bold').fontSize(8).fillColor(BRONZE)
+          doc.font('Helvetica-Bold').fontSize(8).fillColor(ACCENT)
             .text(chipText, cols.chip, y, { width: 140, align: 'left' });
           if (li.price_type === 'box' && Number(li.vials_per_box) > 0) {
             doc.font('Helvetica').fontSize(8).fillColor(MUTED)

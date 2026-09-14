@@ -643,12 +643,12 @@ export default function CustomerDetailPage() {
           <div className="flex items-start gap-4">
             <div
               className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl ${
-                isPuramassOnly ? 'bg-indigo-500/10' : 'bg-bronze/10'
+                isPuramassOnly ? 'bg-indigo-500/10' : 'bg-teal/10'
               }`}
             >
               {isPuramassOnly
                 ? <CreditCard className="h-6 w-6 text-indigo-600" />
-                : <User className="h-6 w-6 text-bronze" />}
+                : <User className="h-6 w-6 text-teal-dark" />}
             </div>
             <div>
               <h1 className="text-xl font-bold text-ink sm:text-2xl">{name}</h1>
@@ -697,7 +697,7 @@ export default function CustomerDetailPage() {
                           onClick={() => setCurrency(cur)}
                           disabled={busy === 'currency' || !editable}
                           className={`px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-60 ${
-                            active ? 'bg-bronze text-white' : 'bg-white text-ink-muted hover:bg-surface hover:text-ink'
+                            active ? 'bg-teal-dark text-white' : 'bg-white text-ink-muted hover:bg-surface hover:text-ink'
                           }`}
                         >
                           {cur}
@@ -755,7 +755,7 @@ export default function CustomerDetailPage() {
           {editable && (
             <button
               onClick={openComposer}
-              className="inline-flex items-center gap-2 rounded-lg bg-bronze px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-bronze/90"
+              className="inline-flex items-center gap-2 rounded-lg bg-teal-dark px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal/90"
             >
               <Send className="h-4 w-4" /> Send email
             </button>
@@ -811,7 +811,7 @@ export default function CustomerDetailPage() {
       {/* Lifetime stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          icon={<Wallet className="h-4 w-4 text-bronze" />}
+          icon={<Wallet className="h-4 w-4 text-teal-dark" />}
           label="Lifetime spend"
           value={fmtSpend(data.stats.spendByCurrency)}
           hint={`${data.stats.purchaseCount} paid ${data.stats.purchaseCount === 1 ? 'order' : 'orders'}`}
@@ -823,13 +823,13 @@ export default function CustomerDetailPage() {
           hint="Unpaid or partially paid invoices"
         />
         <StatCard
-          icon={<Boxes className="h-4 w-4 text-bronze" />}
+          icon={<Boxes className="h-4 w-4 text-teal-dark" />}
           label="Units bought"
           value={String(data.stats.unitsBought)}
           hint={`${data.stats.distinctProducts} distinct product${data.stats.distinctProducts === 1 ? '' : 's'}`}
         />
         <StatCard
-          icon={<Calendar className="h-4 w-4 text-bronze" />}
+          icon={<Calendar className="h-4 w-4 text-teal-dark" />}
           label="First purchase"
           value={fmtDate(data.stats.firstPurchaseAt)}
           hint={data.stats.lastPurchaseAt ? `Latest ${fmtDate(data.stats.lastPurchaseAt)}` : 'No purchases yet'}
@@ -851,7 +851,7 @@ export default function CustomerDetailPage() {
 
       {/* Contact + shipping */}
       <div className="grid gap-5 md:grid-cols-2">
-        <Panel icon={<MapPin className="h-4 w-4 text-bronze" />} title="Shipping address">
+        <Panel icon={<MapPin className="h-4 w-4 text-teal-dark" />} title="Shipping address">
           {addressLines.length > 0 ? (
             <div className="px-4 py-3 text-sm text-ink">
               {addressLines.map((line) => <p key={line}>{line}</p>)}
@@ -865,7 +865,7 @@ export default function CustomerDetailPage() {
           )}
         </Panel>
 
-        <Panel icon={<User className="h-4 w-4 text-bronze" />} title="Account details">
+        <Panel icon={<User className="h-4 w-4 text-teal-dark" />} title="Account details">
           <dl className="divide-y divide-line/60">
             <DetailRow label="Customer ID" value={<span className="font-mono text-xs">{c.id}</span>} />
             <DetailRow label="Role" value={isPuramassOnly ? 'No account' : (c.role ?? 'customer')} />
@@ -888,7 +888,7 @@ export default function CustomerDetailPage() {
 
       {/* Invoices */}
       <Panel
-        icon={<FileText className="h-4 w-4 text-bronze" />}
+        icon={<FileText className="h-4 w-4 text-teal-dark" />}
         title="Invoices"
         count={data.invoices.length}
       >
@@ -909,7 +909,7 @@ export default function CustomerDetailPage() {
               {data.invoices.map((inv) => (
                 <tr key={inv.id} className="hover:bg-surface">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/invoices/${inv.id}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-bronze">
+                    <Link href={`/admin/invoices/${inv.id}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-teal-dark">
                       {inv.invoice_number}
                       <ExternalLink className="h-3 w-3" />
                     </Link>
@@ -944,7 +944,7 @@ export default function CustomerDetailPage() {
       </Panel>
 
       {/* Native orders */}
-      <Panel icon={<Package className="h-4 w-4 text-bronze" />} title="Store orders" count={data.orders.length}>
+      <Panel icon={<Package className="h-4 w-4 text-teal-dark" />} title="Store orders" count={data.orders.length}>
         {data.orders.length === 0 ? (
           <Empty>No storefront orders — this customer has only ever bought another way.</Empty>
         ) : (
@@ -962,7 +962,7 @@ export default function CustomerDetailPage() {
               {data.orders.map((o) => (
                 <tr key={o.id} className="hover:bg-surface">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/orders/${o.id}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-bronze">
+                    <Link href={`/admin/orders/${o.id}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-teal-dark">
                       {o.order_number}
                       <ExternalLink className="h-3 w-3" />
                     </Link>
@@ -1052,7 +1052,7 @@ export default function CustomerDetailPage() {
       {!isPuramassOnly && (
         <div className="grid gap-5 md:grid-cols-2">
           <Panel
-            icon={<Route className="h-4 w-4 text-bronze" />}
+            icon={<Route className="h-4 w-4 text-teal-dark" />}
             title="Most visited pages"
             count={data.pages?.length ?? 0}
           >
@@ -1080,7 +1080,7 @@ export default function CustomerDetailPage() {
           </Panel>
 
           <Panel
-            icon={<History className="h-4 w-4 text-bronze" />}
+            icon={<History className="h-4 w-4 text-teal-dark" />}
             title="Recent journey"
             count={data.journey?.length ?? 0}
           >
@@ -1106,7 +1106,7 @@ export default function CustomerDetailPage() {
 
       {/* Outreach history */}
       <Panel
-        icon={<Send className="h-4 w-4 text-bronze" />}
+        icon={<Send className="h-4 w-4 text-teal-dark" />}
         title="Emails sent"
         count={data.emails?.length ?? 0}
       >
@@ -1132,7 +1132,7 @@ export default function CustomerDetailPage() {
                 </p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   {e.promo_code && (
-                    <span className="inline-flex items-center gap-1 rounded bg-bronze/10 px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-bronze">
+                    <span className="inline-flex items-center gap-1 rounded bg-teal/10 px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-teal-dark">
                       {e.promo_code}
                     </span>
                   )}
@@ -1155,13 +1155,13 @@ export default function CustomerDetailPage() {
       {/* Browsing activity */}
       <div className="grid gap-5 md:grid-cols-3">
         <ActivityCard
-          icon={<Search className="h-4 w-4 text-bronze" />}
+          icon={<Search className="h-4 w-4 text-teal-dark" />}
           title="Searched for"
           empty={isPuramassOnly ? 'No account, so no browsing history.' : 'No searches recorded yet.'}
           items={data.searches.map((s) => ({ key: s.key, primary: `“${s.label}”`, meta: `${s.count}× · ${fmtDate(s.lastAt)}` }))}
         />
         <ActivityCard
-          icon={<Eye className="h-4 w-4 text-bronze" />}
+          icon={<Eye className="h-4 w-4 text-teal-dark" />}
           title="Viewed products"
           empty={isPuramassOnly ? 'No account, so no browsing history.' : 'No product views recorded yet.'}
           items={data.views.map((v) => ({
@@ -1171,7 +1171,7 @@ export default function CustomerDetailPage() {
           }))}
         />
         <ActivityCard
-          icon={<ShoppingCart className="h-4 w-4 text-bronze" />}
+          icon={<ShoppingCart className="h-4 w-4 text-teal-dark" />}
           title="Added to cart"
           empty={isPuramassOnly ? 'No account, so no cart history.' : 'Nothing added to cart yet.'}
           items={data.cart.map((v) => ({
@@ -1280,7 +1280,7 @@ function ProductsPanel({ products }: { products: ProductPurchase[] }) {
 
   return (
     <Panel
-      icon={<BarChart3 className="h-4 w-4 text-bronze" />}
+      icon={<BarChart3 className="h-4 w-4 text-teal-dark" />}
       title="Products bought"
       count={products.length}
     >
@@ -1306,7 +1306,7 @@ function ProductsPanel({ products }: { products: ProductPurchase[] }) {
                       className={`h-full rounded-full ${
                         p.channels.includes('puramass') && p.channels.length === 1
                           ? 'bg-indigo-500'
-                          : 'bg-bronze'
+                          : 'bg-teal'
                       }`}
                       style={{ width: `${pct}%` }}
                     />
@@ -1462,7 +1462,7 @@ function Panel({
     <div className={`overflow-hidden rounded-xl border bg-white ${accent === 'indigo' ? 'border-indigo-200' : 'border-line'}`}>
       <div className={`flex items-center justify-between border-b px-4 py-3 ${accent === 'indigo' ? 'border-indigo-200 bg-indigo-50/50' : 'border-line'}`}>
         <div className="flex items-center gap-2">
-          <div className={`flex h-7 w-7 items-center justify-center rounded-md ${accent === 'indigo' ? 'bg-indigo-500/10' : 'bg-bronze/10'}`}>
+          <div className={`flex h-7 w-7 items-center justify-center rounded-md ${accent === 'indigo' ? 'bg-indigo-500/10' : 'bg-teal/10'}`}>
             {icon}
           </div>
           <h3 className="text-sm font-semibold text-ink">{title}</h3>
@@ -1504,7 +1504,7 @@ function ActivityCard({
     <div className="flex flex-col overflow-hidden rounded-xl border border-line bg-white">
       <div className="flex items-center justify-between border-b border-line px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-bronze/10">{icon}</div>
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-teal/10">{icon}</div>
           <h3 className="text-sm font-semibold text-ink">{title}</h3>
         </div>
         <span className="text-xs tabular-nums text-ink-muted">{items.length}</span>

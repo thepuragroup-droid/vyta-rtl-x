@@ -287,18 +287,18 @@ export function stockReportPrintHtml(
 
   const noteHtml = showOnOrder
     ? `<div class="filters" style="margin-top:22px">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#6E6E6E;margin-bottom:6px">How "On Order" is calculated</div>
-      <div style="font-size:11.5px;line-height:1.55;color:#374151">${escapeHtml(ON_ORDER_NOTE)}</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#56707F;margin-bottom:6px">How "On Order" is calculated</div>
+      <div style="font-size:11.5px;line-height:1.55;color:#0E3F5F">${escapeHtml(ON_ORDER_NOTE)}</div>
       ${
         data.contributingPos.length > 0
-          ? `<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#6E6E6E;margin:12px 0 6px">Purchase orders considered (${data.contributingPos.length})</div>
-      <ul style="margin:0;padding-left:18px;font-size:11.5px;line-height:1.6;color:#374151">${data.contributingPos
+          ? `<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#56707F;margin:12px 0 6px">Purchase orders considered (${data.contributingPos.length})</div>
+      <ul style="margin:0;padding-left:18px;font-size:11.5px;line-height:1.6;color:#0E3F5F">${data.contributingPos
         .map(
           (po) =>
             `<li>${escapeHtml(po.poNumber)} — ${escapeHtml(PO_STATUS_LABEL[po.status] ?? po.status)} · ${po.units} units</li>`,
         )
         .join('')}</ul>`
-          : `<div style="font-size:11.5px;line-height:1.55;color:#374151;margin-top:8px">No open purchase orders are currently contributing to On Order.</div>`
+          : `<div style="font-size:11.5px;line-height:1.55;color:#0E3F5F;margin-top:8px">No open purchase orders are currently contributing to On Order.</div>`
       }
     </div>`
     : '';

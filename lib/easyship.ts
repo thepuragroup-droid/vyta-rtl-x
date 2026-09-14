@@ -50,8 +50,8 @@ const DEFAULT_CONFIG: ShippingConfig = {
   enabled: false,
   apiKey: '',
   origin: {
-    name: process.env.EASYSHIP_ORIGIN_NAME ?? 'Aminocan Fulfillment',
-    company: process.env.EASYSHIP_ORIGIN_COMPANY ?? process.env.EASYSHIP_ORIGIN_NAME ?? 'Aminocan',
+    name: process.env.EASYSHIP_ORIGIN_NAME ?? 'VYTA Fulfillment',
+    company: process.env.EASYSHIP_ORIGIN_COMPANY ?? process.env.EASYSHIP_ORIGIN_NAME ?? 'VYTA',
     phone: process.env.EASYSHIP_ORIGIN_PHONE ?? '',
     email: process.env.EASYSHIP_ORIGIN_EMAIL ?? '',
     address: process.env.EASYSHIP_ORIGIN_ADDRESS ?? '',

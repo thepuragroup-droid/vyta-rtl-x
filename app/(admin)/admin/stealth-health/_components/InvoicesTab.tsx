@@ -89,7 +89,7 @@ export default function InvoicesTab({ isAdmin, currency, onChanged, uninvoicedCe
         </p>
         {isAdmin && (
           <button onClick={() => setCreating(true)} disabled={!migrated}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-50"
             title={migrated ? undefined : 'Run the settlement migration first'}>
             <Plus className="w-4 h-4" /> New settlement invoice
           </button>
@@ -123,7 +123,7 @@ export default function InvoicesTab({ isAdmin, currency, onChanged, uninvoicedCe
                   <tr key={inv.id} className="hover:bg-surface/60">
                     <td className="px-4 py-3">
                       <Link href={`/admin/stealth-health/invoices/${inv.id}`}
-                        className="inline-flex items-center gap-2 font-medium text-ink hover:text-bronze">
+                        className="inline-flex items-center gap-2 font-medium text-ink hover:text-teal-dark">
                         {inv.invoice_number} <StatusBadge status={inv.status} />
                       </Link>
                     </td>
@@ -145,7 +145,7 @@ export default function InvoicesTab({ isAdmin, currency, onChanged, uninvoicedCe
                     <td className="px-4 py-3 text-xs text-ink-muted whitespace-nowrap">{fmtDate(inv.due_date)}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <Link href={`/admin/stealth-health/invoices/${inv.id}`}
-                        className="inline-flex items-center gap-1 text-xs text-ink-muted hover:text-bronze">
+                        className="inline-flex items-center gap-1 text-xs text-ink-muted hover:text-teal-dark">
                         Open <ExternalLink className="w-3 h-3" />
                       </Link>
                       {isAdmin && inv.status === 'draft' && (
@@ -233,7 +233,7 @@ function CreateInvoiceDialog({ currency, onClose, onCreated }: {
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-line sticky top-0 bg-white">
           <h3 className="text-base font-bold text-ink flex items-center gap-2">
-            <FileText className="w-4 h-4 text-bronze" /> New settlement invoice
+            <FileText className="w-4 h-4 text-teal-dark" /> New settlement invoice
           </h3>
           <button onClick={onClose} className="text-ink-muted hover:text-ink"><X className="w-4 h-4" /></button>
         </div>
@@ -303,7 +303,7 @@ function CreateInvoiceDialog({ currency, onClose, onCreated }: {
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-line sticky bottom-0 bg-white">
           <button onClick={onClose} className="px-4 py-2 text-sm text-ink-muted hover:text-ink">Cancel</button>
           <button onClick={submit} disabled={saving || invalidRange || nothingToBill}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-bronze text-white rounded-lg text-sm font-medium hover:bg-bronze/90 disabled:opacity-50">
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-dark text-white rounded-lg text-sm font-medium hover:bg-teal/90 disabled:opacity-50">
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
             Create draft{t && t.due_cents > 0 ? ` · ${money(t.due_cents, currency)}` : ''}
           </button>

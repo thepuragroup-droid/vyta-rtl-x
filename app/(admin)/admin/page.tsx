@@ -25,7 +25,7 @@ const orderStatusDot: Record<string, string> = {
   received: 'bg-amber-500',
   confirmed: 'bg-blue-500',
   paid: 'bg-blue-500',
-  processing: 'bg-bronze',
+  processing: 'bg-teal',
   shipped: 'bg-indigo-500',
   delivered: 'bg-emerald-500',
   cancelled: 'bg-red-500',
@@ -113,7 +113,7 @@ export default function AdminDashboard() {
       {/* Live fulfillment activity banner — self-hides when there is nothing to show. */}
       <FulfillmentAlerts />
 
-      {/* KPI row — a single bronze accent across all four keeps the palette calm. */}
+      {/* KPI row — a single teal accent across all four keeps the palette calm. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-6">
         {isLoading ? (
           <>
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
               ))}
               {restock.length > 6 && (
                 <li className="px-5 py-2.5 text-center">
-                  <Link href="/admin/products" className="text-xs text-bronze hover:underline">
+                  <Link href="/admin/products" className="text-xs text-teal-dark hover:underline">
                     +{restock.length - 6} more below threshold
                   </Link>
                 </li>
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 min-w-0">
-                          <Link href={`/admin/orders/${f.id}`} className="text-sm font-mono font-medium text-ink hover:text-bronze transition-colors flex-shrink-0">
+                          <Link href={`/admin/orders/${f.id}`} className="text-sm font-mono font-medium text-ink hover:text-teal-dark transition-colors flex-shrink-0">
                             {f.order_number ?? '(no #)'}
                           </Link>
                           <span className="text-xs text-ink-muted truncate">
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
                             Retry
                           </button>
                         )}
-                        <Link href={`/admin/orders/${f.id}`} className="text-xs text-bronze hover:underline">
+                        <Link href={`/admin/orders/${f.id}`} className="text-xs text-teal-dark hover:underline">
                           View
                         </Link>
                       </div>
@@ -381,7 +381,7 @@ export default function AdminDashboard() {
       <section className="bg-white rounded-xl border border-line overflow-hidden mt-6">
         <div className="p-5 md:p-6 border-b border-line flex items-center justify-between">
           <h2 className="text-lg font-bold text-ink flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-bronze" /> Guides &amp; How-Tos
+            <BookOpen className="w-4 h-4 text-teal-dark" /> Guides &amp; How-Tos
           </h2>
           <Link href="/admin/guides" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink transition-colors">
             All guides <ArrowRight className="w-4 h-4" />
@@ -394,12 +394,12 @@ export default function AdminDashboard() {
               <Link
                 key={g.slug}
                 href={`/admin/guides/${g.slug}`}
-                className="group flex flex-col rounded-lg border border-line p-4 transition-colors hover:border-bronze/40"
+                className="group flex flex-col rounded-lg border border-line p-4 transition-colors hover:border-teal/40"
               >
-                <div className="mb-2.5 grid h-9 w-9 place-items-center rounded-lg bg-bronze/10">
-                  <Icon className="h-5 w-5 text-bronze" />
+                <div className="mb-2.5 grid h-9 w-9 place-items-center rounded-lg bg-teal/10">
+                  <Icon className="h-5 w-5 text-teal-dark" />
                 </div>
-                <p className="text-sm font-semibold text-ink group-hover:text-bronze transition-colors">{g.title}</p>
+                <p className="text-sm font-semibold text-ink group-hover:text-teal-dark transition-colors">{g.title}</p>
                 <p className="mt-1 text-xs leading-relaxed text-ink-muted line-clamp-2">{g.summary}</p>
               </Link>
             );
@@ -418,8 +418,8 @@ function StatCard({ icon: Icon, label, value, sub }: {
   return (
     <div className="bg-white rounded-xl p-5 border border-line">
       <div className="flex items-center justify-between mb-3">
-        <div className="w-10 h-10 bg-bronze/10 rounded-lg flex items-center justify-center">
-          <Icon className="w-5 h-5 text-bronze" />
+        <div className="w-10 h-10 bg-teal/10 rounded-lg flex items-center justify-center">
+          <Icon className="w-5 h-5 text-teal-dark" />
         </div>
         <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider">{label}</span>
       </div>

@@ -109,7 +109,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
               placeholder="user@example.com"
               required
             />
@@ -124,7 +124,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
               type="text"
               value={formData.first_name}
               onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
               placeholder="John"
               required
             />
@@ -139,7 +139,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
               type="text"
               value={formData.last_name}
               onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
               placeholder="Doe"
               required
             />
@@ -152,7 +152,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
               placeholder="+1 (555) 123-4567"
             />
           </div>
@@ -168,7 +168,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
                   onClick={() => setFormData({ ...formData, preferred_currency: cur })}
                   className={`px-4 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${
                     formData.preferred_currency === cur
-                      ? 'bg-bronze text-white border-bronze'
+                      ? 'bg-teal-dark text-white border-teal'
                       : 'bg-surface text-ink-muted border-line hover:text-ink'
                   }`}
                 >
@@ -187,7 +187,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink"
+              className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink"
             >
               <option value="customer">Customer</option>
               <option value="analytics">Analytics</option>
@@ -207,7 +207,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 pr-10 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-bronze/40 text-sm text-ink font-mono"
+                  className="w-full px-4 py-2.5 pr-10 bg-surface rounded-lg border border-line focus:outline-none focus:ring-2 focus:ring-teal/40 text-sm text-ink font-mono"
                   placeholder="Enter or generate password"
                   required
                 />
@@ -222,7 +222,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
               <button
                 type="button"
                 onClick={handleGeneratePassword}
-                className="px-3 py-2.5 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg hover:bg-bronze/20 transition-colors flex items-center gap-2"
+                className="px-3 py-2.5 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg hover:bg-teal/20 transition-colors flex items-center gap-2"
                 title="Generate password"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -231,7 +231,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
                 <button
                   type="button"
                   onClick={handleCopyPassword}
-                  className="px-3 py-2.5 bg-bronze/10 border border-bronze/20 text-bronze rounded-lg hover:bg-bronze/20 transition-colors flex items-center gap-2"
+                  className="px-3 py-2.5 bg-teal/10 border border-teal/20 text-teal-dark rounded-lg hover:bg-teal/20 transition-colors flex items-center gap-2"
                   title="Copy password"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -250,7 +250,7 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
               id="active"
               checked={formData.active}
               onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-              className="w-4 h-4 rounded border-line text-bronze focus:ring-bronze/40"
+              className="w-4 h-4 rounded border-line text-teal-dark focus:ring-teal/40"
             />
             <label htmlFor="active" className="text-sm text-ink cursor-pointer">
               Active (user can log in)
