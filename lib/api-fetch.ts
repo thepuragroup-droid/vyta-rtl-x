@@ -1,5 +1,17 @@
 import { supabase } from '@/lib/supabase';
 
+/**
+ * Bodies the browser must type itself. FormData in particular needs to append
+ * its own `multipart/form-data; boundary=...` — forcing a Content-Type here
+ * drops the boundary and the server's `request.formData()` throws.
+ */
+function browserSetsContentType(body: BodyInit | null | undefined): boolean {
+  if (typeof FormData !== 'undefined' && body instanceof FormData) return true;
+  if (typeof Blob !== 'undefined' && body instanceof Blob) return true;
+  if (typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams) return true;
+  return false;
+}
+
 export async function apiFetch<T = unknown>(
   url: string,
   options: RequestInit & { timeoutMs?: number } = {}
@@ -21,11 +33,15 @@ export async function apiFetch<T = unknown>(
     /* not in a browser / no session — send unauthenticated */
   }
 
+  const defaultContentType = browserSetsContentType(init.body)
+    ? {}
+    : { 'Content-Type': 'application/json' };
+
   try {
     const res = await fetch(url, {
       ...init,
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', ...authHeader, ...init.headers },
+      headers: { ...defaultContentType, ...authHeader, ...init.headers },
     });
     if (!res.ok) {
       let message = `Request failed: ${res.status}`;

@@ -277,6 +277,8 @@ function ImageField({
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd,
+        // Uploads run to 20MB; the 10s apiFetch default aborts them mid-flight.
+        timeoutMs: 120_000,
       });
       onChange(url);
     } catch (err: any) {
