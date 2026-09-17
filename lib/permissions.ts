@@ -39,6 +39,12 @@ export const ANALYTICS_PAGES = [
   '/admin/products',
   '/admin/categories',
   '/admin/marketing',
+  // Storefront content: the announcement bar, editable pages and articles are
+  // marketing surfaces, so the marketing partner owns them the same way it
+  // owns branding — without ever reaching prices, stock or API keys.
+  '/admin/announcements',
+  '/admin/pages',
+  '/admin/articles',
 ] as const;
 
 /**
@@ -184,6 +190,17 @@ export function canManageCategories(role: UserRole): boolean {
  * gains sensitive config access.
  */
 export function canManageMarketing(role: UserRole): boolean {
+  return role === 'admin' || role === 'analytics';
+}
+
+/**
+ * Can the role manage storefront CONTENT — the announcement bar, editable
+ * pages (About Us) and articles?
+ * admin + analytics, the same pair that owns branding. Content is public copy,
+ * never commercial configuration, so this deliberately does NOT imply `canEdit`
+ * (prices, stock, users) and is checked separately from it.
+ */
+export function canManageContent(role: UserRole): boolean {
   return role === 'admin' || role === 'analytics';
 }
 

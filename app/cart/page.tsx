@@ -133,7 +133,7 @@ export default function CartPage() {
                                 <p className="text-[10px] sm:text-xs text-ink-muted mt-0.5">
                                   {item.strength}
                                   <span className="ml-1.5 inline-flex items-center rounded-full bg-surface border border-line px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium text-ink-muted">
-                                    {item.unit === 'case' ? `Pack of ${item.vialsPerBox}` : 'Single vial'}
+                                    {item.packSize > 1 ? `Pack of ${item.packSize}` : 'Single vial'}
                                   </span>
                                 </p>
                               </div>

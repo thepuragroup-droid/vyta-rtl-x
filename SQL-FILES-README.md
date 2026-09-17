@@ -117,6 +117,30 @@ insert fails and is logged — payment, fulfillment and attribution are unaffect
 tests in `commission.test.ts`), `lib/payments/puramass-fulfillment.ts` (calls it on
 the paid transition, from the webhook, the cron poller and the admin refresh alike).
 
+#### `pack-options-content-migration.sql` 🆕
+**Purpose:** Pack options (1 / 3 / 5 / 10) on products, plus the three storefront
+content surfaces — the sticky announcement bar, editable pages (About Us) and the
+article builder. One file, four independent pieces; each is additive, so running it
+on a live database changes nothing visible until an admin opts something in.
+**Columns Added:** `products`: `pack_sizes` (`integer[]`, NULL = the historical
+single-vial + full-case pair)
+**Tables:** `announcements`, `site_pages` (seeded with `about`), `articles`
+**Constraints:** `products_pack_sizes_positive_chk` (every pack size ≥ 1);
+`articles_status_chk` (`draft` | `published`)
+**RLS:** public `SELECT` on the three new tables; all writes go through service-role
+API routes, which do their own role checks (`canManageContent`)
+**Dependencies:** `products` must exist
+**Required:** Yes, for pack options and the content surfaces. Without it the admin
+screens report the missing table by name and the storefront simply shows no banner,
+falls back to the shipped About copy, and lists no articles.
+**Idempotent:** Yes, safe to re-run — the About seed is `ON CONFLICT DO NOTHING`, so
+a re-run never overwrites edited copy.
+
+**Related code:** `lib/pricing.ts` (`packSizesFor` / `packPriceFor` — a pack of N
+costs the vial price × N, no pack discount), `lib/content/*` (block document,
+announcements, pages, articles), `app/(admin)/admin/{announcements,pages,articles}`,
+and the storefront at `/about`, `/p/[slug]` and `/articles`.
+
 #### `products-schema.sql`
 **Purpose:** Complete product catalog with all peptides
 **Size:** ~39KB

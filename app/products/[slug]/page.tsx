@@ -11,7 +11,9 @@ import LabResultsButton from '@/components/LabResultsButton';
 import { supabase } from '@/lib/supabase';
 import { usePurchaseModal } from '@/contexts/PurchaseModalContext';
 import { siteConfig } from '@/lib/config';
-import { casePriceFromVial, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
+import {
+  packLabel, packPriceFor, packSizesFor, packsInStock, vialPriceFor, vialsPerBoxOf,
+} from '@/lib/pricing';
 import { trackActivity } from '@/lib/customer/activity';
 import { trackViewItem } from '@/lib/analytics/ecommerce';
 import { productPath } from '@/lib/products/url';
@@ -255,13 +257,16 @@ export default function ProductDetailPage() {
   }
 
   // ---- Vial-first display pricing ----
-  // The storefront headline is the per-vial price; the case (pack) price is
-  // that vial price × N.
+  // The storefront headline is the per-vial price; every pack is that vial
+  // price × its size. `packSizesFor` gives the product's own pack options,
+  // falling back to the historical single-vial + full-case pair.
   const vialsPerBox = vialsPerBoxOf(product.vials_per_box);
   const vialUnitPrice = vialPriceFor(product);
-  const caseUnitPrice = casePriceFromVial(vialUnitPrice, vialsPerBox);
-  // A case needs a full box of vials in stock to be offered.
-  const caseAvailable = Math.floor(product.stock_quantity / vialsPerBox) >= 1;
+  // Multi-vial packs only; the headline already quotes the single vial. Each
+  // needs a whole pack in stock to be worth quoting.
+  const packOptions = packSizesFor(product)
+    .filter((size) => size > 1)
+    .filter((size) => packsInStock(product.stock_quantity, size) >= 1);
 
   return (
     <main className="min-h-screen bg-white">
@@ -428,12 +433,19 @@ export default function ProductDetailPage() {
                           CAD / vial
                         </span>
                       </div>
-                      {caseAvailable && (
-                        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
-                          <span className="text-ink-muted">Pack of {vialsPerBox}:</span>
-                          <span className="font-bold text-ink tabular-nums">
-                            ${caseUnitPrice.toFixed(2)}
-                          </span>
+                      {packOptions.length > 0 && (
+                        <div className="mt-1.5 space-y-0.5">
+                          {packOptions.map((size) => (
+                            <div
+                              key={size}
+                              className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm"
+                            >
+                              <span className="text-ink-muted">{packLabel(size)}:</span>
+                              <span className="font-bold text-ink tabular-nums">
+                                ${packPriceFor(product, size).toFixed(2)}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </>

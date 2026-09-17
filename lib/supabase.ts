@@ -227,6 +227,10 @@ export interface Product {
   /** Vials per box. Product stock is denominated in vials; boxes convert
    *  via this factor (default 10, CHECK > 0). */
   vials_per_box: number;
+  /** Pack quantities this product may be sold in, e.g. [1, 3, 5, 10]. NULL /
+   *  empty = not opted in, so the storefront falls back to the historical pair
+   *  (single vial + one full case). See lib/pricing.ts `packSizesFor`. */
+  pack_sizes: number[] | null;
   low_stock_threshold: number;
   /** Dedupe flag: true once a low-stock alert has been emailed. Reset when
    *  stock recovers above the threshold. */

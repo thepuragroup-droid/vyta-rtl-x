@@ -895,7 +895,10 @@ interface ETransferLine {
   strength?: string;
   /** 'vial' or 'case' — labels the line so the buyer sees exactly what they got. */
   unit?: "vial" | "case";
-  /** Vials in one case; used to spell out "Pack of N". */
+  /** Vials in ONE unit of this line. Spells out "Pack of N" exactly, including
+   *  the 3- and 5-packs a full case size can't describe. */
+  packSize?: number;
+  /** Vials in one case — the fallback when a line predates `packSize`. */
   vialsPerBox?: number;
 }
 
@@ -916,12 +919,11 @@ function renderItemRows(items: ETransferLine[]): string {
   return items
     .map((item) => {
       const perBox = Number(item.vialsPerBox) > 0 ? Number(item.vialsPerBox) : 10;
+      const packSize = Number(item.packSize) > 0
+        ? Math.floor(Number(item.packSize))
+        : item.unit === "case" ? perBox : item.unit === "vial" ? 1 : 0;
       const unitLabel =
-        item.unit === "case"
-          ? `Pack of ${perBox}`
-          : item.unit === "vial"
-            ? "Single vial"
-            : "";
+        packSize > 1 ? `Pack of ${packSize}` : packSize === 1 ? "Single vial" : "";
       const unitTag = unitLabel
         ? `<span style="display: inline-block; margin-left: 8px; padding: 1px 6px; border-radius: 999px; background: #F7FAFB; border: 1px solid #DCE7EB; font-size: 11px; color: #56707F;">${escapeHtml(unitLabel)}</span>`
         : "";

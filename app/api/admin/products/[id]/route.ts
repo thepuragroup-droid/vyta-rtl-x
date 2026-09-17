@@ -5,6 +5,7 @@ import { logAuditServer } from '@/lib/admin/audit';
 import { recordProductChanges } from '@/lib/admin/product-history';
 import { checkLowStockForProducts } from '@/lib/admin/low-stock';
 import { parsePriceOverride, parseVialsPerBox } from '@/lib/admin/product-input';
+import { normalizePackSizes } from '@/lib/pricing';
 import { sendBackInStockNotification } from '@/lib/email-smtp';
 
 const supabase = createClient(
@@ -166,6 +167,7 @@ export async function PATCH(
       vial_price,
       stock_quantity,
       vials_per_box,
+      pack_sizes,
       low_stock_threshold,
       category,
       image_url,
@@ -217,6 +219,21 @@ export async function PATCH(
       const parsed = parsePriceOverride(vial_price, 'Vial price');
       if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
       parsedVialPrice = parsed.value;
+    }
+
+    // Pack options. `null` / `[]` both mean "not opted in" and are stored as
+    // NULL, which is what makes the storefront fall back to the legacy
+    // single-vial + full-case pair (see lib/pricing.ts `packSizesFor`).
+    let parsedPackSizes: number[] | null = null;
+    if (pack_sizes !== undefined) {
+      if (pack_sizes !== null && !Array.isArray(pack_sizes)) {
+        return NextResponse.json(
+          { error: 'Pack options must be a list of numbers' },
+          { status: 400 },
+        );
+      }
+      const cleaned = normalizePackSizes(pack_sizes);
+      parsedPackSizes = cleaned.length > 0 ? cleaned : null;
     }
 
     let parsedVialsPerBox = 10;
@@ -280,6 +297,7 @@ export async function PATCH(
     if (vial_price !== undefined) updateData.vial_price = parsedVialPrice;
     if (stock_quantity !== undefined) updateData.stock_quantity = stock_quantity;
     if (vials_per_box !== undefined) updateData.vials_per_box = parsedVialsPerBox;
+    if (pack_sizes !== undefined) updateData.pack_sizes = parsedPackSizes;
     if (low_stock_threshold !== undefined) updateData.low_stock_threshold = low_stock_threshold;
     if (category !== undefined) updateData.category = category;
     if (image_url !== undefined) updateData.image_url = image_url;

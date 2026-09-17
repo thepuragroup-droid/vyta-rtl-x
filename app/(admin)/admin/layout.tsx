@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, createContext, useContext } from 'react';
-import { LayoutDashboard, Users, DollarSign, UserCircle, ArrowLeft, Mail, Lock, LogIn, AlertCircle, Info, ShoppingBag, FileText, ClipboardList, ScrollText, Briefcase, TrendingUp, Tag, Tags, Megaphone, Bell, Settings, PackageX, Warehouse, FlaskConical, Menu, X, ChevronsLeft, ChevronsRight, BookOpen, Handshake, Eye, Target, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Users, DollarSign, UserCircle, ArrowLeft, Mail, Lock, LogIn, AlertCircle, Info, ShoppingBag, FileText, ClipboardList, ScrollText, Briefcase, TrendingUp, Tag, Tags, Megaphone, Bell, Settings, PackageX, Warehouse, FlaskConical, Menu, X, ChevronsLeft, ChevronsRight, BookOpen, Handshake, Eye, Target, Sparkles, Radio, FileEdit, Newspaper } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -95,6 +95,14 @@ const navGroups = [
     items: [
       { href: '/admin/marketing', label: 'Branding & Tracking', icon: Megaphone },
       { href: '/admin/promos', label: 'Promotions', icon: Sparkles },
+    ],
+  },
+  {
+    label: 'Content',
+    items: [
+      { href: '/admin/announcements', label: 'Announcements', icon: Radio },
+      { href: '/admin/pages', label: 'Pages', icon: FileEdit },
+      { href: '/admin/articles', label: 'Articles', icon: Newspaper },
     ],
   },
   {

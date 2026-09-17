@@ -42,7 +42,7 @@ import {
 } from '@/lib/promos/ad-discount';
 import { isCustomerFirstOrder } from '@/lib/promos/first-order';
 import { resolvePriceMap } from '@/lib/pricing/resolve';
-import { casePriceFor, vialPriceFor } from '@/lib/pricing';
+import { casePriceFor, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
 
 // All access is server-side against the service-role client (RLS-bypassing).
 const db = createClient(
@@ -319,11 +319,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 5. Normalise lines → catalog units + which mapping to use. `quantity` is the
-  //    total vials in the line. A single-vial line (packSize === 1) uses the
-  //    vial SKU with units = vials; any other line uses the 10-pack SKU with
-  //    units = round(vials / packSize) packs. Clamp 1–99 either way.
-  const normalized: { id: string; mapping: 'box' | 'vial'; units: number }[] = [];
+  // 5. Read the cart lines. `quantity` is the TOTAL VIALS in the line and
+  //    `packSize` is the vials in one of its units; the SKU mapping itself is
+  //    decided in step 7a, once the products (and their case size) are loaded.
+  const rawLines: { id: string; packSize: number; vials: number }[] = [];
   // Whole cart counted in single vials — what the parcel weight is derived from.
   let totalVials = 0;
   for (const line of rawItems) {
@@ -333,14 +332,11 @@ export async function POST(req: NextRequest) {
     if (!id || !Number.isFinite(packSize) || packSize <= 0 || !Number.isFinite(quantity) || quantity <= 0) {
       continue;
     }
-    totalVials += Math.round(quantity);
-    if (packSize === 1) {
-      normalized.push({ id, mapping: 'vial', units: clampPacks(Math.round(quantity)) });
-    } else {
-      normalized.push({ id, mapping: 'box', units: clampPacks(Math.round(quantity / packSize)) });
-    }
+    const vials = Math.round(quantity);
+    totalVials += vials;
+    rawLines.push({ id, packSize: Math.round(packSize), vials });
   }
-  if (normalized.length === 0) {
+  if (rawLines.length === 0) {
     return NextResponse.json({ error: 'Your cart is empty.' }, { status: 400 });
   }
 
@@ -360,7 +356,7 @@ export async function POST(req: NextRequest) {
   //    free-shipping threshold is measured against. Never trust client SKUs or
   //    client prices.
   //    Fall back to a box-only select if the vial column migration hasn't run.
-  const ids = [...new Set(normalized.map((l) => l.id))];
+  const ids = [...new Set(rawLines.map((l) => l.id))];
   let products: any[] = [];
   const withVial = await db
     .from('products')
@@ -379,6 +375,23 @@ export async function POST(req: NextRequest) {
     products = withVial.data ?? [];
   }
   const byId = new Map(products.map((p) => [p.id, p]));
+
+  // 7a. Decide each line's SKU mapping now that the case size is known.
+  //     PuraMass only stocks two forms per product: a single vial and a full
+  //     10-pack. A line whose pack size IS the product's case maps to the box
+  //     SKU; EVERY other pack — a 3-pack, a 5-pack, a single vial — is
+  //     fulfilled as that many single vials, because there is no PuraMass SKU
+  //     for a partial pack and dividing by it would ship the wrong quantity.
+  const normalized: { id: string; mapping: 'box' | 'vial'; units: number }[] = [];
+  for (const line of rawLines) {
+    const perBox = vialsPerBoxOf(byId.get(line.id)?.vials_per_box);
+    const asBox = line.packSize > 1 && line.packSize === perBox;
+    normalized.push({
+      id: line.id,
+      mapping: asBox ? 'box' : 'vial',
+      units: clampPacks(asBox ? Math.round(line.vials / perBox) : line.vials),
+    });
+  }
 
   // 8. Merge lines by resolved SKU, carrying our own unit price alongside the
   //    quantity; collect any unmapped products. A vial line with no vial

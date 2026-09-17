@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { productPath } from '@/lib/products/url';
 import { usePurchaseModal } from '@/contexts/PurchaseModalContext';
 import { siteConfig } from '@/lib/config';
-import { casePriceFor, vialPriceFor } from '@/lib/pricing';
+import { largestPackFor, vialPriceFor } from '@/lib/pricing';
 import { trackActivity } from '@/lib/customer/activity';
 import { getStoreCategories, getCategoryIcon } from '@/lib/categories';
 import type { LucideIcon } from 'lucide-react';
@@ -472,11 +472,13 @@ export default function ProductsPage() {
                             ${vialPriceFor(product).toFixed(2)}
                             <span className="text-[10px] font-medium text-ink-muted"> / vial</span>
                           </span>
-                          <span className="text-[10px] text-ink-muted">
-                            Pack of {product.vials_per_box ?? 10} · $
-                            {casePriceFor(product).toFixed(2)}{' '}
-                            CAD
-                          </span>
+                          {largestPackFor(product) && (
+                            <span className="text-[10px] text-ink-muted">
+                              Pack of {largestPackFor(product)!.size} · $
+                              {largestPackFor(product)!.price.toFixed(2)}{' '}
+                              CAD
+                            </span>
+                          )}
                         </span>
                       )}
                       <div className="flex items-center gap-1.5">

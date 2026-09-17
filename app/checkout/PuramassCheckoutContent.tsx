@@ -386,6 +386,10 @@ export default function PuramassCheckoutContent({
       price: p.price,
       vial_price: p.vial_price,
       vials_per_box: p.vials_per_box,
+      // Deliberately NOT the product's own pack options: PuraMass fulfils
+      // these add-ons and only stocks a single vial and a full 10-pack, so the
+      // picker stays on the default pair, narrowed further by allowedUnits.
+      pack_sizes: null,
       stock_quantity: p.stock_quantity,
       image_url: p.image_url,
       box_image_url: p.box_image_url,
@@ -408,7 +412,7 @@ export default function PuramassCheckoutContent({
   // Whole cart in single vials (a pack of 10 counts as 10) — what the parcel
   // weight behind a rate quote is derived from.
   const totalVials = items.reduce(
-    (sum, it) => sum + (it.unit === "case" ? it.quantity * it.vialsPerBox : it.quantity),
+    (sum, it) => sum + it.quantity * it.packSize,
     0,
   );
 
@@ -524,7 +528,7 @@ export default function PuramassCheckoutContent({
   const peptideVials = items
     .filter((it) => !isBacName(it.name))
     .reduce(
-      (sum, it) => sum + (it.unit === "case" ? it.quantity * it.vialsPerBox : it.quantity),
+      (sum, it) => sum + it.quantity * it.packSize,
       0,
     );
 
@@ -544,8 +548,8 @@ export default function PuramassCheckoutContent({
           // packSize distinguishes the SKU form server-side: a single-vial line
           // sends packSize 1 (→ the vial SKU); a case line sends vials-per-pack
           // (→ the 10-pack SKU). `quantity` is always total vials in the line.
-          packSize: it.unit === "case" ? it.vialsPerBox : 1,
-          quantity: it.unit === "case" ? it.quantity * it.vialsPerBox : it.quantity,
+          packSize: it.packSize,
+          quantity: it.quantity * it.packSize,
         })),
         customer: {
           email: email.trim(),
@@ -1100,7 +1104,7 @@ export default function PuramassCheckoutContent({
                           <p className="mt-0.5 text-xs text-ink-muted">
                             {it.strength ? `${it.strength} · ` : ""}
                             <span className="inline-flex items-center rounded-full border border-line bg-surface px-1.5 py-[1px] text-[10px] font-medium text-ink-muted">
-                              {it.unit === "case" ? `Pack of ${it.vialsPerBox}` : "Single vial"}
+                              {it.packSize > 1 ? `Pack of ${it.packSize}` : "Single vial"}
                             </span>
                             <span className="ml-1.5">× {it.quantity}</span>
                           </p>

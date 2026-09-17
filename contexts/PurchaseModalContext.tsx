@@ -14,7 +14,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, X, Check, Beaker, Package } from 'lucide-react';
 import { useCart, type PurchaseUnit } from '@/contexts/CartContext';
 import { useToast } from '@/contexts/ToastContext';
-import { casePriceFromVial, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
+import {
+  packLabel, packPriceFor, packSizesFor, packsInStock, vialPriceFor, vialsPerBoxOf,
+} from '@/lib/pricing';
 import { trackActivity } from '@/lib/customer/activity';
 
 /** Minimal product shape the picker needs. Every storefront surface that opens
@@ -31,14 +33,19 @@ export interface PurchaseModalProduct {
   vial_price: number | null;
   /** Vials in one case (default 10). */
   vials_per_box: number | null;
+  /** Pack quantities this product is sold in, e.g. [1, 3, 5, 10]. When unset
+   *  the picker falls back to the historical pair — single vial + one full
+   *  case. See lib/pricing.ts `packSizesFor`. */
+  pack_sizes?: number[] | null;
   /** Stock, measured in vials. */
   stock_quantity: number;
   image_url: string | null;
   /** Packaging/box image, shown for the "case" option. */
   box_image_url?: string | null;
-  /** Restrict which forms are offered (default both). A single entry collapses
-   *  the picker to a "Sold as …" label. Used by the PuraMass checkout upsell to
-   *  hide a form PuraMass can't fulfil. */
+  /** Restrict which FORMS are offered (default both). Single vial maps to a
+   *  pack of 1; 'case' to every multi-vial pack. Used by the PuraMass checkout
+   *  upsell to hide a form PuraMass can't fulfil. A single remaining option
+   *  collapses the picker to a "Sold as …" label. */
   allowedUnits?: PurchaseUnit[];
   /** Ignore store stock caps (PuraMass fulfils upsell add-ons). Default false. */
   ignoreStock?: boolean;
@@ -94,27 +101,36 @@ function PurchaseModal({
 
   const vialsPerBox = vialsPerBoxOf(product.vials_per_box);
   const vialPrice = vialPriceFor(product);
-  // Pack of N pricing rule: vial price × N, no pack discount.
-  const casePrice = casePriceFromVial(vialPrice, vialsPerBox);
 
   const allowedUnits: PurchaseUnit[] =
     product.allowedUnits && product.allowedUnits.length > 0
       ? product.allowedUnits
       : ['vial', 'case'];
-  const singleForm = allowedUnits.length === 1;
-  const vialAllowed = allowedUnits.includes('vial');
+
+  // The pack options this product offers, narrowed by the caller's allowed
+  // forms. A pack of 1 IS the single vial; anything larger is a "case".
+  const packOptions = packSizesFor(product).filter((size) =>
+    size === 1 ? allowedUnits.includes('vial') : allowedUnits.includes('case'),
+  );
+  // Never render an empty picker: if the narrowing removed everything, fall
+  // back to a single vial.
+  const packs = packOptions.length > 0 ? packOptions : [1];
+  const singleForm = packs.length === 1;
 
   // Upsell add-ons ignore store stock (PuraMass fulfils them) — treat caps as
   // effectively unlimited so the picker/stepper aren't gated by local stock.
-  const vialCap = product.ignoreStock ? 99 : product.stock_quantity;
-  const caseCap = product.ignoreStock ? 99 : Math.floor(product.stock_quantity / vialsPerBox);
-  const caseAvailable =
-    allowedUnits.includes('case') && (product.ignoreStock ? true : caseCap >= 1);
+  const capFor = (size: number) =>
+    product.ignoreStock ? 99 : packsInStock(product.stock_quantity, size);
 
-  // Default to the first allowed form (single vial when both are offered).
-  const [unit, setUnit] = useState<PurchaseUnit>(vialAllowed ? 'vial' : 'case');
+  // Default to the smallest pack the customer can actually buy, so the picker
+  // never opens on a sold-out option.
+  const [packSize, setPackSize] = useState<number>(
+    () => packs.find((size) => capFor(size) >= 1) ?? packs[0],
+  );
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+
+  const unit: PurchaseUnit = packSize > 1 ? 'case' : 'vial';
 
   useEffect(() => setMounted(true), []);
 
@@ -146,20 +162,20 @@ function PurchaseModal({
     });
   }, [product.image_url, product.box_image_url]);
 
-  const unitCap = unit === 'vial' ? vialCap : caseCap;
-  const unitPrice = unit === 'vial' ? vialPrice : casePrice;
-  // For a case, show the box image; fall back to the main image when absent.
+  const unitCap = capFor(packSize);
+  const unitPrice = packPriceFor(product, packSize);
+  // For a multi-vial pack, show the box image; fall back to the main image.
   const displayImage =
-    unit === 'case' ? product.box_image_url || product.image_url : product.image_url;
+    packSize > 1 ? product.box_image_url || product.image_url : product.image_url;
 
   // Subtotal breakdown — a pack is quoted at the vial price × every vial in
   // the order, which is exactly the pack price.
-  const vialsShown = unit === 'case' ? vialsPerBox * qty : qty;
+  const vialsShown = packSize * qty;
   const lineTotal = unitPrice * qty;
 
-  const selectUnit = (next: PurchaseUnit) => {
-    setUnit(next);
-    setQty(1); // the two units have different stock ceilings
+  const selectPack = (next: number) => {
+    setPackSize(next);
+    setQty(1); // each pack size has its own stock ceiling
   };
 
   /** Adds `qty` lines to the cart; true when at least one made it in. */
@@ -169,6 +185,7 @@ function PurchaseModal({
       const ok = addItem({
         productId: product.id,
         unit,
+        packSize,
         vialsPerBox,
         name: product.name,
         price: unitPrice,
@@ -184,8 +201,8 @@ function PurchaseModal({
   const stockError = () =>
     toast.error(
       unitCap < 1
-        ? unit === 'case'
-          ? `Not enough stock for a full case of ${vialsPerBox}.`
+        ? packSize > 1
+          ? `Not enough stock for a pack of ${packSize}.`
           : 'Out of stock.'
         : `Only ${unitCap} in stock — that's all we have.`,
     );
@@ -256,12 +273,12 @@ function PurchaseModal({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
                 src={displayImage}
-                alt={`${product.name} — ${unit === 'case' ? `pack of ${vialsPerBox}` : 'single vial'}`}
+                alt={`${product.name} — ${packLabel(packSize).toLowerCase()}`}
                 className="h-full w-full object-contain"
                 loading="eager"
                 decoding="async"
               />
-            ) : unit === 'case' ? (
+            ) : packSize > 1 ? (
               <Package className="w-16 h-16 text-line" />
             ) : (
               <Beaker className="w-16 h-16 text-line" />
@@ -283,53 +300,46 @@ function PurchaseModal({
             </h2>
           </div>
 
-          {/* Pack size — two cards; the active one inverts to ink with a check.
-              When only one form is offered (upsell), collapse to a label. */}
+          {/* Pack size — one card per option the product is sold in; the
+              active one inverts to ink with a check. A product offering only
+              one form (or an upsell narrowed to one) collapses to a label. */}
           <p className="mt-5 mb-2 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
             {singleForm ? 'Sold as' : 'Pack size'}
           </p>
           {singleForm ? (
             <div className="rounded-xl border border-line bg-surface p-3">
-              <span className="block text-sm font-semibold text-ink">
-                {unit === 'case' ? `Pack of ${vialsPerBox}` : 'Single vial'}
-              </span>
+              <span className="block text-sm font-semibold text-ink">{packLabel(packSize)}</span>
               <span className="block text-[11px] text-ink-muted tabular-nums">
                 ${unitPrice.toFixed(2)}
-                {unit === 'case' ? ` · pack of ${vialsPerBox}` : ' per vial'}
+                {packSize > 1 ? ` · $${vialPrice.toFixed(2)} per vial` : ' per vial'}
               </span>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
-              {vialAllowed && (
-                <PackCard
-                  active={unit === 'vial'}
-                  onClick={() => selectUnit('vial')}
-                  label="Single vial"
-                  sublabel={
-                    <>
-                      <span className="font-medium tabular-nums">${vialPrice.toFixed(2)}</span> per
-                      vial
-                    </>
-                  }
-                />
-              )}
-              {allowedUnits.includes('case') && (
-                <PackCard
-                  active={unit === 'case'}
-                  disabled={!caseAvailable}
-                  onClick={() => selectUnit('case')}
-                  label={`Pack of ${vialsPerBox}`}
-                  sublabel={
-                    !caseAvailable ? (
-                      'Not enough stock'
-                    ) : (
-                      <span className="font-medium tabular-nums">
-                        ${casePrice.toFixed(2)}
-                      </span>
-                    )
-                  }
-                />
-              )}
+              {packs.map((size) => {
+                const cap = capFor(size);
+                return (
+                  <PackCard
+                    key={size}
+                    active={packSize === size}
+                    disabled={cap < 1}
+                    onClick={() => selectPack(size)}
+                    label={packLabel(size)}
+                    sublabel={
+                      cap < 1 ? (
+                        'Not enough stock'
+                      ) : (
+                        <>
+                          <span className="font-medium tabular-nums">
+                            ${packPriceFor(product, size).toFixed(2)}
+                          </span>
+                          {size > 1 ? ` · $${vialPrice.toFixed(2)} / vial` : ' per vial'}
+                        </>
+                      )
+                    }
+                  />
+                );
+              })}
             </div>
           )}
 

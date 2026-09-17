@@ -173,6 +173,7 @@ export default function OrderDetailPage() {
           quantity: it.quantity,
           price: it.price_at_time,
           unit: (it as any).unit as string | undefined,
+          packSize: Number((it as any).pack_size) > 0 ? Number((it as any).pack_size) : 0,
           vialsPerBox:
             Number((it as any).vials_per_box) > 0 ? Number((it as any).vials_per_box) : 10,
         }))
@@ -186,6 +187,11 @@ export default function OrderDetailPage() {
           quantity: it.quantity,
           price: it.price,
           unit: it.unit as string | undefined,
+          // `pack_size` lands on orders placed after pack options shipped;
+          // older rows fall back to the unit + case size they stored.
+          packSize: Number(it.packSize ?? it.pack_size) > 0
+            ? Number(it.packSize ?? it.pack_size)
+            : 0,
           vialsPerBox:
             Number(it.vialsPerBox ?? it.vials_per_box) > 0
               ? Number(it.vialsPerBox ?? it.vials_per_box)
@@ -341,11 +347,14 @@ export default function OrderDetailPage() {
                         )}
                         <p className="text-[10px] sm:text-xs text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
                           <span>Qty: {item.quantity}</span>
-                          {item.unit && (
+                          {(item.packSize > 0 || item.unit) && (
                             <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-200 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium text-slate-500">
-                              {item.unit === 'case'
-                                ? `Pack of ${item.vialsPerBox}`
-                                : 'Single vial'}
+                              {(() => {
+                                const size = item.packSize > 0
+                                  ? item.packSize
+                                  : item.unit === 'case' ? item.vialsPerBox : 1;
+                                return size > 1 ? `Pack of ${size}` : 'Single vial';
+                              })()}
                             </span>
                           )}
                         </p>

@@ -125,3 +125,134 @@ export function vialPriceFor(product: VialPricedProduct): number {
 export function casePriceFor(product: VialPricedProduct): number {
   return casePriceFromVial(vialPriceFor(product), vialsPerBoxOf(product.vials_per_box));
 }
+
+// ---------------------------------------------------------------------------
+// Pack options
+// ---------------------------------------------------------------------------
+
+/**
+ * Pack options — how many vials a customer may buy in one go.
+ *
+ * `products.pack_sizes` holds the quantities a product is offered in, e.g.
+ * `{1,3,5,10}`. It is an OPT-IN column: when it is NULL (or empty) the product
+ * falls back to the historical pair — a single vial, plus one full case of
+ * `vials_per_box` — so a catalog that never touches the column behaves exactly
+ * as it did before pack options existed.
+ *
+ * Pricing stays derived and discount-free, the same rule as cases:
+ *
+ *     pack price = vial price × pack size
+ *
+ * so there is no per-pack price column to keep in sync and a price change on a
+ * product reprices every one of its packs at once.
+ */
+
+/** The quantities the admin UI offers as one-click toggles. */
+export const PACK_SIZE_OPTIONS = [1, 3, 5, 10] as const;
+
+/** Upper bound on how many distinct packs one product may offer. */
+export const MAX_PACK_OPTIONS = 8;
+
+/**
+ * Clean a raw list into a valid set of pack sizes: positive whole numbers,
+ * de-duplicated, ascending, capped at MAX_PACK_OPTIONS. Returns [] for
+ * anything unusable — callers treat [] and NULL identically.
+ */
+export function normalizePackSizes(raw: unknown): number[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<number>();
+  for (const entry of raw) {
+    const n = Math.floor(Number(entry));
+    if (!Number.isFinite(n) || n < 1 || n > 1000) continue;
+    seen.add(n);
+  }
+  return [...seen].sort((a, b) => a - b).slice(0, MAX_PACK_OPTIONS);
+}
+
+/** Product shape the pack rules need — a superset of VialPricedProduct. */
+export type PackOptionProduct = VialPricedProduct & {
+  pack_sizes?: number[] | null;
+};
+
+/** Has an admin explicitly chosen this product's pack options? */
+export function hasCustomPackSizes(product: PackOptionProduct): boolean {
+  return normalizePackSizes(product.pack_sizes).length > 0;
+}
+
+/**
+ * The pack quantities this product is sold in, ascending.
+ *
+ * Explicit `pack_sizes` win. Otherwise the legacy pair: a single vial and one
+ * full case (deduplicated, so a 1-vial "case" yields just `[1]`).
+ */
+export function packSizesFor(product: PackOptionProduct): number[] {
+  const explicit = normalizePackSizes(product.pack_sizes);
+  if (explicit.length > 0) return explicit;
+  const per = vialsPerBoxOf(product.vials_per_box);
+  return per > 1 ? [1, per] : [1];
+}
+
+/** Price of one pack of `size` vials: the vial price × size. */
+export function packPriceFor(product: PackOptionProduct, size: number): number {
+  const n = Math.max(1, Math.floor(Number(size) || 1));
+  return round2(vialPriceFor(product) * n);
+}
+
+/** How many whole packs of `size` the on-hand vial stock covers. */
+export function packsInStock(stockVials: number, size: number): number {
+  const n = Math.max(1, Math.floor(Number(size) || 1));
+  return Math.floor(Math.max(0, Number(stockVials) || 0) / n);
+}
+
+/** Customer-facing label for a pack option. */
+export function packLabel(size: number): string {
+  const n = Math.max(1, Math.floor(Number(size) || 1));
+  return n === 1 ? 'Single vial' : `Pack of ${n}`;
+}
+
+/** Short form for tight spots (cart lines, order emails, admin tables). */
+export function packShortLabel(size: number): string {
+  const n = Math.max(1, Math.floor(Number(size) || 1));
+  return n === 1 ? '1 vial' : `${n}-pack`;
+}
+
+/** "1, 3, 5, 10" — the cell-edit grid's text form of the column. */
+export function formatPackSizes(sizes: number[]): string {
+  return normalizePackSizes(sizes).join(', ');
+}
+
+/**
+ * Parse the grid / bulk-editor text form. Accepts commas, spaces, slashes and
+ * pipes, so pasting `1/3/5/10` or `1 3 5 10` from a spreadsheet works.
+ *
+ * Returns [] for an empty string — which is how an editor says "back to the
+ * default (single vial + full case)".
+ */
+export function parsePackSizesInput(raw: string): number[] {
+  const text = (raw ?? '').trim();
+  if (text === '') return [];
+  return normalizePackSizes(text.split(/[\s,/|]+/).filter(Boolean).map((part) => Number(part)));
+}
+
+/** Do two pack-size lists mean the same thing? (NULL and [] are equal.) */
+export function samePackSizes(a: unknown, b: unknown): boolean {
+  const na = normalizePackSizes(a);
+  const nb = normalizePackSizes(b);
+  return na.length === nb.length && na.every((v, i) => v === nb[i]);
+}
+
+/**
+ * The biggest multi-vial pack a product is sold in, with its price — what the
+ * catalog cards quote under the per-vial headline ("Pack of 10 · $1000.00").
+ *
+ * Null when the product is only sold as single vials, so a card can drop the
+ * line entirely rather than printing a pack that cannot be bought.
+ */
+export function largestPackFor(
+  product: PackOptionProduct,
+): { size: number; price: number } | null {
+  const sizes = packSizesFor(product).filter((size) => size > 1);
+  if (sizes.length === 0) return null;
+  const size = sizes[sizes.length - 1];
+  return { size, price: packPriceFor(product, size) };
+}
