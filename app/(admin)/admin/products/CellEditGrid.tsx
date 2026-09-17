@@ -8,10 +8,11 @@
  *
  * ── Columns ────────────────────────────────────────────────────────────────
  *   SKU · Product name · Stock (vials) · Stock (cases) · Case price · Vial price
+ *   · Pack options
  *
  * SKU and product name are read-only identity columns (still selectable so
- * they can be copied out). The other four are editable, and they come in two
- * linked pairs.
+ * they can be copied out). The other five are editable; four of them come in
+ * two linked pairs, and Pack options stands on its own.
  *
  * ── How the case ⇄ vial columns interact ───────────────────────────────────
  *
@@ -54,6 +55,23 @@
  *     is vial × per) agrees either way; an inconsistent pair resolves to
  *     `vial × per`, which is the number the storefront would have charged.
  *
+ * PACK OPTIONS — which quantities a product is sold in.
+ *   `products.pack_sizes` is a list of pack quantities, typed here as a plain
+ *   comma-separated list: `1, 3, 5, 10`. Commas, spaces, slashes and pipes all
+ *   parse, so a column pasted out of a spreadsheet lands as-is.
+ *
+ *   - An EMPTY cell means the product has not been opted in, and the
+ *     storefront falls back to the historical pair — a single vial plus one
+ *     full case of `vials_per_box`. The cell shows that fallback greyed out
+ *     and badged "default", so what a customer sees is never a mystery.
+ *   - Delete/Backspace clears a cell back to that default.
+ *   - Pack pricing stays derived: a pack of N costs `vial price × N`, so
+ *     editing the price columns reprices every pack at once and there is
+ *     nothing extra to keep in sync.
+ *   - Select a block of cells and use **Set pack options** in the toolbar to
+ *     stage the same options across every selected row at once — the fastest
+ *     way to opt a whole category in.
+ *
  * Prices in this grid are the CAD base. USD is derived from the exchange rate
  * (or its own `price_usd` override) and is edited from the standard table.
  *
@@ -69,19 +87,23 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertCircle, Bell, Check, ChevronDown, Info, Keyboard, RotateCcw, Save, X,
+  AlertCircle, Bell, Boxes, Check, ChevronDown, Info, Keyboard, RotateCcw, Save, X,
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api-fetch';
 import type { Product } from '@/lib/supabase';
 import {
-  casePriceFromVial, formatMoney, round2, vialPriceFor, vialsPerBoxOf,
+  PACK_SIZE_OPTIONS, casePriceFromVial, formatMoney, formatPackSizes,
+  normalizePackSizes, packSizesFor, parsePackSizesInput, round2, samePackSizes,
+  vialPriceFor, vialsPerBoxOf,
 } from '@/lib/pricing';
 
 // ---------------------------------------------------------------------------
 // Columns
 // ---------------------------------------------------------------------------
 
-type ColKey = 'sku' | 'name' | 'stock_vials' | 'stock_cases' | 'price_case' | 'price_vial';
+type ColKey =
+  | 'sku' | 'name' | 'stock_vials' | 'stock_cases' | 'price_case' | 'price_vial'
+  | 'pack_options';
 
 interface ColumnDef {
   key: ColKey;
@@ -103,6 +125,7 @@ const COLUMNS: ColumnDef[] = [
   { key: 'stock_cases', label: 'Stock',        sub: 'cases',      width: 130, editable: true, numeric: true },
   { key: 'price_case',  label: 'Case price',   sub: 'CAD',        width: 150, editable: true, numeric: true },
   { key: 'price_vial',  label: 'Vial price',   sub: 'CAD',        width: 150, editable: true, numeric: true },
+  { key: 'pack_options', label: 'Pack options', sub: 'vials per pack', width: 190, editable: true, numeric: false },
 ];
 
 const FIRST_EDITABLE_COL = COLUMNS.findIndex((c) => c.editable);
@@ -133,6 +156,8 @@ interface Draft {
   stock_quantity?: number;
   price?: number;
   vial_price?: number | null;
+  /** null = clear the opt-in (back to single vial + full case). */
+  pack_sizes?: number[] | null;
 }
 
 type Drafts = Record<string, Draft>;
@@ -151,6 +176,10 @@ interface RowView {
   vialOverride: number | null;
   /** Effective vial price (override, else case price ÷ per). */
   vialPrice: number;
+  /** Explicit pack options, or null when the row is on the default pair. */
+  packOverride: number[] | null;
+  /** What the storefront actually offers — the override, else [1, per]. */
+  packSizes: number[];
   dirty: Set<ColKey>;
 }
 
@@ -216,6 +245,13 @@ function buildRowView(product: Product, draft: Draft | undefined): RowView {
     : (product.vial_price ?? null);
   const vialPrice = vialPriceFor({ price, vial_price: vialOverride, vials_per_box: per });
 
+  const rawPacks = draft && 'pack_sizes' in draft
+    ? (draft.pack_sizes ?? null)
+    : (product.pack_sizes ?? null);
+  const explicitPacks = normalizePackSizes(rawPacks);
+  const packOverride = explicitPacks.length > 0 ? explicitPacks : null;
+  const packSizes = packSizesFor({ price, vials_per_box: per, pack_sizes: packOverride });
+
   const dirty = new Set<ColKey>();
   if (draft) {
     if (draft.stock_quantity !== undefined && draft.stock_quantity !== product.stock_quantity) {
@@ -229,13 +265,16 @@ function buildRowView(product: Product, draft: Draft | undefined): RowView {
     if ('vial_price' in draft && !sameOverride(draft.vial_price, product.vial_price)) {
       dirty.add('price_vial');
     }
+    if ('pack_sizes' in draft && !samePackSizes(draft.pack_sizes, product.pack_sizes)) {
+      dirty.add('pack_options');
+    }
   }
 
   return {
     product, per, stock,
     cases: Math.floor(stock / per),
     loose: stock % per,
-    price, vialOverride, vialPrice, dirty,
+    price, vialOverride, vialPrice, packOverride, packSizes, dirty,
   };
 }
 
@@ -248,6 +287,9 @@ function displayValue(view: RowView, key: ColKey): string {
     case 'stock_cases': return String(view.cases);
     case 'price_case':  return formatMoney(view.price, 'CAD');
     case 'price_vial':  return formatMoney(view.vialPrice, 'CAD');
+    // An empty override still shows what the storefront offers — the cell is
+    // badged "default" so the greyed value reads as inherited, not as a value.
+    case 'pack_options': return formatPackSizes(view.packSizes);
   }
 }
 
@@ -261,6 +303,9 @@ function rawValue(view: RowView, key: ColKey): string {
     case 'price_case':  return view.price.toFixed(2);
     // Blank when the row is on "auto" — an empty cell IS how you say "derive it".
     case 'price_vial':  return view.vialOverride != null ? view.vialOverride.toFixed(2) : '';
+    // Blank when the row is on the default pair — an empty cell IS how you
+    // say "not opted in".
+    case 'pack_options': return view.packOverride ? formatPackSizes(view.packOverride) : '';
   }
 }
 
@@ -312,6 +357,14 @@ function applyCellEdit(
       return draft;
     }
 
+    case 'pack_options': {
+      // Empty clears the opt-in; anything else is parsed leniently so a pasted
+      // `1/3/5/10` or `1 3 5 10` lands the same as `1, 3, 5, 10`.
+      const sizes = parsePackSizesInput(text);
+      draft.pack_sizes = sizes.length > 0 ? sizes : null;
+      return draft;
+    }
+
     case 'price_vial': {
       // Empty clears the override back to auto; the case price is untouched.
       if (text === '') {
@@ -342,6 +395,9 @@ function pruneDraft(product: Product, draft: Draft): Draft | null {
   }
   if ('vial_price' in draft && !sameOverride(draft.vial_price, product.vial_price)) {
     next.vial_price = draft.vial_price ?? null;
+  }
+  if ('pack_sizes' in draft && !samePackSizes(draft.pack_sizes, product.pack_sizes)) {
+    next.pack_sizes = draft.pack_sizes ?? null;
   }
   return Object.keys(next).length > 0 ? next : null;
 }
@@ -374,6 +430,9 @@ export default function CellEditGrid({
   const [showHelp, setShowHelp] = useState(false);
   const [notice, setNotice] = useState('');
   const [restockPrompt, setRestockPrompt] = useState<RestockPrompt | null>(null);
+  // Toolbar pack-options picker: which sizes are ticked, and whether it's open.
+  const [packPickerOpen, setPackPickerOpen] = useState(false);
+  const [packPicked, setPackPicked] = useState<number[]>([1, 10]);
   const frozen = useFrozenPanes();
 
   const gridRef = useRef<HTMLDivElement>(null);
@@ -628,24 +687,55 @@ export default function CellEditGrid({
     setNotice(`Filled ${edits.length} cell${edits.length === 1 ? '' : 's'} down`);
   }, [canEdit, rows, selection, commitEdits]);
 
-  /** Delete/Backspace — only the vial-price override has a meaningful "empty". */
+  /**
+   * Delete/Backspace — only the two "inherited" columns have a meaningful
+   * empty: a vial price falls back to auto, pack options to the default pair.
+   */
   const clearSelection = useCallback(() => {
     if (!canEdit) return;
     const edits: Array<{ row: number; col: number; raw: string }> = [];
+    const cleared = new Set<ColKey>();
     let blocked = 0;
     for (let r = selection.r1; r <= selection.r2; r++) {
       for (let c = selection.c1; c <= selection.c2; c++) {
+        const key = COLUMNS[c].key;
         if (!COLUMNS[c].editable) continue;
-        if (COLUMNS[c].key === 'price_vial') edits.push({ row: r, col: c, raw: '' });
-        else blocked++;
+        if (key === 'price_vial' || key === 'pack_options') {
+          edits.push({ row: r, col: c, raw: '' });
+          cleared.add(key);
+        } else blocked++;
       }
     }
     if (edits.length > 0) {
       commitEdits(edits);
-      setNotice('Vial price reset to auto');
+      const parts: string[] = [];
+      if (cleared.has('price_vial')) parts.push('Vial price reset to auto');
+      if (cleared.has('pack_options')) parts.push('Pack options reset to default');
+      setNotice(parts.join(' · '));
     } else if (blocked > 0) {
       setNotice('Stock and case price can’t be blank — type a number instead');
     }
+  }, [canEdit, selection, commitEdits]);
+
+  /**
+   * Stage one set of pack options across every row in the selection. This is
+   * the bulk path the products screen points at: select a block of rows, pick
+   * the pack sizes once, Save. `null` clears them back to the default pair.
+   */
+  const applyPackOptionsToSelection = useCallback((sizes: number[] | null) => {
+    if (!canEdit) return;
+    const col = COLUMNS.findIndex((c) => c.key === 'pack_options');
+    if (col < 0) return;
+    const raw = sizes && sizes.length > 0 ? formatPackSizes(sizes) : '';
+    const edits: Array<{ row: number; col: number; raw: string }> = [];
+    for (let r = selection.r1; r <= selection.r2; r++) edits.push({ row: r, col, raw });
+    commitEdits(edits);
+    const rowCount = selection.r2 - selection.r1 + 1;
+    setNotice(
+      raw
+        ? `Pack options ${raw} staged on ${rowCount} row${rowCount === 1 ? '' : 's'}`
+        : `Pack options reset to default on ${rowCount} row${rowCount === 1 ? '' : 's'}`,
+    );
   }, [canEdit, selection, commitEdits]);
 
   // ---- grid key handling -------------------------------------------------
@@ -697,8 +787,9 @@ export default function CellEditGrid({
         return;
     }
 
-    // Typing a digit (or `-`/`.`) over a cell replaces it, exactly like Excel.
-    if (!mod && !e.altKey && key.length === 1 && /[0-9.\-]/.test(key)) {
+    // Typing a digit (or `-`/`.`/`,`) over a cell replaces it, exactly like
+    // Excel. The comma is what lets a pack-options list be typed straight in.
+    if (!mod && !e.altKey && key.length === 1 && /[0-9.,\-]/.test(key)) {
       e.preventDefault();
       beginEdit(anchor.row, anchor.col, key);
     }
@@ -742,6 +833,9 @@ export default function CellEditGrid({
     }
     if ('vial_price' in draft && !sameOverride(draft.vial_price, product.vial_price)) {
       payload.vial_price = draft.vial_price ?? null;
+    }
+    if ('pack_sizes' in draft && !samePackSizes(draft.pack_sizes, product.pack_sizes)) {
+      payload.pack_sizes = draft.pack_sizes ?? null;
     }
     return payload;
   };
@@ -881,6 +975,19 @@ export default function CellEditGrid({
             Shortcuts
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showHelp ? 'rotate-180' : ''}`} />
           </button>
+          {canEdit && (
+            <PackOptionsMenu
+              open={packPickerOpen}
+              onOpenChange={setPackPickerOpen}
+              picked={packPicked}
+              onPickedChange={setPackPicked}
+              rowCount={selection.r2 - selection.r1 + 1}
+              onApply={(sizes) => {
+                applyPackOptionsToSelection(sizes);
+                setPackPickerOpen(false);
+              }}
+            />
+          )}
           {canEdit && (
             <>
               <button
@@ -1162,7 +1269,8 @@ function GridCell({
           ref={editInputRef}
           autoFocus
           type="text"
-          inputMode="decimal"
+          inputMode={col.key === 'pack_options' ? 'text' : 'decimal'}
+          placeholder={col.key === 'pack_options' ? '1, 3, 5, 10' : undefined}
           value={editing.value}
           onChange={(e) => onEditChange(e.target.value)}
           onKeyDown={onEditKeyDown}
@@ -1174,7 +1282,9 @@ function GridCell({
             else e.currentTarget.select();
           }}
           onMouseDown={(e) => e.stopPropagation()}
-          className="absolute inset-0 w-full h-full px-3 bg-white text-right tabular-nums text-sm text-ink outline-none ring-2 ring-inset ring-teal"
+          className={`absolute inset-0 w-full h-full px-3 bg-white text-sm text-ink outline-none ring-2 ring-inset ring-teal ${
+            col.numeric ? 'text-right tabular-nums' : 'text-left'
+          }`}
         />
       ) : (
         <>
@@ -1194,6 +1304,17 @@ function GridCell({
               {view.cases}
               {view.loose > 0 && (
                 <span className="ml-1 text-[10px] text-ink-muted">+{view.loose}v</span>
+              )}
+            </span>
+          ) : col.key === 'pack_options' ? (
+            <span className="flex items-center gap-1 min-w-0">
+              <span className={`truncate tabular-nums ${view.packOverride ? 'text-ink' : 'text-ink-muted'}`}>
+                {displayValue(view, col.key)}
+              </span>
+              {!view.packOverride && (
+                <span className="flex-shrink-0 text-[9px] font-medium text-ink-muted uppercase tracking-wide">
+                  default
+                </span>
               )}
             </span>
           ) : col.key === 'stock_vials' ? (
@@ -1289,8 +1410,19 @@ function HelpPanel() {
             <code className="text-ink"> vial × per</code>.
           </li>
           <li>
-            <strong className="text-ink">Delete</strong> on a vial price clears the override back
-            to <em>auto</em>. Prices here are the CAD base — USD is set from the table view.
+            <strong className="text-ink">Pack options</strong> lists the quantities a product is
+            sold in — type <code className="text-ink">1, 3, 5, 10</code>. A pack of N costs
+            <code className="text-ink"> vial price × N</code>, so the price columns still drive
+            everything. An empty cell reads <em>default</em>: single vial plus one full case.
+          </li>
+          <li>
+            Select rows and use <strong className="text-ink">Set pack options</strong> in the
+            toolbar to stage the same options across all of them at once.
+          </li>
+          <li>
+            <strong className="text-ink">Delete</strong> clears a vial price back to <em>auto</em>
+            and pack options back to <em>default</em>. Prices here are the CAD base — USD is set
+            from the table view.
           </li>
         </ul>
       </div>
@@ -1307,7 +1439,7 @@ function HelpPanel() {
             ['Type a number', 'Replace the cell and start editing'],
             ['Enter while editing', 'Commit and move down'],
             ['Esc', 'Cancel the edit'],
-            ['Delete', 'Reset a vial price to auto'],
+            ['Delete', 'Reset a vial price to auto / pack options to default'],
             ['Ctrl/⌘ + C · V', 'Copy · paste a block (TSV, works with Excel/Sheets)'],
             ['Ctrl/⌘ + D', 'Fill the top row of the selection down'],
             ['Ctrl/⌘ + Z', 'Undo a staged edit'],
@@ -1394,6 +1526,123 @@ function RestockDialog({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Pack options — the bulk path.
+//
+// Editing one cell at a time is fine for a handful of rows; opting a whole
+// category in is not. Select the rows, tick the sizes once, Apply. The result
+// is staged like any other edit (amber corners, one Save), so a mis-click is
+// undone with Ctrl+Z or Discard rather than a second round-trip to the API.
+// ---------------------------------------------------------------------------
+
+function PackOptionsMenu({
+  open, onOpenChange, picked, onPickedChange, rowCount, onApply,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  picked: number[];
+  onPickedChange: (sizes: number[]) => void;
+  rowCount: number;
+  onApply: (sizes: number[] | null) => void;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Close on an outside click or Escape — a toolbar popover that traps focus
+  // would fight the grid's own keyboard handling.
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) onOpenChange(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onOpenChange(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open, onOpenChange]);
+
+  const toggle = (size: number) => {
+    onPickedChange(
+      picked.includes(size)
+        ? picked.filter((s) => s !== size)
+        : normalizePackSizes([...picked, size]),
+    );
+  };
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        onClick={() => onOpenChange(!open)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-line bg-white text-ink-muted hover:text-ink hover:bg-surface text-sm"
+        title="Apply pack options to the selected rows"
+      >
+        <Boxes className="w-4 h-4" />
+        <span className="hidden sm:inline">Set pack options</span>
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-72 z-50 rounded-xl border border-line bg-white shadow-card p-4">
+          <p className="text-xs text-ink-muted mb-3">
+            Apply to the <strong className="text-ink">{rowCount}</strong> selected
+            row{rowCount === 1 ? '' : 's'}. Changes stage locally until you press Save.
+          </p>
+
+          <div className="grid grid-cols-4 gap-2 mb-3">
+            {PACK_SIZE_OPTIONS.map((size) => {
+              const on = picked.includes(size);
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => toggle(size)}
+                  aria-pressed={on}
+                  className={`py-2 rounded-lg border text-sm font-semibold transition-colors ${
+                    on
+                      ? 'border-teal bg-teal/10 text-teal-dark'
+                      : 'border-line bg-white text-ink-muted hover:border-teal/40 hover:text-ink'
+                  }`}
+                >
+                  {size}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="text-[11px] text-ink-muted mb-3">
+            {picked.length > 0
+              ? <>Sold as {formatPackSizes(picked)} vials per pack. A pack of N costs the vial price × N.</>
+              : 'Pick at least one size, or reset these rows to the default pair.'}
+          </p>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onApply(null)}
+              className="flex-1 px-3 py-2 rounded-lg border border-line bg-white text-ink text-xs font-medium hover:bg-surface"
+              title="Single vial plus one full case"
+            >
+              Reset to default
+            </button>
+            <button
+              type="button"
+              onClick={() => onApply(picked)}
+              disabled={picked.length === 0}
+              className="flex-1 px-3 py-2 rounded-lg bg-ink text-white text-xs font-medium hover:bg-ink/90 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

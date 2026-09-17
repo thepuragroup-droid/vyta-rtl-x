@@ -6,6 +6,7 @@ import {
   canEditProductDescriptors as canEditProductDescriptorsFn,
   canManageCategories as canManageCategoriesFn,
   canManageMarketing as canManageMarketingFn,
+  canManageContent as canManageContentFn,
 } from '@/lib/permissions';
 
 export function usePermissions() {
@@ -18,5 +19,6 @@ export function usePermissions() {
     canEditProductDescriptors: canEditProductDescriptorsFn(userRole),
     canManageCategories: canManageCategoriesFn(userRole),
     canManageMarketing: canManageMarketingFn(userRole),
+    canManageContent: canManageContentFn(userRole),
   };
 }

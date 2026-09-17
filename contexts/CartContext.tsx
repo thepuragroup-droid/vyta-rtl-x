@@ -18,18 +18,26 @@ import {
 } from '@/lib/analytics/ecommerce';
 import { cartItemToAnalytics } from '@/lib/analytics/cart';
 
-/** A product can be purchased as a single vial or as a full case (box). */
+/**
+ * How a line is sold. Kept as a two-value type for everything downstream that
+ * already speaks it (checkout, emails, order history): `vial` is a pack of one,
+ * `case` is any multi-vial pack. The exact quantity lives in `packSize`.
+ */
 export type PurchaseUnit = 'vial' | 'case';
 
 export interface CartItem {
-  /** Line key — unique per product *and* purchase unit (`${productId}::${unit}`)
-   *  so a vial line and a case line of the same product coexist. */
+  /** Line key — unique per product *and* pack size (`${productId}::p${packSize}`)
+   *  so a 1-pack, a 3-pack and a 10-pack of the same product coexist. */
   id: string;
   /** Catalog product UUID (what the server prices + decrements stock against). */
   productId: string;
-  /** Whether this line is priced/counted per single vial or per full case. */
+  /** Whether this line is priced/counted per single vial or per multi-vial pack. */
   unit: PurchaseUnit;
-  /** Vials in one case — used to convert a case line back to vials for stock. */
+  /** Vials in ONE unit of this line — 1 for a single vial, N for an N-pack.
+   *  This is the number every vial/stock conversion multiplies by. */
+  packSize: number;
+  /** Vials in one full case of this product. Kept for display ("pack of 10"
+   *  vs the product's standard case) and for legacy cart migration. */
   vialsPerBox: number;
   name: string;
   price: number;
@@ -40,23 +48,41 @@ export interface CartItem {
   stock_quantity: number;
 }
 
-/** Deterministic line key for a product + purchase unit. */
-export function cartLineId(productId: string, unit: PurchaseUnit): string {
-  return `${productId}::${unit}`;
+/** Deterministic line key for a product + pack size. */
+export function cartLineId(productId: string, packSize: number): string {
+  return `${productId}::p${Math.max(1, Math.floor(Number(packSize) || 1))}`;
 }
 
-/** Normalize a stored/legacy cart item into the unit-aware shape. Legacy
- *  carts (pre-vial/case) stored `id` as the raw product UUID and no unit —
- *  those are treated as `case` lines, matching the box price they carried. */
+/** A pack of one is a single vial; anything larger is a "case" downstream. */
+export function unitForPackSize(packSize: number): PurchaseUnit {
+  return Number(packSize) > 1 ? 'case' : 'vial';
+}
+
+/**
+ * Normalize a stored/legacy cart item into the pack-aware shape.
+ *
+ * Two generations of legacy carts are migrated here:
+ *   - pre-vial/case carts stored `id` as the raw product UUID and no unit;
+ *     those are treated as `case` lines, matching the box price they carried.
+ *   - pre-pack-size carts stored `unit` + `vialsPerBox` but no `packSize`;
+ *     a case line's pack size is its `vialsPerBox`, a vial line's is 1.
+ */
 function normalizeCartItem(raw: any): CartItem {
   const productId: string = raw.productId ?? raw.id;
   const unit: PurchaseUnit = raw.unit === 'vial' ? 'vial' : 'case';
   const vialsPerBox = Number(raw.vialsPerBox) > 0 ? Number(raw.vialsPerBox) : 10;
+  const storedPack = Math.floor(Number(raw.packSize));
+  const packSize = Number.isFinite(storedPack) && storedPack > 0
+    ? storedPack
+    : unit === 'vial' ? 1 : vialsPerBox;
   return {
     ...raw,
-    id: cartLineId(productId, unit),
+    id: cartLineId(productId, packSize),
     productId,
-    unit,
+    // Derive rather than trust: a 3-pack stored by an older build as `vial`
+    // would otherwise count as 1 vial at checkout.
+    unit: unitForPackSize(packSize),
+    packSize,
     vialsPerBox,
     stock_quantity: raw.stock_quantity ?? Infinity,
   };
@@ -71,7 +97,7 @@ interface CartContextType {
   items: CartItem[];
   /** Adds one unit. Returns true when the item was actually added (respects
    *  the stock cap), false when the stock ceiling blocked it. The line key
-   *  (`id`) is derived from `productId` + `unit`, so callers omit it. */
+   *  (`id`) is derived from `productId` + `packSize`, so callers omit it. */
   addItem: (item: Omit<CartItem, 'quantity' | 'id'>) => boolean;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -169,7 +195,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = useCallback((newItem: Omit<CartItem, 'quantity' | 'id'>): boolean => {
     const cap = newItem.stock_quantity ?? Infinity;
-    const lineId = cartLineId(newItem.productId, newItem.unit);
+    const lineId = cartLineId(newItem.productId, newItem.packSize);
     let added = false;
     setItems((currentItems) => {
       const existingItem = currentItems.find((item) => item.id === lineId);

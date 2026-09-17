@@ -452,7 +452,7 @@ function CheckoutContent() {
         const { data } = await supabase
           .from("products")
           .select(
-            "id, name, price, vial_price, vials_per_box, stock_quantity, image_url, box_image_url, strength",
+            "id, name, price, vial_price, vials_per_box, pack_sizes, stock_quantity, image_url, box_image_url, strength",
           )
           .ilike("name", "bacteriostatic%")
           .eq("active", true)
@@ -842,6 +842,7 @@ function CheckoutContent() {
             quantity: item.quantity,
             strength: item.strength,
             unit: item.unit,
+            packSize: item.packSize,
             vialsPerBox: item.vialsPerBox,
           })),
           shipping: {
@@ -1946,7 +1947,7 @@ function CheckoutContent() {
                               <p className="text-xs text-ink-muted mt-1">
                                 {item.strength}
                                 <span className="ml-1.5 inline-flex items-center rounded-full bg-surface border border-line px-1.5 py-0.5 text-[10px] font-medium text-ink-muted">
-                                  {item.unit === 'case' ? `Pack of ${item.vialsPerBox}` : 'Single vial'}
+                                  {item.packSize > 1 ? `Pack of ${item.packSize}` : 'Single vial'}
                                 </span>
                               </p>
                               <div className="flex items-center justify-between mt-3">
@@ -2024,9 +2025,7 @@ function CheckoutContent() {
                             .filter((i) => i.productId === p.id)
                             .reduce(
                               (sum, i) =>
-                                sum +
-                                i.quantity *
-                                  (i.unit === "case" ? i.vialsPerBox : 1),
+                                sum + i.quantity * i.packSize,
                               0,
                             );
                           return (

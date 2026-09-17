@@ -71,14 +71,19 @@ export async function createInvoiceForOrder(
     const unit_price = Number(it.unit_price ?? it.price_at_time ?? it.price ?? 0) || 0;
     const discount_pct = Number(it.discount_pct ?? 0) || 0;
     const baseName = it.name_snapshot ?? it.product_name ?? it.name ?? 'Product';
-    // Spell out what was actually ordered — a single vial vs. a full case of
-    // N vials — so the invoice line is unambiguous. Storefront JSONB lines
-    // carry `unit`/`vials_per_box`; relational/admin lines usually don't.
+    // Spell out what was actually ordered — a single vial vs. a pack of N —
+    // so the invoice line is unambiguous. Storefront JSONB lines carry
+    // `pack_size` (and, on orders placed before pack options,
+    // `unit`/`vials_per_box`); relational/admin lines usually carry none.
     const vialsPerBox = Number(it.vials_per_box) > 0 ? Number(it.vials_per_box) : 10;
+    const packSize =
+      Number(it.pack_size) > 0
+        ? Math.floor(Number(it.pack_size))
+        : it.unit === 'case' ? vialsPerBox : it.unit === 'vial' ? 1 : 0;
     const description =
-      it.unit === 'case'
-        ? `${baseName} — Pack of ${vialsPerBox} (${qty * vialsPerBox} vials)`
-        : it.unit === 'vial'
+      packSize > 1
+        ? `${baseName} — Pack of ${packSize} (${qty * packSize} vials)`
+        : packSize === 1
           ? `${baseName} — Single vial`
           : baseName;
     // Carry the unit onto the invoice line too. `invoice_line_items.price_type`
@@ -89,7 +94,7 @@ export async function createInvoiceForOrder(
     const price_type: 'box' | 'vial' =
       it.price_type === 'vial' || it.price_type === 'box'
         ? it.price_type
-        : it.unit === 'vial'
+        : packSize === 1
           ? 'vial'
           : 'box';
     return {

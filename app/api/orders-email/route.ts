@@ -10,7 +10,9 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 import { autoCreateShipmentForOrder } from "@/lib/shipping/auto-shipment";
 import { createInvoiceForOrder } from "@/lib/admin/order-invoice-server";
 import { resolvePriceMap } from "@/lib/pricing/resolve";
-import { casePriceFromVial, vialPriceFor, vialsPerBoxOf } from "@/lib/pricing";
+import {
+  packPriceFor, packSizesFor, round2 as roundMoney, vialPriceFor, vialsPerBoxOf,
+} from "@/lib/pricing";
 import {
   resolveShippingCost,
   getShippingConfig,
@@ -41,9 +43,13 @@ interface CheckoutItem {
   price: number;
   quantity: number;
   strength?: string;
-  /** 'vial' (single vial) or 'case' (full box). Absent → treated as 'case'. */
+  /** 'vial' (single vial) or 'case' (any multi-vial pack). Absent → 'case'. */
   unit?: "vial" | "case";
-  /** Vials in one case; used to convert a case line to vials for stock. */
+  /** Vials in ONE unit of this line — 1 for a single vial, N for an N-pack.
+   *  Absent (an older cart) → derived from `unit` + `vialsPerBox`. Validated
+   *  server-side against the product's own pack options. */
+  packSize?: number;
+  /** Vials in one case; used to convert a legacy case line to vials. */
   vialsPerBox?: number;
 }
 
@@ -214,7 +220,7 @@ export async function POST(req: NextRequest) {
   // — the same rule the storefront renders with.
   const { data: vialRows } = await db
     .from("products")
-    .select("id, vial_price, vials_per_box")
+    .select("id, vial_price, vials_per_box, pack_sizes")
     .in(
       "id",
       lineProductIds.length
@@ -236,6 +242,7 @@ export async function POST(req: NextRequest) {
     quantity: number;
     strength?: string;
     unit: "vial" | "case";
+    pack_size: number;
     vials_per_box: number;
   }> = [];
   for (const it of items) {
@@ -254,25 +261,45 @@ export async function POST(req: NextRequest) {
     }
     const detail: any = detailById.get(id);
     const vialsPerBox = vialsPerBoxOf(detail?.vials_per_box);
-    const unit: "vial" | "case" = it.unit === "vial" ? "vial" : "case";
+
+    // Pack size is NEVER trusted from the browser: it decides both the price
+    // and how much stock the line consumes. Take the client's number only when
+    // the product actually offers that pack; otherwise fall back to what the
+    // line's `unit` has always meant.
+    const offeredPacks = packSizesFor({
+      price: resolved.base,
+      vial_price: detail?.vial_price ?? null,
+      vials_per_box: vialsPerBox,
+      pack_sizes: detail?.pack_sizes ?? null,
+    });
+    const requestedPack = Math.floor(Number(it.packSize));
+    const legacyPack = it.unit === "vial" ? 1 : vialsPerBox;
+    const packSize =
+      Number.isFinite(requestedPack) && offeredPacks.includes(requestedPack)
+        ? requestedPack
+        : legacyPack;
+    const unit: "vial" | "case" = packSize > 1 ? "case" : "vial";
+
     // Same vial price rule the storefront renders with (explicit vial price,
-    // else the case price ÷ vials_per_box) — also the input to the case rule
-    // below, so client & server subtotals agree.
-    const vialUnitPrice = vialPriceFor({
+    // else the case price ÷ vials_per_box). A pricelist / per-customer
+    // override still wins: its case price is spread back over the case to give
+    // the per-vial figure every pack is then built from, so a pack of
+    // vials_per_box lands exactly on the overridden price.
+    const catalogVialPrice = vialPriceFor({
       price: resolved.base,
       vial_price: detail?.vial_price ?? null,
       vials_per_box: vialsPerBox,
     });
-    // A case is priced by the storefront rule (vial × N) unless a
-    // pricelist/customer-override price explicitly covers the product —
-    // those still win.
-    const unitPrice =
-      unit === "vial"
-        ? vialUnitPrice
-        : resolved.source === "base"
-          ? casePriceFromVial(vialUnitPrice, vialsPerBox)
-          : resolved.price;
-    const vialsPerUnit = unit === "case" ? vialsPerBox : 1;
+    const effectiveVialPrice =
+      resolved.source === "base"
+        ? catalogVialPrice
+        : roundMoney(resolved.price / vialsPerBox);
+    // Pack rule: vial price × pack size, no pack discount.
+    const unitPrice = packPriceFor(
+      { price: resolved.base, vial_price: effectiveVialPrice, vials_per_box: vialsPerBox },
+      packSize,
+    );
+    const vialsPerUnit = packSize;
 
     subtotal += unitPrice * qty;
     clientSubtotal += (Number(it.price) || 0) * qty;
@@ -288,6 +315,7 @@ export async function POST(req: NextRequest) {
       quantity: qty,
       strength: it.strength,
       unit,
+      pack_size: packSize,
       vials_per_box: vialsPerBox,
     });
   }
@@ -587,6 +615,7 @@ export async function POST(req: NextRequest) {
           price: it.price,
           strength: it.strength,
           unit: it.unit,
+          packSize: it.pack_size,
           vialsPerBox: it.vials_per_box,
         })),
         subtotal,

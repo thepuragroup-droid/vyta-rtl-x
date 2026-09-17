@@ -20,6 +20,7 @@ import {
   Users,
   Beaker,
   Microscope,
+  BookOpen,
   LayoutDashboard,
   Warehouse,
 } from "lucide-react";
@@ -106,7 +107,9 @@ export default function Navigation() {
   }
 
   return (
-    <nav className="fixed top-0 w-full z-50">
+    // `--announcement-h` is published by AnnouncementBar (0px when no banner
+    // is live), so the nav sits directly under the bar instead of behind it.
+    <nav className="fixed w-full z-50" style={{ top: 'var(--announcement-h, 0px)' }}>
       {/* Main Navigation Bar */}
       <div
         className={`transition-colors duration-300 ${
@@ -184,19 +187,32 @@ export default function Navigation() {
                     >
                       <div className="bg-white rounded-2xl shadow-2xl shadow-black/20 overflow-hidden border border-slate-200">
                         <div className="p-2">
-                          <div className="flex items-center gap-3 px-3 py-3 rounded-xl cursor-not-allowed opacity-50">
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                              <Users className="w-5 h-5 text-slate-400" />
+                          <Link
+                            href="/about"
+                            onClick={() => setActiveDropdown(null)}
+                            className="flex items-center gap-3 px-3 py-3 rounded-xl transition-colors hover:bg-surface"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+                              <Users className="w-5 h-5 text-teal-dark" />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-slate-400">
-                                About Us
-                              </p>
-                              <p className="text-xs text-slate-400">
-                                Coming Soon
-                              </p>
+                              <p className="text-sm font-semibold text-ink">About Us</p>
+                              <p className="text-xs text-ink-muted">Who we are</p>
                             </div>
-                          </div>
+                          </Link>
+                          <Link
+                            href="/articles"
+                            onClick={() => setActiveDropdown(null)}
+                            className="flex items-center gap-3 px-3 py-3 rounded-xl transition-colors hover:bg-surface"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+                              <BookOpen className="w-5 h-5 text-teal-dark" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-ink">Articles</p>
+                              <p className="text-xs text-ink-muted">Research &amp; guides</p>
+                            </div>
+                          </Link>
                           <div className="flex items-center gap-3 px-3 py-3 rounded-xl cursor-not-allowed opacity-50">
                             <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
                               <Microscope className="w-5 h-5 text-slate-400" />
@@ -491,13 +507,22 @@ export default function Navigation() {
                 <p className="px-4 text-[10px] text-ink-muted uppercase tracking-[0.15em] font-medium mb-2">
                   Company
                 </p>
-                <div className="flex items-center gap-3 px-4 py-3 text-ink-light rounded-xl cursor-not-allowed opacity-50">
-                  <Users className="w-4 h-4 text-ink-light" />
+                <Link
+                  href="/about"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-ink-muted hover:text-ink hover:bg-surface rounded-xl transition-colors"
+                >
+                  <Users className="w-4 h-4 text-teal-dark" />
                   <span className="text-sm font-medium">About Us</span>
-                  <span className="text-[10px] text-ink-muted ml-auto">
-                    Coming Soon
-                  </span>
-                </div>
+                </Link>
+                <Link
+                  href="/articles"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-ink-muted hover:text-ink hover:bg-surface rounded-xl transition-colors"
+                >
+                  <BookOpen className="w-4 h-4 text-teal-dark" />
+                  <span className="text-sm font-medium">Articles</span>
+                </Link>
                 <div className="flex items-center gap-3 px-4 py-3 text-ink-light rounded-xl cursor-not-allowed opacity-50">
                   <Microscope className="w-4 h-4 text-ink-light" />
                   <span className="text-sm font-medium">Certifications</span>

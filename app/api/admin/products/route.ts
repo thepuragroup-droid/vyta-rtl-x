@@ -4,6 +4,7 @@ import { canCreate } from '@/lib/permissions';
 import { logAuditServer } from '@/lib/admin/audit';
 import { toUrlSlug } from '@/lib/products/url';
 import { parsePriceOverride, parseVialsPerBox } from '@/lib/admin/product-input';
+import { normalizePackSizes } from '@/lib/pricing';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
       vial_price,
       stock_quantity,
       vials_per_box,
+      pack_sizes,
       category,
       image_url,
       box_image_url,
@@ -159,6 +161,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: vialsPerBox.error }, { status: 400 });
     }
 
+    // Pack options — see lib/pricing.ts `packSizesFor`. An empty list stores
+    // NULL, i.e. "fall back to single vial + one full case".
+    const cleanedPackSizes = normalizePackSizes(pack_sizes);
+
     const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     // The public URL is derived from the SKU slug, never equal to it by
     // definition — see lib/products/url.ts. The DB trigger backstops rows
@@ -188,6 +194,7 @@ export async function POST(request: NextRequest) {
         vial_price: vialPrice.value,
         stock_quantity,
         vials_per_box: vialsPerBox.value,
+        pack_sizes: cleanedPackSizes.length > 0 ? cleanedPackSizes : null,
         low_stock_threshold: low_stock_threshold ?? 10,
         category,
         image_url,

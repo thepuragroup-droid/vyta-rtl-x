@@ -285,3 +285,41 @@ button:focus-visible {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* ── Announcement bar marquee ──────────────────────────────────────────────
+   Two identical tracks sit side by side inside the overflow-hidden bar; the
+   pair slides left by exactly half its own width and resets, so the second
+   copy is already in place when the first leaves and the loop has no seam.
+   `gap` is on the flex row rather than the items so the spacing between the
+   two copies matches the spacing inside one. */
+.vyta-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: vyta-marquee-scroll linear infinite;
+}
+
+.vyta-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 2rem;
+  white-space: nowrap;
+}
+
+@keyframes vyta-marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Motion sensitivity: stop the scroll and centre the single visible copy, so
+   the message is still readable rather than mid-slide. */
+@media (prefers-reduced-motion: reduce) {
+  .vyta-marquee-track {
+    animation: none;
+    width: 100%;
+    justify-content: center;
+  }
+  .vyta-marquee-item + .vyta-marquee-item {
+    display: none;
+  }
+}

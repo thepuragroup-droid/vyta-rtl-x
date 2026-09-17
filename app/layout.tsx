@@ -15,6 +15,7 @@ import FreeShippingToast from '@/components/FreeShippingToast';
 import AgeVerification from '@/components/AgeVerification';
 import AuthGuard from '@/components/AuthGuard';
 import ChunkErrorRecovery from '@/components/ChunkErrorRecovery';
+import AnnouncementBar from '@/components/AnnouncementBar';
 import SiteTracking from '@/components/SiteTracking';
 import CustomerJourneyTracker from '@/components/CustomerJourneyTracker';
 import { siteConfig } from '@/lib/config';
@@ -140,6 +141,12 @@ window.gtag=window.gtag||gtag;gtag('js',new Date());gtag('config','${ga4Id}');`,
                         <PurchaseModalProvider>
                           <AuthGuard>
                             <ChunkErrorRecovery />
+                            {/* Sticky site-wide banner. Renders before the
+                                page so its in-flow spacer pushes everything
+                                down by exactly the bar's height; it hides
+                                itself on the admin / warehouse / affiliate
+                                portals. */}
+                            <AnnouncementBar />
                             {children}
                             <ChatBubble />
                             <FreeShippingToast />

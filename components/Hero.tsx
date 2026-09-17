@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { siteConfig } from '@/lib/config';
-import { casePriceFor, vialPriceFor } from '@/lib/pricing';
+import { largestPackFor, vialPriceFor } from '@/lib/pricing';
 import { usePurchaseModal } from '@/contexts/PurchaseModalContext';
 import { productPath } from '@/lib/products/url';
 
@@ -118,7 +118,7 @@ export default function Hero() {
         const { data } = await supabase
           .from('products')
           .select(
-            'id, name, slug, description_short, price, vial_price, purity, strength, image_url, box_image_url, stock_quantity, vials_per_box',
+            'id, name, slug, description_short, price, vial_price, purity, strength, image_url, box_image_url, stock_quantity, vials_per_box, pack_sizes',
           )
           .eq('active', true)
           .eq('featured', true)
@@ -336,10 +336,12 @@ export default function Hero() {
                         ${vialPriceFor(product).toFixed(2)}
                         <span className="text-[10px] font-medium text-white/50"> / vial</span>
                       </span>
-                      <span className="text-[10px] text-white/50 tabular-nums">
-                        Pack of {product.vials_per_box ?? 10} · $
-                        {casePriceFor(product).toFixed(2)}
-                      </span>
+                      {largestPackFor(product) && (
+                        <span className="text-[10px] text-white/50 tabular-nums">
+                          Pack of {largestPackFor(product)!.size} · $
+                          {largestPackFor(product)!.price.toFixed(2)}
+                        </span>
+                      )}
                     </span>
                   ) : (
                     <span className="text-lg font-bold text-white/50">N/A</span>
