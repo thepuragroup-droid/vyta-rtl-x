@@ -39,6 +39,23 @@ COMMENT ON COLUMN products.pack_sizes IS
   'Pack quantities (in vials) this product may be sold in, e.g. {1,3,5,10}. NULL = fall back to single vial + one case of vials_per_box.';
 
 -- Every entry must be a positive whole number. NULL and '{}' both pass.
+--
+-- Postgres forbids a subquery inside a CHECK constraint, and `unnest()` in a
+-- WHERE/EXISTS clause is exactly that (ERROR 0A000). The test therefore lives
+-- in an IMMUTABLE function, which a CHECK is allowed to call.
+CREATE OR REPLACE FUNCTION pack_sizes_are_positive(sizes integer[])
+RETURNS boolean
+LANGUAGE sql
+IMMUTABLE
+PARALLEL SAFE
+AS $fn$
+  -- NULL array  -> true  (not opted in)
+  -- empty array -> true  (bool_and over no rows is NULL, so IS NOT FALSE)
+  -- a NULL or < 1 element -> false
+  SELECT sizes IS NULL
+      OR (SELECT bool_and(s IS NOT NULL AND s >= 1) FROM unnest(sizes) AS s) IS NOT FALSE;
+$fn$;
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -46,10 +63,7 @@ BEGIN
   ) THEN
     ALTER TABLE products
       ADD CONSTRAINT products_pack_sizes_positive_chk
-      CHECK (
-        pack_sizes IS NULL
-        OR NOT EXISTS (SELECT 1 FROM unnest(pack_sizes) AS s WHERE s < 1)
-      );
+      CHECK (pack_sizes_are_positive(pack_sizes));
   END IF;
 END $$;
 
