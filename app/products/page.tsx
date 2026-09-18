@@ -472,13 +472,21 @@ export default function ProductsPage() {
                             ${vialPriceFor(product).toFixed(2)}
                             <span className="text-[10px] font-medium text-ink-muted"> / vial</span>
                           </span>
-                          {largestPackFor(product) && (
-                            <span className="text-[10px] text-ink-muted">
-                              Pack of {largestPackFor(product)!.size} · $
-                              {largestPackFor(product)!.price.toFixed(2)}{' '}
-                              CAD
-                            </span>
-                          )}
+                          {(() => {
+                            const pack = largestPackFor(product);
+                            if (!pack) return null;
+                            return (
+                              <span className="text-[10px] text-ink-muted">
+                                Pack of {pack.size} · ${pack.price.toFixed(2)}
+                                {pack.compareAt != null && (
+                                  <span className="ml-1 line-through">
+                                    ${pack.compareAt.toFixed(2)}
+                                  </span>
+                                )}{' '}
+                                CAD
+                              </span>
+                            );
+                          })()}
                         </span>
                       )}
                       <div className="flex items-center gap-1.5">

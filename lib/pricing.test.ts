@@ -18,8 +18,12 @@ import {
   fallbackVialPrice,
   formatPackSizes,
   normalizePackSizes,
+  packOptionFor,
+  packOptionsFor,
   packPriceFor,
   packSizesFor,
+  normalizePackOptions,
+  reconcilePackOptions,
   packsInStock,
   parsePackSizesInput,
   samePackSizes,
@@ -150,4 +154,137 @@ test('samePackSizes treats null and empty as the same "not opted in"', () => {
   assert.ok(samePackSizes([1, 3], [3, 1]));
   assert.ok(!samePackSizes([1, 3], [1, 3, 5]));
   assert.ok(!samePackSizes(null, [1, 10]));
+});
+
+// ---------------------------------------------------------------------------
+// Per-pack pricing (`products.pack_options`)
+// ---------------------------------------------------------------------------
+
+const PRICED = { price: 1000, vial_price: 100, vials_per_box: 10 };
+
+test('normalizePackOptions drops junk and keeps one row per size', () => {
+  assert.deepEqual(
+    normalizePackOptions([
+      { size: 3, label: ' 3-pack ', price: '249', compare_at: 300 },
+      { size: 0, price: 10 },          // size below 1
+      { size: 'x' },                   // unparseable
+      { size: 3, price: 199 },         // later duplicate wins
+      { size: 1, price: -5 },          // negative money is "not set"
+    ]),
+    [
+      { size: 1, label: null, price: null, compare_at: null, enabled: true },
+      { size: 3, label: null, price: 199, compare_at: null, enabled: true },
+    ],
+  );
+  assert.deepEqual(normalizePackOptions(null), []);
+  assert.deepEqual(normalizePackOptions('1,3'), []);
+  // A bare list of sizes is accepted, which is what makes the older
+  // pack_sizes column readable through the same path.
+  assert.deepEqual(
+    normalizePackOptions([1, 10]).map((o) => o.size),
+    [1, 10],
+  );
+});
+
+test('a pack with no price set stays at vial price × size', () => {
+  const product = {
+    ...PRICED,
+    pack_options: [{ size: 1 }, { size: 3 }, { size: 10 }],
+  };
+  assert.equal(packPriceFor(product, 3), 300);
+  assert.equal(packPriceFor(product, 10), 1000);
+  // ...and nothing is struck through, because nothing was discounted.
+  assert.equal(packOptionFor(product, 3)?.compareAt, null);
+  assert.equal(packOptionFor(product, 3)?.savings, 0);
+});
+
+test('an admin-set pack price wins over the derived one', () => {
+  const product = {
+    ...PRICED,
+    pack_options: [
+      { size: 1, price: null },
+      { size: 3, price: 249 },
+      { size: 10, price: 749 },
+    ],
+  };
+  assert.equal(packPriceFor(product, 1), 100);
+  assert.equal(packPriceFor(product, 3), 249);
+  assert.equal(packPriceFor(product, 10), 749);
+});
+
+test('a discounted pack gets its compare-at and saving for free', () => {
+  const option = packOptionFor(
+    { ...PRICED, pack_options: [{ size: 10, price: 750 }] },
+    10,
+  );
+  // Undiscounted would be 100 × 10 = 1000, so that becomes the "was" price.
+  assert.equal(option?.price, 750);
+  assert.equal(option?.compareAt, 1000);
+  assert.equal(option?.savings, 250);
+  assert.equal(option?.savingsPercent, 25);
+  assert.equal(option?.perVialPrice, 75);
+});
+
+test('an explicit compare-at wins, and a useless one is dropped', () => {
+  const explicit = packOptionFor(
+    { ...PRICED, pack_options: [{ size: 3, price: 250, compare_at: 400 }] },
+    3,
+  );
+  assert.equal(explicit?.compareAt, 400);
+  assert.equal(explicit?.savings, 150);
+
+  // A compare-at at or below the price is not a saving — never render it.
+  const useless = packOptionFor(
+    { ...PRICED, pack_options: [{ size: 3, price: 300, compare_at: 250 }] },
+    3,
+  );
+  assert.equal(useless?.compareAt, null);
+  assert.equal(useless?.savings, 0);
+});
+
+test('labels fall back to the derived wording, and an operator label wins', () => {
+  const options = packOptionsFor({
+    ...PRICED,
+    pack_options: [{ size: 1 }, { size: 10, label: 'Best value' }],
+  });
+  assert.deepEqual(options.map((o) => o.label), ['Single vial', 'Best value']);
+});
+
+test('pack_options decides which packs are offered, minus unticked rows', () => {
+  const product = {
+    ...PRICED,
+    // The older column disagrees on purpose: pack_options has to win.
+    pack_sizes: [1, 10],
+    pack_options: [{ size: 1 }, { size: 3 }, { size: 5, enabled: false }],
+  };
+  assert.deepEqual(packSizesFor(product), [1, 3]);
+  assert.deepEqual(packOptionsFor(product).map((o) => o.size), [1, 3]);
+});
+
+test('a product with neither column keeps the legacy single-vial + case pair', () => {
+  const options = packOptionsFor(PRICED);
+  assert.deepEqual(options.map((o) => o.size), [1, 10]);
+  assert.deepEqual(options.map((o) => o.price), [100, 1000]);
+  assert.deepEqual(options.map((o) => o.compareAt), [null, null]);
+});
+
+test('a sizes-only edit keeps the prices of the packs that survive', () => {
+  const stored = [
+    { size: 1, price: null },
+    { size: 3, price: 249, label: 'Starter' },
+    { size: 10, price: 749 },
+  ];
+  // 3 stays (with its price and label), 10 goes, 5 arrives blank.
+  assert.deepEqual(reconcilePackOptions(stored, [1, 3, 5]), [
+    { size: 1, label: null, price: null, compare_at: null, enabled: true },
+    { size: 3, label: 'Starter', price: 249, compare_at: null, enabled: true },
+    { size: 5, label: null, price: null, compare_at: null, enabled: true },
+  ]);
+});
+
+test('a product with no per-pack pricing stays on the sizes-only column', () => {
+  assert.equal(reconcilePackOptions(null, [1, 3, 5]), null);
+  assert.equal(reconcilePackOptions([], [1, 3, 5]), null);
+  // Clearing the sizes clears the pricing with them.
+  assert.equal(reconcilePackOptions([{ size: 3, price: 249 }], []), null);
 });

@@ -11,6 +11,12 @@ export interface SiteConfig {
   store_tagline: string;
   logo_url: string | null;
   favicon_url: string | null;
+  /** Home-page hero background video (MP4/WebM). Null runs the hero on the
+   *  still image alone. */
+  hero_video_url: string | null;
+  /** Home-page hero still. Always rendered first, and the fallback on phones,
+   *  reduced motion and slow connections. Null uses the shipped image. */
+  hero_image_url: string | null;
   /** Google Tag Manager container — GTM-XXXXXXX. */
   gtm_container_id: string | null;
   ga4_measurement_id: string | null;
@@ -52,6 +58,8 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   store_tagline: 'Biosciences',
   logo_url: null,
   favicon_url: null,
+  hero_video_url: null,
+  hero_image_url: null,
   gtm_container_id: FALLBACK_GTM_CONTAINER_ID,
   ga4_measurement_id: FALLBACK_GA4_MEASUREMENT_ID,
   meta_pixel_id: null,
@@ -77,6 +85,8 @@ export function shapeSiteConfig(row: Record<string, any> | null | undefined): Si
     store_tagline: cleanString(d.store_tagline) ?? DEFAULT_SITE_CONFIG.store_tagline,
     logo_url: cleanString(d.logo_url),
     favicon_url: cleanString(d.favicon_url),
+    hero_video_url: cleanString(d.hero_video_url),
+    hero_image_url: cleanString(d.hero_image_url),
     gtm_container_id: cleanString(d.gtm_container_id) ?? FALLBACK_GTM_CONTAINER_ID,
     ga4_measurement_id: cleanString(d.ga4_measurement_id) ?? FALLBACK_GA4_MEASUREMENT_ID,
     meta_pixel_id: cleanString(d.meta_pixel_id),

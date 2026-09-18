@@ -231,6 +231,11 @@ export interface Product {
    *  empty = not opted in, so the storefront falls back to the historical pair
    *  (single vial + one full case). See lib/pricing.ts `packSizesFor`. */
   pack_sizes: number[] | null;
+  /** Per-pack configuration: [{size, label, price, compare_at, enabled}]. NULL
+   *  = fall back to `pack_sizes`, then to the historical pair. A NULL `price`
+   *  on a row means the derived vial price × size. See lib/pricing.ts
+   *  `packOptionsFor`. */
+  pack_options: import('@/lib/pricing').StoredPackOption[] | null;
   low_stock_threshold: number;
   /** Dedupe flag: true once a low-stock alert has been emailed. Reset when
    *  stock recovers above the threshold. */

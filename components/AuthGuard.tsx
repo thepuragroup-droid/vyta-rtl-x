@@ -6,26 +6,30 @@ import { useCustomer } from '@/contexts/CustomerContext';
 import PeptideLoader from '@/components/PeptideLoader';
 import { siteConfig } from '@/lib/config';
 
-// Pages anyone can visit without an account
-const PUBLIC_PATHS = [
-  '/',
-  '/login',
-  '/signup',
-  '/terms',
-  '/forgot-password',
-  '/reset-password',
-  '/products',
-  '/contact',
-  '/lab-results',
-  '/cart',
-  '/checkout',
-  // Reached from the "we didn't have your shipping address" email. The token in
-  // the URL is the credential — requiring a login here would strand guests.
-  '/shipping-address',
+/**
+ * The storefront is PUBLIC by default.
+ *
+ * This list is deliberately the inverse of what it used to be: an allowlist of
+ * public paths meant every new marketing page (About Us, the article index, an
+ * order-tracking link) silently arrived behind a login wall until someone
+ * remembered to add it here — which is exactly what happened to /p/about.
+ *
+ * So: only the paths below ask for a customer account, and everything else —
+ * catalog, product pages, editable pages, articles, cart, checkout, contact,
+ * lab results, order tracking — is open to anyone, the way a shop should be.
+ *
+ * The staff portals (/admin, /warehouse) and the affiliate portal are NOT
+ * listed: each runs its own, stricter check in its own layout, against roles
+ * this customer-side guard knows nothing about. Adding them here would only
+ * bounce a signed-out visitor to the wrong login screen.
+ */
+const PRIVATE_PREFIXES = [
+  // The customer account area: dashboard, order history, a single order.
+  '/account',
 ];
 
-function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
+function isPrivatePath(pathname: string): boolean {
+  return PRIVATE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));
 }
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -36,7 +40,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   // Auth disabled — let everyone through without any login gates
   if (!siteConfig.authEnabled) return <>{children}</>;
 
-  const isPublic = isPublicPath(pathname);
+  const isPublic = !isPrivatePath(pathname);
 
   useEffect(() => {
     if (isPublic) return;

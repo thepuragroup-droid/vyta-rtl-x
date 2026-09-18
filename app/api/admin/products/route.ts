@@ -4,7 +4,7 @@ import { canCreate } from '@/lib/permissions';
 import { logAuditServer } from '@/lib/admin/audit';
 import { toUrlSlug } from '@/lib/products/url';
 import { parsePriceOverride, parseVialsPerBox } from '@/lib/admin/product-input';
-import { normalizePackSizes } from '@/lib/pricing';
+import { normalizePackOptions, normalizePackSizes } from '@/lib/pricing';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
       stock_quantity,
       vials_per_box,
       pack_sizes,
+      pack_options,
       category,
       image_url,
       box_image_url,
@@ -164,6 +165,10 @@ export async function POST(request: NextRequest) {
     // Pack options — see lib/pricing.ts `packSizesFor`. An empty list stores
     // NULL, i.e. "fall back to single vial + one full case".
     const cleanedPackSizes = normalizePackSizes(pack_sizes);
+    // Per-pack price / label / compare-at. Normalised here so a malformed
+    // document can never reach the column, and stored as NULL when empty so
+    // the older `pack_sizes` column keeps deciding on its own.
+    const cleanedPackOptions = normalizePackOptions(pack_options);
 
     const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     // The public URL is derived from the SKU slug, never equal to it by
@@ -195,6 +200,7 @@ export async function POST(request: NextRequest) {
         stock_quantity,
         vials_per_box: vialsPerBox.value,
         pack_sizes: cleanedPackSizes.length > 0 ? cleanedPackSizes : null,
+        pack_options: cleanedPackOptions.length > 0 ? cleanedPackOptions : null,
         low_stock_threshold: low_stock_threshold ?? 10,
         category,
         image_url,

@@ -172,8 +172,8 @@ export default function PackOptionsDialog({
           <div className="min-w-0">
             <h2 className="text-lg font-bold text-ink">Pack options</h2>
             <p className="text-xs text-ink-muted">
-              Choose which products are sold in which pack sizes. A pack of N is priced at the
-              vial price × N.
+              Choose which products are sold in which pack sizes. Each pack is priced at the vial
+              price × its size unless a per-pack price is set on the product itself.
             </p>
           </div>
           <button
@@ -359,7 +359,9 @@ export default function PackOptionsDialog({
 
             <p className="mb-4 text-[11px] leading-relaxed text-ink-muted">
               Clearing the options puts a product back on its default pair — a single vial plus one
-              full case of its vials-per-case.
+              full case of its vials-per-case. A pack that survives an edit here keeps any per-pack
+              price it was given; one that is removed loses it. Per-pack prices, labels and
+              compare-at figures are set on the product itself.
             </p>
 
             {error && (

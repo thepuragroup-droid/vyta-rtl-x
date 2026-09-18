@@ -452,7 +452,7 @@ function CheckoutContent() {
         const { data } = await supabase
           .from("products")
           .select(
-            "id, name, price, vial_price, vials_per_box, pack_sizes, stock_quantity, image_url, box_image_url, strength",
+            "id, name, price, vial_price, vials_per_box, pack_sizes, pack_options, stock_quantity, image_url, box_image_url, strength",
           )
           .ilike("name", "bacteriostatic%")
           .eq("active", true)

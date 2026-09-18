@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { canEdit } from '@/lib/permissions';
 import { logAuditServer } from '@/lib/admin/audit';
 import { recordProductChanges } from '@/lib/admin/product-history';
-import { formatPackSizes, normalizePackSizes } from '@/lib/pricing';
+import { formatPackSizes, normalizePackSizes, reconcilePackOptions } from '@/lib/pricing';
 
 /**
  * Bulk pack-options editor.
@@ -91,10 +91,11 @@ export async function PATCH(request: NextRequest) {
   const cleaned = normalizePackSizes(body.pack_sizes);
   const packSizes = cleaned.length > 0 ? cleaned : null;
 
-  // Read the "before" rows so history only logs products that really moved.
+  // Read the "before" rows so history only logs products that really moved —
+  // and so each product's per-pack pricing can be carried across the edit.
   const { data: before, error: readError } = await supabase
     .from('products')
-    .select('id, name, pack_sizes')
+    .select('id, name, pack_sizes, pack_options')
     .in('id', ids);
 
   if (readError) {
@@ -104,25 +105,53 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'No matching products' }, { status: 404 });
   }
 
-  const { data: updated, error } = await supabase
-    .from('products')
-    .update({ pack_sizes: packSizes, updated_at: new Date().toISOString() })
-    .in('id', ids)
-    .select();
-
-  if (error) {
-    // The most likely cause is the column not existing yet — say so plainly
-    // rather than surfacing a raw Postgres error to the operator.
-    const message = /pack_sizes/.test(error.message)
-      ? 'Pack options column is missing — run pack-options-content-migration.sql.'
-      : error.message;
-    return NextResponse.json({ error: message }, { status: 500 });
+  // This dialog edits which sizes a product is sold in, not their prices — but
+  // the storefront reads `pack_options` FIRST, so leaving it alone would mean a
+  // size removed here kept selling. Reconcile it per product: a size that
+  // survives keeps the price an operator set for it, one that goes is dropped.
+  // Products sharing a result are updated together, so the common case (no
+  // per-pack pricing anywhere, i.e. one NULL group) stays a single round-trip.
+  const groups = new Map<string, { options: unknown; ids: string[] }>();
+  for (const row of before) {
+    const options = packSizes ? reconcilePackOptions(row.pack_options, packSizes) : null;
+    const key = JSON.stringify(options);
+    const group = groups.get(key);
+    if (group) group.ids.push(row.id as string);
+    else groups.set(key, { options, ids: [row.id as string] });
   }
 
+  const stamp = new Date().toISOString();
+  const updatedRows: Array<Record<string, unknown>> = [];
+  for (const { options, ids: groupIds } of groups.values()) {
+    const { data, error } = await supabase
+      .from('products')
+      .update({ pack_sizes: packSizes, pack_options: options, updated_at: stamp })
+      .in('id', groupIds)
+      .select();
+
+    if (error) {
+      // The most likely cause is a column not existing yet — say so plainly
+      // rather than surfacing a raw Postgres error to the operator.
+      const message = /pack_sizes/.test(error.message)
+        ? 'Pack options column is missing — run pack-options-content-migration.sql.'
+        : /pack_options/.test(error.message)
+          ? 'Pack pricing column is missing — run pack-option-pricing-migration.sql.'
+          : error.message;
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
+    updatedRows.push(...(data ?? []));
+  }
+  const updated = updatedRows;
+
   const beforeById = new Map(before.map((row) => [row.id as string, row]));
+  // Either column moving counts: a product can keep its sizes and still have
+  // its per-pack pricing pruned by the reconcile above.
   const changed = (updated ?? []).filter((row) => {
     const prev = beforeById.get(row.id as string);
-    return JSON.stringify(prev?.pack_sizes ?? null) !== JSON.stringify(row.pack_sizes ?? null);
+    return (
+      JSON.stringify(prev?.pack_sizes ?? null) !== JSON.stringify(row.pack_sizes ?? null) ||
+      JSON.stringify(prev?.pack_options ?? null) !== JSON.stringify(row.pack_options ?? null)
+    );
   });
 
   // History per changed row, mirroring what a single-product PATCH records.

@@ -6,6 +6,7 @@ import {
   Images, Info, List, Minus, MousePointerClick, Plus, Quote, Trash2, Type, Video,
 } from 'lucide-react';
 import ImageField from '@/components/admin/content/ImageField';
+import RichTextField from '@/components/admin/content/RichTextField';
 import {
   BLOCK_LIBRARY,
   createBlock,
@@ -262,24 +263,29 @@ function BlockFields({
             <option value={2}>Section</option>
             <option value={3}>Sub-section</option>
           </select>
-          <input
-            value={block.text}
-            onChange={(e) => onChange({ ...block, text: e.target.value })}
-            placeholder="Heading text"
-            className={inputClass}
-          />
+          <div className="flex-1">
+            <RichTextField
+              value={block.text}
+              onChange={(text) => onChange({ ...block, text })}
+              placeholder="Heading text"
+              allowCode={false}
+              ariaLabel="Heading text"
+            />
+          </div>
         </div>
       );
 
     case 'paragraph':
       return (
         <div>
-          <textarea
+          <RichTextField
             value={block.text}
-            onChange={(e) => onChange({ ...block, text: e.target.value })}
+            onChange={(text) => onChange({ ...block, text })}
+            multiline
             rows={4}
-            placeholder="Write your copy. **bold**, *italic*, `code` and [links](https://example.com) all work. Leave a blank line to start a new paragraph."
-            className={inputClass}
+            placeholder="Write your copy. Select a word and press B to bold it, or the link button to turn it into a link. Leave a blank line to start a new paragraph."
+            ariaLabel="Paragraph text"
+            hint="Formatting is written as **bold**, *italic*, `code` and [label](https://example.com) — the buttons above do it for you. Pasted HTML is shown as plain text, on purpose."
           />
           <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-ink-muted">
             <input
@@ -412,12 +418,13 @@ function BlockFields({
     case 'quote':
       return (
         <div className="space-y-2">
-          <textarea
+          <RichTextField
             value={block.text}
-            onChange={(e) => onChange({ ...block, text: e.target.value })}
+            onChange={(text) => onChange({ ...block, text })}
+            multiline
             rows={2}
             placeholder="The quote"
-            className={inputClass}
+            ariaLabel="Quote"
           />
           <input
             value={block.attribution}
@@ -450,26 +457,24 @@ function BlockFields({
           <div className="space-y-2">
             {block.items.map((item, i) => (
               <div key={i} className="flex gap-2">
-                <input
-                  value={item}
-                  onChange={(e) =>
-                    onChange({
-                      ...block,
-                      items: block.items.map((v, vi) => (vi === i ? e.target.value : v)),
-                    })
-                  }
-                  onKeyDown={(e) => {
-                    // Enter adds the next point, the way a list wants to be typed.
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
+                <div className="min-w-0 flex-1">
+                  <RichTextField
+                    value={item}
+                    onChange={(text) =>
+                      onChange({
+                        ...block,
+                        items: block.items.map((v, vi) => (vi === i ? text : v)),
+                      })
+                    }
+                    placeholder={`Point ${i + 1}`}
+                    ariaLabel={`List point ${i + 1}`}
+                    onEnter={() => {
                       const next = [...block.items];
                       next.splice(i + 1, 0, '');
                       onChange({ ...block, items: next });
-                    }
-                  }}
-                  placeholder={`Point ${i + 1}`}
-                  className={inputClass}
-                />
+                    }}
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => onChange({ ...block, items: block.items.filter((_, vi) => vi !== i) })}
@@ -517,12 +522,13 @@ function BlockFields({
             placeholder="Callout title"
             className={inputClass}
           />
-          <textarea
+          <RichTextField
             value={block.text}
-            onChange={(e) => onChange({ ...block, text: e.target.value })}
+            onChange={(text) => onChange({ ...block, text })}
+            multiline
             rows={2}
             placeholder="Callout body"
-            className={inputClass}
+            ariaLabel="Callout body"
           />
         </div>
       );
@@ -530,12 +536,14 @@ function BlockFields({
     case 'cta':
       return (
         <div className="space-y-2">
-          <textarea
+          <RichTextField
             value={block.text}
-            onChange={(e) => onChange({ ...block, text: e.target.value })}
+            onChange={(text) => onChange({ ...block, text })}
+            multiline
             rows={2}
             placeholder="The line above the button"
-            className={inputClass}
+            allowCode={false}
+            ariaLabel="Call-to-action copy"
           />
           <div className="grid gap-2 sm:grid-cols-2">
             <input

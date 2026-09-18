@@ -5,7 +5,7 @@ import { logAuditServer } from '@/lib/admin/audit';
 import { recordProductChanges } from '@/lib/admin/product-history';
 import { checkLowStockForProducts } from '@/lib/admin/low-stock';
 import { parsePriceOverride, parseVialsPerBox } from '@/lib/admin/product-input';
-import { normalizePackSizes } from '@/lib/pricing';
+import { normalizePackOptions, normalizePackSizes, reconcilePackOptions } from '@/lib/pricing';
 import { sendBackInStockNotification } from '@/lib/email-smtp';
 
 const supabase = createClient(
@@ -168,6 +168,7 @@ export async function PATCH(
       stock_quantity,
       vials_per_box,
       pack_sizes,
+      pack_options,
       low_stock_threshold,
       category,
       image_url,
@@ -236,6 +237,21 @@ export async function PATCH(
       parsedPackSizes = cleaned.length > 0 ? cleaned : null;
     }
 
+    // Per-pack price / label / compare-at. Same "empty means not opted in"
+    // rule: clearing the editor stores NULL and the packs go back to being
+    // priced at the vial price × size.
+    let parsedPackOptions: ReturnType<typeof normalizePackOptions> | null = null;
+    if (pack_options !== undefined) {
+      if (pack_options !== null && !Array.isArray(pack_options)) {
+        return NextResponse.json(
+          { error: 'Pack pricing must be a list of pack rows' },
+          { status: 400 },
+        );
+      }
+      const cleaned = normalizePackOptions(pack_options);
+      parsedPackOptions = cleaned.length > 0 ? cleaned : null;
+    }
+
     let parsedVialsPerBox = 10;
     if (vials_per_box !== undefined) {
       const parsed = parseVialsPerBox(vials_per_box);
@@ -298,6 +314,18 @@ export async function PATCH(
     if (stock_quantity !== undefined) updateData.stock_quantity = stock_quantity;
     if (vials_per_box !== undefined) updateData.vials_per_box = parsedVialsPerBox;
     if (pack_sizes !== undefined) updateData.pack_sizes = parsedPackSizes;
+    if (pack_options !== undefined) {
+      updateData.pack_options = parsedPackOptions;
+    } else if (pack_sizes !== undefined) {
+      // A sizes-only edit (the cell grid) has to keep the richer column in
+      // step, or the storefront — which reads pack_options first — would keep
+      // selling a size the grid just removed. Surviving sizes keep their
+      // prices; see lib/pricing.ts `reconcilePackOptions`.
+      updateData.pack_options = reconcilePackOptions(
+        existingProduct.pack_options,
+        parsedPackSizes ?? [],
+      );
+    }
     if (low_stock_threshold !== undefined) updateData.low_stock_threshold = low_stock_threshold;
     if (category !== undefined) updateData.category = category;
     if (image_url !== undefined) updateData.image_url = image_url;
