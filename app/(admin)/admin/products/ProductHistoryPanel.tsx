@@ -40,6 +40,8 @@ const FIELD_LABELS: Record<string, string> = {
   description: 'Full description',
   benefits: 'Benefits',
   mechanism: 'Mechanism',
+  pack_sizes: 'Pack options',
+  pack_options: 'Pack pricing',
   image_url: 'Image',
   coa_url: 'Certificates (COA)',
 };

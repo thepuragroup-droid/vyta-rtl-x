@@ -220,7 +220,7 @@ export async function POST(req: NextRequest) {
   // — the same rule the storefront renders with.
   const { data: vialRows } = await db
     .from("products")
-    .select("id, vial_price, vials_per_box, pack_sizes")
+    .select("id, vial_price, vials_per_box, pack_sizes, pack_options")
     .in(
       "id",
       lineProductIds.length
@@ -271,6 +271,7 @@ export async function POST(req: NextRequest) {
       vial_price: detail?.vial_price ?? null,
       vials_per_box: vialsPerBox,
       pack_sizes: detail?.pack_sizes ?? null,
+      pack_options: detail?.pack_options ?? null,
     });
     const requestedPack = Math.floor(Number(it.packSize));
     const legacyPack = it.unit === "vial" ? 1 : vialsPerBox;
@@ -294,9 +295,20 @@ export async function POST(req: NextRequest) {
       resolved.source === "base"
         ? catalogVialPrice
         : roundMoney(resolved.price / vialsPerBox);
-    // Pack rule: vial price × pack size, no pack discount.
+    // Pack rule: the admin's fixed price for this pack when there is one,
+    // otherwise the vial price × pack size.
+    //
+    // A pricelist / per-customer override deliberately drops the fixed pack
+    // price: that override has already restated what this customer pays per
+    // vial, and layering a catalog pack price on top would quote them the
+    // public figure instead of their own.
     const unitPrice = packPriceFor(
-      { price: resolved.base, vial_price: effectiveVialPrice, vials_per_box: vialsPerBox },
+      {
+        price: resolved.base,
+        vial_price: effectiveVialPrice,
+        vials_per_box: vialsPerBox,
+        pack_options: resolved.source === "base" ? (detail?.pack_options ?? null) : null,
+      },
       packSize,
     );
     const vialsPerUnit = packSize;

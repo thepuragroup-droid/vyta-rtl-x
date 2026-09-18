@@ -35,6 +35,7 @@ const TRACKED_FIELDS: Record<string, { type: ProductChangeType; label: string }>
   stock_quantity: { type: 'stock', label: 'Stock quantity' },
   vials_per_box: { type: 'stock', label: 'Vials per box' },
   pack_sizes: { type: 'general', label: 'Pack options' },
+  pack_options: { type: 'general', label: 'Pack pricing' },
   low_stock_threshold: { type: 'stock', label: 'Low-stock threshold' },
   name: { type: 'general', label: 'Name' },
   slug: { type: 'general', label: 'Slug' },

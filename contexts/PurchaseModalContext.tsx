@@ -15,7 +15,8 @@ import { ShoppingCart, X, Check, Beaker, Package } from 'lucide-react';
 import { useCart, type PurchaseUnit } from '@/contexts/CartContext';
 import { useToast } from '@/contexts/ToastContext';
 import {
-  packLabel, packPriceFor, packSizesFor, packsInStock, vialPriceFor, vialsPerBoxOf,
+  packOptionsFor, packsInStock, round2, vialsPerBoxOf,
+  type ResolvedPackOption,
 } from '@/lib/pricing';
 import { trackActivity } from '@/lib/customer/activity';
 
@@ -37,6 +38,9 @@ export interface PurchaseModalProduct {
    *  the picker falls back to the historical pair — single vial + one full
    *  case. See lib/pricing.ts `packSizesFor`. */
   pack_sizes?: number[] | null;
+  /** Per-pack label / price / compare-at, when an operator has set any. Wins
+   *  over `pack_sizes`. See lib/pricing.ts `packOptionsFor`. */
+  pack_options?: unknown;
   /** Stock, measured in vials. */
   stock_quantity: number;
   image_url: string | null;
@@ -100,21 +104,22 @@ function PurchaseModal({
   const [mounted, setMounted] = useState(false);
 
   const vialsPerBox = vialsPerBoxOf(product.vials_per_box);
-  const vialPrice = vialPriceFor(product);
 
   const allowedUnits: PurchaseUnit[] =
     product.allowedUnits && product.allowedUnits.length > 0
       ? product.allowedUnits
       : ['vial', 'case'];
 
-  // The pack options this product offers, narrowed by the caller's allowed
-  // forms. A pack of 1 IS the single vial; anything larger is a "case".
-  const packOptions = packSizesFor(product).filter((size) =>
-    size === 1 ? allowedUnits.includes('vial') : allowedUnits.includes('case'),
+  // The pack options this product offers — each already carrying its label,
+  // price and compare-at — narrowed by the caller's allowed forms. A pack of 1
+  // IS the single vial; anything larger is a "case".
+  const offered = packOptionsFor(product).filter((option) =>
+    option.size === 1 ? allowedUnits.includes('vial') : allowedUnits.includes('case'),
   );
   // Never render an empty picker: if the narrowing removed everything, fall
   // back to a single vial.
-  const packs = packOptions.length > 0 ? packOptions : [1];
+  const packs: ResolvedPackOption[] =
+    offered.length > 0 ? offered : packOptionsFor({ ...product, pack_sizes: [1], pack_options: null });
   const singleForm = packs.length === 1;
 
   // Upsell add-ons ignore store stock (PuraMass fulfils them) — treat caps as
@@ -125,7 +130,7 @@ function PurchaseModal({
   // Default to the smallest pack the customer can actually buy, so the picker
   // never opens on a sold-out option.
   const [packSize, setPackSize] = useState<number>(
-    () => packs.find((size) => capFor(size) >= 1) ?? packs[0],
+    () => (packs.find((option) => capFor(option.size) >= 1) ?? packs[0]).size,
   );
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -163,15 +168,19 @@ function PurchaseModal({
   }, [product.image_url, product.box_image_url]);
 
   const unitCap = capFor(packSize);
-  const unitPrice = packPriceFor(product, packSize);
+  const selected = packs.find((option) => option.size === packSize) ?? packs[0];
+  const unitPrice = selected.price;
   // For a multi-vial pack, show the box image; fall back to the main image.
   const displayImage =
     packSize > 1 ? product.box_image_url || product.image_url : product.image_url;
 
-  // Subtotal breakdown — a pack is quoted at the vial price × every vial in
-  // the order, which is exactly the pack price.
+  // Subtotal breakdown, quoted at the SELECTED pack's own per-vial rate — on a
+  // discounted pack that is below the catalog vial price, and quoting the
+  // catalog one would not multiply out to the total beside it.
   const vialsShown = packSize * qty;
-  const lineTotal = unitPrice * qty;
+  const lineTotal = round2(unitPrice * qty);
+  const lineCompareAt =
+    selected.compareAt != null ? round2(selected.compareAt * qty) : null;
 
   const selectPack = (next: number) => {
     setPackSize(next);
@@ -273,7 +282,7 @@ function PurchaseModal({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
                 src={displayImage}
-                alt={`${product.name} — ${packLabel(packSize).toLowerCase()}`}
+                alt={`${product.name} — ${selected.label.toLowerCase()}`}
                 className="h-full w-full object-contain"
                 loading="eager"
                 decoding="async"
@@ -308,32 +317,45 @@ function PurchaseModal({
           </p>
           {singleForm ? (
             <div className="rounded-xl border border-line bg-surface p-3">
-              <span className="block text-sm font-semibold text-ink">{packLabel(packSize)}</span>
+              <span className="block text-sm font-semibold text-ink">{selected.label}</span>
               <span className="block text-[11px] text-ink-muted tabular-nums">
-                ${unitPrice.toFixed(2)}
-                {packSize > 1 ? ` · $${vialPrice.toFixed(2)} per vial` : ' per vial'}
+                ${selected.price.toFixed(2)}
+                {selected.compareAt != null && (
+                  <span className="ml-1 line-through">${selected.compareAt.toFixed(2)}</span>
+                )}
+                {packSize > 1
+                  ? ` · $${selected.perVialPrice.toFixed(2)} per vial`
+                  : ' per vial'}
               </span>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
-              {packs.map((size) => {
-                const cap = capFor(size);
+              {packs.map((option) => {
+                const cap = capFor(option.size);
                 return (
                   <PackCard
-                    key={size}
-                    active={packSize === size}
+                    key={option.size}
+                    active={packSize === option.size}
                     disabled={cap < 1}
-                    onClick={() => selectPack(size)}
-                    label={packLabel(size)}
+                    onClick={() => selectPack(option.size)}
+                    label={option.label}
+                    badge={option.savings > 0 ? `Save $${option.savings.toFixed(2)}` : null}
                     sublabel={
                       cap < 1 ? (
                         'Not enough stock'
                       ) : (
                         <>
                           <span className="font-medium tabular-nums">
-                            ${packPriceFor(product, size).toFixed(2)}
+                            ${option.price.toFixed(2)}
                           </span>
-                          {size > 1 ? ` · $${vialPrice.toFixed(2)} / vial` : ' per vial'}
+                          {option.compareAt != null && (
+                            <span className="ml-1 tabular-nums line-through opacity-70">
+                              ${option.compareAt.toFixed(2)}
+                            </span>
+                          )}
+                          {option.size > 1
+                            ? ` · $${option.perVialPrice.toFixed(2)} / vial`
+                            : ' per vial'}
                         </>
                       )
                     }
@@ -373,11 +395,16 @@ function PurchaseModal({
               <div>
                 <span className="block text-sm text-ink-muted">Subtotal</span>
                 <span className="block text-[11px] tabular-nums text-ink-light">
-                  ${vialPrice.toFixed(2)} × {vialsShown}{' '}
+                  ${selected.perVialPrice.toFixed(2)} × {vialsShown}{' '}
                   {vialsShown === 1 ? 'vial' : 'vials'}
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
+                {lineCompareAt != null && (
+                  <span className="text-sm tabular-nums text-ink-light line-through">
+                    ${lineCompareAt.toFixed(2)}
+                  </span>
+                )}
                 <span className="text-xl font-bold tabular-nums text-ink">
                   ${lineTotal.toFixed(2)}
                 </span>
@@ -423,19 +450,22 @@ function PurchaseModal({
 }
 
 /** One selectable pack-size card. The active card inverts to ink and carries a
- *  small check badge so the current choice reads at a glance. */
+ *  small check badge so the current choice reads at a glance; a discounted
+ *  pack also carries its saving, which is the reason to pick it. */
 function PackCard({
   active,
   disabled,
   onClick,
   label,
   sublabel,
+  badge,
 }: {
   active: boolean;
   disabled?: boolean;
   onClick: () => void;
   label: string;
   sublabel: React.ReactNode;
+  badge?: string | null;
 }) {
   return (
     <button
@@ -454,10 +484,19 @@ function PackCard({
           <Check className="h-3 w-3 text-ink" />
         </span>
       )}
-      <span className="block text-sm font-semibold">{label}</span>
+      <span className="block pr-5 text-sm font-semibold">{label}</span>
       <span className={`block text-[11px] ${active ? 'text-white/70' : 'text-ink-muted'}`}>
         {sublabel}
       </span>
+      {badge && !disabled && (
+        <span
+          className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+            active ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-700'
+          }`}
+        >
+          {badge}
+        </span>
+      )}
     </button>
   );
 }

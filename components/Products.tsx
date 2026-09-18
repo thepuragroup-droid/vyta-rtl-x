@@ -40,7 +40,7 @@ export default function Products() {
         const { data } = await supabase
           .from("products")
           .select(
-            "id, name, slug, description_short, price, vial_price, purity, strength, image_url, box_image_url, stock_quantity, vials_per_box, pack_sizes",
+            "id, name, slug, description_short, price, vial_price, purity, strength, image_url, box_image_url, stock_quantity, vials_per_box, pack_sizes, pack_options",
           )
           .eq("active", true)
           .eq("featured", true)
@@ -193,12 +193,20 @@ export default function Products() {
                           / vial
                         </span>
                       </span>
-                      {largestPackFor(product) && (
-                        <span className="text-[9px] sm:text-[10px] text-ink-muted">
-                          Pack of {largestPackFor(product)!.size} · $
-                          {largestPackFor(product)!.price.toFixed(2)}
-                        </span>
-                      )}
+                      {(() => {
+                        const pack = largestPackFor(product);
+                        if (!pack) return null;
+                        return (
+                          <span className="text-[9px] sm:text-[10px] text-ink-muted">
+                            Pack of {pack.size} · ${pack.price.toFixed(2)}
+                            {pack.compareAt != null && (
+                              <span className="ml-1 line-through">
+                                ${pack.compareAt.toFixed(2)}
+                              </span>
+                            )}
+                          </span>
+                        );
+                      })()}
                     </span>
                   )}
                   {product.stock_quantity === 0 ? (

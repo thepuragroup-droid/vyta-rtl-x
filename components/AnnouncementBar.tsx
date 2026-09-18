@@ -68,6 +68,11 @@ export default function AnnouncementBar() {
   const [index, setIndex] = useState(0);
   const barRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
+  const marqueeRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLSpanElement>(null);
+  // How many copies of the message make up ONE marquee group. See `useEffect`
+  // below: enough to cover the bar, so the loop never shows bare background.
+  const [copies, setCopies] = useState(2);
 
   const hidden = HIDDEN_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
@@ -110,6 +115,40 @@ export default function AnnouncementBar() {
     const timer = setInterval(() => setIndex((i) => i + 1), 7000);
     return () => clearInterval(timer);
   }, [visible.length]);
+
+  // ── Filling the marquee ──────────────────────────────────────────────────
+  // The scroll is two identical groups translated by exactly half the track's
+  // width, so the second is in place the moment the first leaves. That only
+  // reads as a continuous loop if ONE group is at least as wide as the bar —
+  // otherwise the group runs out mid-screen and the rest of the row is empty
+  // background until the loop resets.
+  //
+  // A single short message ("Free shipping over $200") is far narrower than a
+  // desktop bar, which is where that empty stretch came from. So measure one
+  // copy against the bar and repeat it enough times to cover the full width,
+  // plus one so the seam is always off-screen.
+  useEffect(() => {
+    const viewport = marqueeRef.current;
+    const sample = measureRef.current;
+    if (!viewport || !sample) return;
+
+    const sync = () => {
+      const barWidth = viewport.getBoundingClientRect().width;
+      const itemWidth = sample.getBoundingClientRect().width;
+      // Zero width means it hasn't laid out yet (or a font is still loading);
+      // keep the current count rather than dividing by zero.
+      if (barWidth <= 0 || itemWidth <= 0) return;
+      setCopies(Math.max(2, Math.ceil(barWidth / itemWidth) + 1));
+    };
+
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(viewport);
+    observer.observe(sample);
+    return () => observer.disconnect();
+    // Re-measure when the message itself changes: the rotation swaps in a
+    // banner of a completely different length.
+  }, [current?.id, current?.message, current?.link_label]);
 
   // Publish the bar's measured height so the fixed nav can sit below it, and
   // keep the in-flow spacer the same size. Measured (not hardcoded) because a
@@ -197,18 +236,39 @@ export default function AnnouncementBar() {
       >
         <div className="relative flex items-center">
           {current.scrolling ? (
-            /* Marquee: two identical tracks side by side, the pair translated
-               by exactly half its width, so the loop has no visible seam.
+            /* Marquee: two identical GROUPS side by side, the pair translated
+               by exactly half its width, so the loop has no visible seam. Each
+               group repeats the message `copies` times — enough to span the
+               bar, so there is never a bare stretch waiting for the reset.
                `prefers-reduced-motion` stops it (globals.css) and leaves the
                message readable in place. */
-            <div className="vyta-marquee flex-1 overflow-hidden py-2">
+            <div ref={marqueeRef} className="vyta-marquee flex-1 overflow-hidden py-2">
               <div
                 className="vyta-marquee-track"
-                style={{ animationDuration: `${current.speed_seconds}s` }}
+                /* One group scrolls past in `speed_seconds`, whatever it holds:
+                   scaling the duration by the copy count keeps the text moving
+                   at the same speed the operator set, instead of sprinting
+                   whenever the bar happens to be wide. */
+                style={{ animationDuration: `${current.speed_seconds * copies}s` }}
               >
-                <span className="vyta-marquee-item">{content}</span>
-                <span className="vyta-marquee-item" aria-hidden="true">{content}</span>
+                {Array.from({ length: copies * 2 }, (_, i) => (
+                  <span
+                    key={i}
+                    className="vyta-marquee-item"
+                    /* One copy is the real message; the rest are decoration a
+                       screen reader should not read out again. */
+                    aria-hidden={i === 0 ? undefined : true}
+                  >
+                    {content}
+                  </span>
+                ))}
               </div>
+              {/* Off-screen ruler: one copy at its natural width, which is what
+                  the effect above divides the bar by. Measuring a rendered item
+                  instead would feed the count back into its own input. */}
+              <span ref={measureRef} className="vyta-marquee-measure" aria-hidden="true">
+                {content}
+              </span>
             </div>
           ) : (
             <div className="flex flex-1 flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-10 py-2 text-center">

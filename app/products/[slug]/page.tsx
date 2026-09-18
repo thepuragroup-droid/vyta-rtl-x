@@ -9,10 +9,12 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import LabResultsButton from '@/components/LabResultsButton';
 import { supabase } from '@/lib/supabase';
-import { usePurchaseModal } from '@/contexts/PurchaseModalContext';
+import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/contexts/ToastContext';
 import { siteConfig } from '@/lib/config';
 import {
-  packLabel, packPriceFor, packSizesFor, packsInStock, vialPriceFor, vialsPerBoxOf,
+  packOptionsFor, packsInStock, round2, vialPriceFor, vialsPerBoxOf,
+  type ResolvedPackOption,
 } from '@/lib/pricing';
 import { trackActivity } from '@/lib/customer/activity';
 import { trackViewItem } from '@/lib/analytics/ecommerce';
@@ -31,6 +33,10 @@ interface Product {
   price: number;
   vial_price: number | null;
   vials_per_box: number | null;
+  /** Pack quantities this product is sold in. See lib/pricing.ts. */
+  pack_sizes?: number[] | null;
+  /** Per-pack label / price / compare-at, when an operator has set any. */
+  pack_options?: unknown;
   strength: string;
   purity: string;
   form: string;
@@ -55,8 +61,14 @@ export default function ProductDetailPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [showCoaModal, setShowCoaModal] = useState(false);
   const [activeCoa, setActiveCoa] = useState<string | null>(null);
-  const { openPurchaseModal } = usePurchaseModal();
+  const { addItem, flyToCart } = useCart();
+  const toast = useToast();
   const heroImageRef = useRef<HTMLDivElement>(null);
+  /** The pack the customer is currently looking at. Null until the product
+   *  loads and the first buyable pack is chosen for them. */
+  const [packSize, setPackSize] = useState<number | null>(null);
+  const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -166,11 +178,68 @@ export default function ProductDetailPage() {
     };
   }, [slug, reloadKey]);
 
-  // "Add to Cart" opens the shared vial/case picker (single vial vs full case,
-  // with the box image + discount) rather than committing a unit inline.
+  // The packs this product is sold in, each already carrying its label, price
+  // and compare-at. Computed before the early returns below so the effect that
+  // picks a default can depend on it.
+  const packs: ResolvedPackOption[] = product ? packOptionsFor(product) : [];
+  const capFor = (size: number) => packsInStock(product?.stock_quantity ?? 0, size);
+  const selectedPack =
+    packs.find((option) => option.size === packSize) ?? packs[0] ?? null;
+
+  // Open on the first pack the customer could actually buy, so the page never
+  // lands on a sold-out option. Re-runs when the product changes (a related
+  // product navigates here without unmounting).
+  useEffect(() => {
+    if (packs.length === 0) return;
+    const first = packs.find((option) => capFor(option.size) >= 1) ?? packs[0];
+    setPackSize(first.size);
+    setQty(1);
+    setAdded(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
+
+  const selectPack = (size: number) => {
+    setPackSize(size);
+    setQty(1); // each pack has its own stock ceiling
+    setAdded(false);
+  };
+
+  /** Adds the chosen pack straight to the cart — no modal in between. */
   const handleAddToCart = () => {
-    if (!product) return;
-    openPurchaseModal(product);
+    if (!product || !selectedPack) return;
+    const cap = capFor(selectedPack.size);
+    if (cap < 1) {
+      toast.error(
+        selectedPack.size > 1
+          ? `Not enough stock for a ${selectedPack.label.toLowerCase()}.`
+          : 'Out of stock.',
+      );
+      return;
+    }
+
+    let anyAdded = false;
+    for (let i = 0; i < qty; i++) {
+      const ok = addItem({
+        productId: product.id,
+        unit: selectedPack.size > 1 ? 'case' : 'vial',
+        packSize: selectedPack.size,
+        vialsPerBox: vialsPerBoxOf(product.vials_per_box),
+        name: product.name,
+        price: selectedPack.price,
+        strength: product.strength ?? '',
+        image_url: product.image_url || undefined,
+        stock_quantity: cap,
+      });
+      anyAdded = anyAdded || ok;
+    }
+
+    if (!anyAdded) {
+      toast.error(`Only ${cap} in stock — that's all we have.`);
+      return;
+    }
+    flyToCart(heroImageRef.current, { image_url: product.image_url || undefined });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
   };
 
   if (loading) {
@@ -256,17 +325,17 @@ export default function ProductDetailPage() {
     );
   }
 
-  // ---- Vial-first display pricing ----
-  // The storefront headline is the per-vial price; every pack is that vial
-  // price × its size. `packSizesFor` gives the product's own pack options,
-  // falling back to the historical single-vial + full-case pair.
-  const vialsPerBox = vialsPerBoxOf(product.vials_per_box);
+  // ---- Display pricing ----
+  // The headline quotes the pack the customer has SELECTED, not a fixed unit:
+  // the pack buttons below are the variant picker, so the big number has to
+  // follow them. `packOptionsFor` resolves each pack's label, price and
+  // compare-at (see lib/pricing.ts) — falling back, for a product nobody has
+  // configured, to the historical single-vial + full-case pair at vial × size.
   const vialUnitPrice = vialPriceFor(product);
-  // Multi-vial packs only; the headline already quotes the single vial. Each
-  // needs a whole pack in stock to be worth quoting.
-  const packOptions = packSizesFor(product)
-    .filter((size) => size > 1)
-    .filter((size) => packsInStock(product.stock_quantity, size) >= 1);
+  const headlinePrice = selectedPack?.price ?? vialUnitPrice;
+  const headlineCompareAt = selectedPack?.compareAt ?? null;
+  const selectedCap = selectedPack ? capFor(selectedPack.size) : 0;
+  const lineTotal = round2(headlinePrice * qty);
 
   return (
     <main className="min-h-screen bg-white">
@@ -417,40 +486,165 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Price and Add to Cart */}
+              {/* Pack picker, price and Add to Cart.
+                  The packs are the variants: they are laid out on the page
+                  itself so a customer can compare a 1, a 3 and a 10 — and see
+                  what each saves — without opening anything. Picking one
+                  updates the headline price and what the button adds. */}
               <div className="mt-auto pt-4 sm:pt-6 border-t border-line">
-                <div className="mb-4 sm:mb-6">
-                  {product.price === 0 ? (
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-ink-muted">
-                      N/A
-                    </div>
-                  ) : (
-                    <>
-                      {/* Headline: per-vial price */}
-                      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-ink tabular-nums">
-                        ${vialUnitPrice.toFixed(2)}{' '}
-                        <span className="text-sm sm:text-base font-medium text-ink-muted align-middle">
-                          CAD / vial
+                {product.price === 0 ? (
+                  <div className="mb-4 text-2xl sm:text-3xl md:text-4xl font-bold text-ink-muted">
+                    N/A
+                  </div>
+                ) : (
+                  <>
+                    {packs.length > 1 && (
+                      <div className="mb-4 sm:mb-5">
+                        <div className="mb-2 flex items-baseline justify-between gap-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+                            Choose your pack
+                          </p>
+                          <span className="text-[11px] text-ink-muted tabular-nums">
+                            ${vialUnitPrice.toFixed(2)} / vial at list price
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {packs.map((option) => {
+                            const cap = capFor(option.size);
+                            const soldOut = cap < 1;
+                            const active = selectedPack?.size === option.size;
+                            return (
+                              <button
+                                key={option.size}
+                                type="button"
+                                onClick={() => selectPack(option.size)}
+                                disabled={soldOut}
+                                aria-pressed={active}
+                                className={`relative rounded-xl border p-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                                  active
+                                    ? 'border-ink bg-ink text-white shadow-sm'
+                                    : 'border-line bg-surface text-ink hover:border-ink/40 hover:bg-white'
+                                }`}
+                              >
+                                {active && (
+                                  <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-white">
+                                    <Check className="h-3 w-3 text-ink" />
+                                  </span>
+                                )}
+                                <span className="block pr-5 text-sm font-semibold">
+                                  {option.label}
+                                </span>
+                                {soldOut ? (
+                                  <span
+                                    className={`block text-[11px] ${active ? 'text-white/70' : 'text-ink-muted'}`}
+                                  >
+                                    Not enough stock
+                                  </span>
+                                ) : (
+                                  <>
+                                    <span className="mt-0.5 block text-sm font-bold tabular-nums">
+                                      ${option.price.toFixed(2)}
+                                      {option.compareAt != null && (
+                                        <span
+                                          className={`ml-1.5 text-[11px] font-normal line-through ${
+                                            active ? 'text-white/60' : 'text-ink-muted'
+                                          }`}
+                                        >
+                                          ${option.compareAt.toFixed(2)}
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span
+                                      className={`block text-[11px] tabular-nums ${
+                                        active ? 'text-white/70' : 'text-ink-muted'
+                                      }`}
+                                    >
+                                      ${option.perVialPrice.toFixed(2)} / vial
+                                    </span>
+                                    {option.savings > 0 && (
+                                      <span
+                                        className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                                          active
+                                            ? 'bg-white/20 text-white'
+                                            : 'bg-emerald-50 text-emerald-700'
+                                        }`}
+                                      >
+                                        Save ${option.savings.toFixed(2)}
+                                        {option.savingsPercent > 0 && ` (${option.savingsPercent}%)`}
+                                      </span>
+                                    )}
+                                  </>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Headline — the selected pack's own price */}
+                    <div className="mb-4 sm:mb-5">
+                      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                        <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-ink tabular-nums">
+                          ${headlinePrice.toFixed(2)}
+                        </span>
+                        {headlineCompareAt != null && (
+                          <span className="text-base sm:text-lg font-medium text-ink-muted line-through tabular-nums">
+                            ${headlineCompareAt.toFixed(2)}
+                          </span>
+                        )}
+                        <span className="text-sm sm:text-base font-medium text-ink-muted">
+                          CAD{selectedPack ? ` · ${selectedPack.label.toLowerCase()}` : ''}
                         </span>
                       </div>
-                      {packOptions.length > 0 && (
-                        <div className="mt-1.5 space-y-0.5">
-                          {packOptions.map((size) => (
-                            <div
-                              key={size}
-                              className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm"
-                            >
-                              <span className="text-ink-muted">{packLabel(size)}:</span>
-                              <span className="font-bold text-ink tabular-nums">
-                                ${packPriceFor(product, size).toFixed(2)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                      {selectedPack && (
+                        <p className="mt-1 text-xs sm:text-sm text-ink-muted tabular-nums">
+                          ${selectedPack.perVialPrice.toFixed(2)} per vial
+                          {selectedPack.size > 1 && ` · ${selectedPack.size} vials`}
+                          {selectedPack.savings > 0 &&
+                            ` · you save $${selectedPack.savings.toFixed(2)}`}
+                        </p>
                       )}
-                    </>
-                  )}
-                </div>
+                    </div>
+
+                    {/* Quantity — how many of the selected pack */}
+                    {siteConfig.ecommerceEnabled && selectedCap >= 1 && (
+                      <div className="mb-3 flex items-center gap-3">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+                          Quantity
+                        </span>
+                        <div className="flex items-center overflow-hidden rounded-xl border border-line bg-surface">
+                          <button
+                            type="button"
+                            onClick={() => setQty((q) => Math.max(1, q - 1))}
+                            disabled={qty <= 1}
+                            className="px-3.5 py-2 font-medium text-ink transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Decrease quantity"
+                          >
+                            −
+                          </button>
+                          <span className="min-w-[2.5rem] text-center font-semibold tabular-nums">
+                            {qty}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setQty((q) => Math.min(selectedCap, q + 1))}
+                            disabled={qty >= selectedCap}
+                            className="px-3.5 py-2 font-medium text-ink transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+                        {qty > 1 && (
+                          <span className="text-sm font-semibold text-ink tabular-nums">
+                            ${lineTotal.toFixed(2)} total
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
 
                 <div className="flex items-stretch gap-3">
                   {siteConfig.ecommerceEnabled && (
@@ -471,10 +665,27 @@ export default function ProductDetailPage() {
                     ) : (
                       <button
                         onClick={handleAddToCart}
-                        className="flex-1 font-semibold py-3 sm:py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm bg-ink hover:bg-ink/90 text-white"
+                        disabled={selectedCap < 1}
+                        className={`flex-1 font-semibold py-3 sm:py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+                          added ? 'bg-emerald-500 text-white' : 'bg-ink hover:bg-ink/90 text-white'
+                        }`}
                       >
-                        <ShoppingCart className="w-5 h-5" />
-                        <span>Add to Cart</span>
+                        {added ? (
+                          <>
+                            <Check className="w-5 h-5" />
+                            <span>Added to cart</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="w-5 h-5" />
+                            <span>
+                              Add to Cart
+                              {selectedPack && packs.length > 1
+                                ? ` · ${selectedPack.label}`
+                                : ''}
+                            </span>
+                          </>
+                        )}
                       </button>
                     )
                   )}

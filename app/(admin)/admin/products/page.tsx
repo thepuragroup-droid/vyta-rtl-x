@@ -14,14 +14,19 @@ import { apiFetch } from '@/lib/api-fetch';
 import type { Product } from '@/lib/supabase';
 import { rankBySearch } from '@/lib/search';
 import {
-  DEFAULT_USD_RATE, PACK_SIZE_OPTIONS, productUsdPrice, formatMoney, formatPackSizes,
-  normalizePackSizes, packSizesFor, vialPriceFor, vialsPerBoxOf,
+  DEFAULT_USD_RATE, productUsdPrice, formatMoney, formatPackSizes,
+  normalizePackOptions, normalizePackSizes, packSizesFor, vialPriceFor, vialsPerBoxOf,
   type PriceCurrency,
 } from '@/lib/pricing';
 import { currentWeekRange, toDateInput } from '@/lib/admin/stock-change-report';
 import ProductHistoryPanel from './ProductHistoryPanel';
 import CellEditGrid from './CellEditGrid';
 import PackOptionsDialog from '@/components/admin/PackOptionsDialog';
+import PackPricingEditor, {
+  packOptionsPayload,
+  rowsForSizes,
+  type PackOptionDraft,
+} from '@/components/admin/PackPricingEditor';
 
 interface ImportPreviewRow {
   slug: string;
@@ -277,6 +282,8 @@ export default function ProductsManagementPage() {
     low_stock_threshold: '10',
     /** Pack quantities this product is sold in. Empty = the default pair. */
     pack_sizes: [] as number[],
+    /** Per-pack label / price / compare-at, one row per selected size. */
+    pack_options: [] as PackOptionDraft[],
   });
 
   useEffect(() => {
@@ -627,6 +634,9 @@ export default function ProductsManagementPage() {
       low_stock_threshold: isNaN(lowStockThreshold) ? 10 : lowStockThreshold,
       // An empty list clears the opt-in, i.e. back to single vial + full case.
       pack_sizes: formData.pack_sizes.length > 0 ? formData.pack_sizes : null,
+      // NULL when nothing was overridden: the packs then price themselves at
+      // the vial price × size, exactly as they did before this column existed.
+      pack_options: packOptionsPayload(formData.pack_sizes, formData.pack_options),
       change_source: 'form',
     };
   };
@@ -835,6 +845,13 @@ export default function ProductsManagementPage() {
   };
 
   const openEditModal = (product: Product) => {
+    // `pack_options` wins where it is set; a product opted in through the
+    // older sizes-only column still opens with its sizes ticked.
+    const storedOptions = normalizePackOptions(product.pack_options);
+    const packSizes =
+      storedOptions.length > 0
+        ? storedOptions.map((option) => option.size)
+        : normalizePackSizes(product.pack_sizes);
     setFormData({
       name: product.name,
       description: product.description || '',
@@ -859,7 +876,18 @@ export default function ProductsManagementPage() {
       mechanism: product.mechanism || '',
       coa_urls: product.coa_url ?? [],
       low_stock_threshold: product.low_stock_threshold?.toString() ?? '10',
-      pack_sizes: normalizePackSizes(product.pack_sizes),
+      pack_sizes: packSizes,
+      // Seed the boxes from whatever the product already stores, so opening
+      // the form shows the real prices rather than blanks over them.
+      pack_options: packSizes.map((size) => {
+        const stored = storedOptions.find((option) => option.size === size);
+        return {
+          size,
+          label: stored?.label ?? '',
+          price: stored?.price != null ? String(stored.price) : '',
+          compare_at: stored?.compare_at != null ? String(stored.compare_at) : '',
+        };
+      }),
     });
     setEditingProduct(product);
     setModalTab('details');
@@ -879,6 +907,7 @@ export default function ProductsManagementPage() {
       box_image_url: '', strength: '', purity: '', form: '', featured: false,
       active: true, is_checkout_addon: false, slug: '', sku: '', description_short: '', benefits: '',
       mechanism: '', coa_urls: [], low_stock_threshold: '10', pack_sizes: [],
+      pack_options: [],
     });
     setEditingProduct(null);
   };
@@ -2131,73 +2160,28 @@ export default function ProductsManagementPage() {
         </div>
         )}
 
-        {/* Pack options — which quantities this product is sold in. Empty means
-            the default pair: a single vial plus one full case. Bulk edits live
-            in the cell grid and the Pack options dialog; this is the single
-            product's own switchboard. */}
+        {/* Pack options — which quantities this product is sold in, what each
+            pack is called and what it costs. Empty means the default pair: a
+            single vial plus one full case. Bulk edits to the SIZES live in the
+            cell grid and the Pack options dialog; per-pack pricing is
+            per-product, so it lives here. */}
         {canEdit && (
-        <div>
-          <label className="block text-sm font-medium text-ink mb-2">Pack options</label>
-          <div className="flex flex-wrap gap-2">
-            {[...new Set([...PACK_SIZE_OPTIONS, ...formData.pack_sizes])]
-              .sort((a, b) => a - b)
-              .map((size) => {
-                const on = formData.pack_sizes.includes(size);
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        pack_sizes: on
-                          ? formData.pack_sizes.filter((s) => s !== size)
-                          : normalizePackSizes([...formData.pack_sizes, size]),
-                      })
-                    }
-                    className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
-                      on
-                        ? 'border-teal bg-teal/10 text-teal-dark'
-                        : 'border-line bg-surface text-ink-muted hover:border-teal/40 hover:text-ink'
-                    }`}
-                  >
-                    {size === 1 ? '1 vial' : `${size}-pack`}
-                  </button>
-                );
-              })}
-            {formData.pack_sizes.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, pack_sizes: [] })}
-                className="px-3 py-2 rounded-lg border border-line bg-white text-xs font-medium text-ink-muted hover:text-ink hover:bg-surface"
-              >
-                Use default
-              </button>
-            )}
-          </div>
-          <p className="mt-2 text-[11px] text-ink-muted">
-            {formData.pack_sizes.length > 0 ? (
-              <>
-                Sold as {formatPackSizes(formData.pack_sizes)} vials per pack
-                {(() => {
-                  const per = parseInt(formData.vials_per_box, 10);
-                  const vial = parseFloat(formData.vial_price) ||
-                    (parseFloat(formData.price) || 0) / (per > 0 ? per : 10);
-                  return Number.isFinite(vial) && vial > 0
-                    ? ` — from $${(vial * formData.pack_sizes[0]).toFixed(2)}.`
-                    : '.';
-                })()}{' '}
-                A pack of N is priced at the vial price × N.
-              </>
-            ) : (
-              <>
-                No options set — the storefront offers the default pair: a single vial plus one
-                full case of {parseInt(formData.vials_per_box, 10) || 10}.
-              </>
-            )}
-          </p>
-        </div>
+        <PackPricingEditor
+          sizes={formData.pack_sizes}
+          rows={formData.pack_options}
+          vialPrice={(() => {
+            const per = parseInt(formData.vials_per_box, 10);
+            return vialPriceFor({
+              price: parseFloat(formData.price) || 0,
+              vial_price: parseFloat(formData.vial_price) || null,
+              vials_per_box: Number.isFinite(per) ? per : null,
+            });
+          })()}
+          vialsPerBox={vialsPerBoxOf(parseInt(formData.vials_per_box, 10))}
+          onChange={({ sizes, rows }) =>
+            setFormData({ ...formData, pack_sizes: sizes, pack_options: rows })
+          }
+        />
         )}
 
         {/* Category & Strength */}
