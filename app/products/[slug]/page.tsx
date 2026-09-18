@@ -476,7 +476,7 @@ export default function ProductDetailPage() {
               className="flex flex-col"
             >
               <p className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] text-teal-dark mb-1.5 sm:mb-2">
-                Research Grade Peptide Blend
+                Research Grade Peptide
               </p>
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-ink mb-3 sm:mb-4 tracking-tight">
                 {product.name}
