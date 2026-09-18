@@ -1,0 +1,131 @@
+# Home-page hero media — generation brief
+
+The hero is the first screen on `/`. Its background clip and still are set in
+**Admin → Branding & Tracking → Home-page hero**
+(`site_settings.hero_video_url` / `hero_image_url`, see
+`hero-media-migration.sql`), so replacing them is an upload, not a deploy.
+
+This file is the brief for generating the replacements. The current pair reads
+as a laboratory — benches, gloved hands, glassware, cold blue light — which
+says "supplier" more than it says "why anyone cares". The direction below keeps
+the credibility (the product is real, tested and clinical-grade) and moves the
+*feeling* to the person it is for: someone in the middle of their own life,
+early in the day, doing the ordinary things a body in good condition makes
+easy.
+
+---
+
+## What the hero has to survive
+
+Whatever is generated sits under a lot of interface, so composition matters
+more than subject:
+
+- **A dark scrim.** The hero renders the media under `ink/95 → ink/35` left to
+  right, plus a top and bottom vertical scrim. Anything in the left 45% of the
+  frame is mostly covered.
+- **White type over the left half.** The headline ("Advanced / Peptide
+  Research"), a paragraph, two buttons and a row of trust chips all live there.
+  That half needs to stay **uncluttered and mid-to-dark**, or the type stops
+  being readable.
+- **A product panel over the right.** A featured-product card sits in the right
+  column on desktop. Keep the true subject **centre-right but not at the far
+  right edge**, roughly a third to a half in.
+- **A ticker along the bottom** and the fixed navigation along the top: leave
+  the top and bottom ~15% of the frame free of anything that matters.
+- **A slow parallax drift** — the media is rendered ~16% taller than the frame
+  and drifts vertically, so leave headroom top and bottom and keep the subject
+  away from the edges.
+- **Film grain and desaturation** are applied over the top, so deeply saturated
+  source material comes out muddy. Generate something already close to the
+  final grade.
+
+---
+
+## Video prompt
+
+> Cinematic lifestyle footage, shot on a full-frame camera with a 35mm lens at
+> f/2.0, natural morning light. A person in their late thirties moves through
+> the unhurried start of an ordinary day in a warm, lived-in modern home: soft
+> daylight through a wide window, a glass of water on a kitchen counter, a
+> pair of running shoes by the door, steam lifting off a cup. Shallow depth of
+> field, the background falling into gentle bokeh. The camera moves slowly and
+> steadily — a slight dolly-in or lateral drift, no handheld shake, no cuts.
+> Muted, warm-neutral palette: bone white, warm oak, soft grey-green, with one
+> quiet teal accent in the surroundings. Skin tones natural and healthy, never
+> glossy or retouched. The left third of the frame is calm negative space —
+> an out-of-focus wall or window light — with the subject placed centre-right.
+> Unhurried, grounded, capable. Realistic and documentary in feel, not an
+> advertisement. No text, no logos, no product packaging, no clinical or
+> laboratory setting, no lab coats, no syringes, no vials, no medical imagery.
+> Seamless loop, 8–12 seconds, no audio.
+
+**Technical**: H.264 MP4 (or WebM), 1920×1080 or wider, 24–30 fps, seamless
+loop, audio track stripped, target under 2 MB — it loads over the still, so
+weight costs more than resolution. Keep the last frame close to the first so
+the loop does not visibly snap.
+
+### Three variations worth generating
+
+1. **Kitchen, morning.** Daylight, a glass of water being filled, hands and
+   counter in focus, face partly out of frame. The most neutral of the three
+   and the safest under the scrim.
+2. **Doorway, heading out.** Laces being tied or a jacket picked up, a hallway
+   with light falling across it, movement out of frame toward the door.
+   Reads as momentum without needing a gym.
+3. **Outdoors, low sun.** A walk or a slow run along a tree-lined path or a
+   shoreline, backlit, the subject small in frame with lots of air around
+   them. The most "lifestyle" and the most likely to fight the type — check it
+   under the scrim before choosing it.
+
+---
+
+## Still image prompt
+
+The still carries the hero on phones, on slow connections and for anyone who
+has asked for reduced motion, so it has to work on its own — not as a frame
+grabbed mid-motion.
+
+> Editorial lifestyle photograph, 35mm, f/2.0, natural morning window light.
+> A warm, lived-in modern interior — pale oak, bone-white walls, a soft
+> grey-green textile, a glass of water catching the light on a clean counter.
+> A person is present but not posed and not the focus: a shoulder, a hand, a
+> figure soft in the background. Shallow depth of field, gentle bokeh, muted
+> warm-neutral grade with a single quiet teal accent. The left third is calm,
+> mid-to-dark negative space; the subject sits centre-right. Calm, healthy,
+> unhurried. No text, no logos, no packaging, no laboratory or clinical
+> setting, no medical equipment.
+
+**Technical**: JPEG or WebP, 2400×1600 or larger, landscape, under ~400 KB
+after compression. Pick a frame that still reads at 390px wide — the hero is
+full-bleed on a phone.
+
+---
+
+## Before you publish
+
+1. Upload the still in **Admin → Branding & Tracking → Home-page hero**, and
+   paste the clip's URL into the video box beside it (the Supabase storage
+   bucket the product images use is fine).
+2. Check the home page at desktop width, at ~768px, and on a phone.
+3. Read the headline and the paragraph over it. If any word is hard to read,
+   the media is too bright or too busy on the left — regenerate rather than
+   darkening the scrim, which dulls the whole frame.
+4. Watch one full loop. A visible jump at the loop point is more distracting
+   than no video at all; clear the video URL and run on the still if the clip
+   cannot be made to loop cleanly.
+
+---
+
+## What to keep out
+
+The site sells research-grade compounds, and the hero must not imply a human
+therapeutic use or a clinical outcome. Keep out of both prompts:
+
+- syringes, needles, injection, pills, IV lines, anything worn as a medical
+  device;
+- before/after framing, weight-loss or physique transformation cues,
+  bodybuilding gyms;
+- doctors, clinics, hospital settings, scrubs and lab coats — which is also the
+  thing this brief is moving away from;
+- any on-screen text, logo or packaging. The headline is rendered by the page,
+  and generated lettering always comes out wrong.

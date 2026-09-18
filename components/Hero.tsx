@@ -17,25 +17,30 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { siteConfig } from '@/lib/config';
+import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import { largestPackFor, vialPriceFor } from '@/lib/pricing';
 import { usePurchaseModal } from '@/contexts/PurchaseModalContext';
 import { productPath } from '@/lib/products/url';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HERO VIDEO — paste the hosted video URL here when the render is ready.
+// HERO MEDIA
 //
-//   const HERO_VIDEO_URL = '/videos/hero.mp4';           (file in /public/videos)
-//   const HERO_VIDEO_URL = 'https://cdn.example.com/clarity.mp4';
+// Both the background clip and the still behind it are set in
+// Admin → Branding & Tracking (`site_settings.hero_video_url` /
+// `hero_image_url`), so swapping the hero for a new render is an upload, not a
+// deploy. The constants below are only the fallbacks for a store that has
+// never set them — and for the first paint, before the config has loaded.
 //
-// Leave as '' to run the hero on the graded still image only. The clip should
-// be a muted ~8–12s seamless loop, H.264 MP4 (or WebM), ideally ≤2 MB, with
-// the audio track stripped. The still below always renders first and stays as
-// the mobile / reduced-motion / slow-connection fallback.
+// The clip should be a muted ~8–12s seamless loop, H.264 MP4 (or WebM),
+// ideally ≤2 MB, with the audio track stripped. The still always renders
+// first and stays as the mobile / reduced-motion / slow-connection fallback.
+//
+// docs/hero-media-prompt.md carries the generation brief for both.
 // ─────────────────────────────────────────────────────────────────────────────
-const HERO_VIDEO_URL =
+const DEFAULT_HERO_VIDEO_URL =
   'https://didnmcyrxgubgesiaatj.supabase.co/storage/v1/object/public/products/Video%20Project.mp4';
 
-const HERO_FALLBACK_IMAGE = '/images/hero-bg.jpeg';
+const DEFAULT_HERO_IMAGE = '/images/hero-bg.jpeg';
 
 // Film-grain texture overlay (inline SVG turbulence — no asset needed).
 const GRAIN_TEXTURE =
@@ -75,6 +80,13 @@ const TRUST_CHIPS = [
 export default function Hero() {
   const { openPurchaseModal } = usePurchaseModal();
   const prefersReducedMotion = useReducedMotion();
+  // Admin-set hero media, falling back to the shipped pair. The provider seeds
+  // from DEFAULT_SITE_CONFIG, so the first render is the fallback either way
+  // and there is no hydration mismatch — only a crossfade once the real clip
+  // is fetched.
+  const { config: siteSettings } = useSiteConfig();
+  const heroVideoUrl = siteSettings.hero_video_url ?? DEFAULT_HERO_VIDEO_URL;
+  const heroImageUrl = siteSettings.hero_image_url ?? DEFAULT_HERO_IMAGE;
 
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -98,7 +110,7 @@ export default function Hero() {
   // Only load the video on desktop-sized screens with motion allowed — phones
   // and prefers-reduced-motion users get the graded still instead.
   useEffect(() => {
-    if (!HERO_VIDEO_URL || prefersReducedMotion) {
+    if (!heroVideoUrl || prefersReducedMotion) {
       setAllowVideo(false);
       return;
     }
@@ -107,7 +119,11 @@ export default function Hero() {
     update();
     mq.addEventListener('change', update);
     return () => mq.removeEventListener('change', update);
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, heroVideoUrl]);
+
+  // A newly-set clip has to fade in on its own terms: without this the old
+  // clip's `videoReady` would keep the new <video> visible before it can play.
+  useEffect(() => setVideoReady(false), [heroVideoUrl]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -175,12 +191,15 @@ export default function Hero() {
         className="absolute inset-x-0 -inset-y-[8%]"
       >
         <img
-          src={HERO_FALLBACK_IMAGE}
+          src={heroImageUrl}
           alt=""
           className="absolute inset-0 w-full h-full object-cover hero-still-grade"
         />
         {allowVideo && (
           <video
+            // Keyed on the URL so swapping the clip mounts a fresh element
+            // rather than leaving the browser on the old buffered source.
+            key={heroVideoUrl}
             ref={(el) => {
               videoRef.current = el;
               // React can omit `muted` from server-rendered markup; set it
@@ -190,7 +209,7 @@ export default function Hero() {
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
               videoReady ? 'opacity-100' : 'opacity-0'
             }`}
-            src={HERO_VIDEO_URL}
+            src={heroVideoUrl}
             autoPlay
             muted
             loop

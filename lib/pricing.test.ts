@@ -23,6 +23,7 @@ import {
   packPriceFor,
   packSizesFor,
   normalizePackOptions,
+  reconcilePackOptions,
   packsInStock,
   parsePackSizesInput,
   samePackSizes,
@@ -265,4 +266,25 @@ test('a product with neither column keeps the legacy single-vial + case pair', (
   assert.deepEqual(options.map((o) => o.size), [1, 10]);
   assert.deepEqual(options.map((o) => o.price), [100, 1000]);
   assert.deepEqual(options.map((o) => o.compareAt), [null, null]);
+});
+
+test('a sizes-only edit keeps the prices of the packs that survive', () => {
+  const stored = [
+    { size: 1, price: null },
+    { size: 3, price: 249, label: 'Starter' },
+    { size: 10, price: 749 },
+  ];
+  // 3 stays (with its price and label), 10 goes, 5 arrives blank.
+  assert.deepEqual(reconcilePackOptions(stored, [1, 3, 5]), [
+    { size: 1, label: null, price: null, compare_at: null, enabled: true },
+    { size: 3, label: 'Starter', price: 249, compare_at: null, enabled: true },
+    { size: 5, label: null, price: null, compare_at: null, enabled: true },
+  ]);
+});
+
+test('a product with no per-pack pricing stays on the sizes-only column', () => {
+  assert.equal(reconcilePackOptions(null, [1, 3, 5]), null);
+  assert.equal(reconcilePackOptions([], [1, 3, 5]), null);
+  // Clearing the sizes clears the pricing with them.
+  assert.equal(reconcilePackOptions([{ size: 3, price: 249 }], []), null);
 });

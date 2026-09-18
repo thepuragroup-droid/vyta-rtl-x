@@ -21,6 +21,7 @@ import {
 import { currentWeekRange, toDateInput } from '@/lib/admin/stock-change-report';
 import ProductHistoryPanel from './ProductHistoryPanel';
 import CellEditGrid from './CellEditGrid';
+import BenefitsEditor from '@/components/admin/BenefitsEditor';
 import PackOptionsDialog from '@/components/admin/PackOptionsDialog';
 import PackPricingEditor, {
   packOptionsPayload,
@@ -2249,15 +2250,13 @@ export default function ProductsManagementPage() {
             placeholder="Detailed product description"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-ink mb-2">Benefits</label>
-          <textarea
-            value={formData.benefits}
-            onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
-            rows={2}
-            className="w-full px-4 py-2.5 bg-surface border border-line rounded-lg text-ink text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal/40"
-          />
-        </div>
+        {/* Benefits — the tick list under the product description on the PDP.
+            One row per point; stored as one point per line in the same text
+            column it always used. */}
+        <BenefitsEditor
+          value={formData.benefits}
+          onChange={(benefits) => setFormData({ ...formData, benefits })}
+        />
         <div>
           <label className="block text-sm font-medium text-ink mb-2">Mechanism</label>
           <textarea

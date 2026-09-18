@@ -19,6 +19,8 @@ import {
 import { trackActivity } from '@/lib/customer/activity';
 import { trackViewItem } from '@/lib/analytics/ecommerce';
 import { productPath } from '@/lib/products/url';
+import { parseBenefits } from '@/lib/products/benefits';
+import { renderInline } from '@/components/content/RichText';
 
 interface Product {
   id: string;
@@ -332,6 +334,7 @@ export default function ProductDetailPage() {
   // compare-at (see lib/pricing.ts) — falling back, for a product nobody has
   // configured, to the historical single-vial + full-case pair at vial × size.
   const vialUnitPrice = vialPriceFor(product);
+  const benefitPoints = parseBenefits(product.benefits);
   const headlinePrice = selectedPack?.price ?? vialUnitPrice;
   const headlineCompareAt = selectedPack?.compareAt ?? null;
   const selectedCap = selectedPack ? capFor(selectedPack.size) : 0;
@@ -471,15 +474,21 @@ export default function ProductDetailPage() {
                 </button>
               )}
 
-              {/* Benefits */}
-              {product.benefits && (
+              {/* Benefits — one point per line in the column (see
+                  lib/products/benefits.ts), with a legacy comma-separated row
+                  still read the way it always was. Each point goes through the
+                  site's inline syntax, so a point can carry a bold phrase or a
+                  link to the study behind it. */}
+              {benefitPoints.length > 0 && (
                 <div className="mb-4 sm:mb-6">
                   <h3 className="font-semibold text-ink mb-2 sm:mb-3 text-sm">Benefits</h3>
                   <ul className="space-y-1.5 sm:space-y-2">
-                    {product.benefits.split(',').map((benefit, idx) => (
+                    {benefitPoints.map((benefit, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <Check className="w-4 h-4 text-teal-dark flex-shrink-0 mt-0.5" />
-                        <span className="text-ink-muted text-xs sm:text-sm">{benefit.trim()}</span>
+                        <span className="text-ink-muted text-xs sm:text-sm">
+                          {renderInline(benefit)}
+                        </span>
                       </li>
                     ))}
                   </ul>

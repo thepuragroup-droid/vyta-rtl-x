@@ -57,7 +57,14 @@ export async function PUT(req: NextRequest) {
   const updates: Record<string, any> = {};
 
   // Branding text/urls: trim; empty → null.
-  for (const key of ['store_name', 'store_tagline', 'logo_url', 'favicon_url'] as const) {
+  for (const key of [
+    'store_name',
+    'store_tagline',
+    'logo_url',
+    'favicon_url',
+    'hero_video_url',
+    'hero_image_url',
+  ] as const) {
     if (key in body) {
       const v = String(body[key] ?? '').trim();
       updates[key] = v.length > 0 ? v : null;

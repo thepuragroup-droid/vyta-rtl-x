@@ -318,6 +318,36 @@ export function packOptionsFor(product: PackOptionProduct): ResolvedPackOption[]
     });
 }
 
+/**
+ * Bring a stored `pack_options` document in line with a new list of SIZES.
+ *
+ * The cell grid and the bulk dialog edit which quantities a product is sold in
+ * (`pack_sizes`) without touching per-pack pricing. Left alone, the two
+ * columns would drift: the storefront reads `pack_options` first, so a size
+ * removed in the grid would keep selling, and one added there would never
+ * appear. So a sizes-only edit reconciles the richer column instead.
+ *
+ * A size that survives KEEPS its price, label and compare-at — a bulk tidy-up
+ * of which packs exist must not silently wipe the pricing on the packs that
+ * stayed. New sizes arrive blank (i.e. priced at vial × size), removed ones
+ * are dropped.
+ *
+ * Returns null when the product had no per-pack pricing to begin with, which
+ * leaves it on the plain `pack_sizes` path it was already using.
+ */
+export function reconcilePackOptions(
+  storedPackOptions: unknown,
+  sizes: number[],
+): StoredPackOption[] | null {
+  const existing = normalizePackOptions(storedPackOptions);
+  if (existing.length === 0) return null;
+  const bySize = new Map(existing.map((option) => [option.size, option]));
+  const next = normalizePackSizes(sizes).map(
+    (size) => bySize.get(size) ?? { size, label: null, price: null, compare_at: null, enabled: true },
+  );
+  return next.length > 0 ? next : null;
+}
+
 /** The resolved pack of `size`, or null when the product isn't sold in it. */
 export function packOptionFor(
   product: PackOptionProduct,
