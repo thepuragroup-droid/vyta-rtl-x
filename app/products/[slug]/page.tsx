@@ -49,6 +49,13 @@ interface Product {
   coa_url: string[] | null;
 }
 
+/**
+ * The pack the picker opens on, when the product is sold in it and it is in
+ * stock. Everything else — a product without a 3-pack, a 3-pack with too few
+ * vials on hand — falls back to the first pack the customer could buy.
+ */
+const DEFAULT_PACK_SIZE = 3;
+
 /** The four assurances under the hero image: icon over label over subtitle. */
 const HERO_ASSURANCES = [
   { icon: BadgeCheck, title: '99% Purity', subtitle: 'Third party tested' },
@@ -211,13 +218,18 @@ export default function ProductDetailPage() {
     product?.image_url ??
     null;
 
-  // Open on the first pack the customer could actually buy, so the page never
-  // lands on a sold-out option. Re-runs when the product changes (a related
-  // product navigates here without unmounting).
+  // Open on the 3-vial pack — the one we want a customer landing on — and fall
+  // back to the first pack they could actually buy, so the page never lands on
+  // a sold-out option or on a pack this product isn't sold in. Re-runs when the
+  // product changes (a related product navigates here without unmounting).
   useEffect(() => {
     if (packs.length === 0) return;
-    const first = packs.find((option) => capFor(option.size) >= 1) ?? packs[0];
-    setPackSize(first.size);
+    const buyable = (option: ResolvedPackOption) => capFor(option.size) >= 1;
+    const opening =
+      packs.find((option) => option.size === DEFAULT_PACK_SIZE && buyable(option)) ??
+      packs.find(buyable) ??
+      packs[0];
+    setPackSize(opening.size);
     setQty(1);
     setAdded(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
