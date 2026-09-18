@@ -6,6 +6,7 @@ import { recordProductChanges } from '@/lib/admin/product-history';
 import { checkLowStockForProducts } from '@/lib/admin/low-stock';
 import { parsePriceOverride, parseVialsPerBox } from '@/lib/admin/product-input';
 import { normalizePackOptions, normalizePackSizes, reconcilePackOptions } from '@/lib/pricing';
+import { missingColumnMessage } from '@/lib/admin/missing-column';
 import { sendBackInStockNotification } from '@/lib/email-smtp';
 
 const supabase = createClient(
@@ -362,7 +363,12 @@ export async function PATCH(
 
     if (error) {
       console.error('Error updating product:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      // A column this build writes that the database has not been migrated for
+      // yet reads as an app bug otherwise; say which migration to run.
+      return NextResponse.json(
+        { error: missingColumnMessage(error.message) ?? error.message },
+        { status: 500 },
+      );
     }
 
     // Restock detection: fire the back-in-stock waitlist on the 0 -> positive

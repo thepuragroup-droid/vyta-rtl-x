@@ -3,6 +3,7 @@ import { getSupabase } from '@/lib/supabase';
 import { canManageMarketing, canViewAnalytics, type UserRole } from '@/lib/permissions';
 import { readSiteConfigRow, shapeSiteConfig } from '@/lib/site-config';
 import { logAuditServer } from '@/lib/admin/audit';
+import { missingColumnMessage } from '@/lib/admin/missing-column';
 
 const db = getSupabase();
 
@@ -120,7 +121,14 @@ export async function PUT(req: NextRequest) {
       .eq('id', existing.id)
       .select('*')
       .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      // Same story as the product routes: name the migration rather than
+      // surfacing "column not in the schema cache" to a marketing editor.
+      return NextResponse.json(
+        { error: missingColumnMessage(error.message) ?? error.message },
+        { status: 500 },
+      );
+    }
     saved = data as any;
   } else {
     const { data, error } = await db
@@ -128,7 +136,14 @@ export async function PUT(req: NextRequest) {
       .insert({ checkout_type: 'crypto', ...updates })
       .select('*')
       .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      // Same story as the product routes: name the migration rather than
+      // surfacing "column not in the schema cache" to a marketing editor.
+      return NextResponse.json(
+        { error: missingColumnMessage(error.message) ?? error.message },
+        { status: 500 },
+      );
+    }
     saved = data as any;
   }
 

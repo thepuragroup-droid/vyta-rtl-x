@@ -5,6 +5,7 @@ import { logAuditServer } from '@/lib/admin/audit';
 import { toUrlSlug } from '@/lib/products/url';
 import { parsePriceOverride, parseVialsPerBox } from '@/lib/admin/product-input';
 import { normalizePackOptions, normalizePackSizes } from '@/lib/pricing';
+import { missingColumnMessage } from '@/lib/admin/missing-column';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -224,7 +225,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating product:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: missingColumnMessage(error.message) ?? error.message },
+        { status: 500 },
+      );
     }
 
     await logAuditServer(supabase, { actor_id, actor_email }, {
