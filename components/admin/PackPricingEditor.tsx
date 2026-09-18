@@ -3,7 +3,9 @@
 import React from 'react';
 import { Tag } from 'lucide-react';
 import {
+  MAX_PACK_BADGE_LENGTH,
   MAX_PACK_OPTIONS,
+  PACK_BADGE_PRESETS,
   PACK_SIZE_OPTIONS,
   normalizePackSizes,
   packLabel,
@@ -14,10 +16,13 @@ import {
  * The single product's pack switchboard: which quantities it is sold in, and
  * what each of those packs is called and costs.
  *
- * One row per pack, with three boxes:
+ * One row per pack, with four boxes:
  *
  *   Label       what the storefront button says. Blank → "Single vial" /
  *               "Pack of 3", so most products never need to touch it.
+ *   Tag         the merchandising chip pinned to the pack's corner on the PDP
+ *               — "Most Popular", "Best Value". Blank → no chip. Free text, so
+ *               a campaign can say something else without a code change.
  *   Price       what the pack costs. Blank → the vial price × the pack size,
  *               which keeps a product's packs repricing themselves whenever
  *               its price changes. Fill it in to sell a bigger pack cheaper.
@@ -34,6 +39,7 @@ import {
 export interface PackOptionDraft {
   size: number;
   label: string;
+  badge: string;
   price: string;
   compare_at: string;
 }
@@ -55,7 +61,7 @@ const boxClass =
 
 /** A blank row — every override unset, i.e. "price it the usual way". */
 export function emptyPackRow(size: number): PackOptionDraft {
-  return { size, label: '', price: '', compare_at: '' };
+  return { size, label: '', badge: '', price: '', compare_at: '' };
 }
 
 /** Parse a money box. '' (and anything unusable) means "not set". */
@@ -83,17 +89,27 @@ export function rowsForSizes(sizes: number[], existing: PackOptionDraft[]): Pack
 export function packOptionsPayload(
   sizes: number[],
   rows: PackOptionDraft[],
-): Array<{ size: number; label: string | null; price: number | null; compare_at: number | null; enabled: true }> | null {
+): Array<{
+  size: number;
+  label: string | null;
+  badge: string | null;
+  price: number | null;
+  compare_at: number | null;
+  enabled: true;
+}> | null {
   const wanted = rowsForSizes(normalizePackSizes(sizes), rows);
   const payload = wanted.map((row) => ({
     size: row.size,
     label: row.label.trim().length > 0 ? row.label.trim().slice(0, 60) : null,
+    badge:
+      row.badge.trim().length > 0 ? row.badge.trim().slice(0, MAX_PACK_BADGE_LENGTH) : null,
     price: money(row.price),
     compare_at: money(row.compare_at),
     enabled: true as const,
   }));
   const overridden = payload.some(
-    (row) => row.label !== null || row.price !== null || row.compare_at !== null,
+    (row) =>
+      row.label !== null || row.badge !== null || row.price !== null || row.compare_at !== null,
   );
   return overridden ? payload : null;
 }
@@ -173,6 +189,7 @@ export default function PackPricingEditor({
                 <tr className="bg-surface text-left text-[11px] uppercase tracking-wider text-ink-muted">
                   <th className="px-3 py-2 font-semibold">Pack</th>
                   <th className="px-3 py-2 font-semibold">Button label</th>
+                  <th className="px-3 py-2 font-semibold">Tag</th>
                   <th className="px-3 py-2 font-semibold">Price</th>
                   <th className="px-3 py-2 font-semibold">Compare at</th>
                   <th className="px-3 py-2 font-semibold">Customer sees</th>
@@ -204,6 +221,40 @@ export default function PackPricingEditor({
                           className={boxClass}
                         />
                       </td>
+                      {/* Merchandising chip. The presets are one click; the box
+                          stays free text so a campaign can say anything. */}
+                      <td className="px-3 py-2.5 w-40">
+                        <input
+                          type="text"
+                          list="pack-badge-presets"
+                          maxLength={MAX_PACK_BADGE_LENGTH}
+                          value={row.badge}
+                          disabled={disabled}
+                          onChange={(e) => setRow(row.size, { badge: e.target.value })}
+                          placeholder="No tag"
+                          className={boxClass}
+                        />
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {PACK_BADGE_PRESETS.map((preset) => {
+                            const on = row.badge.trim().toLowerCase() === preset.toLowerCase();
+                            return (
+                              <button
+                                key={preset}
+                                type="button"
+                                disabled={disabled}
+                                onClick={() => setRow(row.size, { badge: on ? '' : preset })}
+                                className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold transition-colors disabled:opacity-40 ${
+                                  on
+                                    ? 'border-teal bg-teal/10 text-teal-dark'
+                                    : 'border-line bg-surface text-ink-muted hover:text-ink'
+                                }`}
+                              >
+                                {preset}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </td>
                       <td className="px-3 py-2.5 w-28">
                         <input
                           type="text"
@@ -227,6 +278,11 @@ export default function PackPricingEditor({
                         />
                       </td>
                       <td className="px-3 py-2.5 text-[11px] leading-relaxed text-ink-muted tabular-nums">
+                        {row.badge.trim().length > 0 && (
+                          <span className="mb-1 inline-block rounded-full bg-ink px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                            {row.badge.trim()}
+                          </span>
+                        )}
                         <span className="block font-semibold text-ink">
                           ${price.toFixed(2)}
                           {compareAt != null && (
@@ -249,8 +305,14 @@ export default function PackPricingEditor({
               </tbody>
             </table>
           </div>
+          <datalist id="pack-badge-presets">
+            {PACK_BADGE_PRESETS.map((preset) => (
+              <option key={preset} value={preset} />
+            ))}
+          </datalist>
           <p className="mt-2 text-[11px] leading-relaxed text-ink-muted">
-            Leave <strong>Price</strong> blank to keep a pack at the vial price × its size
+            A <strong>Tag</strong> pins a chip to that pack&apos;s corner on the product page —
+            use it to point customers at the pack you want them to buy. Leave <strong>Price</strong> blank to keep a pack at the vial price × its size
             (${vialPrice.toFixed(2)} each), so it follows the product price automatically. Type a
             lower price to discount the pack — the undiscounted figure becomes the struck-through
             &ldquo;was&rdquo; price on its own, unless you set <strong>Compare at</strong> yourself.

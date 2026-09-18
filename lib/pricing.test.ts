@@ -172,8 +172,8 @@ test('normalizePackOptions drops junk and keeps one row per size', () => {
       { size: 1, price: -5 },          // negative money is "not set"
     ]),
     [
-      { size: 1, label: null, price: null, compare_at: null, enabled: true },
-      { size: 3, label: null, price: 199, compare_at: null, enabled: true },
+      { size: 1, label: null, price: null, compare_at: null, badge: null, enabled: true },
+      { size: 3, label: null, price: 199, compare_at: null, badge: null, enabled: true },
     ],
   );
   assert.deepEqual(normalizePackOptions(null), []);
@@ -261,6 +261,24 @@ test('pack_options decides which packs are offered, minus unticked rows', () => 
   assert.deepEqual(packOptionsFor(product).map((o) => o.size), [1, 3]);
 });
 
+test('a pack tag is trimmed, capped and carried through to the storefront', () => {
+  const product = {
+    ...PRICED,
+    pack_options: [
+      { size: 1 },
+      { size: 3, badge: '  Most Popular  ' },
+      { size: 10, badge: '   ' }, // whitespace only is "no tag"
+      { size: 5, badge: 'x'.repeat(80) },
+    ],
+  };
+  assert.deepEqual(
+    packOptionsFor(product).map((o) => o.badge),
+    [null, 'Most Popular', 'x'.repeat(24), null],
+  );
+  // A tag never invents a pack, and a non-string one is ignored.
+  assert.equal(normalizePackOptions([{ size: 1, badge: 7 }])[0].badge, null);
+});
+
 test('a product with neither column keeps the legacy single-vial + case pair', () => {
   const options = packOptionsFor(PRICED);
   assert.deepEqual(options.map((o) => o.size), [1, 10]);
@@ -276,9 +294,9 @@ test('a sizes-only edit keeps the prices of the packs that survive', () => {
   ];
   // 3 stays (with its price and label), 10 goes, 5 arrives blank.
   assert.deepEqual(reconcilePackOptions(stored, [1, 3, 5]), [
-    { size: 1, label: null, price: null, compare_at: null, enabled: true },
-    { size: 3, label: 'Starter', price: 249, compare_at: null, enabled: true },
-    { size: 5, label: null, price: null, compare_at: null, enabled: true },
+    { size: 1, label: null, price: null, compare_at: null, badge: null, enabled: true },
+    { size: 3, label: 'Starter', price: 249, compare_at: null, badge: null, enabled: true },
+    { size: 5, label: null, price: null, compare_at: null, badge: null, enabled: true },
   ]);
 });
 
