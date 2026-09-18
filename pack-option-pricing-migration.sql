@@ -17,7 +17,7 @@
 --     {"size":10, "label":"Best value",  "price":749,  "compare_at":null, "enabled":true}
 --   ]
 --
---   size        the pack quantity, in vials. Required, 1..1000, unique.
+--   size        the pack quantity, in vials. Required, a whole 1..1000.
 --   label       the storefront button's wording. NULL → "Single vial" / "Pack of N".
 --   price       the pack's price. NULL → the derived vial price × size, so a
 --               product whose price changes still reprices its packs at once.
@@ -39,9 +39,62 @@ ALTER TABLE products
 COMMENT ON COLUMN products.pack_options IS
   'Per-pack configuration: [{size, label, price, compare_at, enabled}]. NULL = fall back to pack_sizes, then to single vial + one case. A NULL price means the derived vial price x size.';
 
--- Shape guard. The API normalises before writing, so this is the backstop for
--- anything reaching the table another way: an array, every entry an object
--- carrying a positive whole `size`, and no negative money.
+
+-- ---- Shape guard -------------------------------------------------------
+--
+-- The API normalises before writing, so this is the backstop for anything
+-- reaching the table another way (a SQL console, a restore, a future import):
+-- an array, every entry an object carrying a whole `size` in range, and no
+-- negative money.
+--
+-- It lives in a FUNCTION rather than inline in the CHECK because a CHECK
+-- constraint may not contain a subquery — `NOT EXISTS (SELECT … FROM
+-- jsonb_array_elements(…))` inline is rejected outright with "cannot use
+-- subquery in check constraint", and there is no way to walk a jsonb array
+-- without one. A CHECK may call an IMMUTABLE function, which is the standard
+-- way around it, and this one depends on nothing but its argument.
+--
+-- Two details that are easy to get wrong and are deliberate here:
+--
+--   * `IS DISTINCT FROM` rather than `<>`. A MISSING key makes `entry -> 'size'`
+--     SQL NULL, and `NULL <> 'number'` is NULL, not true — which in a
+--     NOT EXISTS reads as "no violation" and lets an entry with no size at all
+--     through the guard that exists to catch it.
+--
+--   * The range tests sit inside CASE. Postgres does not promise to evaluate
+--     an OR left to right, so an unguarded `(entry ->> 'size')::numeric` can
+--     be evaluated against a non-numeric entry and raise a cast error instead
+--     of failing the constraint cleanly.
+
+CREATE OR REPLACE FUNCTION products_pack_options_valid(options jsonb)
+RETURNS boolean
+LANGUAGE sql
+IMMUTABLE
+AS $fn$
+  SELECT options IS NULL
+     OR (
+       jsonb_typeof(options) = 'array'
+       AND NOT EXISTS (
+         SELECT 1
+         FROM jsonb_array_elements(options) AS entry
+         WHERE jsonb_typeof(entry) IS DISTINCT FROM 'object'
+            OR jsonb_typeof(entry -> 'size') IS DISTINCT FROM 'number'
+            OR CASE WHEN jsonb_typeof(entry -> 'size') = 'number' THEN
+                    (entry ->> 'size')::numeric < 1
+                 OR (entry ->> 'size')::numeric > 1000
+                 OR (entry ->> 'size')::numeric <> floor((entry ->> 'size')::numeric)
+               ELSE false END
+            OR CASE WHEN jsonb_typeof(entry -> 'price') = 'number'
+                 THEN (entry ->> 'price')::numeric < 0 ELSE false END
+            OR CASE WHEN jsonb_typeof(entry -> 'compare_at') = 'number'
+                 THEN (entry ->> 'compare_at')::numeric < 0 ELSE false END
+       )
+     );
+$fn$;
+
+COMMENT ON FUNCTION products_pack_options_valid(jsonb) IS
+  'Backstop shape check for products.pack_options. Called by products_pack_options_shape_chk; a CHECK cannot hold the subquery this needs.';
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -49,27 +102,7 @@ BEGIN
   ) THEN
     ALTER TABLE products
       ADD CONSTRAINT products_pack_options_shape_chk
-      CHECK (
-        pack_options IS NULL
-        OR (
-          jsonb_typeof(pack_options) = 'array'
-          AND NOT EXISTS (
-            SELECT 1
-            FROM jsonb_array_elements(pack_options) AS entry
-            WHERE jsonb_typeof(entry) <> 'object'
-               OR jsonb_typeof(entry -> 'size') <> 'number'
-               OR (entry ->> 'size')::numeric < 1
-               OR (entry ->> 'size')::numeric > 1000
-               OR (entry ->> 'size')::numeric <> floor((entry ->> 'size')::numeric)
-               OR (entry -> 'price' IS NOT NULL
-                   AND jsonb_typeof(entry -> 'price') = 'number'
-                   AND (entry ->> 'price')::numeric < 0)
-               OR (entry -> 'compare_at' IS NOT NULL
-                   AND jsonb_typeof(entry -> 'compare_at') = 'number'
-                   AND (entry ->> 'compare_at')::numeric < 0)
-          )
-        )
-      );
+      CHECK (products_pack_options_valid(pack_options));
   END IF;
 END $$;
 
@@ -78,8 +111,20 @@ END $$;
 -- VERIFY
 -- ============================================================
 --
--- SELECT column_name, data_type FROM information_schema.columns
---  WHERE table_name = 'products' AND column_name = 'pack_options';
+-- Column present:
+--   SELECT column_name, data_type FROM information_schema.columns
+--    WHERE table_name = 'products' AND column_name = 'pack_options';
 --
--- SELECT name, pack_sizes, jsonb_pretty(pack_options)
---   FROM products WHERE pack_options IS NOT NULL;
+-- Constraint present (this is the one an earlier, broken version of this file
+-- failed to create — if it returns no row, re-run this migration):
+--   SELECT conname FROM pg_constraint
+--    WHERE conname = 'products_pack_options_shape_chk';
+--
+-- Guard works (both should say true, then false):
+--   SELECT products_pack_options_valid('[{"size":3,"price":249}]'::jsonb);
+--   SELECT products_pack_options_valid(NULL);
+--   SELECT products_pack_options_valid('[{"label":"no size"}]'::jsonb);
+--
+-- What is configured:
+--   SELECT name, pack_sizes, jsonb_pretty(pack_options)
+--     FROM products WHERE pack_options IS NOT NULL;
