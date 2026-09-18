@@ -885,6 +885,7 @@ export default function ProductsManagementPage() {
         return {
           size,
           label: stored?.label ?? '',
+          badge: stored?.badge ?? '',
           price: stored?.price != null ? String(stored.price) : '',
           compare_at: stored?.compare_at != null ? String(stored.compare_at) : '',
         };

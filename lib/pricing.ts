@@ -137,8 +137,9 @@ export function casePriceFor(product: VialPricedProduct): number {
  *
  *   `products.pack_options` (jsonb) — the full description of each pack the
  *     product is sold in: its size, an optional storefront LABEL, an optional
- *     fixed PRICE and an optional COMPARE-AT price. This is what an operator
- *     edits when a 10-pack should be cheaper per vial than a single one.
+ *     fixed PRICE, an optional COMPARE-AT price and an optional merchandising
+ *     BADGE ("Most Popular", "Best Value"). This is what an operator edits
+ *     when a 10-pack should be cheaper per vial than a single one.
  *
  *   `products.pack_sizes` (integer[]) — the older, quantities-only column.
  *     Still honoured, and still what the bulk editor and the cell grid write,
@@ -195,14 +196,35 @@ export interface StoredPackOption {
   price: number | null;
   /** Struck-through "was" price. Blank → the undiscounted vial × size. */
   compare_at: number | null;
+  /**
+   * Merchandising tag pinned to the pack's corner on the PDP — "Most popular",
+   * "Best value". Blank → no tag. Free text so a campaign can say something
+   * else without a code change; PACK_BADGE_PRESETS are just the quick picks.
+   */
+  badge: string | null;
   /** Unticked packs stay configured but are not offered. */
   enabled: boolean;
+}
+
+/** The tags the admin offers as one-click picks. Any other text is allowed. */
+export const PACK_BADGE_PRESETS = ['Most Popular', 'Best Value'] as const;
+
+/** Longest a pack tag may be — it has to fit a corner chip on the PDP. */
+export const MAX_PACK_BADGE_LENGTH = 24;
+
+/** A badge field that may legitimately be blank. */
+function optionalBadge(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const text = raw.trim();
+  return text.length > 0 ? text.slice(0, MAX_PACK_BADGE_LENGTH) : null;
 }
 
 /** A pack with every blank resolved — what the storefront actually renders. */
 export interface ResolvedPackOption {
   size: number;
   label: string;
+  /** The operator's merchandising tag, or null when the pack carries none. */
+  badge: string | null;
   price: number;
   /** Null when there is nothing to strike through (i.e. no saving). */
   compareAt: number | null;
@@ -255,6 +277,7 @@ export function normalizePackOptions(raw: unknown): StoredPackOption[] {
       label,
       price: optionalMoney(row.price),
       compare_at: optionalMoney(row.compare_at ?? row.compareAt),
+      badge: optionalBadge(row.badge),
       enabled: row.enabled !== false,
     });
   }
@@ -281,6 +304,7 @@ export function storedPackOptions(product: PackOptionProduct): StoredPackOption[
     label: null,
     price: null,
     compare_at: null,
+    badge: null,
     enabled: true,
   }));
 }
@@ -308,6 +332,7 @@ export function packOptionsFor(product: PackOptionProduct): ResolvedPackOption[]
       return {
         size: option.size,
         label: option.label ?? packLabel(option.size),
+        badge: option.badge,
         price,
         compareAt,
         savings,
@@ -343,7 +368,15 @@ export function reconcilePackOptions(
   if (existing.length === 0) return null;
   const bySize = new Map(existing.map((option) => [option.size, option]));
   const next = normalizePackSizes(sizes).map(
-    (size) => bySize.get(size) ?? { size, label: null, price: null, compare_at: null, enabled: true },
+    (size) =>
+      bySize.get(size) ?? {
+        size,
+        label: null,
+        price: null,
+        compare_at: null,
+        badge: null,
+        enabled: true,
+      },
   );
   return next.length > 0 ? next : null;
 }

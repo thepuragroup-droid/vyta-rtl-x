@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, ArrowLeft, Check, Shield, Award, Beaker, BadgeCheck, FlaskConical, FileText, X, ChevronRight, RefreshCw } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Check, Shield, Award, Beaker, BadgeCheck, FlaskConical, FileText, X, ChevronRight, RefreshCw, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
-import LabResultsButton from '@/components/LabResultsButton';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -20,7 +19,8 @@ import { trackActivity } from '@/lib/customer/activity';
 import { trackViewItem } from '@/lib/analytics/ecommerce';
 import { productPath } from '@/lib/products/url';
 import { parseBenefits } from '@/lib/products/benefits';
-import RichText, { renderInline } from '@/components/content/RichText';
+import { renderInline } from '@/components/content/RichText';
+import ProductInfoTabs from '@/components/product/ProductInfoTabs';
 
 interface Product {
   id: string;
@@ -48,6 +48,22 @@ interface Product {
   box_image_url: string | null;
   coa_url: string[] | null;
 }
+
+/** The four assurances under the hero image: icon over label over subtitle. */
+const HERO_ASSURANCES = [
+  { icon: BadgeCheck, title: '99% Purity', subtitle: 'Third party tested' },
+  { icon: Award, title: 'GMP Certified', subtitle: 'Good Manufacturing' },
+  { icon: FileText, title: 'COA Available', subtitle: 'Certificate of Analysis' },
+  { icon: Truck, title: 'Ships from Canada', subtitle: 'Fast & Discreet' },
+];
+
+/** The one-line reassurances immediately under Add to Cart. */
+const CTA_ASSURANCES = [
+  { icon: BadgeCheck, label: '99% Purity' },
+  { icon: FlaskConical, label: 'Third-Party Tested' },
+  { icon: FileText, label: 'COA Available' },
+  { icon: Truck, label: 'Ships from Canada' },
+];
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -431,6 +447,25 @@ export default function ProductDetailPage() {
                   </div>
                 )}
               </div>
+
+              {/* Assurance strip under the hero shot. The lucide glyphs are
+                  drawn without a ring of their own, so the ring here is ours:
+                  Vital Blue on the border and on the icon. */}
+              <div className="mt-4 sm:mt-6 grid grid-cols-4 gap-2 sm:gap-3">
+                {HERO_ASSURANCES.map(({ icon: Icon, title, subtitle }) => (
+                  <div key={title} className="flex flex-col items-center text-center">
+                    <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-teal-dark/40 text-teal-dark">
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </span>
+                    <p className="mt-2 text-[11px] sm:text-xs font-semibold leading-tight text-ink">
+                      {title}
+                    </p>
+                    <p className="mt-0.5 text-[10px] sm:text-[11px] font-light leading-tight text-ink-muted">
+                      {subtitle}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </motion.div>
 
             {/* Product Info */}
@@ -440,6 +475,9 @@ export default function ProductDetailPage() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className="flex flex-col"
             >
+              <p className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] text-teal-dark mb-1.5 sm:mb-2">
+                Research Grade Peptide Blend
+              </p>
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-ink mb-3 sm:mb-4 tracking-tight">
                 {product.name}
               </h1>
@@ -489,7 +527,7 @@ export default function ProductDetailPage() {
                   link to the study behind it. */}
               {benefitPoints.length > 0 && (
                 <div className="mb-4 sm:mb-6">
-                  <h3 className="font-semibold text-ink mb-2 sm:mb-3 text-sm">Benefits</h3>
+                  <h3 className="font-semibold text-ink mb-2 sm:mb-3 text-sm">Key Research Benefits</h3>
                   <ul className="space-y-1.5 sm:space-y-2">
                     {benefitPoints.map((benefit, idx) => (
                       <li key={idx} className="flex items-start gap-2">
@@ -525,7 +563,9 @@ export default function ProductDetailPage() {
                             ${vialUnitPrice.toFixed(2)} / vial at list price
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {/* pt-2 leaves room for a pack's tag, which sits
+                            proud of the button's top edge. */}
+                        <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-4">
                           {packs.map((option) => {
                             const cap = capFor(option.size);
                             const soldOut = cap < 1;
@@ -537,33 +577,40 @@ export default function ProductDetailPage() {
                                 onClick={() => selectPack(option.size)}
                                 disabled={soldOut}
                                 aria-pressed={active}
-                                className={`relative rounded-xl border p-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                                className={`relative rounded-xl border p-2.5 text-left transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                                   active
                                     ? 'border-ink bg-ink text-white shadow-sm'
                                     : 'border-line bg-surface text-ink hover:border-ink/40 hover:bg-white'
                                 }`}
                               >
-                                {active && (
-                                  <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-white">
-                                    <Check className="h-3 w-3 text-ink" />
+                                {/* Merchandising tag, set per pack in the admin
+                                    (Products → Pack options & pricing → Tag). */}
+                                {option.badge && !soldOut && (
+                                  <span className="absolute -top-2 left-2 right-2 truncate rounded-full bg-teal-dark px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wide text-white shadow-sm">
+                                    {option.badge}
                                   </span>
                                 )}
-                                <span className="block pr-5 text-sm font-semibold">
+                                {active && (
+                                  <span className="absolute right-1.5 top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white">
+                                    <Check className="h-2.5 w-2.5 text-ink" />
+                                  </span>
+                                )}
+                                <span className="block pr-4 text-[13px] font-semibold leading-tight">
                                   {option.label}
                                 </span>
                                 {soldOut ? (
                                   <span
-                                    className={`block text-[11px] ${active ? 'text-white/70' : 'text-ink-muted'}`}
+                                    className={`block text-[10px] ${active ? 'text-white/70' : 'text-ink-muted'}`}
                                   >
                                     Not enough stock
                                   </span>
                                 ) : (
                                   <>
-                                    <span className="mt-0.5 block text-sm font-bold tabular-nums">
+                                    <span className="mt-0.5 block text-[13px] font-bold tabular-nums">
                                       ${option.price.toFixed(2)}
                                       {option.compareAt != null && (
                                         <span
-                                          className={`ml-1.5 text-[11px] font-normal line-through ${
+                                          className={`ml-1 text-[10px] font-normal line-through ${
                                             active ? 'text-white/60' : 'text-ink-muted'
                                           }`}
                                         >
@@ -572,7 +619,7 @@ export default function ProductDetailPage() {
                                       )}
                                     </span>
                                     <span
-                                      className={`block text-[11px] tabular-nums ${
+                                      className={`block text-[10px] tabular-nums ${
                                         active ? 'text-white/70' : 'text-ink-muted'
                                       }`}
                                     >
@@ -580,7 +627,7 @@ export default function ProductDetailPage() {
                                     </span>
                                     {option.savings > 0 && (
                                       <span
-                                        className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                                        className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${
                                           active
                                             ? 'bg-white/20 text-white'
                                             : 'bg-emerald-50 text-emerald-700'
@@ -610,16 +657,24 @@ export default function ProductDetailPage() {
                             ${headlineCompareAt.toFixed(2)}
                           </span>
                         )}
+                        {/* The saving takes the slot the pack label used to
+                            hold — the pack is already named on the button the
+                            customer just pressed, and on Add to Cart below. */}
                         <span className="text-sm sm:text-base font-medium text-ink-muted">
-                          CAD{selectedPack ? ` · ${selectedPack.label.toLowerCase()}` : ''}
+                          CAD
                         </span>
+                        {selectedPack && selectedPack.savings > 0 && (
+                          <span className="text-sm sm:text-base font-semibold text-emerald-600 tabular-nums">
+                            Save ${selectedPack.savings.toFixed(2)}
+                            {selectedPack.savingsPercent > 0 &&
+                              ` (${selectedPack.savingsPercent}%)`}
+                          </span>
+                        )}
                       </div>
                       {selectedPack && (
                         <p className="mt-1 text-xs sm:text-sm text-ink-muted tabular-nums">
                           ${selectedPack.perVialPrice.toFixed(2)} per vial
                           {selectedPack.size > 1 && ` · ${selectedPack.size} vials`}
-                          {selectedPack.savings > 0 &&
-                            ` · you save $${selectedPack.savings.toFixed(2)}`}
                         </p>
                       )}
                     </div>
@@ -697,9 +752,8 @@ export default function ProductDetailPage() {
                             <ShoppingCart className="w-5 h-5" />
                             <span>
                               Add to Cart
-                              {selectedPack && packs.length > 1
-                                ? ` · ${selectedPack.label}`
-                                : ''}
+                              {selectedPack ? ` · ${selectedPack.label}` : ''}
+                              {` - $${lineTotal.toFixed(2)}`}
                             </span>
                           </>
                         )}
@@ -707,47 +761,43 @@ export default function ProductDetailPage() {
                     )
                   )}
 
-                  {product.coa_url && product.coa_url.length > 0 && (
-                    <LabResultsButton
-                      productName={product.name}
-                      variant="detail"
-                      className={siteConfig.ecommerceEnabled ? '' : 'flex-1'}
-                    />
-                  )}
+                  {/* Lab results button hidden for now — the certificate is
+                      still reachable from the COA button above and from the
+                      Quality & Testing tab. */}
                 </div>
 
-                {/* Description — kept below the buy controls so the pack
-                    picker and Add to Cart sit above the fold. Rendered through
-                    the site's inline syntax (**bold**, links) rather than as
-                    raw text, since the copy is written with it. */}
-                {product.description && (
-                  <RichText
-                    text={product.description}
-                    className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-line"
-                    paragraphClassName="text-ink-muted leading-relaxed text-sm sm:text-base"
-                  />
-                )}
+                {/* What every order carries, right under the button that
+                    places it. Separated from the CTA by a hairline. */}
+                <div className="mt-4 sm:mt-5 pt-4 sm:pt-5 border-t border-line">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 sm:grid-cols-4">
+                    {CTA_ASSURANCES.map(({ icon: Icon, label }) => (
+                      <div key={label} className="flex items-center gap-1.5">
+                        <Icon className="h-4 w-4 flex-shrink-0 text-teal-dark" />
+                        <span className="text-[11px] sm:text-xs font-medium leading-tight text-ink">
+                          {label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>
 
-          {/* Mechanism of Action */}
-          {product.mechanism && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-surface rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-line mb-8 sm:mb-10"
-            >
-              <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                <div className="w-9 sm:w-10 h-9 sm:h-10 bg-teal/10 rounded-lg sm:rounded-xl flex items-center justify-center">
-                  <FlaskConical className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
-                </div>
-                <h2 className="text-base sm:text-lg md:text-xl font-bold text-ink">Mechanism of Action</h2>
-              </div>
-              <p className="text-ink-muted leading-relaxed text-sm sm:text-base">{product.mechanism}</p>
-            </motion.div>
-          )}
+          {/* The reading half of the page: description, applications, testing,
+              shipping and FAQs, in a full-width tab block below the buy
+              controls rather than squeezed into the right-hand column. The
+              mechanism copy lives in Research Applications. */}
+          <ProductInfoTabs
+            product={product}
+            coaCount={product.coa_url?.length ?? 0}
+            onViewCoa={() => {
+              const first = product.coa_url?.[0];
+              if (!first) return;
+              setActiveCoa(first);
+              setShowCoaModal(true);
+            }}
+          />
 
           {/* Essential Add-on - Bacteriostatic Water */}
           {product.slug !== 'bacteriostatic-water-30ml' && batWater && (
