@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart, ArrowLeft, Check, Package, Shield, Truck, Award, Beaker, BadgeCheck, FlaskConical, FileText, X, ChevronRight, RefreshCw } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Check, Shield, Award, Beaker, BadgeCheck, FlaskConical, FileText, X, ChevronRight, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
@@ -20,7 +20,7 @@ import { trackActivity } from '@/lib/customer/activity';
 import { trackViewItem } from '@/lib/analytics/ecommerce';
 import { productPath } from '@/lib/products/url';
 import { parseBenefits } from '@/lib/products/benefits';
-import { renderInline } from '@/components/content/RichText';
+import RichText, { renderInline } from '@/components/content/RichText';
 
 interface Product {
   id: string;
@@ -187,6 +187,13 @@ export default function ProductDetailPage() {
   const capFor = (size: number) => packsInStock(product?.stock_quantity ?? 0, size);
   const selectedPack =
     packs.find((option) => option.size === packSize) ?? packs[0] ?? null;
+  // A multi-vial pack ships as a case, so the picker swaps the hero over to the
+  // case photo. Single vials — and products with no case photo on file — keep
+  // the vial shot.
+  const heroImage =
+    (selectedPack && selectedPack.size > 1 ? product?.box_image_url : null) ??
+    product?.image_url ??
+    null;
 
   // Open on the first pack the customer could actually buy, so the page never
   // lands on a sold-out option. Re-runs when the product changes (a related
@@ -239,7 +246,7 @@ export default function ProductDetailPage() {
       toast.error(`Only ${cap} in stock — that's all we have.`);
       return;
     }
-    flyToCart(heroImageRef.current, { image_url: product.image_url || undefined });
+    flyToCart(heroImageRef.current, { image_url: heroImage || undefined });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   };
@@ -401,10 +408,15 @@ export default function ProductDetailPage() {
                 className="bg-surface rounded-xl sm:rounded-2xl overflow-hidden border border-line relative"
               >
                 <div className="aspect-square flex items-center justify-center p-4 sm:p-8">
-                  {product.image_url ? (
+                  {heroImage ? (
                     <img
-                      src={product.image_url}
-                      alt={product.name}
+                      key={heroImage}
+                      src={heroImage}
+                      alt={
+                        selectedPack && selectedPack.size > 1
+                          ? `${product.name} — ${selectedPack.label.toLowerCase()}`
+                          : product.name
+                      }
                       className={`h-full w-full object-contain ${product.stock_quantity === 0 ? 'opacity-40' : ''}`}
                     />
                   ) : (
@@ -431,10 +443,6 @@ export default function ProductDetailPage() {
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-ink mb-3 sm:mb-4 tracking-tight">
                 {product.name}
               </h1>
-
-              <p className="text-ink-muted mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
-                {product.description}
-              </p>
 
               {/* Product Specs */}
               <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
@@ -708,27 +716,17 @@ export default function ProductDetailPage() {
                   )}
                 </div>
 
-                {/* Trust Badges */}
-                <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-line">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-8 sm:w-10 h-8 sm:h-10 bg-surface rounded-lg sm:rounded-xl flex items-center justify-center mb-1.5 sm:mb-2 border border-line">
-                      <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
-                    </div>
-                    <span className="text-[10px] sm:text-xs text-ink-muted">Lab Tested</span>
-                  </div>
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-8 sm:w-10 h-8 sm:h-10 bg-surface rounded-lg sm:rounded-xl flex items-center justify-center mb-1.5 sm:mb-2 border border-line">
-                      <Package className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
-                    </div>
-                    <span className="text-[10px] sm:text-xs text-ink-muted">Secure Pack</span>
-                  </div>
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-8 sm:w-10 h-8 sm:h-10 bg-surface rounded-lg sm:rounded-xl flex items-center justify-center mb-1.5 sm:mb-2 border border-line">
-                      <Truck className="w-4 sm:w-5 h-4 sm:h-5 text-teal-dark" />
-                    </div>
-                    <span className="text-[10px] sm:text-xs text-ink-muted">Fast Ship</span>
-                  </div>
-                </div>
+                {/* Description — kept below the buy controls so the pack
+                    picker and Add to Cart sit above the fold. Rendered through
+                    the site's inline syntax (**bold**, links) rather than as
+                    raw text, since the copy is written with it. */}
+                {product.description && (
+                  <RichText
+                    text={product.description}
+                    className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-line"
+                    paragraphClassName="text-ink-muted leading-relaxed text-sm sm:text-base"
+                  />
+                )}
               </div>
             </motion.div>
           </div>
