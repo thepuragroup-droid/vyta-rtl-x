@@ -20,18 +20,20 @@ easy.
 The media fills the whole hero, and a lot of interface sits on top of it, so
 composition matters more than subject:
 
-- **A frosted panel over the left.** The headline, the paragraph and the two
-  buttons live in a `white/85` backdrop-blurred card that covers roughly the
-  left half on desktop and the full width once the layout stacks. The copy
-  carries its own contrast, but the media still reads *through* the blur, so
-  keep that half **calm and unbusy** — detail behind the card turns to mush,
-  and a hard edge crossing it looks like a crack in the glass.
-- **Light scrims.** The hero renders the media under `ink/55 → ink/10` left to
+- **A frosted band down the left.** The headline, the paragraph and the two
+  buttons are read on a white, backdrop-blurred band that runs the full height
+  of the hero, covers about 62% of its width and then dissolves — tint, blur
+  and all — before the middle of the frame. Stacked, it runs the full width and
+  dissolves downward instead. The copy carries its own contrast, but the media
+  still reads *through* the blur, so keep that half **calm and unbusy** —
+  detail behind the band turns to mush, and a hard edge crossing the dissolve
+  reads as a seam.
+- **Light scrims.** The hero renders the media under `ink/30 → ink/10` left to
   right plus a softer vertical pair. They settle the frame rather than hide it,
   so the media has to hold up while still being clearly visible.
-- **Keep the subject centre-right.** The panel covers the left, so anything
+- **Keep the subject centre-right.** The band covers the left, so anything
   that matters belongs **roughly a third to a half in from the right**, clear
-  of the card.
+  of where the dissolve ends.
 - **A badge strip along the base** and the fixed navigation along the top:
   leave the top and bottom ~15% of the frame free of anything that matters.
 - **A slow parallax drift** — the media is rendered ~16% taller than the frame
@@ -70,14 +72,14 @@ the loop does not visibly snap.
 
 1. **Kitchen, morning.** Daylight, a glass of water being filled, hands and
    counter in focus, face partly out of frame. The most neutral of the three
-   and the safest under the frosted card.
+   and the safest under the frosted band.
 2. **Doorway, heading out.** Laces being tied or a jacket picked up, a hallway
    with light falling across it, movement out of frame toward the door.
    Reads as momentum without needing a gym.
 3. **Outdoors, low sun.** A walk or a slow run along a tree-lined path or a
    shoreline, backlit, the subject small in frame with lots of air around
    them. The most "lifestyle" and the most likely to put its subject behind
-   the card — check it at desktop and phone widths before choosing it.
+   the band — check it at desktop and phone widths before choosing it.
 
 ---
 
@@ -109,10 +111,11 @@ full-bleed on a phone.
    paste the clip's URL into the video box beside it (the Supabase storage
    bucket the product images use is fine).
 2. Check the home page at desktop width, at ~768px, and on a phone.
-3. Read the headline and the paragraph over it. The frosted panel does the
+3. Read the headline and the paragraph over it. The frosted band does the
    work, so what to check is what shows through it: if the blur turns busy or
-   stripey behind the card, or the right half has nothing left to look at,
-   regenerate rather than darkening the scrim, which dulls the whole frame.
+   stripey behind the copy, if a hard edge crosses the dissolve, or if the
+   right half has nothing left to look at, regenerate rather than darkening the
+   scrim, which dulls the whole frame.
 4. Watch one full loop. A visible jump at the loop point is more distracting
    than no video at all; clear the video URL and run on the still if the clip
    cannot be made to loop cleanly.

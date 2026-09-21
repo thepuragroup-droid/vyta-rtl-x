@@ -30,6 +30,27 @@ const DEFAULT_HERO_IMAGE = '/images/hero-bg.jpeg';
 const GRAIN_TEXTURE =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
+/**
+ * The frosted ground the copy is read on: opaque enough for navy type at the
+ * left edge, gone by the time it reaches the middle of the frame.
+ *
+ * The tint gradient alone would leave a hard edge where the blur stops, so the
+ * same shape is repeated as a mask — `backdrop-filter` is clipped by the
+ * element's own alpha, which is what makes the blur itself fade out with the
+ * white rather than ending in a line.
+ */
+const BAND_TINT_X =
+  'linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.92) 55%, rgba(255,255,255,0.6) 82%, rgba(255,255,255,0) 100%)';
+const BAND_MASK_X =
+  'linear-gradient(90deg, #000 0%, #000 76%, rgba(0,0,0,0.45) 90%, transparent 100%)';
+
+// Stacked, the copy runs the full width, so the ground fades downward instead
+// and hands the frame back above the badge strip.
+const BAND_TINT_Y =
+  'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.93) 56%, rgba(255,255,255,0.5) 76%, rgba(255,255,255,0) 90%)';
+const BAND_MASK_Y =
+  'linear-gradient(180deg, #000 0%, #000 60%, rgba(0,0,0,0.45) 78%, transparent 92%)';
+
 /** Canadian maple leaf — the one badge the lucide set has no glyph for. */
 function MapleLeaf(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -154,10 +175,33 @@ export default function Hero() {
         style={{ backgroundImage: GRAIN_TEXTURE }}
       />
 
-      {/* Scrims — the copy carries its own frosted panel, so these only settle
-          the media down behind it and under the badge strip. */}
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-ink/55 via-ink/25 to-ink/10" />
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-ink/50 via-transparent to-ink/60" />
+      {/* Scrims — the copy has the frosted band under it, so these only settle
+          the media down behind the nav and the badge strip. */}
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-ink/30 via-ink/20 to-ink/10" />
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-ink/45 via-transparent to-ink/55" />
+
+      {/* Frosted band — full height down the left, dissolving into the media
+          before it reaches the middle. */}
+      <motion.div
+        aria-hidden="true"
+        style={{
+          backgroundImage: BAND_TINT_Y,
+          maskImage: BAND_MASK_Y,
+          WebkitMaskImage: BAND_MASK_Y,
+          ...(prefersReducedMotion ? {} : { opacity: contentOpacity }),
+        }}
+        className="absolute inset-0 lg:hidden backdrop-blur-2xl"
+      />
+      <motion.div
+        aria-hidden="true"
+        style={{
+          backgroundImage: BAND_TINT_X,
+          maskImage: BAND_MASK_X,
+          WebkitMaskImage: BAND_MASK_X,
+          ...(prefersReducedMotion ? {} : { opacity: contentOpacity }),
+        }}
+        className="absolute inset-y-0 left-0 hidden lg:block w-[65%] xl:w-[62%] backdrop-blur-2xl"
+      />
 
       {/* Content */}
       <div className="relative flex-1 flex items-center w-full">
@@ -166,13 +210,11 @@ export default function Hero() {
           className="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-24 sm:pt-32 pb-10 sm:pb-16"
         >
           <div className="grid lg:grid-cols-12">
-            {/* Frosted panel — the media stays visible through it, and the
-                copy keeps the contrast it needs without dimming the frame. */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="lg:col-span-7 xl:col-span-6 rounded-3xl bg-white/85 backdrop-blur-2xl border border-white/70 shadow-2xl shadow-ink/40 p-6 sm:p-9"
+              className="lg:col-span-7 xl:col-span-6"
             >
               <p className="text-eyebrow mb-3 sm:mb-4">Premium Peptides</p>
 
@@ -197,7 +239,7 @@ export default function Hero() {
                   </button>
                 </Link>
                 <Link href="/lab-results" className="w-full sm:w-auto">
-                  <button className="w-full sm:w-auto inline-flex items-center justify-center bg-white/70 hover:bg-white text-ink border border-line px-7 py-3.5 font-semibold text-sm rounded-full transition-colors">
+                  <button className="w-full sm:w-auto inline-flex items-center justify-center bg-white hover:bg-surface text-ink border border-line px-7 py-3.5 font-semibold text-sm rounded-full shadow-card transition-colors">
                     View Lab Results
                   </button>
                 </Link>
