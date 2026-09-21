@@ -205,7 +205,7 @@ select:disabled,
     animation-play-state: paused;
   }
 
-  /* Cool "graded" treatment for the hero's fallback still — pulls the stock
+  /* Cool "graded" treatment for the hero's background still — pulls the stock
      science image toward the Midnight Navy / Bio Teal palette. */
   .hero-still-grade {
     filter: saturate(0.45) sepia(0.35) hue-rotate(150deg) brightness(0.6) contrast(1.1);

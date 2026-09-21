@@ -141,6 +141,33 @@ costs the vial price × N, no pack discount), `lib/content/*` (block document,
 announcements, pages, articles), `app/(admin)/admin/{announcements,pages,articles}`,
 and the storefront at `/about`, `/p/[slug]` and `/articles`.
 
+#### `reviews-testimonials-migration.sql` 🆕
+**Purpose:** The two things that put a star rating on the storefront, kept apart on
+purpose. `product_reviews` are written by customers about one product they bought;
+`testimonials` are marketing copy written by staff in Admin → Testimonials about the
+shop. Neither can become the other.
+**Tables:** `product_reviews`, `testimonials`
+**Views:** `product_review_stats` (`security_invoker`) — the `(count, average)` rollup
+every product card reads, so a card is one row rather than N
+**Constraints:** `product_reviews_one_per_customer` (one review per customer per
+product — a second submission updates the first); `rating BETWEEN 1 AND 5` on both
+tables
+**RLS:** public `SELECT` on published reviews and on testimonials; **no insert policy
+at all** on `product_reviews`. That is deliberate: proving a purchase means reading
+`orders` / `order_items`, which a customer's own token cannot do, so the only way a
+review row appears is through `/api/reviews`, which resolves the buyer from their
+bearer token and refuses a product they never ordered.
+**Dependencies:** `products`, `customers`, `orders` must exist
+**Required:** Yes, for reviews and testimonials. Without it the product page's review
+section and the home page's testimonial carousel leave themselves out, product cards
+show no stars, and the admin screen reports the missing table by name.
+**Idempotent:** Yes, safe to re-run.
+
+**Related code:** `lib/reviews.ts` (shape + the statuses that count as "they bought
+it"), `lib/content/testimonials.ts`, `app/api/reviews`, `app/api/{admin/,}testimonials`,
+`components/reviews/StarRating.tsx`, `components/product/ProductReviews.tsx`,
+`components/home/Testimonials.tsx`, `app/(admin)/admin/testimonials`.
+
 #### `products-schema.sql`
 **Purpose:** Complete product catalog with all peptides
 **Size:** ~39KB

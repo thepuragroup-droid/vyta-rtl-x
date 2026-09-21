@@ -17,21 +17,27 @@ easy.
 
 ## What the hero has to survive
 
-Whatever is generated sits under a lot of interface, so composition matters
-more than subject:
+The media fills the whole hero, and a lot of interface sits on top of it, so
+composition matters more than subject:
 
-- **A dark scrim.** The hero renders the media under `ink/95 → ink/35` left to
-  right, plus a top and bottom vertical scrim. Anything in the left 45% of the
-  frame is mostly covered.
-- **White type over the left half.** The headline ("Advanced / Peptide
-  Research"), a paragraph, two buttons and a row of trust chips all live there.
-  That half needs to stay **uncluttered and mid-to-dark**, or the type stops
-  being readable.
-- **A product panel over the right.** A featured-product card sits in the right
-  column on desktop. Keep the true subject **centre-right but not at the far
-  right edge**, roughly a third to a half in.
-- **A ticker along the bottom** and the fixed navigation along the top: leave
-  the top and bottom ~15% of the frame free of anything that matters.
+- **A sheer frosted band down the left.** The headline, the paragraph and the
+  two buttons are read on a white, backdrop-blurred band that runs the full
+  height of the hero and about 78% of its width. It is translucent the whole
+  way across — around 78% white at the left edge, never a solid plate — and
+  from the 40% mark it thins out until nothing is left of it at the far edge.
+  Stacked, it runs the full width and thins downward instead. So the media
+  reads *through* the copy, not just beside it: keep that half **calm and
+  unbusy**, and keep it **dark**. The band only holds navy type because the
+  still is graded to Midnight Navy; a bright frame would leave the copy
+  floating on nothing.
+- **Light scrims.** The hero renders the media under `ink/30 → ink/10` left to
+  right plus a softer vertical pair. They settle the frame rather than hide it,
+  so the media has to hold up while still being clearly visible.
+- **Keep the subject centre-right.** The band covers the left, so anything
+  that matters belongs **roughly a third to a half in from the right**, clear
+  of where the dissolve ends.
+- **A badge strip along the base** and the fixed navigation along the top:
+  leave the top and bottom ~15% of the frame free of anything that matters.
 - **A slow parallax drift** — the media is rendered ~16% taller than the frame
   and drifts vertically, so leave headroom top and bottom and keep the subject
   away from the edges.
@@ -68,14 +74,14 @@ the loop does not visibly snap.
 
 1. **Kitchen, morning.** Daylight, a glass of water being filled, hands and
    counter in focus, face partly out of frame. The most neutral of the three
-   and the safest under the scrim.
+   and the safest under the frosted band.
 2. **Doorway, heading out.** Laces being tied or a jacket picked up, a hallway
    with light falling across it, movement out of frame toward the door.
    Reads as momentum without needing a gym.
 3. **Outdoors, low sun.** A walk or a slow run along a tree-lined path or a
    shoreline, backlit, the subject small in frame with lots of air around
-   them. The most "lifestyle" and the most likely to fight the type — check it
-   under the scrim before choosing it.
+   them. The most "lifestyle" and the most likely to put its subject behind
+   the band — check it at desktop and phone widths before choosing it.
 
 ---
 
@@ -90,8 +96,8 @@ grabbed mid-motion.
 > grey-green textile, a glass of water catching the light on a clean counter.
 > A person is present but not posed and not the focus: a shoulder, a hand, a
 > figure soft in the background. Shallow depth of field, gentle bokeh, muted
-> warm-neutral grade with a single quiet teal accent. The left third is calm,
-> mid-to-dark negative space; the subject sits centre-right. Calm, healthy,
+> warm-neutral grade with a single quiet teal accent. The left half is calm,
+> uncluttered negative space; the subject sits centre-right. Calm, healthy,
 > unhurried. No text, no logos, no packaging, no laboratory or clinical
 > setting, no medical equipment.
 
@@ -107,9 +113,11 @@ full-bleed on a phone.
    paste the clip's URL into the video box beside it (the Supabase storage
    bucket the product images use is fine).
 2. Check the home page at desktop width, at ~768px, and on a phone.
-3. Read the headline and the paragraph over it. If any word is hard to read,
-   the media is too bright or too busy on the left — regenerate rather than
-   darkening the scrim, which dulls the whole frame.
+3. Read the headline and the paragraph over it. The frosted band does the
+   work, so what to check is what shows through it: if the blur turns busy or
+   stripey behind the copy, if a hard edge crosses the dissolve, or if the
+   right half has nothing left to look at, regenerate rather than darkening the
+   scrim, which dulls the whole frame.
 4. Watch one full loop. A visible jump at the loop point is more distracting
    than no video at all; clear the video URL and run on the still if the clip
    cannot be made to loop cleanly.

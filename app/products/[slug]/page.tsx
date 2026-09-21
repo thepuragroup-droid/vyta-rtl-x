@@ -21,6 +21,7 @@ import { productPath } from '@/lib/products/url';
 import { parseBenefits } from '@/lib/products/benefits';
 import { renderInline } from '@/components/content/RichText';
 import ProductInfoTabs from '@/components/product/ProductInfoTabs';
+import ProductReviews from '@/components/product/ProductReviews';
 
 interface Product {
   id: string;
@@ -810,6 +811,11 @@ export default function ProductDetailPage() {
               setShowCoaModal(true);
             }}
           />
+
+          {/* What other buyers made of it. Only customers with this product
+              on a paid order can write here — /api/reviews checks the orders
+              before it will take one. */}
+          <ProductReviews productId={product.id} productName={product.name} />
 
           {/* Essential Add-on - Bacteriostatic Water */}
           {product.slug !== 'bacteriostatic-water-30ml' && batWater && (
