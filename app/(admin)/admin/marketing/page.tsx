@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Megaphone, Image as ImageIcon, BarChart3, ShieldCheck, Upload, Save,
-  AlertCircle, Check, X, Loader2, Info, Clapperboard,
+  AlertCircle, Check, X, Loader2, Info, Monitor,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api-fetch';
@@ -63,7 +63,6 @@ export default function MarketingManagementPage() {
           store_tagline: form.store_tagline,
           logo_url: form.logo_url,
           favicon_url: form.favicon_url,
-          hero_video_url: form.hero_video_url,
           hero_image_url: form.hero_image_url,
           gtm_container_id: form.gtm_container_id,
           ga4_measurement_id: form.ga4_measurement_id,
@@ -183,55 +182,24 @@ export default function MarketingManagementPage() {
           {/* Home-page hero */}
           <section className="bg-white rounded-xl border border-line p-5 sm:p-6">
             <div className="flex items-center gap-2 mb-1">
-              <Clapperboard className="w-5 h-5 text-teal-dark" />
+              <Monitor className="w-5 h-5 text-teal-dark" />
               <h2 className="text-base font-bold text-ink">Home-page hero</h2>
             </div>
             <p className="text-xs text-ink-muted mb-4">
               The background of the first screen visitors see, behind the frosted band the
-              headline sits on. The still is shown first and stays as the fallback on phones, on
-              slow connections and for anyone who has asked for reduced motion; the clip crossfades
-              in over it on desktop. Leave the clip empty to run the hero on the still alone.
+              headline sits on. This image is the whole hero background on every screen size —
+              the hero no longer plays a background clip — so a wide, landscape render works best.
             </p>
 
             <div className="space-y-4">
               <ImageField
-                label="Hero still image"
+                label="Hero image"
                 value={form.hero_image_url}
                 disabled={!canManage}
                 onChange={(url) => set('hero_image_url', url)}
                 getToken={getToken}
                 onError={setError}
               />
-              <div>
-                <label className="block text-sm font-medium text-ink mb-1.5">
-                  Hero video URL
-                </label>
-                <input
-                  type="text"
-                  value={form.hero_video_url ?? ''}
-                  disabled={!canManage}
-                  placeholder="https://…/hero.mp4"
-                  onChange={(e) => set('hero_video_url', e.target.value || null)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60"
-                />
-                <p className="text-xs text-ink-muted mt-1.5">
-                  A muted 8–12 second seamless loop, H.264 MP4 or WebM, ideally under 2 MB with the
-                  audio track stripped. Paste a hosted URL (the Supabase storage bucket works) or a
-                  path to a file in <span className="font-mono">/public</span>.
-                </p>
-                {form.hero_video_url && (
-                  <video
-                    key={form.hero_video_url}
-                    src={form.hero_video_url}
-                    className="mt-3 w-full max-w-sm rounded-lg border border-line bg-ink"
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                    preload="metadata"
-                  />
-                )}
-              </div>
             </div>
           </section>
 

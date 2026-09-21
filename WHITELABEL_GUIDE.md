@@ -215,11 +215,10 @@ Also update the selection and focus ring rgba values (search for `rgba(156, 139,
 | File | Replace With |
 |------|-------------|
 | `favicon.png` / `favicon.ico` | Your favicon (32×32 and 16×16) |
-| `images/aminocan-logo.png` | Your logo |
-| `images/hero-bg.jpg` | Your hero background image |
+| `images/vyta-logo.png` / `images/vyta-mark.png` / `images/vyta-wordmark.png` | Your logo, square mark and wordmark |
+| `images/hero-bg.jpg` | Your hero background image — but prefer uploading it in Admin → Marketing, which needs no deploy |
 | `images/lab-certified.jpeg` | Your certification badge (or remove reference) |
 | `images/products/` | Your product images |
-| `images/video1.mp4` | Your hero video (or remove the video section) |
 
 ### File 11: `lib/config.ts` — Site Origin
 

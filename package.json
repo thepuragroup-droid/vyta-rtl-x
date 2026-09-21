@@ -1,5 +1,5 @@
 {
-  "name": "aminocan-peptides",
+  "name": "vyta-biosciences",
   "version": "1.0.0",
   "description": "Premium research peptides e-commerce platform with crypto payments",
   "private": true,
@@ -15,7 +15,7 @@
     "crypto",
     "e-commerce"
   ],
-  "author": "Aminocan Peptides",
+  "author": "VYTA Biosciences",
   "license": "MIT",
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.9",

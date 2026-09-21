@@ -205,10 +205,13 @@ select:disabled,
     animation-play-state: paused;
   }
 
-  /* Cool "graded" treatment for the hero's background still — pulls the stock
-     science image toward the Midnight Navy / Bio Teal palette. */
-  .hero-still-grade {
-    filter: saturate(0.45) sepia(0.35) hue-rotate(150deg) brightness(0.6) contrast(1.1);
+  /* The hero background image is brand art rather than a stock science photo,
+     so it is no longer recoloured toward Midnight Navy — it is only settled
+     down far enough that the frosted band over it can hold navy type. Keep any
+     change here in step with BAND_TINT_* in components/Hero.tsx: brightening
+     the image means more white in the band. */
+  .hero-image-grade {
+    filter: brightness(0.86) contrast(1.04) saturate(0.95);
   }
 
   /* HPLC trace drawing itself in the lab exhibit panel: draw, hold, fade,

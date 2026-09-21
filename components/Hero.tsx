@@ -1,31 +1,25 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, FileText, FlaskConical, Pause, Play, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowRight, FileText, FlaskConical, ShieldCheck, Truck } from 'lucide-react';
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import MapleLeaf, { MAPLE_RED } from '@/components/icons/MapleLeaf';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HERO MEDIA
 //
-// The clip and the still behind it fill the whole hero, and both are set in
-// Admin → Branding & Tracking (`site_settings.hero_video_url` /
-// `hero_image_url`), so swapping the hero for a new render is an upload, not a
-// deploy. The constants below are only the fallbacks for a store that has
-// never set them — and for the first paint, before the config has loaded.
+// One still fills the whole hero — there is no background clip any more, on any
+// screen size. The image is set in Admin → Branding & Tracking
+// (`site_settings.hero_image_url`), so swapping the hero for a new render is an
+// upload, not a deploy; the constant below is only the fallback for a store
+// that has never set one, and for the first paint before the config has loaded.
 //
-// The clip should be a muted ~8–12s seamless loop, H.264 MP4 (or WebM),
-// ideally ≤2 MB, with the audio track stripped. The still always renders
-// first and stays as the mobile / reduced-motion / slow-connection fallback.
-//
-// docs/hero-media-prompt.md carries the generation brief for both.
+// docs/hero-media-prompt.md carries the generation brief.
 // ─────────────────────────────────────────────────────────────────────────────
-const DEFAULT_HERO_VIDEO_URL =
-  'https://didnmcyrxgubgesiaatj.supabase.co/storage/v1/object/public/products/Video%20Project.mp4';
-
-const DEFAULT_HERO_IMAGE = '/images/hero-bg.jpeg';
+const DEFAULT_HERO_IMAGE =
+  'https://xbpdqpmdecsoshzttthl.supabase.co/storage/v1/object/public/assets/hero%20image.png';
 
 // Film-grain texture overlay (inline SVG turbulence — no asset needed).
 const GRAIN_TEXTURE =
@@ -36,9 +30,10 @@ const GRAIN_TEXTURE =
  * across — never a solid plate — and from the 40% mark it thins out in small
  * steps until there is nothing left of it at the far edge.
  *
- * It can afford to be this sheer because the media under it is graded to
- * Midnight Navy: even at 40% white the ground is light enough to hold navy
- * type. A brighter still would need these numbers raised.
+ * The hero image is brand art now rather than a still graded hard to Midnight
+ * Navy (see `.hero-image-grade`), so these carry more white than they used to:
+ * the ground has to hold navy type over whatever the uploaded image is, not
+ * only over a dark one.
  *
  * The tint gradient alone would leave a hard edge where the blur stops, so the
  * same shape is repeated as a mask — `backdrop-filter` is clipped by the
@@ -46,7 +41,7 @@ const GRAIN_TEXTURE =
  * white rather than ending in a line.
  */
 const BAND_TINT_X =
-  'linear-gradient(90deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.74) 40%, rgba(255,255,255,0.62) 56%, rgba(255,255,255,0.42) 72%, rgba(255,255,255,0.2) 86%, rgba(255,255,255,0) 100%)';
+  'linear-gradient(90deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.84) 40%, rgba(255,255,255,0.7) 56%, rgba(255,255,255,0.46) 72%, rgba(255,255,255,0.22) 86%, rgba(255,255,255,0) 100%)';
 const BAND_MASK_X =
   'linear-gradient(90deg, #000 0%, #000 40%, rgba(0,0,0,0.85) 56%, rgba(0,0,0,0.6) 72%, rgba(0,0,0,0.28) 86%, transparent 100%)';
 
@@ -54,7 +49,7 @@ const BAND_MASK_X =
 // and hands the frame back above the badge strip. The fade starts lower down
 // than it does across: there is copy all the way to the buttons.
 const BAND_TINT_Y =
-  'linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.74) 50%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0.2) 84%, rgba(255,255,255,0) 94%)';
+  'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.84) 50%, rgba(255,255,255,0.56) 70%, rgba(255,255,255,0.22) 84%, rgba(255,255,255,0) 94%)';
 const BAND_MASK_Y =
   'linear-gradient(180deg, #000 0%, #000 50%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,0.3) 84%, transparent 94%)';
 
@@ -68,20 +63,13 @@ const TRUST_BADGES = [
 
 export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
-  // Admin-set hero media, falling back to the shipped pair. The provider seeds
+  // Admin-set hero image, falling back to the shipped one. The provider seeds
   // from DEFAULT_SITE_CONFIG, so the first render is the fallback either way
-  // and there is no hydration mismatch — only a crossfade once the real clip
-  // is fetched.
+  // and there is no hydration mismatch.
   const { config: siteSettings } = useSiteConfig();
-  const heroVideoUrl = siteSettings.hero_video_url ?? DEFAULT_HERO_VIDEO_URL;
   const heroImageUrl = siteSettings.hero_image_url ?? DEFAULT_HERO_IMAGE;
 
   const sectionRef = useRef<HTMLElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  const [allowVideo, setAllowVideo] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
-  const [videoPlaying, setVideoPlaying] = useState(true);
 
   // Subtle parallax: the media drifts slower than the page while the content
   // eases upward and dissolves as the hero scrolls out.
@@ -93,43 +81,13 @@ export default function Hero() {
   const contentY = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
-  // Only load the video on desktop-sized screens with motion allowed — phones
-  // and prefers-reduced-motion users get the graded still instead.
-  useEffect(() => {
-    if (!heroVideoUrl || prefersReducedMotion) {
-      setAllowVideo(false);
-      return;
-    }
-    const mq = window.matchMedia('(min-width: 768px)');
-    const update = () => setAllowVideo(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, [prefersReducedMotion, heroVideoUrl]);
-
-  // A newly-set clip has to fade in on its own terms: without this the old
-  // clip's `videoReady` would keep the new <video> visible before it can play.
-  useEffect(() => setVideoReady(false), [heroVideoUrl]);
-
-  const toggleVideo = () => {
-    const el = videoRef.current;
-    if (!el) return;
-    if (el.paused) {
-      el.play().catch(() => {});
-      setVideoPlaying(true);
-    } else {
-      el.pause();
-      setVideoPlaying(false);
-    }
-  };
-
   return (
     <section
       ref={sectionRef}
       className="relative min-h-svh flex flex-col overflow-hidden bg-ink"
     >
-      {/* Media layer — graded still first, video crossfades in when ready.
-          Oversized vertically so the parallax drift never reveals an edge. */}
+      {/* Media layer — oversized vertically so the parallax drift never
+          reveals an edge. */}
       <motion.div
         aria-hidden="true"
         style={prefersReducedMotion ? undefined : { y: mediaY }}
@@ -138,32 +96,8 @@ export default function Hero() {
         <img
           src={heroImageUrl}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover hero-still-grade"
+          className="absolute inset-0 w-full h-full object-cover hero-image-grade"
         />
-        {allowVideo && (
-          <video
-            // Keyed on the URL so swapping the clip mounts a fresh element
-            // rather than leaving the browser on the old buffered source.
-            key={heroVideoUrl}
-            ref={(el) => {
-              videoRef.current = el;
-              // React can omit `muted` from server-rendered markup; set it
-              // imperatively so autoplay is never blocked.
-              if (el) el.muted = true;
-            }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-              videoReady ? 'opacity-100' : 'opacity-0'
-            }`}
-            src={heroVideoUrl}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            tabIndex={-1}
-            onCanPlay={() => setVideoReady(true)}
-          />
-        )}
       </motion.div>
 
       {/* Film grain */}
@@ -247,21 +181,6 @@ export default function Hero() {
             </motion.div>
           </div>
         </motion.div>
-
-        {/* Video pause/play — sits just above the badge strip */}
-        {allowVideo && videoReady && (
-          <button
-            onClick={toggleVideo}
-            aria-label={videoPlaying ? 'Pause background video' : 'Play background video'}
-            className="absolute bottom-4 right-5 sm:right-8 w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 border border-white/30 backdrop-blur-md text-white/90 hover:text-white flex items-center justify-center transition-colors"
-          >
-            {videoPlaying ? (
-              <Pause className="w-3.5 h-3.5" />
-            ) : (
-              <Play className="w-3.5 h-3.5 ml-0.5" />
-            )}
-          </button>
-        )}
       </div>
 
       {/* Trust badges — the promises the storefront is held to, on a frosted

@@ -52,12 +52,13 @@ export default function Footer() {
             {/* Social */}
             <div className="flex space-x-3">
               <a
-                href="https://instagram.com/Aminocan_"
+                href="https://www.instagram.com/vytabiosciences/"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="VYTA Biosciences on Instagram"
                 className="w-10 h-10 bg-white hover:bg-white/90 rounded-xl flex items-center justify-center text-ink transition-all duration-300"
               >
-                <Instagram className="w-4 h-4" />
+                <Instagram className="w-4 h-4" aria-hidden="true" />
               </a>
             </div>
           </div>

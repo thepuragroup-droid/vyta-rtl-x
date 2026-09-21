@@ -17,7 +17,7 @@ export default function TermsPage() {
             <h1 className="text-3xl sm:text-4xl font-bold text-ink mb-3">Terms &amp; Conditions</h1>
             <p className="text-ink-muted text-sm">
               These terms and conditions govern all users of VYTA and{' '}
-              <span className="font-medium text-ink">aminocan.com</span>. These must be agreed upon before any
+              <span className="font-medium text-ink">vytabio.com</span>. These must be agreed upon before any
               purchases can be made.
             </p>
           </div>
@@ -63,7 +63,7 @@ export default function TermsPage() {
             <p>
               The purchaser expressly represents and warrants to VYTA that the purchaser will properly
               test, use, manufacture and market any products purchased from VYTA and/or materials produced
-              with products purchased from aminocan.com in accordance with the practices of a reliable person
+              with products purchased from vytabio.com in accordance with the practices of a reliable person
               who is experienced in the field and in strict compliance with all applicable laws and regulations,
               now and hereinafter enacted.
             </p>
@@ -79,12 +79,12 @@ export default function TermsPage() {
               The purchaser realizes that, since VYTA&apos;s products are, unless otherwise stated,
               intended solely for research purposes, they may not be on the Toxic Substances Control Act (TSCA)
               inventory listing. The purchaser assumes responsibility to assure that the products purchased from
-              aminocan.com are approved for use under TSCA, if applicable.
+              vytabio.com are approved for use under TSCA, if applicable.
             </p>
 
             <p>
               Purchaser has the responsibility to verify the hazards and to conduct any further research
-              necessary to learn the hazards involved in using products purchased from aminocan.com. No
+              necessary to learn the hazards involved in using products purchased from vytabio.com. No
               products purchased from VYTA shall, unless otherwise stated, be considered to be foods,
               drugs, medical devices or cosmetics.
             </p>
@@ -321,8 +321,8 @@ export default function TermsPage() {
                 </p>
                 <p>
                   Purchaser has the responsibility to verify the hazards and to conduct any further research
-                  necessary to learn the hazards involved in using products purchased from aminocan.com. No
-                  products purchased from aminocan.com shall, unless otherwise stated, be considered to be
+                  necessary to learn the hazards involved in using products purchased from vytabio.com. No
+                  products purchased from vytabio.com shall, unless otherwise stated, be considered to be
                   foods, drugs, medical devices or cosmetics. ALL products and services offered are for
                   RESEARCH purposes ONLY. Under NO circumstances shall/should ANY of these materials be used
                   for therapeutic or diagnostic purposes. VYTA is NOT liable for ANY damages that may be
@@ -365,10 +365,10 @@ export default function TermsPage() {
                   nature whatsoever arising out of purchasers handling and/or use of purchased product.
                 </p>
                 <p>
-                  All users of aminocan.com are required to fully understand that any communication which leads
+                  All users of vytabio.com are required to fully understand that any communication which leads
                   us to believe that you will use these products in a manner other than that which they are
                   intended will result in a refusal to sell alert being emailed to you and placed on your
-                  account. We will absolutely under no circumstances tolerate the misuse of aminocan.com or the
+                  account. We will absolutely under no circumstances tolerate the misuse of vytabio.com or the
                   products contained/sold herein.
                 </p>
                 <p>
@@ -439,7 +439,7 @@ export default function TermsPage() {
                 Terms of Service, product misuse, unauthorized usage, or for safety considerations.
               </p>
               <p className="mt-3">
-                Upon termination, your access to our Services at aminocan.com will cease immediately. Should
+                Upon termination, your access to our Services at vytabio.com will cease immediately. Should
                 you decide to discontinue all future purchase transactions, you can achieve this by simply
                 refraining from using our Service.
               </p>

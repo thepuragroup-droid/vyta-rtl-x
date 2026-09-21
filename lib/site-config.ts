@@ -11,11 +11,15 @@ export interface SiteConfig {
   store_tagline: string;
   logo_url: string | null;
   favicon_url: string | null;
-  /** Home-page hero background video (MP4/WebM). Null runs the hero on the
-   *  still image alone. */
+  /**
+   * Retired. The hero runs on `hero_image_url` alone on every screen size, so
+   * nothing reads this to render and Admin → Marketing no longer edits it. The
+   * column and this field are kept only so an existing row still round-trips;
+   * drop both once no deployment has a value left in it.
+   */
   hero_video_url: string | null;
-  /** Home-page hero still. Always rendered first, and the fallback on phones,
-   *  reduced motion and slow connections. Null uses the shipped image. */
+  /** Home-page hero background — the whole of it. Null uses the shipped
+   *  image (see DEFAULT_HERO_IMAGE in components/Hero.tsx). */
   hero_image_url: string | null;
   /** Google Tag Manager container — GTM-XXXXXXX. */
   gtm_container_id: string | null;
@@ -35,7 +39,7 @@ function cleanString(v: unknown): string | null {
  * because gtm-ga4-tracking-migration.sql hasn't run yet or because the column
  * is still empty. Same "DB first, env var as the fallback" shape the Easyship
  * settings use (see .env.example), with the shipped constant as a last resort
- * so the container is live on aminocan.com without any deploy-time setup.
+ * so the container is live on vytabio.com without any deploy-time setup.
  *
  * A white-label fork overrides both in Admin → Marketing (which writes the DB)
  * or via the NEXT_PUBLIC_* vars below.

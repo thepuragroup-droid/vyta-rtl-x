@@ -10,10 +10,13 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
  * value props. Half claim, half proof: the claim is copy, the proof is the
  * link to the published lab results.
  *
- * The right half is a placeholder gradient with a purity card over it, for the
- * same reason the category tiles are: the design calls for a photograph of a
- * bench that has not been shot yet.
+ * The right half is the bench photograph the design called for, with the
+ * purity card over it. The ink scrim under the card is what keeps its white
+ * type legible, so it stays even if the photograph is swapped.
  */
+
+const PANEL_IMAGE =
+  'https://xbpdqpmdecsoshzttthl.supabase.co/storage/v1/object/public/assets/we%20show%20our%20work.png';
 
 const PROMISES = [
   'View certificates of analysis',
@@ -60,13 +63,19 @@ export default function ShowOurWork() {
             </Link>
           </div>
 
-          {/* Placeholder bench imagery + the purity card that sits over it */}
-          <div className="relative min-h-[260px] lg:min-h-full">
+          {/* Bench imagery + the purity card that sits over it */}
+          <div className="relative min-h-[260px] lg:min-h-full bg-brand-gradient">
+            <img
+              src={PANEL_IMAGE}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
             <span
               aria-hidden="true"
-              className="absolute inset-0 bg-brand-gradient"
+              className="absolute inset-0 bg-gradient-to-br from-ink/45 via-ink/25 to-ink/45"
             />
-            <span aria-hidden="true" className="absolute inset-0 molecular-grid opacity-30" />
 
             <div className="relative h-full flex items-center justify-center p-7 sm:p-10">
               <div className="w-full max-w-xs rounded-2xl bg-ink/70 backdrop-blur-md border border-white/15 p-5 sm:p-6 text-white">
