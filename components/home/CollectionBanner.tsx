@@ -6,21 +6,31 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 /**
- * "Explore the VYTA Collection" — the full-bleed closing call to action.
+ * "Explore the VYTA Collection" — the full-bleed closing call to action, on the
+ * landscape photograph the design called for.
  *
- * Placeholder art, like the category tiles: the design calls for a landscape
- * photograph, so until one is shot this runs on the brand gradient with the
- * molecular texture over it. Swapping in the photograph is a background-image
- * on the same element.
+ * The copy is white, so the ink scrim over the image is load-bearing rather
+ * than decorative: it is the only thing keeping the headline and body copy
+ * readable over whatever the photograph does behind them. It is heaviest on the
+ * left, where the copy sits, and thins to the right so the art still reads.
+ * Lightening it means re-checking the contrast against the image.
  */
+const BANNER_IMAGE =
+  'https://xbpdqpmdecsoshzttthl.supabase.co/storage/v1/object/public/assets/Explore%20The%20Vyta%20Collection.png';
+
 export default function CollectionBanner() {
   return (
     <section className="relative overflow-hidden bg-ink">
-      <span aria-hidden="true" className="absolute inset-0 bg-brand-gradient" />
-      <span aria-hidden="true" className="absolute inset-0 molecular-grid opacity-25" />
+      <img
+        src={BANNER_IMAGE}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
       <span
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/45 to-transparent"
+        className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/60 to-ink/25"
       />
 
       <motion.div
