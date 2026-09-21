@@ -152,7 +152,7 @@ This covers all three supported languages (EN, ES, VI).
 - Line 26: `Aminocan` → your brand name
 - Line 27: `Research Peptides` → your tagline
 - Line 54: Instagram URL/handle → your social
-- Lines 106 & 113: `support@aminocan.com` → `support@yourdomain.com`
+- Lines 117 & 124: `support@vytabio.com` → `support@yourdomain.com`
 - Line 123: `Shipping to Canada Only` → your shipping region
 
 ### File 5: `components/Hero.tsx` — Homepage Hero
