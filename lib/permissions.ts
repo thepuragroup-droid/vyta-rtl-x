@@ -43,6 +43,7 @@ export const ANALYTICS_PAGES = [
   // marketing surfaces, so the marketing partner owns them the same way it
   // owns branding — without ever reaching prices, stock or API keys.
   '/admin/announcements',
+  '/admin/testimonials',
   '/admin/pages',
   '/admin/articles',
 ] as const;

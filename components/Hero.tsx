@@ -5,6 +5,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion
 import Link from 'next/link';
 import { ArrowRight, FileText, FlaskConical, Pause, Play, ShieldCheck, Truck } from 'lucide-react';
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
+import MapleLeaf, { MAPLE_RED } from '@/components/icons/MapleLeaf';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HERO MEDIA
@@ -56,15 +57,6 @@ const BAND_TINT_Y =
   'linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.74) 50%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0.2) 84%, rgba(255,255,255,0) 94%)';
 const BAND_MASK_Y =
   'linear-gradient(180deg, #000 0%, #000 50%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,0.3) 84%, transparent 94%)';
-
-/** Canadian maple leaf — the one badge the lucide set has no glyph for. */
-function MapleLeaf(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
-      <path d="M12 2l1.4 3.6 2.6-1-.8 3.6 3.4-.8-.8 2.6 3.8.6-2.2 2 1.6 1.8-4.8.8.4 2.2-3.7-.8V22h-1.8v-5.4l-3.7.8.4-2.2-4.8-.8 1.6-1.8-2.2-2 3.8-.6-.8-2.6 3.4.8-.8-3.6 2.6 1L12 2z" />
-    </svg>
-  );
-}
 
 const TRUST_BADGES = [
   { icon: ShieldCheck, label: '99%+\nPurity Guaranteed' },
@@ -291,7 +283,8 @@ export default function Hero() {
               }`}
             >
               <Icon
-                className={`w-5 h-5 sm:w-7 sm:h-7 ${accent ? 'text-[#D52B1E]' : 'text-ink'}`}
+                className="w-5 h-5 sm:w-7 sm:h-7 text-ink"
+                style={accent ? { color: MAPLE_RED } : undefined}
                 strokeWidth={1.5}
               />
               <span className="text-[10px] sm:text-xs font-medium text-ink leading-snug whitespace-pre-line">
