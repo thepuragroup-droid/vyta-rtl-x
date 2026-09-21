@@ -11,16 +11,22 @@
  *
  * Renders nothing unless the promo is live and a real threshold is set, so
  * callers can drop it in unconditionally.
+ *
+ * Two shapes. `card` is the boxed version the checkout summary uses. `bar` is
+ * the single-line strip that sits under the cart's line items — the same
+ * numbers on one row, because there it follows a list of products rather than
+ * introducing a column of totals.
  */
 import React from "react";
 import { motion } from "framer-motion";
-import { PartyPopper, Truck } from "lucide-react";
+import { CheckCircle2, PartyPopper, Truck } from "lucide-react";
 import { freeShippingProgress } from "@/lib/payments/puramass-shipping";
 
 export default function FreeShippingProgress({
   subtotal,
   threshold,
   active,
+  variant = "card",
   className = "",
 }: {
   /** Cart goods subtotal, CAD. */
@@ -29,12 +35,78 @@ export default function FreeShippingProgress({
   threshold: number;
   /** The promo is switched on. */
   active: boolean;
+  /** `card` for a boxed block, `bar` for the cart's one-line strip. */
+  variant?: "card" | "bar";
   className?: string;
 }) {
   const progress = active ? freeShippingProgress(subtotal, threshold) : null;
   if (!progress) return null;
 
   const { pct, remaining, unlocked } = progress;
+
+  if (variant === "bar") {
+    return (
+      <div
+        className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border px-3.5 py-3 transition-colors duration-300 ${
+          unlocked
+            ? "border-emerald-200 bg-emerald-50"
+            : "border-teal/25 bg-teal/5"
+        } ${className}`}
+      >
+        <div
+          className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg ${
+            unlocked ? "bg-emerald-500 text-white" : "bg-teal/15 text-teal-dark"
+          }`}
+        >
+          <Truck className="h-3.5 w-3.5" />
+        </div>
+
+        <p
+          className={`text-xs font-semibold ${
+            unlocked ? "text-emerald-800" : "text-ink"
+          }`}
+        >
+          {unlocked
+            ? "You're eligible for FREE shipping!"
+            : `Add $${remaining.toFixed(2)} for FREE shipping`}
+        </p>
+
+        {/* The bar takes what is left of the row, and drops to its own line on
+            a narrow screen rather than squeezing the message out. */}
+        <div className="flex min-w-[8rem] flex-1 items-center gap-2">
+          <div
+            className="h-1.5 flex-1 overflow-hidden rounded-full bg-line/70"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(pct)}
+            aria-label="Progress toward free shipping"
+          >
+            <motion.div
+              className={`h-full rounded-full ${
+                unlocked
+                  ? "bg-emerald-500"
+                  : "bg-gradient-to-r from-teal/70 to-teal"
+              }`}
+              initial={false}
+              animate={{ width: `${pct}%` }}
+              transition={{ type: "spring", stiffness: 180, damping: 26 }}
+            />
+          </div>
+          {unlocked ? (
+            <span className="flex items-center gap-1.5 whitespace-nowrap text-[11px] font-medium text-emerald-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Free shipping unlocked
+            </span>
+          ) : (
+            <span className="whitespace-nowrap text-[11px] tabular-nums text-ink-muted">
+              ${subtotal.toFixed(2)} / ${threshold.toFixed(2)}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

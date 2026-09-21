@@ -5,6 +5,11 @@ import { isPuramassConfigured } from '@/lib/payments/puramass';
 import { shapeHostedShippingSettings } from '@/lib/payments/puramass-settings';
 import { clampDiscountPercent, shapeAdDiscountSettings } from '@/lib/promos/ad-discount';
 import {
+  clampMinItems,
+  MAX_DISCOUNT_PERCENT,
+  shapeCartOfferSettings,
+} from '@/lib/promos/cart-offer';
+import {
   DEFAULT_CUSTOMER_SUBJECT,
   DEFAULT_CUSTOMER_BODY,
   DEFAULT_ADMIN_SUBJECT,
@@ -72,6 +77,7 @@ function shape(data: Record<string, any> | null | undefined) {
   const d = data ?? {};
   const hostedShipping = shapeHostedShippingSettings(d);
   const adDiscount = shapeAdDiscountSettings(d);
+  const cartOffer = shapeCartOfferSettings(d);
   return {
     id: d.id ?? null,
     checkout_type: d.checkout_type === 'email' ? 'email' : 'crypto',
@@ -107,6 +113,20 @@ function shape(data: Record<string, any> | null | undefined) {
     ad_discount_enabled: adDiscount.enabled,
     ad_discount_percent: adDiscount.percent,
     ad_discount_active: !!d.puramass_checkout_enabled && adDiscount.enabled,
+    // Limited-time cart offer — "add one more item and get X% off". Same shape
+    // as the two promos above, and `_active` folds in the same hosted-checkout
+    // toggle for the same reason: the saving travels as lowered line prices,
+    // so there is nowhere to apply it when that is not the live checkout.
+    cart_offer_enabled: cartOffer.enabled,
+    cart_offer_min_items: cartOffer.minItems,
+    cart_offer_percent: cartOffer.percent,
+    cart_offer_ends_at: cartOffer.endsAt,
+    cart_offer_active: !!d.puramass_checkout_enabled && cartOffer.enabled,
+    // The two merchandising blocks on the cart. Nothing is discounted by
+    // either, so they carry no `_active` twin — they are on unless switched
+    // off, and default on for a store that has not been asked yet.
+    cart_fbt_enabled: d.cart_fbt_enabled ?? true,
+    cart_similar_enabled: d.cart_similar_enabled ?? true,
     etransfer_enabled: d.etransfer_enabled ?? true,
     etransfer_recipient_email: d.etransfer_recipient_email ?? '',
     etransfer_security_question: d.etransfer_security_question ?? '',
@@ -198,6 +218,9 @@ export async function PUT(req: NextRequest) {
     'puramass_shipping_rates_enabled',
     'puramass_free_shipping_enabled',
     'ad_discount_enabled',
+    'cart_offer_enabled',
+    'cart_fbt_enabled',
+    'cart_similar_enabled',
   ] as const) {
     if (key in body) updates[key] = Boolean(body[key]);
   }
@@ -221,6 +244,56 @@ export async function PUT(req: NextRequest) {
       );
     }
     updates.ad_discount_percent = clampDiscountPercent(n);
+  }
+
+  // The limited-time cart offer. Same ceiling as the welcome discount, and for
+  // the same reason — the two can stack, and `combineDiscountPercents` keeps
+  // the pair under it too, so neither one alone nor both together can produce
+  // a zero line price.
+  if ('cart_offer_percent' in body) {
+    const n = Number(body.cart_offer_percent);
+    if (!Number.isFinite(n) || n < 0 || n > MAX_DISCOUNT_PERCENT) {
+      return NextResponse.json(
+        {
+          error:
+            `cart_offer_percent must be a number between 0 and ${MAX_DISCOUNT_PERCENT} — ` +
+            'the hosted checkout cannot be sent a zero line price.',
+        },
+        { status: 400 },
+      );
+    }
+    updates.cart_offer_percent = clampDiscountPercent(n);
+  }
+
+  // How many cart items unlock it. A whole number of items, at least one:
+  // a minimum of zero would be a standing discount wearing an offer's clothes.
+  if ('cart_offer_min_items' in body) {
+    const n = Math.floor(Number(body.cart_offer_min_items));
+    if (!Number.isFinite(n) || n < 1) {
+      return NextResponse.json(
+        { error: 'cart_offer_min_items must be a whole number of items (>= 1)' },
+        { status: 400 },
+      );
+    }
+    updates.cart_offer_min_items = clampMinItems(n);
+  }
+
+  // When the offer stops. Empty clears it, which is how an offer is made to
+  // run until it is switched off — and is also what hides the cart countdown.
+  if ('cart_offer_ends_at' in body) {
+    const raw = body.cart_offer_ends_at;
+    if (raw === null || raw === undefined || String(raw).trim() === '') {
+      updates.cart_offer_ends_at = null;
+    } else {
+      const when = new Date(String(raw));
+      if (!Number.isFinite(when.getTime())) {
+        return NextResponse.json(
+          { error: 'cart_offer_ends_at must be a date/time, or empty for no end date' },
+          { status: 400 },
+        );
+      }
+      updates.cart_offer_ends_at = when.toISOString();
+    }
   }
 
   // Abandoned-registration delay must be a whole number of hours >= 1.

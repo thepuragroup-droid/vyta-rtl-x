@@ -40,6 +40,11 @@ import {
   shapeAdDiscountSettings,
   type AdDiscountSettings,
 } from '@/lib/promos/ad-discount';
+import {
+  combineDiscountPercents,
+  qualifiesForCartOffer,
+  shapeCartOfferSettings,
+} from '@/lib/promos/cart-offer';
 import { isCustomerFirstOrder } from '@/lib/promos/first-order';
 import { resolvePriceMap } from '@/lib/pricing/resolve';
 import { casePriceFor, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
@@ -241,7 +246,8 @@ async function earnsAdDiscount(
  * The hand-off is denominated in CAD (`PURAMASS_CURRENCY`), so the hosted page
  * prices and charges in Canadian dollars instead of converting our catalog to
  * its own USD listings. Goods prices are normally PuraMass's own — ours are
- * sent only when the paid-ads welcome discount applies, because lowering the
+ * sent only when a discount applies (the paid-ads welcome discount, the
+ * limited-time cart offer, or both composed into one), because lowering the
  * line prices is the only way this API has of taking money off (step 8b). The
  * shipping total is always ours, and only when hosted rates are enabled (see
  * `resolveHostedShipping`).
@@ -325,6 +331,10 @@ export async function POST(req: NextRequest) {
   const rawLines: { id: string; packSize: number; vials: number }[] = [];
   // Whole cart counted in single vials — what the parcel weight is derived from.
   let totalVials = 0;
+  // The same cart counted in UNITS — a line of "3 × pack of 5" is 3 here and 15
+  // above. This is what the limited-time offer's minimum is measured in,
+  // because it is what the shopper was asked to add to.
+  let cartUnits = 0;
   for (const line of rawItems) {
     const id = String(line?.id ?? '').trim();
     const packSize = Number(line?.packSize);
@@ -334,6 +344,7 @@ export async function POST(req: NextRequest) {
     }
     const vials = Math.round(quantity);
     totalVials += vials;
+    cartUnits += Math.max(1, Math.round(vials / Math.round(packSize)));
     rawLines.push({ id, packSize: Math.round(packSize), vials });
   }
   if (rawLines.length === 0) {
@@ -433,7 +444,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 8b. The paid-ads welcome discount.
+  // 8b. The discounts: the paid-ads welcome discount and the limited-time cart
+  //     offer. Both can land on one order.
   //
   //     The hosted order has no discount field, so the only way to take money
   //     off is to send lower prices: `distributeAdDiscount` splits the
@@ -443,47 +455,61 @@ export async function POST(req: NextRequest) {
   //     undiscounted hand-off has always had, and the reason the prices only
   //     appear when there is something to take off them.
   //
-  //     Eligibility is decided here from the cookies and the customer row; the
-  //     browser is not asked and not believed.
+  //     Stacked promos are COMPOSED into one percentage and split once
+  //     (`combineDiscountPercents`: 25% then 10% is 32.5% off, not 35%). Two
+  //     splits in a row would round twice, and adding the percentages could
+  //     reach 100 — a zero line price, which this API reads as "use your own
+  //     price" and charges at full list.
   //
-  //     Two guards, both because a zero `unit_price_cents` does NOT mean "free"
-  //     to this API — `buildPuramassOrderBody` omits it, and PuraMass then
-  //     charges its own catalog price. So a split is only sent when every line
-  //     has a real price to discount AND every discounted price is still above
-  //     zero. Either way out is a hand-off with no prices at all, which is what
-  //     an undiscounted order has always been: the buyer pays list rather than
-  //     being handed free product by a pricing failure.
+  //     Both are decided here, and neither is asked of the browser: the
+  //     welcome discount from the cookies and the customer row, the cart offer
+  //     from the settings row's own minimum and end date, measured against the
+  //     quantities this request is actually ordering.
+  //
+  //     Two guards on the split, both about that same zero: it is only sent
+  //     when every line has a real price to discount AND every discounted
+  //     price is still above zero. Either way out is a hand-off with no prices
+  //     at all, which is what an undiscounted order has always been: the buyer
+  //     pays list rather than being handed free product by a pricing failure.
   const visitor = readVisitorContext(req.cookies);
   const adDiscountSettings = shapeAdDiscountSettings(settingsRow);
-  const earned = await earnsAdDiscount(adDiscountSettings, customerId, visitor);
+  const earnedAd = await earnsAdDiscount(adDiscountSettings, customerId, visitor);
+
+  const cartOfferSettings = shapeCartOfferSettings(settingsRow);
+  const earnedOffer = qualifiesForCartOffer(cartOfferSettings, cartUnits);
+
+  const discountPercent = combineDiscountPercents(
+    earnedAd ? adDiscountSettings.percent : 0,
+    earnedOffer ? cartOfferSettings.percent : 0,
+  );
   const everyLinePriced = [...linesBySku.values()].every((line) => line.unitPriceCents > 0);
 
-  let adDiscount: ReturnType<typeof distributeAdDiscount> | null = null;
-  if (earned && everyLinePriced) {
+  let discount: ReturnType<typeof distributeAdDiscount> | null = null;
+  if (discountPercent > 0 && everyLinePriced) {
     const split = distributeAdDiscount(
       [...linesBySku.entries()].map(([sku, line]) => ({
         key: sku,
         unitPriceCents: line.unitPriceCents,
         quantity: line.quantity,
       })),
-      adDiscountSettings.percent,
+      discountPercent,
     );
     if (split.lines.every((l) => l.discountedUnitPriceCents > 0)) {
-      adDiscount = split;
+      discount = split;
     } else {
       console.error(
-        '[puramass] ad discount skipped: %s%% would zero a line price, which this API reads as "use your own price"',
-        adDiscountSettings.percent,
+        '[puramass] discount skipped: %s%% would zero a line price, which this API reads as "use your own price"',
+        discountPercent,
       );
     }
-  } else if (earned) {
+  } else if (discountPercent > 0) {
     console.error(
-      '[puramass] ad discount skipped: the catalog could not price every line, and a zero price would be charged at full list',
+      '[puramass] discount skipped: the catalog could not price every line, and a zero price would be charged at full list',
     );
   }
 
   const discountedBySku = new Map(
-    (adDiscount?.lines ?? []).map((l) => [l.key, l.discountedUnitPriceCents]),
+    (discount?.lines ?? []).map((l) => [l.key, l.discountedUnitPriceCents]),
   );
   const items: PuramassOrderLine[] = [...linesBySku.entries()].map(([sku, line]) => ({
     sku,
@@ -614,13 +640,17 @@ export async function POST(req: NextRequest) {
   // been created on PuraMass's side, so the row MUST land — but an unmigrated
   // column must not cost us the marketing attribution either, which is why the
   // newest group is dropped before the older one.
-  // What the ad discount took off, so a discounted order can be told from a
+  // What the discounts took off, so a discounted order can be told from a
   // cheaper cart when the settlement ledger is reconciled against the catalog.
-  // Null on every order that did not earn one.
-  const discountColumns: Record<string, unknown> = adDiscount
+  // `ad_discount_cents` is the whole saving — there is one split, at the
+  // composed percentage — while the two `_percent` columns record which promo
+  // granted what. Null on every order that earned neither.
+  const discountColumns: Record<string, unknown> = discount
     ? {
-        ad_discount_percent: adDiscount.percent,
-        ad_discount_cents: adDiscount.discountCents,
+        ad_discount_percent: earnedAd ? adDiscountSettings.percent : 0,
+        ad_discount_cents: discount.discountCents,
+        cart_offer_percent: earnedOffer ? cartOfferSettings.percent : null,
+        cart_offer_min_items: earnedOffer ? cartOfferSettings.minItems : null,
       }
     : {};
 
@@ -657,8 +687,12 @@ export async function POST(req: NextRequest) {
     shipping_total: shippingRate.total_charge,
     free_shipping: freeShipping,
     // Echoed back so the screen that is about to redirect can confirm the
-    // discount landed, rather than asserting it from its own guess.
-    ad_discount_percent: adDiscount ? adDiscount.percent : 0,
-    ad_discount: adDiscount ? adDiscount.discountCents / 100 : 0,
+    // discounts landed, rather than asserting them from its own guess.
+    // `ad_discount` is the whole saving in CAD, whichever promos made it up;
+    // the percentages say which ones did.
+    ad_discount_percent: discount && earnedAd ? adDiscountSettings.percent : 0,
+    cart_offer_percent: discount && earnedOffer ? cartOfferSettings.percent : 0,
+    discount_percent: discount ? discount.percent : 0,
+    ad_discount: discount ? discount.discountCents / 100 : 0,
   });
 }
