@@ -49,6 +49,13 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: cfg.favicon_url || '/favicon.png',
     },
+    // Google Search Console ownership proof. Rendered into <head> on every
+    // page as <meta name="google-site-verification" ...>, which is what the
+    // "HTML tag" verification method checks for — it only ever reads the
+    // homepage, but leaving it site-wide keeps verification from lapsing.
+    verification: {
+      google: 'o9_eT_n204rgAFQoJuAGpgIlh3XcKjMDtHZ4oKfpb6w',
+    },
   };
 }
 
