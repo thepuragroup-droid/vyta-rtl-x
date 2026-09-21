@@ -140,3 +140,58 @@ export const getProductsForSitemap = cache(async (): Promise<ProductSitemapRow[]
     return [];
   }
 });
+
+/**
+ * Published review count and average for one product, from the
+ * `product_review_stats` view (reviews-testimonials-migration.sql).
+ *
+ * Only used to emit `aggregateRating` in the product JSON-LD — the on-page
+ * review list still loads client-side. Null when the product has no published
+ * reviews, which is also what keeps an empty rating out of the markup: Google
+ * rejects an `aggregateRating` with a zero `reviewCount`.
+ */
+export const getProductReviewStats = cache(
+  async (productId: string): Promise<{ review_count: number; average_rating: number } | null> => {
+    try {
+      const { data, error } = await getSupabase()
+        .from('product_review_stats')
+        .select('review_count, average_rating')
+        .eq('product_id', productId)
+        .maybeSingle();
+      if (error || !data) return null;
+      const count = Number(data.review_count) || 0;
+      const average = Number(data.average_rating) || 0;
+      if (count < 1 || average <= 0) return null;
+      return { review_count: count, average_rating: average };
+    } catch {
+      return null;
+    }
+  },
+);
+
+/**
+ * Every active product for the catalog grid, sorted the way the page shows
+ * them: in-stock first, then by name.
+ *
+ * The sort lives here rather than in the client so the server-rendered HTML is
+ * already in final order — a crawler (and a customer on a slow connection) sees
+ * the finished grid rather than one that reshuffles on hydration.
+ */
+export const getCatalogProducts = cache(async (): Promise<PublicProduct[]> => {
+  try {
+    const { data, error } = await getSupabase()
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .limit(2000);
+    if (error || !data) return [];
+    return (data as PublicProduct[]).slice().sort((a, b) => {
+      const aOut = (a.stock_quantity ?? 0) === 0;
+      const bOut = (b.stock_quantity ?? 0) === 0;
+      if (aOut !== bOut) return aOut ? 1 : -1;
+      return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+    });
+  } catch {
+    return [];
+  }
+});
