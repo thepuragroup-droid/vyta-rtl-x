@@ -82,7 +82,7 @@ export async function renderPackingListPdf(input: PackingListInput): Promise<Buf
       doc.font('Helvetica-Bold').fontSize(18).fillColor(INK)
         .text('PURAMASS', left, doc.y, { continued: false });
       doc.font('Helvetica').fontSize(9).fillColor(MUTED)
-        .text('aminocan.com  ·  info@aminocan.com');
+        .text('vytabio.com  ·  support@vytabio.com');
       // Right-aligned document title on the same header band.
       const headerY = 48;
       doc.font('Helvetica-Bold').fontSize(16).fillColor(INK)
@@ -214,7 +214,7 @@ export async function renderPackingListPdf(input: PackingListInput): Promise<Buf
       const footerY = doc.page.height - 60;
       doc.moveTo(left, footerY).lineTo(right, footerY).strokeColor(RULE).stroke();
       doc.font('Helvetica').fontSize(8).fillColor(MUTED)
-        .text('PURAMASS  ·  aminocan.com', left, footerY + 8, { width, align: 'left' });
+        .text('PURAMASS  ·  vytabio.com', left, footerY + 8, { width, align: 'left' });
       doc.text(
         'No pricing shown on packing lists.',
         left, footerY + 8, { width, align: 'right' },

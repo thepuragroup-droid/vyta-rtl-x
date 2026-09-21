@@ -186,8 +186,8 @@ export function renderInvoiceHtml({
 <div class="page">
   <header>
     <div>
-      <div class="logo">AMINO<span>CAN</span></div>
-      <p style="margin-top:6px;font-size:12px;color:#56707F">aminocan.com<br>info@aminocan.com</p>
+      <div class="logo">VYTA<span> Biosciences</span></div>
+      <p style="margin-top:6px;font-size:12px;color:#56707F">vytabio.com<br>support@vytabio.com</p>
     </div>
     <div class="invoice-meta">
       <h2>Invoice</h2>

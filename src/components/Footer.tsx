@@ -56,14 +56,14 @@ export default function Footer() {
             </p>
             <div className="space-y-3">
               <a
-                href="mailto:support@aminocan.com"
+                href="mailto:support@vytabio.com"
                 className="flex items-center gap-3 text-neutral-400 hover:text-white transition-colors"
               >
                 <Mail className="w-4 h-4" />
-                <span className="text-sm">support@aminocan.com</span>
+                <span className="text-sm">support@vytabio.com</span>
               </a>
               <a
-                href="https://chat.whatsapp.com/DPYUObtP3XkGly20Bku9Lk"
+                href="https://wa.me/15147013824"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-neutral-400 hover:text-white transition-colors"

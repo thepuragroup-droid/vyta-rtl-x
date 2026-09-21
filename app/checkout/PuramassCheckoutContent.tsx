@@ -1031,7 +1031,7 @@ export default function PuramassCheckoutContent({
 
                 {/* Not sure how to reconstitute? — WhatsApp guidance */}
                 <a
-                  href="https://chat.whatsapp.com/DPYUObtP3XkGly20Bku9Lk"
+                  href="https://wa.me/15147013824"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group mb-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm"
