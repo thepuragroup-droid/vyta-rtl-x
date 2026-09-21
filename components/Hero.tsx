@@ -1,114 +1,77 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
-import {
-  ArrowRight,
-  Award,
-  Beaker,
-  FileCheck,
-  MapPin,
-  Microscope,
-  Pause,
-  Play,
-  ShieldCheck,
-  ShoppingCart,
-} from 'lucide-react';
+import { ArrowRight, FileText, FlaskConical, ShieldCheck, Truck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { siteConfig } from '@/lib/config';
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
-import { largestPackFor, vialPriceFor } from '@/lib/pricing';
-import { usePurchaseModal } from '@/contexts/PurchaseModalContext';
-import { productPath } from '@/lib/products/url';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HERO MEDIA
 //
-// Both the background clip and the still behind it are set in
-// Admin → Branding & Tracking (`site_settings.hero_video_url` /
-// `hero_image_url`), so swapping the hero for a new render is an upload, not a
-// deploy. The constants below are only the fallbacks for a store that has
-// never set them — and for the first paint, before the config has loaded.
+// The hero is a light, split layout: the promise on the left, the product on
+// the right. The right-hand visual is still admin-controlled — both the clip
+// and the still come from Admin → Branding & Tracking
+// (`site_settings.hero_video_url` / `hero_image_url`), so swapping the first
+// screen of the site is an upload, not a deploy.
 //
-// The clip should be a muted ~8–12s seamless loop, H.264 MP4 (or WebM),
-// ideally ≤2 MB, with the audio track stripped. The still always renders
-// first and stays as the mobile / reduced-motion / slow-connection fallback.
+// With neither set, the stage falls back to the live featured compound's own
+// vial render, which is the shot the reference layout is built around. The
+// clip should be a muted ~8–12s seamless loop, H.264 MP4 (or WebM), ideally
+// ≤2 MB, with the audio track stripped; the still always renders first and
+// stays as the mobile / reduced-motion / slow-connection fallback.
 //
 // docs/hero-media-prompt.md carries the generation brief for both.
 // ─────────────────────────────────────────────────────────────────────────────
-const DEFAULT_HERO_VIDEO_URL =
-  'https://didnmcyrxgubgesiaatj.supabase.co/storage/v1/object/public/products/Video%20Project.mp4';
 
-const DEFAULT_HERO_IMAGE = '/images/hero-bg.jpeg';
+/**
+ * Light wash behind the whole hero: white under the copy, easing into a soft
+ * Aqua/Mist bloom under the product so the vial sits in light rather than on a
+ * flat panel.
+ */
+const HERO_WASH =
+  'radial-gradient(46rem 34rem at 76% 40%, rgba(110, 178, 184, 0.20) 0%, transparent 70%), ' +
+  'radial-gradient(34rem 26rem at 98% 92%, rgba(187, 214, 214, 0.30) 0%, transparent 72%), ' +
+  'linear-gradient(112deg, #FFFFFF 0%, #FFFFFF 40%, #F3F9FA 70%, #E4F0F3 100%)';
 
-// Film-grain texture overlay (inline SVG turbulence — no asset needed).
-const GRAIN_TEXTURE =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
-
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  url_slug?: string | null;
-  description_short: string | null;
-  price: number;
-  vial_price: number | null;
-  purity: string | null;
-  strength: string | null;
-  image_url: string | null;
-  box_image_url: string | null;
-  stock_quantity: number;
-  vials_per_box: number | null;
+/** Canadian maple leaf — the one badge the lucide set has no glyph for. */
+function MapleLeaf(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" stroke="none">
+      <path d="M12 2l1.4 3.6 2.6-1-.8 3.6 3.4-.8-.8 2.6 3.8.6-2.2 2 1.6 1.8-4.8.8.4 2.2-3.7-.8V22h-1.8v-5.4l-3.7.8.4-2.2-4.8-.8 1.6-1.8-2.2-2 3.8-.6-.8-2.6 3.4.8-.8-3.6 2.6 1L12 2z" />
+    </svg>
+  );
 }
 
-const TICKER_CLAIMS = [
-  'HPLC-UV tested — PPB Analytical Inc.',
-  'Full COA on every order',
-  'GMP certified facilities',
-  'Canadian supplier — ships from Canada',
-  '50+ research compounds',
-  '24h order processing',
-];
-
-const TRUST_CHIPS = [
-  { icon: ShieldCheck, label: 'GMP Certified' },
-  { icon: Microscope, label: 'HPLC Tested' },
-  { icon: Award, label: '99%+ Purity' },
+const TRUST_BADGES = [
+  { icon: ShieldCheck, label: '99%+\nPurity Guaranteed' },
+  { icon: FlaskConical, label: 'Third-Party\nTested' },
+  { icon: FileText, label: 'COAs\nAvailable' },
+  { icon: MapleLeaf, label: 'Canadian\nCompany', accent: true },
+  { icon: Truck, label: 'Free, Fast &\nDiscreet Shipping' },
 ];
 
 export default function Hero() {
-  const { openPurchaseModal } = usePurchaseModal();
   const prefersReducedMotion = useReducedMotion();
-  // Admin-set hero media, falling back to the shipped pair. The provider seeds
-  // from DEFAULT_SITE_CONFIG, so the first render is the fallback either way
-  // and there is no hydration mismatch — only a crossfade once the real clip
-  // is fetched.
+  // Admin-set hero media. The provider seeds from DEFAULT_SITE_CONFIG, so the
+  // first render is the fallback either way and there is no hydration
+  // mismatch — only a crossfade once the real media is fetched.
   const { config: siteSettings } = useSiteConfig();
-  const heroVideoUrl = siteSettings.hero_video_url ?? DEFAULT_HERO_VIDEO_URL;
-  const heroImageUrl = siteSettings.hero_image_url ?? DEFAULT_HERO_IMAGE;
+  const heroVideoUrl = siteSettings.hero_video_url;
+  const heroImageUrl = siteSettings.hero_image_url;
 
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  const [featured, setFeatured] = useState<Product[]>([]);
-  const [productLoading, setProductLoading] = useState(true);
+  const [featuredImage, setFeaturedImage] = useState<string | null>(null);
   const [allowVideo, setAllowVideo] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
-  const [videoPlaying, setVideoPlaying] = useState(true);
 
-  // Subtle parallax: the media drifts slower than the page while the content
-  // eases upward and dissolves as the hero scrolls out.
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
-  const mediaY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 60]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  // An admin still is a framed photograph, so it fills the stage; a product
+  // render is a cut-out on white, so it floats inside it.
+  const stillUrl = heroImageUrl ?? featuredImage;
+  const stillIsProductShot = !heroImageUrl && !!featuredImage;
 
   // Only load the video on desktop-sized screens with motion allowed — phones
-  // and prefers-reduced-motion users get the graded still instead.
+  // and prefers-reduced-motion users get the still instead.
   useEffect(() => {
     if (!heroVideoUrl || prefersReducedMotion) {
       setAllowVideo(false);
@@ -125,341 +88,157 @@ export default function Hero() {
   // clip's `videoReady` would keep the new <video> visible before it can play.
   useEffect(() => setVideoReady(false), [heroVideoUrl]);
 
+  // The fallback vial: the highest-priced featured compound in stock, which is
+  // the same shot the storefront leads with elsewhere.
   useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
 
-    async function fetchFeatured() {
+    async function fetchFeaturedImage() {
       try {
         const { data } = await supabase
           .from('products')
-          .select(
-            'id, name, slug, description_short, price, vial_price, purity, strength, image_url, box_image_url, stock_quantity, vials_per_box, pack_sizes, pack_options',
-          )
+          .select('image_url')
           .eq('active', true)
           .eq('featured', true)
           .gt('stock_quantity', 0)
+          .not('image_url', 'is', null)
           .order('price', { ascending: false })
-          .limit(8)
+          .limit(1)
           .abortSignal(controller.signal);
-        if (data) setFeatured(data);
+        if (data?.[0]?.image_url) setFeaturedImage(data[0].image_url);
       } catch {
-        // timed out or failed — the hero falls back to the static trust panel
+        // timed out or failed — the stage falls back to the brand mark
       } finally {
         clearTimeout(timer);
-        setProductLoading(false);
       }
     }
-    fetchFeatured();
+    fetchFeaturedImage();
     return () => controller.abort();
   }, []);
 
-  const toggleVideo = () => {
-    const el = videoRef.current;
-    if (!el) return;
-    if (el.paused) {
-      el.play().catch(() => {});
-      setVideoPlaying(true);
-    } else {
-      el.pause();
-      setVideoPlaying(false);
-    }
-  };
-
-  const scrollToLab = () => {
-    document.getElementById('lab-results')?.scrollIntoView({ block: 'start' });
-  };
-
-  const product = featured[0] ?? null;
-  const tickerItems = [
-    ...TICKER_CLAIMS,
-    ...featured
-      .filter((p) => p.purity)
-      .map((p) => `${p.name} — ${p.purity} verified`),
-  ];
-
   return (
-    <section
-      ref={sectionRef}
-      className="relative min-h-svh flex items-center overflow-hidden bg-ink text-white"
-    >
-      {/* Media layer — graded still first, video crossfades in when ready.
-          Oversized vertically so the parallax drift never reveals an edge. */}
-      <motion.div
-        aria-hidden="true"
-        style={prefersReducedMotion ? undefined : { y: mediaY }}
-        className="absolute inset-x-0 -inset-y-[8%]"
-      >
-        <img
-          src={heroImageUrl}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover hero-still-grade"
-        />
-        {allowVideo && (
-          <video
-            // Keyed on the URL so swapping the clip mounts a fresh element
-            // rather than leaving the browser on the old buffered source.
-            key={heroVideoUrl}
-            ref={(el) => {
-              videoRef.current = el;
-              // React can omit `muted` from server-rendered markup; set it
-              // imperatively so autoplay is never blocked.
-              if (el) el.muted = true;
-            }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-              videoReady ? 'opacity-100' : 'opacity-0'
-            }`}
-            src={heroVideoUrl}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            tabIndex={-1}
-            onCanPlay={() => setVideoReady(true)}
-          />
-        )}
-      </motion.div>
-
-      {/* Film grain */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-[0.07] mix-blend-soft-light"
-        style={{ backgroundImage: GRAIN_TEXTURE }}
-      />
-
-      {/* Scrims — heavier on the left (text side), top (nav) and bottom (ticker) */}
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-ink/95 via-ink/65 to-ink/35" />
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-ink/70 via-transparent to-ink/85" />
-
-      {/* Content */}
-      <motion.div
-        style={prefersReducedMotion ? undefined : { y: contentY, opacity: contentOpacity }}
-        className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-32 sm:pt-36 pb-24 sm:pb-28"
-      >
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Left — headline, CTAs, trust chips */}
+    <section className="relative overflow-hidden bg-white" style={{ backgroundImage: HERO_WASH }}>
+      <div className="relative max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-28 sm:pt-32 pb-10 sm:pb-12">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+          {/* Left — eyebrow, headline, promise, CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="lg:col-span-7"
+            className="lg:col-span-6 order-2 lg:order-1"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal/20 border border-teal/30 rounded-full mb-4 sm:mb-6">
-              <Beaker className="w-3.5 h-3.5 text-teal-light flex-shrink-0" />
-              <span className="text-[10px] sm:text-xs font-medium text-teal-light">
-                Pharmaceutical Grade Research
-              </span>
-            </div>
+            <p className="text-eyebrow mb-3 sm:mb-4">Premium Peptides</p>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-[1.05] tracking-tight text-white">
-              Advanced
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] font-bold text-ink leading-[1.06] mb-4 sm:mb-5">
+              A Higher
               <br />
-              Peptide Research
+              Standard for
+              <br />
+              Your Wellness Journey
             </h1>
 
-            <p className="text-base sm:text-lg text-white/70 mb-6 sm:mb-8 max-w-lg leading-relaxed">
-              HPLC-verified peptides with 99%+ purity for scientific research.
-              Each batch independently tested with full Certificate of Analysis.
+            <p className="text-base sm:text-lg text-ink-muted leading-relaxed max-w-md mb-7 sm:mb-8">
+              Pure compounds. Verified quality. Trusted by a growing community
+              across Canada and the US.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-8 sm:mb-10">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/products" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-white/90 text-ink px-6 sm:px-7 py-3.5 sm:py-4 font-semibold text-sm rounded-xl transition-all">
-                  Browse Catalog
+                <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-ink hover:bg-ocean text-white px-7 py-3.5 font-semibold text-sm rounded-full shadow-card transition-colors">
+                  Shop Peptides
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </Link>
               <Link href="/lab-results" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/15 text-white border border-white/25 backdrop-blur-sm px-6 sm:px-7 py-3.5 sm:py-4 font-medium text-sm rounded-xl transition-colors">
+                <button className="w-full sm:w-auto inline-flex items-center justify-center bg-white hover:bg-surface text-ink border border-line px-7 py-3.5 font-semibold text-sm rounded-full transition-colors">
                   View Lab Results
                 </button>
               </Link>
             </div>
-
-            {/* Interactive trust chips — jump to the lab documentation section */}
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-              {TRUST_CHIPS.map(({ icon: Icon, label }) => (
-                <button
-                  key={label}
-                  onClick={scrollToLab}
-                  aria-label={`${label} — view lab documentation`}
-                  className="group inline-flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full bg-white/[0.07] hover:bg-white/[0.14] border border-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5"
-                >
-                  <span className="w-6 h-6 rounded-full bg-teal/20 flex items-center justify-center">
-                    <Icon className="w-3.5 h-3.5 text-teal-light" />
-                  </span>
-                  <span className="text-[10px] sm:text-xs font-medium text-white/80 group-hover:text-white transition-colors">
-                    {label}
-                  </span>
-                </button>
-              ))}
-            </div>
           </motion.div>
 
-          {/* Right — live featured compound in a glass card */}
+          {/* Right — the product stage */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="lg:col-span-5 w-full max-w-sm mx-auto lg:mx-0 lg:ml-auto"
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="lg:col-span-6 order-1 lg:order-2"
           >
-            {productLoading ? (
-              <div className="backdrop-blur-xl bg-white/[0.08] border border-white/15 rounded-2xl shadow-2xl shadow-black/40 p-4 sm:p-5 animate-pulse">
-                <div className="h-5 bg-white/10 rounded-full w-36 mb-4" />
-                <div className="bg-white/10 rounded-xl aspect-[4/3] mb-4" />
-                <div className="h-4 bg-white/10 rounded w-3/4 mb-2" />
-                <div className="h-3 bg-white/10 rounded w-1/3 mb-4" />
-                <div className="h-9 bg-white/10 rounded-lg w-full" />
-              </div>
-            ) : product ? (
-              <div className="backdrop-blur-xl bg-white/[0.08] border border-white/15 rounded-2xl shadow-2xl shadow-black/40 p-4 sm:p-5">
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal/20 border border-teal/30 rounded-full text-[10px] font-medium text-teal-light">
-                    <Beaker className="w-3 h-3" />
-                    Featured Compound
-                  </span>
-                  {product.purity && (
-                    <span className="text-[10px] font-semibold text-teal-light bg-teal/15 border border-teal/30 px-2 py-0.5 rounded-full">
-                      {product.purity}
-                    </span>
-                  )}
-                </div>
+            <div className="relative mx-auto lg:mx-0 lg:-mr-6 xl:-mr-10 aspect-[4/3] sm:aspect-[16/11] max-w-[22rem] sm:max-w-md lg:max-w-none">
+              {/* Light bloom the vial stands in */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(60%_60%_at_50%_45%,rgba(255,255,255,0.95)_0%,rgba(241,248,249,0.6)_55%,transparent_100%)]"
+              />
 
-                <Link href={productPath(product)} className="group block">
-                  <div className="relative bg-white/95 rounded-xl aspect-[4/3] p-4 mb-4 overflow-hidden">
-                    {product.image_url ? (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Beaker className="w-12 h-12 text-line" />
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-white group-hover:text-white/80 transition-colors line-clamp-1">
-                    {product.name}
-                  </h3>
-                </Link>
-                {product.strength && (
-                  <p className="text-xs text-white/50 mt-0.5">{product.strength}</p>
-                )}
-
-                <div className="flex items-end justify-between gap-2 mt-3">
-                  {product.price > 0 ? (
-                    <span className="flex flex-col leading-tight">
-                      <span className="text-xl font-bold text-white tabular-nums">
-                        ${vialPriceFor(product).toFixed(2)}
-                        <span className="text-[10px] font-medium text-white/50"> / vial</span>
-                      </span>
-                      {(() => {
-                        const pack = largestPackFor(product);
-                        if (!pack) return null;
-                        return (
-                          <span className="text-[10px] text-white/50 tabular-nums">
-                            Pack of {pack.size} · ${pack.price.toFixed(2)}
-                            {pack.compareAt != null && (
-                              <span className="ml-1 line-through">
-                                ${pack.compareAt.toFixed(2)}
-                              </span>
-                            )}
-                          </span>
-                        );
-                      })()}
-                    </span>
-                  ) : (
-                    <span className="text-lg font-bold text-white/50">N/A</span>
-                  )}
-                  {siteConfig.ecommerceEnabled && product.price > 0 && (
-                    <button
-                      onClick={() => openPurchaseModal(product)}
-                      aria-label={`Add ${product.name} to cart`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-teal hover:bg-teal-light text-ink text-xs font-semibold rounded-lg transition-colors"
-                    >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      Add
-                    </button>
-                  )}
+              {stillUrl ? (
+                <img
+                  src={stillUrl}
+                  alt=""
+                  className={
+                    stillIsProductShot
+                      ? 'absolute inset-0 w-full h-full object-contain drop-shadow-[0_28px_45px_rgba(7,32,58,0.18)]'
+                      : 'absolute inset-0 w-full h-full object-cover rounded-[2rem]'
+                  }
+                />
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 rounded-[2rem] bg-brand-gradient-soft border border-line/70 flex items-center justify-center"
+                >
+                  <img src="/images/vyta-mark.png" alt="" className="w-24 h-24 object-contain opacity-70" />
                 </div>
+              )}
 
-                <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-white/10 text-[10px] text-white/40">
-                  <FileCheck className="w-3 h-3 text-teal-light flex-shrink-0" />
-                  COA verified — PPB Analytical Inc.
-                </div>
-              </div>
-            ) : (
-              <div className="backdrop-blur-xl bg-white/[0.08] border border-white/15 rounded-2xl shadow-2xl shadow-black/40 p-5 sm:p-6 space-y-5">
-                {[
-                  {
-                    icon: Award,
-                    title: '99%+ Purity',
-                    sub: 'HPLC-UV verified on every batch',
-                  },
-                  {
-                    icon: FileCheck,
-                    title: 'COA on Every Order',
-                    sub: 'Published third-party lab reports',
-                  },
-                  {
-                    icon: MapPin,
-                    title: 'Canadian Supplier',
-                    sub: 'Sourced and shipped from Canada',
-                  },
-                ].map(({ icon: Icon, title, sub }) => (
-                  <div key={title} className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 bg-teal/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-teal-light" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white text-sm">{title}</p>
-                      <p className="text-xs text-white/50">{sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+              {allowVideo && (
+                <video
+                  // Keyed on the URL so swapping the clip mounts a fresh
+                  // element rather than leaving the browser on the old
+                  // buffered source.
+                  key={heroVideoUrl}
+                  ref={(el) => {
+                    // React can omit `muted` from server-rendered markup; set
+                    // it imperatively so autoplay is never blocked.
+                    if (el) el.muted = true;
+                  }}
+                  className={`absolute inset-0 w-full h-full object-cover rounded-[2rem] transition-opacity duration-1000 ${
+                    videoReady ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  src={heroVideoUrl ?? undefined}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  onCanPlay={() => setVideoReady(true)}
+                />
+              )}
+            </div>
           </motion.div>
         </div>
-      </motion.div>
 
-      {/* Video pause/play — sits just above the ticker */}
-      {allowVideo && videoReady && (
-        <button
-          onClick={toggleVideo}
-          aria-label={videoPlaying ? 'Pause background video' : 'Play background video'}
-          className="absolute bottom-16 right-5 sm:right-8 z-20 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white/80 hover:text-white flex items-center justify-center transition-colors"
+        {/* Trust badges — the promises the storefront is held to */}
+        <motion.ul
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-10 sm:mt-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8"
         >
-          {videoPlaying ? (
-            <Pause className="w-3.5 h-3.5" />
-          ) : (
-            <Play className="w-3.5 h-3.5 ml-0.5" />
-          )}
-        </button>
-      )}
-
-      {/* Purity ticker — live batch results scrolling along the hero's base */}
-      <div
-        aria-hidden="true"
-        className="absolute bottom-0 inset-x-0 z-10 border-t border-white/10 bg-ink/40 backdrop-blur-sm overflow-hidden"
-      >
-        <div className="flex w-max whitespace-nowrap animate-ticker py-3">
-          {[0, 1].map((copy) => (
-            <div key={copy} className="flex items-center">
-              {tickerItems.map((item, i) => (
-                <span
-                  key={`${copy}-${i}`}
-                  className="flex items-center text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.15em] text-white/45"
-                >
-                  {item}
-                  <span className="mx-5 sm:mx-8 text-teal-light/60">•</span>
-                </span>
-              ))}
-            </div>
+          {TRUST_BADGES.map(({ icon: Icon, label, accent }) => (
+            <li key={label} className="flex flex-col items-center text-center gap-2.5">
+              <Icon
+                className={`w-7 h-7 ${accent ? 'text-[#D52B1E]' : 'text-ink'}`}
+                strokeWidth={1.5}
+              />
+              <span className="text-[11px] sm:text-xs font-medium text-ink leading-snug whitespace-pre-line">
+                {label}
+              </span>
+            </li>
           ))}
-        </div>
+        </motion.ul>
       </div>
     </section>
   );

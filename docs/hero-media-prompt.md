@@ -17,27 +17,25 @@ easy.
 
 ## What the hero has to survive
 
-Whatever is generated sits under a lot of interface, so composition matters
-more than subject:
+The hero is a light, split layout — the headline, promise and buttons on the
+left, the media on the right — so the media is a picture in a frame rather than
+a backdrop under type:
 
-- **A dark scrim.** The hero renders the media under `ink/95 → ink/35` left to
-  right, plus a top and bottom vertical scrim. Anything in the left 45% of the
-  frame is mostly covered.
-- **White type over the left half.** The headline ("Advanced / Peptide
-  Research"), a paragraph, two buttons and a row of trust chips all live there.
-  That half needs to stay **uncluttered and mid-to-dark**, or the type stops
-  being readable.
-- **A product panel over the right.** A featured-product card sits in the right
-  column on desktop. Keep the true subject **centre-right but not at the far
-  right edge**, roughly a third to a half in.
-- **A ticker along the bottom** and the fixed navigation along the top: leave
-  the top and bottom ~15% of the frame free of anything that matters.
-- **A slow parallax drift** — the media is rendered ~16% taller than the frame
-  and drifts vertically, so leave headroom top and bottom and keep the subject
-  away from the edges.
-- **Film grain and desaturation** are applied over the top, so deeply saturated
-  source material comes out muddy. Generate something already close to the
-  final grade.
+- **It is not behind the copy.** Nothing is scrimmed and nothing is darkened.
+  The media occupies the right half on desktop and sits above the copy when the
+  layout stacks, so it is read on its own terms.
+- **A light ground.** The section runs from white on the left to a soft
+  Aqua/Mist wash on the right. Anything murky, heavily contrasted or night-lit
+  fights that, so generate something **bright, airy and cool-neutral**.
+- **A rounded panel, cropped to fill.** The still is drawn `object-cover` in a
+  ~16:11 frame with a 2rem radius (4:3 on a phone), so keep the subject well
+  inside the middle and leave air at every edge — the crop changes with the
+  viewport.
+- **Trust badges below.** A five-badge row closes the hero under both columns,
+  which is another way of saying the frame is a panel, not a full screen.
+- **The fallback is a product shot.** With no admin still set, the stage shows
+  the featured compound's own vial render floating on the light wash. A
+  generated still replaces that, so it should sit in the same palette.
 
 ---
 
@@ -54,8 +52,8 @@ more than subject:
 > quiet teal accent in the surroundings. Skin tones natural and healthy, never
 > glossy or retouched. The left third of the frame is calm negative space —
 > an out-of-focus wall or window light — with the subject placed centre-right.
-> Unhurried, grounded, capable. Realistic and documentary in feel, not an
-> advertisement. No text, no logos, no product packaging, no clinical or
+> Unhurried, grounded, capable, and bright throughout — the page around it is
+> near-white. Realistic and documentary in feel, not an advertisement. No text, no logos, no product packaging, no clinical or
 > laboratory setting, no lab coats, no syringes, no vials, no medical imagery.
 > Seamless loop, 8–12 seconds, no audio.
 
@@ -68,14 +66,14 @@ the loop does not visibly snap.
 
 1. **Kitchen, morning.** Daylight, a glass of water being filled, hands and
    counter in focus, face partly out of frame. The most neutral of the three
-   and the safest under the scrim.
+   and the safest in the panel.
 2. **Doorway, heading out.** Laces being tied or a jacket picked up, a hallway
    with light falling across it, movement out of frame toward the door.
    Reads as momentum without needing a gym.
 3. **Outdoors, low sun.** A walk or a slow run along a tree-lined path or a
    shoreline, backlit, the subject small in frame with lots of air around
-   them. The most "lifestyle" and the most likely to fight the type — check it
-   under the scrim before choosing it.
+   them. The most "lifestyle" and the most likely to lose its subject once the
+   panel crops it — check it at desktop and phone widths before choosing it.
 
 ---
 
@@ -89,15 +87,14 @@ grabbed mid-motion.
 > A warm, lived-in modern interior — pale oak, bone-white walls, a soft
 > grey-green textile, a glass of water catching the light on a clean counter.
 > A person is present but not posed and not the focus: a shoulder, a hand, a
-> figure soft in the background. Shallow depth of field, gentle bokeh, muted
-> warm-neutral grade with a single quiet teal accent. The left third is calm,
-> mid-to-dark negative space; the subject sits centre-right. Calm, healthy,
-> unhurried. No text, no logos, no packaging, no laboratory or clinical
+> figure soft in the background. Shallow depth of field, gentle bokeh, bright
+> warm-neutral grade with a single quiet teal accent. The subject sits near the
+> centre with calm space around it on every side. Calm, healthy, unhurried. No text, no logos, no packaging, no laboratory or clinical
 > setting, no medical equipment.
 
 **Technical**: JPEG or WebP, 2400×1600 or larger, landscape, under ~400 KB
-after compression. Pick a frame that still reads at 390px wide — the hero is
-full-bleed on a phone.
+after compression. Pick a frame that still reads in a ~350px-wide panel — that
+is all the stacked layout gives it on a phone.
 
 ---
 
@@ -107,9 +104,10 @@ full-bleed on a phone.
    paste the clip's URL into the video box beside it (the Supabase storage
    bucket the product images use is fine).
 2. Check the home page at desktop width, at ~768px, and on a phone.
-3. Read the headline and the paragraph over it. If any word is hard to read,
-   the media is too bright or too busy on the left — regenerate rather than
-   darkening the scrim, which dulls the whole frame.
+3. Look at it beside the headline. The copy sits next to the panel, not over
+   it, so what to check is tone: anything dark or heavily saturated reads as a
+   hole punched in a light page — regenerate rather than trying to correct for
+   it in the panel.
 4. Watch one full loop. A visible jump at the loop point is more distracting
    than no video at all; clear the video URL and run on the still if the clip
    cannot be made to loop cleanly.

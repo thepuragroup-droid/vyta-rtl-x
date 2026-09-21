@@ -187,10 +187,10 @@ export default function MarketingManagementPage() {
               <h2 className="text-base font-bold text-ink">Home-page hero</h2>
             </div>
             <p className="text-xs text-ink-muted mb-4">
-              The background of the first screen visitors see. The still is shown first and stays
-              as the fallback on phones, on slow connections and for anyone who has asked for
-              reduced motion; the clip crossfades in over it on desktop. Leave the clip empty to
-              run the hero on the still alone.
+              The image beside the headline on the first screen visitors see. The still is shown
+              first and stays as the fallback on phones, on slow connections and for anyone who has
+              asked for reduced motion; the clip crossfades in over it on desktop. Leave both empty
+              and the hero shows the featured compound&rsquo;s own product shot instead.
             </p>
 
             <div className="space-y-4">

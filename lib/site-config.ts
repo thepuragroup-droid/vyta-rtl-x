@@ -11,11 +11,12 @@ export interface SiteConfig {
   store_tagline: string;
   logo_url: string | null;
   favicon_url: string | null;
-  /** Home-page hero background video (MP4/WebM). Null runs the hero on the
-   *  still image alone. */
+  /** Home-page hero clip (MP4/WebM), played in the panel beside the headline.
+   *  Null runs the hero on the still image alone. */
   hero_video_url: string | null;
   /** Home-page hero still. Always rendered first, and the fallback on phones,
-   *  reduced motion and slow connections. Null uses the shipped image. */
+   *  reduced motion and slow connections. Null falls back to the featured
+   *  compound's own product shot. */
   hero_image_url: string | null;
   /** Google Tag Manager container — GTM-XXXXXXX. */
   gtm_container_id: string | null;

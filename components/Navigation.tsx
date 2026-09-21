@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import React, { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
@@ -42,19 +42,7 @@ export default function Navigation() {
   const { config } = useSiteConfig();
 
   const router = useRouter();
-  const pathname = usePathname();
   const dropdownTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  // On the homepage the nav starts transparent over the video hero and
-  // solidifies to white once the page scrolls (or the mobile menu opens).
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  const overlay = pathname === "/" && !scrolled && !isOpen;
 
   // The paid-ads welcome offer shares the research-disclaimer row. On a phone
   // that row is already the width of the screen, so it gives up "Canada Only"
@@ -62,11 +50,8 @@ export default function Navigation() {
   // taller than the literal top padding each storefront screen sets aside.
   const adOffer = useAdOfferNotice();
 
-  const desktopLinkCls = `px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-    overlay
-      ? "text-white/80 hover:text-white hover:bg-white/10"
-      : "text-ink-muted hover:text-ink hover:bg-surface"
-  }`;
+  const desktopLinkCls =
+    "px-4 py-2 rounded-lg transition-all text-sm font-medium text-ink-muted hover:text-ink hover:bg-surface";
 
   // Staff (admin / assistant / affiliate) get a shortcut into the admin
   // dashboard from the customer-facing account menu.
@@ -110,12 +95,10 @@ export default function Navigation() {
     // `--announcement-h` is published by AnnouncementBar (0px when no banner
     // is live), so the nav sits directly under the bar instead of behind it.
     <nav className="fixed w-full z-50" style={{ top: 'var(--announcement-h, 0px)' }}>
-      {/* Main Navigation Bar */}
-      <div
-        className={`transition-colors duration-300 ${
-          overlay ? "bg-transparent border-b border-transparent" : "bg-white border-b border-line"
-        }`}
-      >
+      {/* Main Navigation Bar. Solid white on every route, the homepage
+          included: the hero below is a light surface, so a transparent bar
+          would leave the links with nothing to sit on. */}
+      <div className="bg-white border-b border-line">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
           <div className="flex justify-between items-center h-[72px]">
             {/* Logo */}
@@ -124,7 +107,7 @@ export default function Navigation() {
                 name={config.store_name}
                 tagline={config.store_tagline}
                 logoUrl={config.logo_url}
-                tone={overlay ? "dark" : "light"}
+                tone="light"
                 size="md"
                 className="transition-opacity duration-300 group-hover:opacity-90"
               />
@@ -162,12 +145,8 @@ export default function Navigation() {
                 <button
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all text-sm font-medium ${
                     activeDropdown === "company"
-                      ? overlay
-                        ? "text-white bg-white/10"
-                        : "text-ink bg-surface"
-                      : overlay
-                        ? "text-white/80 hover:text-white hover:bg-white/10"
-                        : "text-ink-muted hover:text-ink hover:bg-surface"
+                      ? "text-ink bg-surface"
+                      : "text-ink-muted hover:text-ink hover:bg-surface"
                   }`}
                 >
                   <span>Company</span>
@@ -243,11 +222,7 @@ export default function Navigation() {
               {siteConfig.ecommerceEnabled && (
                 <Link
                   href={affiliate ? "/affiliate/dashboard" : "/affiliate/signup"}
-                  className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                    overlay
-                      ? "text-teal-light hover:text-teal-light hover:bg-white/10"
-                      : "text-teal-dark hover:text-teal-dark hover:bg-teal-50"
-                  }`}
+                  className="px-4 py-2 rounded-lg transition-all text-sm font-medium text-teal-dark hover:bg-teal-50"
                 >
                   {affiliate ? "My Affiliate" : "Affiliates"}
                 </Link>
@@ -262,11 +237,7 @@ export default function Navigation() {
                   href="/cart"
                   data-cart-target
                   aria-label={`Cart${totalItems > 0 ? `, ${totalItems} item${totalItems === 1 ? '' : 's'}` : ''}`}
-                  className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all ${
-                    overlay
-                      ? "text-white/80 hover:text-white hover:bg-white/10"
-                      : "text-ink-muted hover:text-ink hover:bg-surface"
-                  }`}
+                  className="relative flex items-center justify-center w-10 h-10 rounded-lg transition-all text-ink-muted hover:text-ink hover:bg-surface"
                 >
                   <motion.span
                     key={bumpKey}
@@ -278,9 +249,7 @@ export default function Navigation() {
                   </motion.span>
                   {totalItems > 0 && (
                     <span
-                      className={`absolute -top-0.5 -right-0.5 text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 transition-colors duration-300 ${
-                        overlay ? "bg-white text-ink" : "bg-ink text-white"
-                      }`}
+                      className="absolute -top-0.5 -right-0.5 text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 bg-ink text-white"
                     >
                       {totalItems > 99 ? "99+" : totalItems}
                     </span>
@@ -290,7 +259,7 @@ export default function Navigation() {
 
               {/* Divider */}
               {siteConfig.authEnabled && (
-                <div className={`w-px h-6 mx-1 transition-colors duration-300 ${overlay ? "bg-white/25" : "bg-line"}`} />
+                <div className="w-px h-6 mx-1 bg-line" />
               )}
 
               {/* Login/Account */}
@@ -303,12 +272,8 @@ export default function Navigation() {
                   <button
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-medium ${
                       activeDropdown === "account"
-                        ? overlay
-                          ? "bg-white/90 text-ink"
-                          : "bg-surface text-ink"
-                        : overlay
-                          ? "bg-white text-ink hover:bg-white/90"
-                          : "bg-ink text-white hover:bg-ink/90"
+                        ? "bg-surface text-ink"
+                        : "bg-ink text-white hover:bg-ink/90"
                     }`}
                   >
                     <User className="w-4 h-4" />
@@ -387,11 +352,7 @@ export default function Navigation() {
               ) : siteConfig.authEnabled ? (
                 <Link
                   href="/login"
-                  className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                    overlay
-                      ? "bg-white hover:bg-white/90 text-ink"
-                      : "bg-ink hover:bg-ink/90 text-white"
-                  }`}
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all bg-ink hover:bg-ink/90 text-white"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Login</span>
@@ -406,9 +367,7 @@ export default function Navigation() {
                   href="/cart"
                   data-cart-target
                   aria-label={`Cart${totalItems > 0 ? `, ${totalItems} item${totalItems === 1 ? '' : 's'}` : ''}`}
-                  className={`relative flex items-center justify-center w-10 h-10 transition-colors ${
-                    overlay ? "text-white/80 hover:text-white" : "text-ink-muted hover:text-ink"
-                  }`}
+                  className="relative flex items-center justify-center w-10 h-10 transition-colors text-ink-muted hover:text-ink"
                 >
                   <motion.span
                     key={bumpKey}
@@ -420,9 +379,7 @@ export default function Navigation() {
                   </motion.span>
                   {totalItems > 0 && (
                     <span
-                      className={`absolute -top-0.5 -right-0.5 text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 transition-colors duration-300 ${
-                        overlay ? "bg-white text-ink" : "bg-ink text-white"
-                      }`}
+                      className="absolute -top-0.5 -right-0.5 text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1 bg-ink text-white"
                     >
                       {totalItems > 99 ? "99+" : totalItems}
                     </span>
@@ -431,9 +388,7 @@ export default function Navigation() {
               )}
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center justify-center w-10 h-10 transition-colors ${
-                  overlay ? "text-white/80 hover:text-white" : "text-ink-muted hover:text-ink"
-                }`}
+                className="flex items-center justify-center w-10 h-10 transition-colors text-ink-muted hover:text-ink"
               >
                 {isOpen ? (
                   <X className="w-6 h-6" />
@@ -447,24 +402,20 @@ export default function Navigation() {
 
         {/* Research Disclaimer - Now inside the main nav container */}
         <div
-          className={`text-center py-2 sm:py-1.5 transition-colors duration-300 ${
-            overlay ? "bg-transparent border-t border-white/10" : "bg-surface border-t border-line"
-          }`}
+          className="text-center py-2 sm:py-1.5 bg-surface border-t border-line"
         >
           <span
-            className={`text-[10px] sm:text-[11px] tracking-wide inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 transition-colors duration-300 ${
-              overlay ? "text-white/60" : "text-ink-muted"
-            }`}
+            className="text-[10px] sm:text-[11px] tracking-wide inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 text-ink-muted"
           >
-            <Beaker className={`w-3 h-3 flex-shrink-0 ${overlay ? "text-teal-light" : "text-teal-dark"}`} />
+            <Beaker className="w-3 h-3 flex-shrink-0 text-teal-dark" />
             <span>Research Only</span>
-            <span className={`hidden sm:inline ${overlay ? "text-white/25" : "text-line"}`}>•</span>
+            <span className="hidden sm:inline text-line">•</span>
             <span className="hidden sm:inline">Shipping to Canada Only</span>
             <span className={adOffer.show ? "hidden" : "sm:hidden"}>• Canada Only</span>
 
             {/* Paid-ads welcome offer, for visitors who arrived on an ad.
                 Renders nothing otherwise, and never a row of its own. */}
-            <AdDiscountNotice overlay={overlay} />
+            <AdDiscountNotice />
           </span>
         </div>
       </div>

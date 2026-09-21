@@ -205,12 +205,6 @@ select:disabled,
     animation-play-state: paused;
   }
 
-  /* Cool "graded" treatment for the hero's fallback still — pulls the stock
-     science image toward the Midnight Navy / Bio Teal palette. */
-  .hero-still-grade {
-    filter: saturate(0.45) sepia(0.35) hue-rotate(150deg) brightness(0.6) contrast(1.1);
-  }
-
   /* HPLC trace drawing itself in the lab exhibit panel: draw, hold, fade,
      restart. Paths use pathLength="1" so the dash math needs no measuring. */
   @keyframes chromatogram-draw {
