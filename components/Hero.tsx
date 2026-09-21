@@ -31,8 +31,10 @@ const GRAIN_TEXTURE =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
 /**
- * The frosted ground the copy is read on: opaque enough for navy type at the
- * left edge, gone by the time it reaches the middle of the frame.
+ * The frosted ground the copy is read on: opaque enough for navy type down its
+ * left side, then fading across the last 40% of its width — the copy runs out
+ * shortly after the fade begins, so the dissolve is long and the type never
+ * sits on a thinning ground.
  *
  * The tint gradient alone would leave a hard edge where the blur stops, so the
  * same shape is repeated as a mask — `backdrop-filter` is clipped by the
@@ -40,9 +42,9 @@ const GRAIN_TEXTURE =
  * white rather than ending in a line.
  */
 const BAND_TINT_X =
-  'linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.92) 55%, rgba(255,255,255,0.6) 82%, rgba(255,255,255,0) 100%)';
+  'linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.93) 60%, rgba(255,255,255,0.72) 76%, rgba(255,255,255,0.35) 90%, rgba(255,255,255,0) 100%)';
 const BAND_MASK_X =
-  'linear-gradient(90deg, #000 0%, #000 76%, rgba(0,0,0,0.45) 90%, transparent 100%)';
+  'linear-gradient(90deg, #000 0%, #000 60%, rgba(0,0,0,0.75) 76%, rgba(0,0,0,0.3) 90%, transparent 100%)';
 
 // Stacked, the copy runs the full width, so the ground fades downward instead
 // and hands the frame back above the badge strip.
@@ -200,7 +202,7 @@ export default function Hero() {
           WebkitMaskImage: BAND_MASK_X,
           ...(prefersReducedMotion ? {} : { opacity: contentOpacity }),
         }}
-        className="absolute inset-y-0 left-0 hidden lg:block w-[65%] xl:w-[62%] backdrop-blur-2xl"
+        className="absolute inset-y-0 left-0 hidden lg:block w-[78%] xl:w-[74%] backdrop-blur-2xl"
       />
 
       {/* Content */}

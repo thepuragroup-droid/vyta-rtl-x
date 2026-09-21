@@ -22,9 +22,9 @@ composition matters more than subject:
 
 - **A frosted band down the left.** The headline, the paragraph and the two
   buttons are read on a white, backdrop-blurred band that runs the full height
-  of the hero, covers about 62% of its width and then dissolves — tint, blur
-  and all — before the middle of the frame. Stacked, it runs the full width and
-  dissolves downward instead. The copy carries its own contrast, but the media
+  of the hero and about 78% of its width, holding solid for the first 60% of
+  that and dissolving — tint, blur and all — across the rest. Stacked, it runs
+  the full width and dissolves downward instead. The copy carries its own contrast, but the media
   still reads *through* the blur, so keep that half **calm and unbusy** —
   detail behind the band turns to mush, and a hard edge crossing the dissolve
   reads as a seam.
