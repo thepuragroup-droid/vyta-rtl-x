@@ -31,27 +31,31 @@ const GRAIN_TEXTURE =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
 /**
- * The frosted ground the copy is read on: opaque enough for navy type down its
- * left side, then fading across the last 40% of its width — the copy runs out
- * shortly after the fade begins, so the dissolve is long and the type never
- * sits on a thinning ground.
+ * The frosted ground the copy is read on. It is translucent the whole way
+ * across — never a solid plate — and from the 40% mark it thins out in small
+ * steps until there is nothing left of it at the far edge.
+ *
+ * It can afford to be this sheer because the media under it is graded to
+ * Midnight Navy: even at 40% white the ground is light enough to hold navy
+ * type. A brighter still would need these numbers raised.
  *
  * The tint gradient alone would leave a hard edge where the blur stops, so the
  * same shape is repeated as a mask — `backdrop-filter` is clipped by the
- * element's own alpha, which is what makes the blur itself fade out with the
+ * element's own alpha, which is what makes the blur itself thin out with the
  * white rather than ending in a line.
  */
 const BAND_TINT_X =
-  'linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.93) 60%, rgba(255,255,255,0.72) 76%, rgba(255,255,255,0.35) 90%, rgba(255,255,255,0) 100%)';
+  'linear-gradient(90deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.74) 40%, rgba(255,255,255,0.62) 56%, rgba(255,255,255,0.42) 72%, rgba(255,255,255,0.2) 86%, rgba(255,255,255,0) 100%)';
 const BAND_MASK_X =
-  'linear-gradient(90deg, #000 0%, #000 60%, rgba(0,0,0,0.75) 76%, rgba(0,0,0,0.3) 90%, transparent 100%)';
+  'linear-gradient(90deg, #000 0%, #000 40%, rgba(0,0,0,0.85) 56%, rgba(0,0,0,0.6) 72%, rgba(0,0,0,0.28) 86%, transparent 100%)';
 
-// Stacked, the copy runs the full width, so the ground fades downward instead
-// and hands the frame back above the badge strip.
+// Stacked, the copy runs the full width, so the ground thins downward instead
+// and hands the frame back above the badge strip. The fade starts lower down
+// than it does across: there is copy all the way to the buttons.
 const BAND_TINT_Y =
-  'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.93) 56%, rgba(255,255,255,0.5) 76%, rgba(255,255,255,0) 90%)';
+  'linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.74) 50%, rgba(255,255,255,0.5) 70%, rgba(255,255,255,0.2) 84%, rgba(255,255,255,0) 94%)';
 const BAND_MASK_Y =
-  'linear-gradient(180deg, #000 0%, #000 60%, rgba(0,0,0,0.45) 78%, transparent 92%)';
+  'linear-gradient(180deg, #000 0%, #000 50%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,0.3) 84%, transparent 94%)';
 
 /** Canadian maple leaf — the one badge the lucide set has no glyph for. */
 function MapleLeaf(props: React.SVGProps<SVGSVGElement>) {
@@ -218,7 +222,9 @@ export default function Hero() {
               transition={{ duration: 0.5 }}
               className="lg:col-span-7 xl:col-span-6"
             >
-              <p className="text-eyebrow mb-3 sm:mb-4">Premium Peptides</p>
+              {/* Vital Blue rather than the eyebrow's default Bio Teal: on a ground
+                  this sheer, the lighter teal drops under 3:1. */}
+              <p className="text-eyebrow !text-teal-dark mb-3 sm:mb-4">Premium Peptides</p>
 
               <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.2rem] font-bold text-ink leading-[1.06] mb-4 sm:mb-5">
                 A Higher
@@ -228,7 +234,7 @@ export default function Hero() {
                 Your Wellness Journey
               </h1>
 
-              <p className="text-base sm:text-lg text-ink-muted leading-relaxed max-w-md mb-7 sm:mb-8">
+              <p className="text-base sm:text-lg text-ink/80 leading-relaxed max-w-md mb-7 sm:mb-8">
                 Pure compounds. Verified quality. Trusted by a growing community
                 across Canada and the US.
               </p>

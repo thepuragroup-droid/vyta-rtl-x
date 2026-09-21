@@ -20,14 +20,16 @@ easy.
 The media fills the whole hero, and a lot of interface sits on top of it, so
 composition matters more than subject:
 
-- **A frosted band down the left.** The headline, the paragraph and the two
-  buttons are read on a white, backdrop-blurred band that runs the full height
-  of the hero and about 78% of its width, holding solid for the first 60% of
-  that and dissolving — tint, blur and all — across the rest. Stacked, it runs
-  the full width and dissolves downward instead. The copy carries its own contrast, but the media
-  still reads *through* the blur, so keep that half **calm and unbusy** —
-  detail behind the band turns to mush, and a hard edge crossing the dissolve
-  reads as a seam.
+- **A sheer frosted band down the left.** The headline, the paragraph and the
+  two buttons are read on a white, backdrop-blurred band that runs the full
+  height of the hero and about 78% of its width. It is translucent the whole
+  way across — around 78% white at the left edge, never a solid plate — and
+  from the 40% mark it thins out until nothing is left of it at the far edge.
+  Stacked, it runs the full width and thins downward instead. So the media
+  reads *through* the copy, not just beside it: keep that half **calm and
+  unbusy**, and keep it **dark**. The band only holds navy type because the
+  still is graded to Midnight Navy; a bright frame would leave the copy
+  floating on nothing.
 - **Light scrims.** The hero renders the media under `ink/30 → ink/10` left to
   right plus a softer vertical pair. They settle the frame rather than hide it,
   so the media has to hold up while still being clearly visible.
