@@ -14,13 +14,13 @@ import { getCategoryIcon, getStoreCategories } from '@/lib/categories';
  * file. The built-in six below are the fallback for a store whose taxonomy has
  * not been set up yet, and for the moment before the fetch lands.
  *
- * ## Placeholder art
+ * ## Tile art
  *
- * The design calls for a photograph behind each tile. None have been shot, so
- * each tile renders a brand-gradient placeholder with its category icon —
- * deliberately not a stock photo, so nobody ships a lifestyle image the shop
- * has no licence to. Give a category an `image_url` and swap
- * `PLACEHOLDER_GRADIENTS` for it when the photography exists.
+ * `store_categories` has no image column, so the photography is positional:
+ * TILE_IMAGES[0] backs whichever category sorts first, and so on. Reordering
+ * the featured categories in the admin reorders the art with them. TILE_BACKDROPS
+ * stays behind each photo as the backdrop while it loads — and as the fallback
+ * if it 404s — so a tile is never bare white type on white.
  */
 
 interface FocusTile {
@@ -39,12 +39,25 @@ const FALLBACK_TILES: FocusTile[] = [
   { name: 'General Wellness', slug: 'General Health', description: 'Clinical peptides', icon: getCategoryIcon('Leaf') },
 ];
 
+const ASSET_BASE =
+  'https://xbpdqpmdecsoshzttthl.supabase.co/storage/v1/object/public/assets';
+
+/** Tile photography, one per grid position. Filenames contain a space. */
+const TILE_IMAGES = [
+  `${ASSET_BASE}/tile%201.png`,
+  `${ASSET_BASE}/tile%202.png`,
+  `${ASSET_BASE}/tile%203.png`,
+  `${ASSET_BASE}/tile%204.png`,
+  `${ASSET_BASE}/tile%205.png`,
+  `${ASSET_BASE}/tile%206.png`,
+];
+
 /**
- * Stand-ins for the photography, one per tile position. Each is a distinct
- * navy→teal sweep so the grid reads as six things rather than one repeated
- * swatch, and every one holds white type at AA.
+ * What sits behind each photo: a distinct navy→teal sweep so the grid reads as
+ * six things rather than one repeated swatch, and every one holds white type at
+ * AA on its own.
  */
-const PLACEHOLDER_GRADIENTS = [
+const TILE_BACKDROPS = [
   'linear-gradient(135deg, #07203A 0%, #0E3F5F 55%, #1B5D83 100%)',
   'linear-gradient(135deg, #0E3F5F 0%, #1B5D83 55%, #438B9E 100%)',
   'linear-gradient(135deg, #1B5D83 0%, #438B9E 60%, #6EB2B8 100%)',
@@ -52,6 +65,65 @@ const PLACEHOLDER_GRADIENTS = [
   'linear-gradient(135deg, #0E3F5F 0%, #438B9E 100%)',
   'linear-gradient(135deg, #07203A 0%, #1B5D83 40%, #6EB2B8 100%)',
 ];
+
+/**
+ * One tile. Split out so each holds its own image-load state — the photo
+ * cross-fades over its backdrop instead of popping in.
+ */
+function FocusCard({ tile, index }: { tile: FocusTile; index: number }) {
+  const [loaded, setLoaded] = useState(false);
+  const slot = index % TILE_IMAGES.length;
+
+  return (
+    <Link
+      href={`/products?category=${encodeURIComponent(tile.slug)}`}
+      className="group relative block aspect-[16/9] rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-shadow"
+    >
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
+      >
+        <span
+          className="absolute inset-0"
+          style={{ backgroundImage: TILE_BACKDROPS[slot] }}
+        />
+        {/* Molecular texture, so the backdrop still looks made rather than
+            unfinished in the moment before the photo decodes. */}
+        <span className="absolute inset-0 molecular-grid opacity-40" />
+        <img
+          src={TILE_IMAGES[slot]}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+            loaded ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      </span>
+      {/* Scrim: the photos are uncontrolled art, so keep the label legible. */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/35 to-ink/5"
+      />
+
+      <span className="absolute inset-0 p-5 flex items-end gap-3.5">
+        <span className="w-11 h-11 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+          <tile.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+        </span>
+        <span className="min-w-0">
+          <span className="block font-semibold text-white leading-tight text-balance">
+            {tile.name}
+          </span>
+          <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-white/75 group-hover:text-white transition-colors">
+            Explore
+            <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </span>
+      </span>
+    </Link>
+  );
+}
 
 export default function WellnessFocus() {
   const [tiles, setTiles] = useState<FocusTile[]>(FALLBACK_TILES);
@@ -102,43 +174,7 @@ export default function WellnessFocus() {
               transition={{ duration: 0.35, delay: index * 0.05 }}
               viewport={{ once: true }}
             >
-              <Link
-                href={`/products?category=${encodeURIComponent(tile.slug)}`}
-                className="group relative block aspect-[16/9] rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-shadow"
-              >
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-                  style={{
-                    backgroundImage: PLACEHOLDER_GRADIENTS[index % PLACEHOLDER_GRADIENTS.length],
-                  }}
-                />
-                {/* Molecular texture, so a placeholder still looks made rather
-                    than unfinished. */}
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 molecular-grid opacity-40"
-                />
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent"
-                />
-
-                <span className="absolute inset-0 p-5 flex items-end gap-3.5">
-                  <span className="w-11 h-11 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                    <tile.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-white leading-tight text-balance">
-                      {tile.name}
-                    </span>
-                    <span className="mt-0.5 inline-flex items-center gap-1 text-xs text-white/75 group-hover:text-white transition-colors">
-                      Explore
-                      <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
-                    </span>
-                  </span>
-                </span>
-              </Link>
+              <FocusCard tile={tile} index={index} />
             </motion.div>
           ))}
         </div>
