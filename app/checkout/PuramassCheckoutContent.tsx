@@ -23,6 +23,7 @@ import {
   Truck,
   HelpCircle,
   BadgePercent,
+  Gift,
 } from "lucide-react";
 import { useCart, type PurchaseUnit } from "@/contexts/CartContext";
 import { useCustomer } from "@/contexts/CustomerContext";
@@ -292,10 +293,12 @@ export default function PuramassCheckoutContent({
   const { items, totalPrice } = useCart();
   const { customer } = useCustomer();
   const { openPurchaseModal } = usePurchaseModal();
-  // The paid-ads welcome discount, if this buyer earned one. Display only: the
-  // hand-off re-decides eligibility from the attribution cookies and the
-  // customer row, and takes the money off the line prices itself.
-  const { adDiscount, adDiscountEligible, adDiscountOn } = usePromos();
+  // The discounts this buyer has earned: the paid-ads welcome discount, and
+  // the limited-time cart offer. Display only — the hand-off re-decides both
+  // (the welcome discount from the attribution cookies and the customer row,
+  // the offer from the settings row and the quantities being ordered) and
+  // takes the money off the line prices itself.
+  const { adDiscount, adDiscountEligible, adDiscountOn, cartOffer } = usePromos();
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -433,12 +436,19 @@ export default function PuramassCheckoutContent({
   const quotedShipping = selectedRate?.total_charge ?? flatShipping;
   const shippingCost = freeShipping ? 0 : quotedShipping;
 
-  // What the welcome discount takes off. The server may round a cent further in
-  // the buyer's favour when it splits this across the line prices, so this is a
-  // floor on the saving rather than an exact promise of the charge.
-  const discount = adDiscountOn(totalPrice);
+  // What the discounts take off. Applied in the same order the hand-off
+  // composes them — the welcome discount off the subtotal, the cart offer off
+  // what is left — so the total quoted here is the one that gets charged. The
+  // server may round a cent further in the buyer's favour when it splits this
+  // across the line prices, so these are a floor on the saving rather than an
+  // exact promise of the charge.
+  const adSaving = adDiscountOn(totalPrice);
+  const offerSaving = cartOffer.amountOn(Math.max(0, totalPrice - adSaving));
+  const discount = adSaving + offerSaving;
   const discountedSubtotal = Math.max(0, totalPrice - discount);
-  const showDiscount = adDiscountEligible && discount > 0;
+  const showDiscount = discount > 0;
+  const showAdDiscount = adDiscountEligible && adSaving > 0;
+  const showOfferDiscount = offerSaving > 0;
 
   // A live picker means a delivery method has to be chosen before paying;
   // otherwise there is only one shipping price and nothing to pick.
@@ -1187,14 +1197,25 @@ export default function PuramassCheckoutContent({
                         ${totalPrice.toFixed(2)}
                       </span>
                     </div>
-                    {showDiscount && (
+                    {showAdDiscount && (
                       <div className="flex items-center justify-between">
                         <span className="inline-flex items-center gap-1.5 text-sm text-emerald-700">
                           <BadgePercent className="h-3.5 w-3.5" />
                           {adDiscount.percent}% first-order discount
                         </span>
                         <span className="text-sm font-semibold text-emerald-700 tabular-nums">
-                          -${discount.toFixed(2)}
+                          -${adSaving.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    {showOfferDiscount && (
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1.5 text-sm text-emerald-700">
+                          <Gift className="h-3.5 w-3.5" />
+                          {cartOffer.percent}% limited-time offer
+                        </span>
+                        <span className="text-sm font-semibold text-emerald-700 tabular-nums">
+                          -${offerSaving.toFixed(2)}
                         </span>
                       </div>
                     )}
@@ -1226,7 +1247,11 @@ export default function PuramassCheckoutContent({
                       <BadgePercent className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" />
                       <div className="text-[11px] leading-snug text-emerald-800">
                         <p className="font-semibold">
-                          Your {adDiscount.percent}% first-order discount is already applied.
+                          {showAdDiscount && showOfferDiscount
+                            ? `Your ${adDiscount.percent}% first-order discount and ${cartOffer.percent}% offer are already applied.`
+                            : showOfferDiscount
+                              ? `Your ${cartOffer.percent}% limited-time offer is already applied.`
+                              : `Your ${adDiscount.percent}% first-order discount is already applied.`}
                         </p>
                         <p className="mt-0.5 text-emerald-700">
                           The secure checkout page shows the discounted prices —

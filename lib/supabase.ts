@@ -329,6 +329,19 @@ export interface SiteSettings {
   ad_discount_percent: number;
   /** Read-only: the promo is on AND the hosted checkout is the active one. */
   ad_discount_active: boolean;
+  // Limited-time cart offer: percent off once the cart carries `min_items`.
+  // Open to everyone — what earns it is the cart, not the buyer.
+  cart_offer_enabled: boolean;
+  cart_offer_min_items: number;
+  cart_offer_percent: number;
+  /** ISO timestamp the offer stops at; null = runs until switched off. */
+  cart_offer_ends_at: string | null;
+  /** Read-only: the promo is on AND the hosted checkout is the active one. */
+  cart_offer_active: boolean;
+  /** Show the operator-curated "Frequently bought together" block on the cart. */
+  cart_fbt_enabled: boolean;
+  /** Show the computed "You may also like" block on the cart. */
+  cart_similar_enabled: boolean;
   // e-Transfer (Interac) instructions config
   etransfer_enabled: boolean;
   etransfer_recipient_email: string;

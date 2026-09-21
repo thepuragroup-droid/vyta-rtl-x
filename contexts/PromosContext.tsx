@@ -3,14 +3,16 @@
 /**
  * Storefront promotions, resolved once for the whole app.
  *
- * Two offers run on the storefront and both need the same two facts — the
- * admin's promo settings, and who this visitor is:
+ * Three offers run on the storefront and they need the same facts — the
+ * admin's promo settings, who this visitor is, and what is in their cart:
  *
  *   • free shipping past a spend threshold (`FreeShippingToast`, the cart and
  *     checkout progress bars);
  *   • the paid-ads welcome discount (`AdDiscountBanner`, the cart and checkout
  *     totals, and the hand-off itself) — for ad visitors, on their first order
- *     only.
+ *     only;
+ *   • the limited-time cart offer (the cart's offer strip and both checkout
+ *     totals) — for any cart carrying enough items, while the offer runs.
  *
  * Resolving them here rather than in each component means one settings fetch
  * per app load instead of one per screen, and one definition of "eligible" that
@@ -28,6 +30,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { useCart } from '@/contexts/CartContext';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { supabase } from '@/lib/supabase';
 import { visitorChannels } from '@/lib/analytics/attribution-client';
@@ -38,12 +41,28 @@ import {
   qualifiesForAdDiscount,
   type AdDiscountSettings,
 } from '@/lib/promos/ad-discount';
+import {
+  cartOfferAmount,
+  DEFAULT_CART_OFFER,
+  itemsToUnlockCartOffer,
+  qualifiesForCartOffer,
+  type CartOfferSettings,
+} from '@/lib/promos/cart-offer';
 
 export interface FreeShippingPromo {
   /** The promo is on AND the checkout that honours it is the live one. */
   active: boolean;
   /** Goods subtotal in CAD that unlocks it. */
   threshold: number;
+}
+
+export interface CartOfferValue extends CartOfferSettings {
+  /** This cart has enough items, and the offer has not expired. */
+  earned: boolean;
+  /** How many more items would earn it. Zero once it is earned. */
+  itemsAway: number;
+  /** What it takes off a given subtotal, in CAD. Zero when not earned. */
+  amountOn: (subtotal: number) => number;
 }
 
 export interface PromosValue {
@@ -62,6 +81,12 @@ export interface PromosValue {
   adDiscountEligible: boolean;
   /** What that takes off a given subtotal, in CAD. Zero when not eligible. */
   adDiscountOn: (subtotal: number) => number;
+  /**
+   * The limited-time cart offer, already measured against the current cart.
+   * Unlike the welcome discount this one is open to everyone — what earns it
+   * is the cart, so the item count is read here rather than passed in.
+   */
+  cartOffer: CartOfferValue;
 }
 
 const EMPTY: PromosValue = {
@@ -72,15 +97,27 @@ const EMPTY: PromosValue = {
   isFirstOrder: false,
   adDiscountEligible: false,
   adDiscountOn: () => 0,
+  cartOffer: {
+    ...DEFAULT_CART_OFFER,
+    earned: false,
+    itemsAway: 0,
+    amountOn: () => 0,
+  },
 };
 
 const PromosContext = createContext<PromosValue>(EMPTY);
 
 export function PromosProvider({ children }: { children: React.ReactNode }) {
   const { customer } = useCustomer();
+  const { totalItems } = useCart();
   const [loading, setLoading] = useState(true);
   const [freeShipping, setFreeShipping] = useState<FreeShippingPromo>(EMPTY.freeShipping);
   const [adDiscount, setAdDiscount] = useState(EMPTY.adDiscount);
+  const [cartOffer, setCartOffer] = useState<CartOfferSettings>(DEFAULT_CART_OFFER);
+  // Bumped once, exactly when a limited-time offer's end date passes, so the
+  // cart stops showing it without the app re-rendering on a 1s interval. The
+  // countdown itself ticks inside the component that draws it.
+  const [expiryTick, setExpiryTick] = useState(0);
   // Read in an effect, never during render: the cookies do not exist on the
   // server, so deriving this inline would hydrate to a different tree.
   const [channels, setChannels] = useState<(string | null)[]>([]);
@@ -145,6 +182,15 @@ export function PromosProvider({ children }: { children: React.ReactNode }) {
           percent: Number(s.ad_discount_percent) || 0,
           active: !!s.ad_discount_active,
         });
+        // `_active` already folds in the hosted-checkout toggle, the same way
+        // the welcome discount does: an offer the checkout cannot apply is an
+        // offer the cart must not advertise.
+        setCartOffer({
+          enabled: !!s.cart_offer_active,
+          minItems: Number(s.cart_offer_min_items) || 1,
+          percent: Number(s.cart_offer_percent) || 0,
+          endsAt: s.cart_offer_ends_at ?? null,
+        });
       } catch {
         /* No promo is shown if the settings can't be read — never block a page. */
       } finally {
@@ -155,6 +201,20 @@ export function PromosProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  // Wake up once at the offer's end date. A timer rather than a poll, and one
+  // that is re-armed only when the date itself changes — the clock running out
+  // is a single event, so it costs a single timeout.
+  useEffect(() => {
+    if (!cartOffer.endsAt) return;
+    const remaining = new Date(cartOffer.endsAt).getTime() - Date.now();
+    if (!Number.isFinite(remaining) || remaining <= 0) return;
+    // setTimeout tops out around 24.8 days; anything further off is re-armed
+    // when the page is next loaded, long before it matters.
+    if (remaining > 2_147_483_647) return;
+    const timer = setTimeout(() => setExpiryTick((tick) => tick + 1), remaining + 250);
+    return () => clearTimeout(timer);
+  }, [cartOffer.endsAt]);
 
   const value = useMemo<PromosValue>(() => {
     const settings: AdDiscountSettings = {
@@ -175,8 +235,30 @@ export function PromosProvider({ children }: { children: React.ReactNode }) {
       adDiscountEligible: eligible,
       adDiscountOn: (subtotal: number) =>
         eligible ? adDiscountAmount(subtotal, adDiscount.percent) : 0,
+      cartOffer: {
+        ...cartOffer,
+        earned: qualifiesForCartOffer(cartOffer, totalItems),
+        itemsAway: itemsToUnlockCartOffer(cartOffer, totalItems),
+        amountOn: (subtotal: number) =>
+          qualifiesForCartOffer(cartOffer, totalItems)
+            ? cartOfferAmount(subtotal, cartOffer.percent)
+            : 0,
+      },
     };
-  }, [loading, freeShipping, adDiscount, channels, customer, isFirstOrder]);
+    // `expiryTick` is a dependency on purpose: it is what re-runs this the
+    // moment a limited-time offer's end date passes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    loading,
+    freeShipping,
+    adDiscount,
+    channels,
+    customer,
+    isFirstOrder,
+    cartOffer,
+    totalItems,
+    expiryTick,
+  ]);
 
   return <PromosContext.Provider value={value}>{children}</PromosContext.Provider>;
 }

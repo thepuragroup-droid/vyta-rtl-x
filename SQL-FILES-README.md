@@ -168,6 +168,31 @@ it"), `lib/content/testimonials.ts`, `app/api/reviews`, `app/api/{admin/,}testim
 `components/reviews/StarRating.tsx`, `components/product/ProductReviews.tsx`,
 `components/home/Testimonials.tsx`, `app/(admin)/admin/testimonials`.
 
+#### `cart-upsells-migration.sql` 🆕
+**Purpose:** The cart page's upsells — the limited-time offer strip, and the
+operator-curated "Frequently bought together" row. The third cart block,
+"You may also like", is computed from purchase history and needs no storage.
+**Columns Added:** `site_settings`: `cart_offer_enabled`, `cart_offer_min_items`,
+`cart_offer_percent`, `cart_offer_ends_at`, `cart_fbt_enabled`,
+`cart_similar_enabled`; `puramass_orders`: `cart_offer_percent`,
+`cart_offer_min_items` (what a discounted order actually got)
+**Tables:** `product_recommendations` (directional pairings: `product_id` →
+`recommended_product_id`, with `sort_order`, `badge`, `enabled`)
+**Constraints:** `product_recommendations_not_self` (a product cannot recommend
+itself); `product_recommendations_unique` (one row per pairing)
+**RLS:** public `SELECT` on `product_recommendations`; all writes go through the
+service-role API route, which does its own role checks (`canEdit`)
+**Dependencies:** `products`, `site_settings` and `puramass_orders` must exist
+**Required:** Yes, for the cart offer and the curated row. Without it the offer
+stays switched off — money fails closed — and the admin screen reports the
+missing table by name while the cart falls back to "You may also like" alone.
+**Idempotent:** Yes, safe to re-run.
+
+**Related code:** `lib/promos/cart-offer.ts` (the offer's arithmetic and its
+composition with the paid-ads discount, unit-tested in `cart-offer.test.ts`),
+`lib/products/recommendations.ts` (the "you may also like" ranking, tested in
+`recommendations.test.ts`), `app/api/products/recommendations` (both cart
+blocks in one read), `app/(admin)/admin/cart-upsells` and `/admin/promos`.
 #### `products-schema.sql`
 **Purpose:** Complete product catalog with all peptides
 **Size:** ~39KB
