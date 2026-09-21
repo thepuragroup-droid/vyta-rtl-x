@@ -358,6 +358,27 @@ export default function Navigation() {
                   <span>Login</span>
                 </Link>
               ) : null}
+
+              {/* Proudly Canadian — the origin claim the shipping promise and
+                  the hero's badge row both rest on, kept in sight at the top
+                  right of every page. It needs ~90px the nav does not have
+                  between lg and xl, where the links themselves start to wrap,
+                  so below xl it lives in the mobile menu instead. */}
+              <div className="hidden xl:flex items-center gap-3 ml-1">
+                <div className="w-px h-6 bg-line" />
+                <span className="flex items-center gap-2">
+                  <img
+                    src="/images/canada-flag.png"
+                    alt="Flag of Canada"
+                    className="w-6 h-4 object-cover rounded-[2px] border border-line"
+                  />
+                  <span className="text-[10px] font-semibold leading-[1.15] text-ink">
+                    Proudly
+                    <br />
+                    Canadian
+                  </span>
+                </span>
+              </div>
             </div>
 
             {/* Mobile: Cart + Menu */}
@@ -553,6 +574,17 @@ export default function Navigation() {
                         Login / Sign Up
                       </Link>
                     )}
+
+                    <span className="flex items-center justify-center gap-2 pt-3">
+                      <img
+                        src="/images/canada-flag.png"
+                        alt="Flag of Canada"
+                        className="w-6 h-4 object-cover rounded-[2px] border border-line"
+                      />
+                      <span className="text-[11px] font-semibold text-ink">
+                        Proudly Canadian
+                      </span>
+                    </span>
                   </div>
                 </div>
               )}
