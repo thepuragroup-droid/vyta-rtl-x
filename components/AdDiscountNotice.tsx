@@ -16,19 +16,15 @@
  *
  * ## Why this is a fragment and not a strip
  *
- * It used to be its own full-width row under the disclaimer, and that was
- * wrong twice over. The nav is transparent over the homepage video hero until
- * the page scrolls (`overlay` in `Navigation`), and a strip with its own
- * background painted a solid bar across the top of the hero that the rest of
- * the nav had no counterpart for. It also made the fixed nav taller, which the
- * storefront screens — each carrying its own literal top padding — had to be
- * compensated for with a body-padding rule, and that gap showed above the hero
- * as a second bar.
+ * It used to be its own full-width row under the disclaimer, and that made the
+ * fixed nav taller, which the storefront screens — each carrying its own
+ * literal top padding — had to be compensated for with a body-padding rule,
+ * and that gap showed above the hero as a second bar.
  *
- * Sitting inside the disclaimer row instead, it inherits that row's background,
- * its `overlay` colours and its 300ms scroll transition, and adds no height at
- * all. So it renders no wrapper, no background and no spacing of its own: just
- * a separator and the offer, as siblings of "Research Only".
+ * Sitting inside the disclaimer row instead, it inherits that row's background
+ * and colours and adds no height at all. So it renders no wrapper, no
+ * background and no spacing of its own: just a separator and the offer, as
+ * siblings of "Research Only".
  *
  * Nothing here decides money. `/api/checkout/puramass` re-reads the attribution
  * cookies, the customer row and their order history, and applies the discount
@@ -73,30 +69,18 @@ export function useAdOfferNotice(): AdOfferNotice {
  * inside that row's flex container. Renders nothing when there is no offer to
  * make, which is what lets `Navigation` drop it in unconditionally.
  */
-export default function AdDiscountNotice({ overlay }: { overlay: boolean }) {
+export default function AdDiscountNotice() {
   const { show, eligible, off } = useAdOfferNotice();
   if (!show) return null;
 
-  // Every colour here has an overlay counterpart and the same 300ms transition
-  // as the rest of the nav, so the offer solidifies with it on scroll instead
-  // of being the one element that jumps.
-  const separator = overlay ? "text-white/25" : "text-line";
-  const amount = (
-    <span className={`font-semibold ${overlay ? "text-white" : "text-ink"}`}>
-      {off} off
-    </span>
-  );
+  const amount = <span className="font-semibold text-ink">{off} off</span>;
 
   return (
     <>
-      <span className={`transition-colors duration-300 ${separator}`}>•</span>
+      <span className="text-line">•</span>
 
       {eligible ? (
-        <span
-          className={`inline-flex items-center gap-1.5 whitespace-nowrap transition-colors duration-300 ${
-            overlay ? "text-emerald-300" : "text-emerald-700"
-          }`}
-        >
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-emerald-700">
           <Check className="h-3 w-3 flex-shrink-0" />
           <span>
             <span className="font-semibold">{off} off</span>
@@ -107,15 +91,9 @@ export default function AdDiscountNotice({ overlay }: { overlay: boolean }) {
       ) : (
         <Link
           href="/signup"
-          className={`group inline-flex items-center gap-1.5 whitespace-nowrap transition-colors duration-300 ${
-            overlay ? "hover:text-white" : "hover:text-ink"
-          }`}
+          className="group inline-flex items-center gap-1.5 whitespace-nowrap transition-colors hover:text-ink"
         >
-          <BadgePercent
-            className={`h-3 w-3 flex-shrink-0 transition-colors duration-300 ${
-              overlay ? "text-teal-light" : "text-teal-dark"
-            }`}
-          />
+          <BadgePercent className="h-3 w-3 flex-shrink-0 text-teal-dark" />
           <span>
             {amount}
             <span className="hidden sm:inline"> your first order — sign up</span>

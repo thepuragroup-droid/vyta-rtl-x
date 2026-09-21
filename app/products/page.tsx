@@ -12,6 +12,8 @@ import { productPath } from '@/lib/products/url';
 import { usePurchaseModal } from '@/contexts/PurchaseModalContext';
 import { siteConfig } from '@/lib/config';
 import { largestPackFor, vialPriceFor } from '@/lib/pricing';
+import { useReviewStats } from '@/lib/hooks/useReviewStats';
+import { RatingSummary } from '@/components/reviews/StarRating';
 import { trackActivity } from '@/lib/customer/activity';
 import { getStoreCategories, getCategoryIcon } from '@/lib/categories';
 import type { LucideIcon } from 'lucide-react';
@@ -73,6 +75,9 @@ const SCROLL_KEY = 'products_scroll';
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  // Star ratings for whatever is on screen, in one request rather than one
+  // per card. Products nobody has reviewed are absent from the map.
+  const reviewStats = useReviewStats(filteredProducts.map((p) => p.id));
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'price-asc' | 'price-desc'>('name');
@@ -80,6 +85,15 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<CategoryChip[]>(FALLBACK_CATEGORIES);
   const scrollRestoredRef = useRef(false);
   const { openPurchaseModal } = usePurchaseModal();
+
+  // A `?category=` link — the home page's wellness tiles send one — lands
+  // here as the selected filter. Read from the URL rather than
+  // `useSearchParams` so the page needs no Suspense boundary, and only on
+  // mount: after that the chips own the selection.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('category');
+    if (wanted) setSelectedCategory(wanted);
+  }, []);
 
   // Load the controlled category list; fall back to the built-in list on
   // empty/failed fetch. "All" is always the first chip.
@@ -458,10 +472,18 @@ export default function ProductsPage() {
                       {product.strength}
                     </p>
                     <Link href={productPath(product)} onClick={saveScroll}>
-                      <h3 className="font-semibold text-ink group-hover:text-ink-muted transition-colors line-clamp-1 mb-3 text-sm sm:text-base">
+                      <h3 className="font-semibold text-ink group-hover:text-ink-muted transition-colors line-clamp-1 mb-1 text-sm sm:text-base">
                         {product.name}
                       </h3>
                     </Link>
+
+                    {/* Only products someone has actually reviewed show stars;
+                        the rest keep the space the name already occupies. */}
+                    <RatingSummary
+                      average={reviewStats[product.id]?.average_rating ?? 0}
+                      count={reviewStats[product.id]?.review_count ?? 0}
+                      className="mb-2"
+                    />
 
                     <div className="flex items-center justify-between gap-2">
                       {product.price === 0 ? (
