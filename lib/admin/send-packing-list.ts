@@ -211,7 +211,7 @@ function renderEmailBody(v: EmailVars): string {
   <table role="presentation" width="100%" style="max-width:560px;margin:0 auto">
     <tr><td>
       <div style="font-weight:800;font-size:18px;letter-spacing:2px">PURAMASS</div>
-      <div style="font-size:11px;color:#56707f;margin-bottom:20px">aminocan.com  ·  info@aminocan.com</div>
+      <div style="font-size:11px;color:#56707f;margin-bottom:20px">vytabio.com  ·  support@vytabio.com</div>
       <h2 style="margin:0 0 8px 0;font-size:20px">Packing list for ${escape(v.shipToName)}</h2>
       <p style="margin:0 0 12px 0;color:#56707f">
         Invoice <strong>${escape(v.invoiceNumber)}</strong>
@@ -223,7 +223,7 @@ function renderEmailBody(v: EmailVars): string {
       </p>
       ${notesBlock}
       <p style="margin:24px 0 0 0;color:#56707f;font-size:12px">
-        Questions? Reply to this email or write us at info@aminocan.com.
+        Questions? Reply to this email or write us at support@vytabio.com.
       </p>
     </td></tr>
   </table>
@@ -232,7 +232,7 @@ function renderEmailBody(v: EmailVars): string {
 
 function renderEmailBodyText(v: EmailVars): string {
   return [
-    `PURAMASS  ·  aminocan.com`,
+    `PURAMASS  ·  vytabio.com`,
     ``,
     `Packing list for ${v.shipToName}`,
     `Invoice ${v.invoiceNumber}`,
@@ -242,7 +242,7 @@ function renderEmailBodyText(v: EmailVars): string {
     `The full itemized packing list is attached as a PDF — quantities only, no pricing.`,
     v.notes ? `\nNotes: ${v.notes}` : '',
     ``,
-    `Questions? Reply to this email or write us at info@aminocan.com.`,
+    `Questions? Reply to this email or write us at support@vytabio.com.`,
   ].filter(Boolean).join('\n');
 }
 

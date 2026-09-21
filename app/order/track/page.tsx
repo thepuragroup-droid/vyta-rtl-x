@@ -377,7 +377,7 @@ function OrderTrackContent() {
                 order number: <code className="font-mono bg-surface px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs">{orderData.order_number}</code>
               </p>
               <a
-                href="mailto:support@aminocan.com"
+                href="mailto:support@vytabio.com"
                 className="text-teal-dark hover:text-ink font-medium text-xs sm:text-sm"
               >
                 Contact Support &rarr;

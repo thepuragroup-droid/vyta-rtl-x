@@ -437,7 +437,7 @@ export function buildInvoiceHtml(
     <div>
       <div class="brand-name">VYTA</div>
       <div class="brand-kicker">Biosciences</div>
-      <div class="brand-contact">aminocan.com &middot; info@aminocan.com</div>
+      <div class="brand-contact">vytabio.com &middot; support@vytabio.com</div>
     </div>
     <div class="doc-meta">
       <h2>Invoice</h2>

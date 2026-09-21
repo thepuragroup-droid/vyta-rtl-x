@@ -474,8 +474,8 @@ export default function TermsPage() {
               <h2 className="text-base font-bold text-ink mb-3 uppercase tracking-wide">Contact</h2>
               <p>
                 For questions regarding these Terms &amp; Conditions, please contact us at{' '}
-                <a href="mailto:admin@aminocan.com" className="text-teal-dark hover:underline font-medium">
-                  admin@aminocan.com
+                <a href="mailto:support@vytabio.com" className="text-teal-dark hover:underline font-medium">
+                  support@vytabio.com
                 </a>
                 .
               </p>

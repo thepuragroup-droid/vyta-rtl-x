@@ -7,7 +7,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
 export default function ContactPage() {
-  const whatsappNumber = '+16473029495';
+  const whatsappNumber = '+15147013824';
   const whatsappMessage = encodeURIComponent('Hi! I have a question about your research peptides.');
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
@@ -81,7 +81,7 @@ export default function ContactPage() {
                   <p className="text-ink-muted mb-4 text-sm">
                     Get instant responses to your questions. Our team is available to chat during business hours.
                   </p>
-                  <p className="text-lg font-semibold text-ink">+1 (647) 302-9495</p>
+                  <p className="text-lg font-semibold text-ink">+1 (514) 701-3824</p>
                 </div>
               </div>
               <div className="absolute top-4 right-4">
@@ -91,7 +91,7 @@ export default function ContactPage() {
 
             {/* Email Card */}
             <motion.a
-              href="mailto:support@aminocan.com"
+              href="mailto:support@vytabio.com"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -107,7 +107,7 @@ export default function ContactPage() {
                   <p className="text-ink-muted mb-4 text-sm">
                     For detailed inquiries, order issues, or documentation requests. We respond within 24 hours.
                   </p>
-                  <p className="text-lg font-semibold text-teal-dark">support@aminocan.com</p>
+                  <p className="text-lg font-semibold text-teal-dark">support@vytabio.com</p>
                 </div>
               </div>
             </motion.a>
@@ -245,7 +245,7 @@ export default function ContactPage() {
                   Message Us on WhatsApp
                 </a>
                 <a
-                  href="mailto:support@aminocan.com"
+                  href="mailto:support@vytabio.com"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-all border border-white/10"
                 >
                   <Mail className="w-4 h-4" />

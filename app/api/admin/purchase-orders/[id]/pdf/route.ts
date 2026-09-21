@@ -150,7 +150,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     <div class="brand">
       <div class="brand-name">VYTA</div>
       <div class="brand-kicker">Biosciences</div>
-      <div class="brand-tagline">aminocan.com &nbsp;·&nbsp; info@aminocan.com</div>
+      <div class="brand-tagline">vytabio.com &nbsp;·&nbsp; support@vytabio.com</div>
     </div>
     <div class="po-meta">
       <div class="po-title">Purchase Order</div>
@@ -219,7 +219,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   ${po.notes ? `<div class="notes"><h3>Notes</h3><p>${esc(po.notes)}</p></div>` : ''}
 
   <footer>
-    <span>VYTA BIOSCIENCES &nbsp;·&nbsp; aminocan.com</span>
+    <span>VYTA BIOSCIENCES &nbsp;·&nbsp; vytabio.com</span>
     <span>Generated ${esc(new Date().toLocaleDateString('en-CA'))} &nbsp;·&nbsp; ${esc(po.po_number)}</span>
   </footer>
 </div>

@@ -114,20 +114,20 @@ export default function Footer() {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="mailto:support@aminocan.com"
+                  href="mailto:support@vytabio.com"
                   className="flex items-start gap-3 text-white/60 hover:text-white transition-colors group"
                 >
                   <div className="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center flex-shrink-0 border border-white/10 group-hover:border-white/20 transition-colors">
                     <Mail className="w-4 h-4 text-teal-light" />
                   </div>
                   <div className="pt-1">
-                    <span className="text-sm block">support@aminocan.com</span>
+                    <span className="text-sm block">support@vytabio.com</span>
                   </div>
                 </a>
               </li>
               <li>
                 <a
-                  href="https://chat.whatsapp.com/DPYUObtP3XkGly20Bku9Lk"
+                  href="https://wa.me/15147013824"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-start gap-3 text-white/60 hover:text-white transition-colors group"

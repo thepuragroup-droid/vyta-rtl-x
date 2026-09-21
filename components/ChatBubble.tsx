@@ -7,7 +7,7 @@ import { MessageCircle, X, Mail, Beaker } from 'lucide-react';
 export default function ChatBubble() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const whatsappNumber = '+16473029495';
+  const whatsappNumber = '+15147013824';
   const whatsappMessage = encodeURIComponent('Hi! I have a question about your research peptides.');
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
@@ -58,7 +58,7 @@ export default function ChatBubble() {
 
               {/* Email */}
               <a
-                href="mailto:support@aminocan.com"
+                href="mailto:support@vytabio.com"
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group border border-transparent hover:border-slate-100"
               >
                 <div className="w-10 h-10 bg-cyan-500/10 rounded-xl flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
@@ -66,7 +66,7 @@ export default function ChatBubble() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-slate-900">Email Support</p>
-                  <p className="text-xs text-slate-500">support@aminocan.com</p>
+                  <p className="text-xs text-slate-500">support@vytabio.com</p>
                 </div>
               </a>
             </div>
