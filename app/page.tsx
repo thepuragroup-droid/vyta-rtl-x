@@ -2,7 +2,6 @@ import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
 import WellnessFocus from '@/components/home/WellnessFocus';
 import BestSellers from '@/components/home/BestSellers';
-import ShowOurWork from '@/components/home/ShowOurWork';
 import WhyChooseVyta from '@/components/home/WhyChooseVyta';
 import CollectionBanner from '@/components/home/CollectionBanner';
 import Testimonials from '@/components/home/Testimonials';
@@ -11,8 +10,10 @@ import Footer from '@/components/Footer';
 
 /**
  * The storefront home page, in the order the design lays it out: what we sell,
- * what sells most, why the numbers can be trusted, why us, where to start, and
- * what other customers said.
+ * what sells most, why us, where to start, and what other customers said.
+ *
+ * The "We Show Our Work" band (`components/home/ShowOurWork`) is hidden for
+ * now; re-add it after `<BestSellers />` to bring it back.
  *
  * `Testimonials` renders nothing until a quote is written in Admin →
  * Testimonials, so the page reads correctly on a brand-new store too.
@@ -24,7 +25,6 @@ export default function Home() {
       <Hero />
       <WellnessFocus />
       <BestSellers />
-      <ShowOurWork />
       <WhyChooseVyta />
       <CollectionBanner />
       <Testimonials />
