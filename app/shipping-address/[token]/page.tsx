@@ -38,8 +38,7 @@ import {
   type ShippingAddressLike,
 } from '@/lib/payments/puramass-address';
 import {
-  COUNTRIES,
-  OTHER_COUNTRY,
+  SHIPPING_COUNTRIES,
   postalLabel,
   regionLabel,
   regionsFor,
@@ -85,7 +84,8 @@ const EMPTY_FORM: ShippingAddressInput = {
   city: '',
   state: '',
   zip: '',
-  country: '',
+  // Canada is the only destination we ship to.
+  country: 'CA',
 };
 
 function money(value: number | null, currency: string): string {
@@ -303,9 +303,10 @@ export default function ShippingAddressPage() {
           address: addr?.address ?? '',
           address2: addr?.address2 ?? '',
           city: addr?.city ?? '',
-          state: addr?.state ?? '',
+          // A region code only carries over when it is already a Canadian one.
+          state: (addr?.country ?? '').toUpperCase() === 'CA' ? addr?.state ?? '' : '',
           zip: addr?.zip ?? '',
-          country: addr?.country ?? '',
+          country: 'CA',
         });
       } catch {
         if (!cancelled) {
@@ -605,13 +606,11 @@ export default function ShippingAddressPage() {
                 }}
                 className={inputClass}
               >
-                <option value="">Select a country…</option>
-                {COUNTRIES.map((c) => (
+                {SHIPPING_COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>
                     {c.name}
                   </option>
                 ))}
-                <option value={OTHER_COUNTRY.code}>{OTHER_COUNTRY.name}</option>
               </select>
             </Field>
 

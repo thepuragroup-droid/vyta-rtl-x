@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Tags, Plus, Save, Trash2, X, ChevronUp, ChevronDown, GripVertical,
-  Eye, EyeOff, Star, AlertCircle, Check, Loader2, Info,
+  Eye, EyeOff, Star, AlertCircle, Check, Loader2, Info, Package, Search,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api-fetch';
@@ -30,6 +30,15 @@ function toDraft(c: StoreCategory): Draft {
     active: c.active,
     featured: c.featured,
   };
+}
+
+/** The slice of a product row the category product picker needs. */
+interface PickerProduct {
+  id: string;
+  name: string;
+  strength: string | null;
+  category: string | null;
+  active: boolean | null;
 }
 
 function draftEquals(a: Draft, b: Draft): boolean {
@@ -65,6 +74,14 @@ export default function CategoriesManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState<StoreCategory | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Products, for the per-category counts and the product picker.
+  const [products, setProducts] = useState<PickerProduct[]>([]);
+  const [pickerTarget, setPickerTarget] = useState<StoreCategory | null>(null);
+  const [pickerSelected, setPickerSelected] = useState<Set<string>>(new Set());
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerSaving, setPickerSaving] = useState(false);
+  const [pickerError, setPickerError] = useState('');
+
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,8 +110,80 @@ export default function CategoriesManagementPage() {
     } catch {
       setError('Failed to load categories');
     }
+    await loadProducts();
     setLoading(false);
   };
+
+  const loadProducts = async () => {
+    try {
+      const token = await getToken();
+      const { products: list } = await apiFetch<{ products: PickerProduct[] }>(
+        '/api/admin/products',
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setProducts(
+        (list ?? [])
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            strength: p.strength ?? null,
+            category: p.category ?? null,
+            active: p.active ?? null,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      );
+    } catch {
+      setError('Failed to load products');
+    }
+  };
+
+  const countFor = (slug: string) => products.filter((p) => p.category === slug).length;
+
+  const openPicker = (c: StoreCategory) => {
+    setPickerTarget(c);
+    setPickerSelected(new Set(products.filter((p) => p.category === c.slug).map((p) => p.id)));
+    setPickerSearch('');
+    setPickerError('');
+  };
+
+  const togglePicked = (id: string) => {
+    setPickerSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const savePicker = async () => {
+    if (!pickerTarget) return;
+    setPickerSaving(true);
+    setPickerError('');
+    try {
+      const token = await getToken();
+      await apiFetch(`/api/admin/categories/${pickerTarget.id}/products`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ product_ids: Array.from(pickerSelected) }),
+      });
+      const slug = pickerTarget.slug;
+      setProducts((prev) =>
+        prev.map((p) => {
+          if (pickerSelected.has(p.id)) return { ...p, category: slug };
+          if (p.category === slug) return { ...p, category: null };
+          return p;
+        }),
+      );
+      setSuccess(`Products updated for ${pickerTarget.name}`);
+      setPickerTarget(null);
+    } catch (err: any) {
+      setPickerError(err?.message || 'Failed to update products');
+    }
+    setPickerSaving(false);
+  };
+
+  const categoryName = (slug: string | null) =>
+    slug ? categories.find((c) => c.slug === slug)?.name ?? slug : null;
 
   const setDraft = (id: string, patch: Partial<Draft>) => {
     setDrafts((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
@@ -131,6 +220,8 @@ export default function CategoriesManagementPage() {
       );
       setCategories((prev) => prev.map((x) => (x.id === c.id ? category : x)));
       setDrafts((prev) => ({ ...prev, [c.id]: toDraft(category) }));
+      // A slug rename cascades into the products' category tag server-side.
+      if (category.slug !== c.slug) loadProducts();
       setSuccess('Category saved');
     } catch (err: any) {
       setError(err?.message || 'Failed to save category');
@@ -365,6 +456,14 @@ export default function CategoriesManagementPage() {
                       {d.active ? 'Active' : 'Hidden'}
                     </button>
                     <button
+                      onClick={() => openPicker(c)}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface text-ink hover:bg-line/50 transition-colors"
+                      title={canManage ? 'Choose the products in this category' : 'View the products in this category'}
+                    >
+                      <Package className="w-3.5 h-3.5" />
+                      {countFor(c.slug)} {countFor(c.slug) === 1 ? 'product' : 'products'}
+                    </button>
+                    <button
                       onClick={() => canManage && setDraft(c.id, { featured: !d.featured })}
                       disabled={!canManage}
                       className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:cursor-not-allowed ${
@@ -483,6 +582,135 @@ export default function CategoriesManagementPage() {
           </div>
         </div>
       )}
+
+      {/* Product picker */}
+      {pickerTarget && (() => {
+        const q = pickerSearch.trim().toLowerCase();
+        const visible = q
+          ? products.filter((p) =>
+              `${p.name} ${p.strength ?? ''}`.toLowerCase().includes(q),
+            )
+          : products;
+        const movingCount = products.filter(
+          (p) => pickerSelected.has(p.id) && p.category && p.category !== pickerTarget.slug,
+        ).length;
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-lg max-w-lg w-full flex flex-col max-h-[85vh]">
+              <div className="flex items-center justify-between p-6 pb-3">
+                <div>
+                  <h2 className="text-lg font-bold text-ink">Products in {pickerTarget.name}</h2>
+                  <p className="text-xs text-ink-muted mt-0.5">
+                    {pickerSelected.size} selected. A product belongs to one category, so
+                    picking it here moves it out of its current one.
+                  </p>
+                </div>
+                <button onClick={() => setPickerTarget(null)} className="text-ink-muted hover:text-ink"><X className="w-5 h-5" /></button>
+              </div>
+
+              <div className="px-6 pb-3">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={pickerSearch}
+                    onChange={(e) => setPickerSearch(e.target.value)}
+                    placeholder="Search products…"
+                    className="w-full pl-9 pr-3 py-2 bg-surface border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
+                  />
+                </div>
+                {canManage && visible.length > 0 && (
+                  <div className="flex gap-3 mt-2 text-xs">
+                    <button
+                      onClick={() => setPickerSelected((prev) => new Set([...prev, ...visible.map((p) => p.id)]))}
+                      className="text-teal-dark hover:underline"
+                    >
+                      Select {q ? 'shown' : 'all'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const hide = new Set(visible.map((p) => p.id));
+                        setPickerSelected((prev) => new Set([...prev].filter((id) => !hide.has(id))));
+                      }}
+                      className="text-ink-muted hover:underline"
+                    >
+                      Clear {q ? 'shown' : 'all'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {pickerError && (
+                <div className="mx-6 mb-3 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-800">{pickerError}</p>
+                </div>
+              )}
+
+              <div className="flex-1 overflow-y-auto border-y border-line divide-y divide-line/60">
+                {visible.length === 0 ? (
+                  <div className="py-10 text-center text-sm text-ink-muted">No products found.</div>
+                ) : (
+                  visible.map((p) => {
+                    const checked = pickerSelected.has(p.id);
+                    const other = p.category && p.category !== pickerTarget.slug ? categoryName(p.category) : null;
+                    return (
+                      <label
+                        key={p.id}
+                        className={`flex items-center gap-3 px-6 py-2.5 ${canManage ? 'cursor-pointer hover:bg-surface' : 'cursor-default'}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={!canManage}
+                          onChange={() => togglePicked(p.id)}
+                          className="w-4 h-4 text-teal-dark border-line rounded focus:ring-teal/40"
+                        />
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm text-ink truncate">
+                            {p.name}
+                            {p.strength && <span className="text-ink-muted"> · {p.strength}</span>}
+                          </span>
+                          {(other || p.active === false) && (
+                            <span className="block text-[11px] text-ink-muted">
+                              {other && (checked ? `Moves from ${other}` : `In ${other}`)}
+                              {other && p.active === false && ' · '}
+                              {p.active === false && 'Inactive'}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="p-6 pt-4">
+                {canManage && movingCount > 0 && (
+                  <p className="text-xs text-amber-700 mb-3">
+                    {movingCount} {movingCount === 1 ? 'product' : 'products'} will move here from another category.
+                  </p>
+                )}
+                <div className="flex gap-3">
+                  <button onClick={() => setPickerTarget(null)} className="flex-1 px-4 py-2.5 bg-surface text-ink rounded-lg text-sm font-medium hover:bg-line/50 transition-colors">
+                    {canManage ? 'Cancel' : 'Close'}
+                  </button>
+                  {canManage && (
+                    <button
+                      onClick={savePicker}
+                      disabled={pickerSaving}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-ink text-white rounded-lg text-sm font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50"
+                    >
+                      {pickerSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Save products
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Delete confirm */}
       {deleteTarget && (

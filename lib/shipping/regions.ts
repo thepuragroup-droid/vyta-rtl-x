@@ -73,6 +73,19 @@ export const COUNTRIES: Country[] = [
   { code: 'ZA', name: 'South Africa' },
 ];
 
+/**
+ * Where the store actually ships: Canada, and nowhere else. The customer-facing
+ * address forms offer only these, and the routes they post to reject anything
+ * outside it. `COUNTRIES` above stays broad because it also names countries on
+ * partner payloads and legacy orders.
+ */
+export const SHIPPING_COUNTRIES: Country[] = [{ code: 'CA', name: 'Canada' }];
+
+export function isShippableCountry(code: string | null | undefined): boolean {
+  const upper = (code ?? '').trim().toUpperCase();
+  return SHIPPING_COUNTRIES.some((c) => c.code === upper);
+}
+
 /** Escape hatch so an unlisted destination can still submit an address. */
 export const OTHER_COUNTRY: Country = { code: 'OTHER', name: 'Somewhere else' };
 

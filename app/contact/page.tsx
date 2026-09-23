@@ -189,7 +189,7 @@ export default function ContactPage() {
             {[
               {
                 q: 'What are your shipping times?',
-                a: 'Orders are processed same-day if placed before 2 PM EST. Standard shipping within Canada takes 2-5 business days. Express shipping options are available at checkout.'
+                a: 'Orders are processed same-day if placed before 2 PM EST. We ship within Canada only — standard shipping takes 2-5 business days. Express shipping options are available at checkout.'
               },
               {
                 q: 'Do you provide Certificates of Analysis?',

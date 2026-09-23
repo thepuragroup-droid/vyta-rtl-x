@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { validateShippingAddress } from '@/lib/payments/puramass-address';
+import { isShippableCountry } from '@/lib/shipping/regions';
 import {
   applySubmittedAddress,
   loadAddressRequestByToken,
@@ -145,6 +146,16 @@ export async function POST(
     zip: body?.zip,
     country: body?.country,
   });
+  if (ok && !isShippableCountry(value.address.country)) {
+    return NextResponse.json(
+      {
+        error: 'invalid',
+        message: 'We only ship within Canada.',
+        errors: { country: 'We only ship within Canada.' },
+      },
+      { status: 400 },
+    );
+  }
   if (!ok) {
     return NextResponse.json(
       { error: 'invalid', message: 'Please check the highlighted fields.', errors },

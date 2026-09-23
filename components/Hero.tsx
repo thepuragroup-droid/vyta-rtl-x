@@ -57,7 +57,7 @@ const TRUST_BADGES = [
   { icon: ShieldCheck, label: '99%+\nPurity Guaranteed' },
   { icon: FlaskConical, label: 'Third-Party\nTested' },
   { icon: FileText, label: 'COAs\nAvailable' },
-  { icon: MapleLeaf, label: 'Canadian\nCompany', accent: true },
+  { icon: MapleLeaf, label: 'Proudly\nCanadian', accent: true },
   { icon: Truck, label: 'Free, Fast &\nDiscreet Shipping' },
 ];
 
@@ -162,7 +162,7 @@ export default function Hero() {
 
               <p className="text-base sm:text-lg text-ink/80 leading-relaxed max-w-md mb-7 sm:mb-8">
                 Pure compounds. Verified quality. Trusted by a growing community
-                across Canada and the US.
+                across Canada.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
@@ -170,11 +170,6 @@ export default function Hero() {
                   <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-ink hover:bg-ocean text-white px-7 py-3.5 font-semibold text-sm rounded-full shadow-card transition-colors">
                     Shop Peptides
                     <ArrowRight className="w-4 h-4" />
-                  </button>
-                </Link>
-                <Link href="/lab-results" className="w-full sm:w-auto">
-                  <button className="w-full sm:w-auto inline-flex items-center justify-center bg-white hover:bg-surface text-ink border border-line px-7 py-3.5 font-semibold text-sm rounded-full shadow-card transition-colors">
-                    View Lab Results
                   </button>
                 </Link>
               </div>

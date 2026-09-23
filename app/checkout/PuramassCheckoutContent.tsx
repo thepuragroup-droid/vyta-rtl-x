@@ -35,8 +35,7 @@ import { cartItemToAnalytics } from "@/lib/analytics/cart";
 import { trackActivity } from "@/lib/customer/activity";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import {
-  COUNTRIES,
-  OTHER_COUNTRY,
+  SHIPPING_COUNTRIES,
   postalLabel,
   regionLabel,
   regionsFor,
@@ -858,12 +857,11 @@ export default function PuramassCheckoutContent({
                             onChange={(e) => setShip({ country: e.target.value, state: "" })}
                             className={INPUT_CLASS}
                           >
-                            {COUNTRIES.map((c) => (
+                            {SHIPPING_COUNTRIES.map((c) => (
                               <option key={c.code} value={c.code}>
                                 {c.name}
                               </option>
                             ))}
-                            <option value={OTHER_COUNTRY.code}>{OTHER_COUNTRY.name}</option>
                           </select>
                         </div>
 
@@ -880,7 +878,7 @@ export default function PuramassCheckoutContent({
                                 city: picked.city,
                                 state: picked.state,
                                 zip: picked.postalCode,
-                                country: picked.country || shipping.country,
+                                country: "CA",
                               })
                             }
                           />

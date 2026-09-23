@@ -451,7 +451,7 @@ export default function TermsPage() {
               <p>
                 VYTA shall not be liable for any delay or failure in performance caused by circumstances
                 beyond its reasonable control, including, without limitation, delays due to backorders of
-                requested products, mail delays, customs delays or lost shipments. VYTA shall not be
+                requested products, mail delays or lost shipments. VYTA shall not be
                 responsible to notify the Customer in the event of such delays. The Customer shall be solely
                 responsible to make other arrangements to purchase alternative products and any costs incurred
                 in connection with such purchases.
@@ -463,9 +463,8 @@ export default function TermsPage() {
                 purposes prior to purchasing.
               </p>
               <p className="mt-3">
-                This site is international and has international visitors and what may be legal in one country
-                may not be legal in another. However, any information garnered from this site does not imply or
-                suggest human or any use at all.
+                VYTA ships to addresses within Canada only. We do not ship to any other country. Any
+                information garnered from this site does not imply or suggest human or any use at all.
               </p>
             </section>
 

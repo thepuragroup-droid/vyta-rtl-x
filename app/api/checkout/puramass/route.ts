@@ -32,6 +32,7 @@ import {
   type HostedShippingSettings,
 } from '@/lib/payments/puramass-settings';
 import { validateShippingAddress } from '@/lib/payments/puramass-address';
+import { isShippableCountry } from '@/lib/shipping/regions';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
 import {
   distributeAdDiscount,
@@ -318,6 +319,15 @@ export async function POST(req: NextRequest) {
     zip: body?.shipping?.zip,
     country: body?.shipping?.country,
   });
+  // Canada is the only place we ship. A country is only checked when one was
+  // sent, so a checkout without the address step still goes through.
+  const shipCountry = String(body?.shipping?.country ?? '').trim();
+  if (shipCountry && !isShippableCountry(shipCountry)) {
+    return NextResponse.json(
+      { error: 'We only ship within Canada.', fields: { country: 'We only ship within Canada.' } },
+      { status: 400 },
+    );
+  }
   if (shippingSettings.ratesEnabled && !address.ok) {
     return NextResponse.json(
       { error: 'Enter a complete shipping address.', fields: address.errors },
