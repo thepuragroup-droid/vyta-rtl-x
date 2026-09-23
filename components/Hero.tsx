@@ -21,6 +21,10 @@ import MapleLeaf, { MAPLE_RED } from '@/components/icons/MapleLeaf';
 const DEFAULT_HERO_IMAGE =
   'https://xbpdqpmdecsoshzttthl.supabase.co/storage/v1/object/public/assets/hero%20image.png';
 
+// Portrait still for phones and tablets (below lg), where the landscape hero
+// would be cropped to a sliver. Shipped with the site rather than admin-set.
+const MOBILE_HERO_IMAGE = '/images/hero-mobile.webp';
+
 // Film-grain texture overlay (inline SVG turbulence — no asset needed).
 const GRAIN_TEXTURE =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
@@ -48,10 +52,12 @@ const BAND_MASK_X =
 // Stacked, the copy runs the full width, so the ground thins downward instead
 // and hands the frame back above the badge strip. The fade starts lower down
 // than it does across: there is copy all the way to the buttons.
+// It clears out well before the badge strip so the vials in the portrait
+// mobile still (below the copy) read through.
 const BAND_TINT_Y =
-  'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.84) 50%, rgba(255,255,255,0.56) 70%, rgba(255,255,255,0.22) 84%, rgba(255,255,255,0) 94%)';
+  'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.84) 40%, rgba(255,255,255,0.5) 52%, rgba(255,255,255,0.18) 62%, rgba(255,255,255,0) 70%)';
 const BAND_MASK_Y =
-  'linear-gradient(180deg, #000 0%, #000 50%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,0.3) 84%, transparent 94%)';
+  'linear-gradient(180deg, #000 0%, #000 40%, rgba(0,0,0,0.65) 52%, rgba(0,0,0,0.25) 62%, transparent 70%)';
 
 const TRUST_BADGES = [
   { icon: ShieldCheck, label: '99%+\nPurity Guaranteed' },
@@ -93,11 +99,16 @@ export default function Hero() {
         style={prefersReducedMotion ? undefined : { y: mediaY }}
         className="absolute inset-x-0 -inset-y-[8%]"
       >
-        <img
-          src={heroImageUrl}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover hero-image-grade"
-        />
+        {/* Below lg the hero stacks into a tall, narrow frame, so it gets its
+            own portrait still; from lg up it is the admin-set image. */}
+        <picture>
+          <source media="(max-width: 1023px)" srcSet={MOBILE_HERO_IMAGE} />
+          <img
+            src={heroImageUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover object-[center_75%] lg:object-center hero-image-grade"
+          />
+        </picture>
       </motion.div>
 
       {/* Film grain */}
