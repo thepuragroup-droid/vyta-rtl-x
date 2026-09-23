@@ -70,8 +70,8 @@ const ASSURANCES = [
   },
   {
     icon: MapPin,
-    title: 'Canadian Company',
-    subtitle: 'Proudly based in Canada',
+    title: 'Proudly Canadian',
+    subtitle: 'Based and shipping in Canada',
   },
 ];
 
@@ -245,8 +245,7 @@ export default function ProductInfoTabs({
                   ))}
                 </ul>
                 <p className="text-xs text-ink-muted">
-                  International delivery times and any customs handling are determined by the
-                  destination country.
+                  We ship within Canada only.
                 </p>
               </div>
             )}

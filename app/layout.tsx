@@ -44,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${cfg.store_name} - ${cfg.store_tagline}`,
     description:
-      'Your trusted source for high-quality peptides worldwide. Fast shipping, secure payment options including cryptocurrency.',
+      'Your trusted source for high-quality peptides in Canada. Fast Canada-wide shipping, secure payment options including cryptocurrency.',
     keywords: 'peptides, research peptides, BPC-157, TB-500, laboratory peptides',
     icons: {
       icon: cfg.favicon_url || '/favicon.png',

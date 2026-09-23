@@ -24,7 +24,7 @@ interface Value {
 const VALUES: Value[] = [
   { icon: Gem, title: 'Verified Purity', detail: '99%+ pure compounds' },
   { icon: FlaskConical, title: 'Third-Party Tested', detail: 'Independent lab testing' },
-  { icon: MapleLeaf, title: 'Canadian Company', detail: 'Proudly based in Canada', accent: true },
+  { icon: MapleLeaf, title: 'Proudly Canadian', detail: 'Based and shipping in Canada', accent: true },
   { icon: Truck, title: 'Free & Discreet Shipping', detail: 'Secure and reliable' },
 ];
 

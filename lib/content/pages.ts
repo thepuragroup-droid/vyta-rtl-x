@@ -67,7 +67,7 @@ export const FALLBACK_ABOUT_PAGE: SitePage = {
       id: 'fb1',
       type: 'paragraph',
       lead: true,
-      text: 'VYTA Biosciences supplies research-grade peptides to laboratories, clinics and independent researchers worldwide.',
+      text: 'VYTA Biosciences supplies research-grade peptides to laboratories, clinics and independent researchers across Canada.',
     },
     {
       id: 'fb2',
@@ -76,7 +76,7 @@ export const FALLBACK_ABOUT_PAGE: SitePage = {
       items: [
         'Third-party tested — a certificate of analysis for every batch we ship.',
         'Clear documentation: purity, mass and identity, published with the product.',
-        'Fast, tracked worldwide shipping with responsive human support.',
+        'Fast, tracked shipping across Canada with responsive human support. We ship within Canada only.',
       ],
     },
     {
