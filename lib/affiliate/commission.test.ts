@@ -206,6 +206,7 @@ function paidSale(over: Partial<Record<string, unknown>> = {}) {
     if (call.table === 'affiliates') {
       return ok('affiliate' in over ? over.affiliate : { commission_rate: 0.1 });
     }
+    if (call.table === 'discount_codes') return ok(over.discountCode ?? null);
     return empty;
   });
   return { db, calls, inserted };
@@ -386,4 +387,91 @@ test('round2 keeps currency arithmetic off binary-float edges', () => {
   assert.equal(round2(42.004999), 42);
   assert.equal(round2(42.005), 42.01);
   assert.equal(round2(0.1 + 0.2), 0.3);
+});
+
+/* ------------------------------------------------------------------ */
+/* Discount codes                                                     */
+/* ------------------------------------------------------------------ */
+
+test('a discount code credits its own affiliate over the referral cookie', async () => {
+  const { db, inserted } = paidSale({
+    discountCode: { id: 'dc-1', affiliate_id: 'aff-code', commission_rate: null },
+  });
+
+  await recordAffiliateCommission(db, {
+    invoiceId: 'inv-dc-1',
+    subtotalCents: 10000,
+    referralCode: 'REF10', // belongs to aff-1
+    discountCodeId: 'dc-1',
+  });
+
+  assert.equal(inserted[0].affiliate_id, 'aff-code');
+  assert.equal(inserted[0].discount_code_id, 'dc-1');
+  assert.equal(inserted[0].referral_code_id, null);
+  assert.equal(inserted[0].amount, 10); // affiliate's own 10%
+});
+
+test("a code's commission rate is a percentage and overrides the affiliate's", async () => {
+  const { db, inserted } = paidSale({
+    discountCode: { id: 'dc-2', affiliate_id: 'aff-code', commission_rate: 1 },
+    affiliate: { commission_rate: 0.2 },
+  });
+
+  await recordAffiliateCommission(db, {
+    invoiceId: 'inv-dc-2',
+    subtotalCents: 20000,
+    discountCodeId: 'dc-2',
+  });
+
+  // 1% of $200 — not 100% (1 read as a fraction), not the affiliate's 20%.
+  assert.equal(inserted[0].amount, 2);
+  assert.equal(inserted[0].commission_rate, 1);
+});
+
+test('a 0% code books a zero commission but still records the sale', async () => {
+  const { db, inserted } = paidSale({
+    discountCode: { id: 'dc-3', affiliate_id: 'aff-code', commission_rate: 0 },
+  });
+
+  await recordAffiliateCommission(db, {
+    invoiceId: 'inv-dc-3',
+    subtotalCents: 20000,
+    discountCodeId: 'dc-3',
+  });
+
+  assert.equal(inserted[0].amount, 0);
+  assert.equal(inserted[0].order_total, 200);
+});
+
+test('a store code with no affiliate falls back to normal attribution', async () => {
+  const { db, inserted } = paidSale({
+    discountCode: { id: 'dc-4', affiliate_id: null, commission_rate: null },
+  });
+
+  await recordAffiliateCommission(db, {
+    invoiceId: 'inv-dc-4',
+    subtotalCents: 10000,
+    referralCode: 'REF10',
+    discountCodeId: 'dc-4',
+  });
+
+  assert.equal(inserted[0].affiliate_id, 'aff-1');
+  assert.equal(inserted[0].discount_code_id, undefined);
+});
+
+test('an affiliate using their own discount code earns nothing from it', async () => {
+  const { db, inserted } = paidSale({
+    discountCode: { id: 'dc-5', affiliate_id: 'cust-self', commission_rate: 50 },
+    code: null,
+  });
+
+  const res = await recordAffiliateCommission(db, {
+    invoiceId: 'inv-dc-5',
+    subtotalCents: 10000,
+    customerId: 'cust-self',
+    discountCodeId: 'dc-5',
+  });
+
+  assert.equal(res.recorded, false);
+  assert.equal(inserted.length, 0);
 });
