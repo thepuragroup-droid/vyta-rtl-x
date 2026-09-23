@@ -17,6 +17,7 @@ import { toggleAffiliateActive } from '@/lib/admin/api';
 import LeadPanel from '../../_components/LeadPanel';
 import EmailComposer from '../../_components/EmailComposer';
 import EditAffiliateModal from '../_components/EditAffiliateModal';
+import AffiliateCodesPayouts from '@/components/admin/affiliates/AffiliateCodesPayouts';
 import EditReferralCodeModal from '../_components/EditReferralCodeModal';
 import DeclineReferralCodeDialog from '../_components/DeclineReferralCodeDialog';
 import {
@@ -573,6 +574,9 @@ export default function AffiliateProfilePage() {
           </dl>
         </Panel>
       </div>
+
+      {/* Discount codes, revenue and payments */}
+      <AffiliateCodesPayouts affiliateId={a.id} affiliateName={name} editable={editable} />
 
       {/* What their referrals buy */}
       <Panel

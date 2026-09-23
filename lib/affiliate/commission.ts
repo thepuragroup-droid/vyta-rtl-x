@@ -117,6 +117,45 @@ export interface RecordCommissionInput {
   subtotalCents?: number | null;
   customerId?: string | null;
   referralCode?: string | null;
+  /**
+   * The discount code the buyer typed at checkout, if any. A code assigned to
+   * an affiliate is explicit attribution for this order and outranks both the
+   * bound customer and the referral cookie.
+   */
+  discountCodeId?: string | null;
+}
+
+interface DiscountCodeCredit {
+  affiliateId: string;
+  discountCodeId: string;
+  /** Percentage override on the code; null = the affiliate's own rate. */
+  commissionRate: number | null;
+}
+
+/**
+ * The affiliate a discount code credits, if it credits anyone. Self-use is
+ * refused at checkout already; it is re-checked here because this is where
+ * the money is booked.
+ */
+async function resolveDiscountCodeCredit(
+  db: SupabaseClient,
+  discountCodeId: string | null | undefined,
+  customerId: string | null | undefined,
+): Promise<DiscountCodeCredit | null> {
+  if (!discountCodeId) return null;
+  const { data, error } = await db
+    .from('discount_codes')
+    .select('id, affiliate_id, commission_rate')
+    .eq('id', discountCodeId)
+    .maybeSingle();
+  if (error || !data?.affiliate_id) return null;
+  if (customerId && data.affiliate_id === customerId) return null;
+  const rate = data.commission_rate == null ? null : Number(data.commission_rate);
+  return {
+    affiliateId: data.affiliate_id,
+    discountCodeId: data.id,
+    commissionRate: rate != null && Number.isFinite(rate) ? rate : null,
+  };
 }
 
 export type RecordCommissionResult =
@@ -157,7 +196,10 @@ export async function recordAffiliateCommission(
       .maybeSingle();
     if (existing) return { recorded: false, reason: 'already-recorded' };
 
-    const attribution = await resolveAffiliateAttribution(db, { customerId, referralCode });
+    const codeCredit = await resolveDiscountCodeCredit(db, input.discountCodeId, customerId);
+    const attribution = codeCredit
+      ? { affiliateId: codeCredit.affiliateId, referralCodeId: null, referralCode: null }
+      : await resolveAffiliateAttribution(db, { customerId, referralCode });
     if (!attribution) return { recorded: false, reason: 'no-attribution' };
 
     const base =
@@ -175,22 +217,31 @@ export async function recordAffiliateCommission(
       .eq('id', attribution.affiliateId)
       .maybeSingle();
 
-    const rate = normalizeCommissionRate(affiliate?.commission_rate);
+    // A code's own rate wins; 0% is a legitimate "discount only" code. It is
+    // a percentage, so it is not run through normalizeCommissionRate, which
+    // would read 1 (1%) as a fraction (100%).
+    const rate =
+      codeCredit?.commissionRate != null
+        ? Math.min(1, Math.max(0, codeCredit.commissionRate / 100))
+        : normalizeCommissionRate(affiliate?.commission_rate);
     const amount = round2(base * rate);
+
+    const row: Record<string, unknown> = {
+      affiliate_id: attribution.affiliateId,
+      invoice_id: invoiceId,
+      order_id: null,
+      referral_code_id: attribution.referralCodeId,
+      amount,
+      order_total: base,
+      // Stored as a percentage — that is what every reader renders.
+      commission_rate: round2(rate * 100),
+      status: 'pending',
+    };
+    if (codeCredit) row.discount_code_id = codeCredit.discountCodeId;
 
     const { data: commission, error } = await db
       .from('commissions')
-      .insert({
-        affiliate_id: attribution.affiliateId,
-        invoice_id: invoiceId,
-        order_id: null,
-        referral_code_id: attribution.referralCodeId,
-        amount,
-        order_total: base,
-        // Stored as a percentage — that is what every reader renders.
-        commission_rate: round2(rate * 100),
-        status: 'pending',
-      })
+      .insert(row)
       .select('id')
       .single();
 

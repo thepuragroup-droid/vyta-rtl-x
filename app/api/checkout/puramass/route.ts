@@ -46,6 +46,7 @@ import {
   shapeCartOfferSettings,
 } from '@/lib/promos/cart-offer';
 import { isCustomerFirstOrder } from '@/lib/promos/first-order';
+import { lookupDiscountCode } from '@/lib/affiliate/discount-codes';
 import { resolvePriceMap } from '@/lib/pricing/resolve';
 import { casePriceFor, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
 
@@ -298,6 +299,7 @@ export async function POST(req: NextRequest) {
   const firstName = String(body?.customer?.firstName ?? '').trim() || undefined;
   const lastName = String(body?.customer?.lastName ?? '').trim() || undefined;
   const referralCode = String(body?.referralCode ?? '').trim() || null;
+  const discountCodeInput = String(body?.discountCode ?? '').trim() || null;
 
   // 4b. Ship-to. Only collected when the buyer picks a live courier rate —
   //     with the flat fee there is nothing to quote, so PuraMass goes on
@@ -478,8 +480,39 @@ export async function POST(req: NextRequest) {
   const cartOfferSettings = shapeCartOfferSettings(settingsRow);
   const earnedOffer = qualifiesForCartOffer(cartOfferSettings, cartUnits);
 
+  // 8c. A discount code the buyer typed. Checked against the LIST subtotal of
+  //     exactly these lines, the same figure its minimum and any fixed amount
+  //     are measured in. A code that does not apply is an error the buyer can
+  //     fix, not something to drop silently on the way to the payment page.
+  //
+  //     It does not stack with the paid-ads welcome discount — the buyer gets
+  //     whichever is larger — but does stack with the cart offer, composed the
+  //     same way as every other pair.
+  const listSubtotalCents = [...linesBySku.values()].reduce(
+    (total, line) => total + line.unitPriceCents * line.quantity,
+    0,
+  );
+  let appliedCode: { id: string; code: string; percent: number } | null = null;
+  if (discountCodeInput) {
+    const lookup = await lookupDiscountCode(db, discountCodeInput, {
+      subtotal: listSubtotalCents / 100,
+      customerId,
+    });
+    if (!lookup.ok) {
+      return NextResponse.json(
+        { error: lookup.message, discount_code_error: true },
+        { status: 400 },
+      );
+    }
+    appliedCode = { id: lookup.code.id, code: lookup.code.code, percent: lookup.percent };
+  }
+
+  const adPercent = earnedAd ? adDiscountSettings.percent : 0;
+  const codeBeatsAd = appliedCode !== null && appliedCode.percent >= adPercent;
+  const usedAd = earnedAd && !codeBeatsAd;
   const discountPercent = combineDiscountPercents(
-    earnedAd ? adDiscountSettings.percent : 0,
+    usedAd ? adPercent : 0,
+    codeBeatsAd ? appliedCode!.percent : 0,
     earnedOffer ? cartOfferSettings.percent : 0,
   );
   const everyLinePriced = [...linesBySku.values()].every((line) => line.unitPriceCents > 0);
@@ -647,14 +680,31 @@ export async function POST(req: NextRequest) {
   // granted what. Null on every order that earned neither.
   const discountColumns: Record<string, unknown> = discount
     ? {
-        ad_discount_percent: earnedAd ? adDiscountSettings.percent : 0,
+        ad_discount_percent: usedAd ? adDiscountSettings.percent : 0,
         ad_discount_cents: discount.discountCents,
         cart_offer_percent: earnedOffer ? cartOfferSettings.percent : null,
         cart_offer_min_items: earnedOffer ? cartOfferSettings.minItems : null,
       }
     : {};
 
+  // The discount code, recorded whether or not the split landed: it is what
+  // credits the affiliate and counts against the code's usage limit.
+  // `discount_code_cents` is the code's own share of the saving — what it
+  // alone would have taken off the list subtotal.
+  const codeColumns: Record<string, unknown> = appliedCode
+    ? {
+        discount_code_id: appliedCode.id,
+        discount_code: appliedCode.code,
+        discount_code_percent: codeBeatsAd && discount ? appliedCode.percent : 0,
+        discount_code_cents:
+          codeBeatsAd && discount
+            ? Math.round((listSubtotalCents * appliedCode.percent) / 100)
+            : 0,
+      }
+    : {};
+
   const attempts: Record<string, unknown>[] = [
+    { ...base, ...attribution, ...addressColumns, ...shippingColumns, ...discountColumns, ...codeColumns },
     { ...base, ...attribution, ...addressColumns, ...shippingColumns, ...discountColumns },
     { ...base, ...attribution, ...addressColumns, ...shippingColumns },
     { ...base, ...attribution, ...addressColumns },
@@ -690,7 +740,9 @@ export async function POST(req: NextRequest) {
     // discounts landed, rather than asserting them from its own guess.
     // `ad_discount` is the whole saving in CAD, whichever promos made it up;
     // the percentages say which ones did.
-    ad_discount_percent: discount && earnedAd ? adDiscountSettings.percent : 0,
+    ad_discount_percent: discount && usedAd ? adDiscountSettings.percent : 0,
+    discount_code: appliedCode?.code ?? null,
+    discount_code_percent: discount && codeBeatsAd ? appliedCode!.percent : 0,
     cart_offer_percent: discount && earnedOffer ? cartOfferSettings.percent : 0,
     discount_percent: discount ? discount.percent : 0,
     ad_discount: discount ? discount.discountCents / 100 : 0,

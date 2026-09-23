@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  BarChart3, Receipt, Users, Clock, DollarSign, Copy, Check, ArrowRight,
+  BarChart3, Receipt, Users, Clock, DollarSign, Copy, Check, ArrowRight, Ticket, Banknote,
 } from 'lucide-react';
+import { payoutMethodLabel, type AffiliateBalance } from '@/lib/affiliate/payouts';
 import { useSmartLoad } from '@/lib/hooks/useSmartLoad';
 
 type MeSummary = {
@@ -226,8 +227,151 @@ function CommissionsTab() {
   );
 }
 
+type CodesResponse = {
+  summary: AffiliateBalance | null;
+  codes: {
+    code: string;
+    description: string;
+    commission_rate: number | null;
+    min_subtotal: number | null;
+    expires_at: string | null;
+    live: boolean;
+    orders: number;
+    revenue: number;
+    earned: number;
+  }[];
+  payouts: { id: string; amount: number; method: string; reference: string | null; paid_at: string }[];
+};
+
+function CodesTab() {
+  const { data, loading } = useSmartLoad<CodesResponse>('/api/affiliate/discount-codes');
+  const [copied, setCopied] = useState<string | null>(null);
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
+  const copy = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(`${origin}/checkout?discount=${code}`);
+      setCopied(code);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const s = data?.summary;
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {loading || !data ? (
+          <>
+            <StatSkeleton />
+            <StatSkeleton />
+            <StatSkeleton />
+            <StatSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard icon={BarChart3} tone="blue" label="Sales You Brought In" value={`$${(s?.revenue ?? 0).toFixed(2)}`} />
+            <StatCard icon={Receipt} tone="teal" label="Commission Earned" value={`$${(s?.earned ?? 0).toFixed(2)}`} />
+            <StatCard icon={DollarSign} tone="emerald" label="Paid To You" value={`$${(s?.paidOut ?? 0).toFixed(2)}`} />
+            <StatCard icon={Clock} tone="teal" label="Balance Owed" value={`$${Math.max(0, s?.balance ?? 0).toFixed(2)}`} />
+          </>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl border border-line overflow-hidden">
+        <div className="p-5 border-b border-line">
+          <h2 className="text-lg font-bold text-ink flex items-center gap-2"><Ticket className="w-4 h-4" /> Your Discount Codes</h2>
+          <p className="text-xs text-ink-muted mt-1">Customers enter these at checkout. Every paid order that uses one earns you commission.</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px]">
+            <thead>
+              <tr className="border-b border-line">
+                {['Code', 'Discount', 'Orders', 'Sales', 'Earned', ''].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-ink-muted uppercase tracking-wider">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line/50">
+              {(data?.codes ?? []).map((c) => (
+                <tr key={c.code}>
+                  <td className="px-5 py-4">
+                    <span className="font-mono text-sm font-semibold text-ink">{c.code}</span>
+                    {!c.live && <span className="ml-2 rounded bg-gray-500/10 px-1.5 py-0.5 text-[10px] text-ink-muted">Not active</span>}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-ink">
+                    {c.description}
+                    <span className="block text-[11px] text-ink-muted">
+                      {[
+                        c.commission_rate != null ? `${c.commission_rate}% commission` : null,
+                        c.min_subtotal ? `min $${c.min_subtotal.toFixed(2)}` : null,
+                        c.expires_at ? `ends ${new Date(c.expires_at).toLocaleDateString()}` : null,
+                      ].filter(Boolean).join(' · ')}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-sm text-ink tabular-nums">{c.orders}</td>
+                  <td className="px-5 py-4 text-sm text-ink tabular-nums">${c.revenue.toFixed(2)}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-emerald-600 tabular-nums">${c.earned.toFixed(2)}</td>
+                  <td className="px-5 py-4 text-right">
+                    <button
+                      onClick={() => copy(c.code)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-xs font-medium text-ink-muted hover:text-ink"
+                    >
+                      {copied === c.code ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy link</>}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {!loading && (data?.codes ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-12 text-center text-ink-muted text-sm">
+                    No discount codes yet — ask your account manager for one.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-line overflow-hidden">
+        <div className="p-5 border-b border-line">
+          <h2 className="text-lg font-bold text-ink flex items-center gap-2"><Banknote className="w-4 h-4" /> Payments Received</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px]">
+            <thead>
+              <tr className="border-b border-line">
+                {['Date', 'Amount', 'Method', 'Reference'].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-ink-muted uppercase tracking-wider">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line/50">
+              {(data?.payouts ?? []).map((p) => (
+                <tr key={p.id}>
+                  <td className="px-5 py-4 text-sm text-ink">{new Date(p.paid_at).toLocaleDateString()}</td>
+                  <td className="px-5 py-4 text-sm font-semibold text-ink tabular-nums">${p.amount.toFixed(2)}</td>
+                  <td className="px-5 py-4 text-sm text-ink">{payoutMethodLabel(p.method)}</td>
+                  <td className="px-5 py-4 font-mono text-xs text-ink-muted break-all">{p.reference || '—'}</td>
+                </tr>
+              ))}
+              {!loading && (data?.payouts ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-5 py-12 text-center text-ink-muted text-sm">No payments recorded yet.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AffiliateDashboard() {
-  const [tab, setTab] = useState<'overview' | 'commissions'>('overview');
+  const [tab, setTab] = useState<'overview' | 'commissions' | 'codes'>('overview');
 
   return (
     <div>
@@ -248,9 +392,17 @@ export default function AffiliateDashboard() {
         >
           <Receipt className="w-4 h-4" /> Commissions
         </button>
+        <button
+          onClick={() => setTab('codes')}
+          className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            tab === 'codes' ? 'border-ink text-ink' : 'border-transparent text-ink-muted hover:text-ink'
+          }`}
+        >
+          <Ticket className="w-4 h-4" /> Codes &amp; Payments
+        </button>
       </div>
 
-      {tab === 'overview' ? <OverviewTab /> : <CommissionsTab />}
+      {tab === 'overview' ? <OverviewTab /> : tab === 'commissions' ? <CommissionsTab /> : <CodesTab />}
     </div>
   );
 }

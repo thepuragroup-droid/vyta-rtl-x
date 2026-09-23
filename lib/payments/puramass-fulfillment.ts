@@ -311,8 +311,29 @@ async function creditAffiliate(
       subtotalCents: ledger.subtotal_cents ?? null,
       customerId: ledger.customer_id ?? null,
       referralCode: ledger.referral_code ?? null,
+      discountCodeId: await readDiscountCodeId(db, ledger.id),
     });
   } catch (err) {
     console.error('[puramass] affiliate commission failed:', err);
+  }
+}
+
+/**
+ * The discount code this hand-off used, if any. Read here rather than threaded
+ * through every caller's select: the webhook, poller and admin refresh each
+ * shed columns for unmigrated databases, and a missing column here simply
+ * means no code — the commission then falls back to referral attribution.
+ */
+async function readDiscountCodeId(db: SupabaseClient, ledgerId: string): Promise<string | null> {
+  try {
+    const { data, error } = await db
+      .from('puramass_orders')
+      .select('discount_code_id')
+      .eq('id', ledgerId)
+      .maybeSingle();
+    if (error) return null;
+    return (data?.discount_code_id as string | null) ?? null;
+  } catch {
+    return null;
   }
 }

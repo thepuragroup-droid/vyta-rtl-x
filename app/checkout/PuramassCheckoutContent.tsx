@@ -24,6 +24,8 @@ import {
   HelpCircle,
   BadgePercent,
   Gift,
+  Ticket,
+  X,
 } from "lucide-react";
 import { useCart, type PurchaseUnit } from "@/contexts/CartContext";
 import { useCustomer } from "@/contexts/CustomerContext";
@@ -252,6 +254,28 @@ function AddonRow({
 }
 
 /** Read the referral code captured by middleware (best-effort). */
+interface AppliedDiscountCode {
+  code: string;
+  discountType: "percent" | "fixed";
+  discountValue: number;
+  description: string;
+}
+
+/**
+ * The percentage a code takes off this subtotal. A fixed amount is re-measured
+ * against the live subtotal, so it stays right as the cart changes; capped at
+ * 99% like every other discount, since a zero line price is charged at list.
+ */
+function discountCodePercent(code: AppliedDiscountCode, subtotal: number): number {
+  const raw =
+    code.discountType === "fixed"
+      ? subtotal > 0
+        ? (code.discountValue / subtotal) * 100
+        : 0
+      : code.discountValue;
+  return Math.min(99, Math.max(0, Math.round(raw * 100) / 100));
+}
+
 function readReferralCode(): string {
   if (typeof document === "undefined") return "";
   const row = document.cookie.split("; ").find((r) => r.startsWith("ref_code="));
@@ -309,6 +333,14 @@ export default function PuramassCheckoutContent({
   const [referralCode, setReferralCode] = useState("");
   const [addons, setAddons] = useState<AddonProduct[]>([]);
 
+  // ---- Discount code ----
+  // Display only, like the promos above: the hand-off looks the code up again
+  // against the catalog-priced cart and decides what comes off.
+  const [codeInput, setCodeInput] = useState("");
+  const [appliedCode, setAppliedCode] = useState<AppliedDiscountCode | null>(null);
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeChecking, setCodeChecking] = useState(false);
+
   // ---- Shipping ----
   const [shipping, setShipping] = useState<ShippingForm>(EMPTY_SHIPPING);
   const [addressErrors, setAddressErrors] = useState<ShippingAddressErrors>({});
@@ -325,6 +357,61 @@ export default function PuramassCheckoutContent({
   useEffect(() => {
     setReferralCode(readReferralCode());
   }, []);
+
+  const applyDiscountCode = async (raw: string) => {
+    const code = raw.trim();
+    if (!code) return;
+    setCodeChecking(true);
+    setCodeError(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch("/api/checkout/discount-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ code, subtotal: totalPrice }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (json?.ok) {
+        setAppliedCode({
+          code: json.code,
+          discountType: json.discount_type === "fixed" ? "fixed" : "percent",
+          discountValue: Number(json.discount_value) || 0,
+          description: json.description,
+        });
+        setCodeInput(json.code);
+      } else {
+        setAppliedCode(null);
+        setCodeError(json?.error || "That code isn't valid.");
+      }
+    } catch {
+      setCodeError("Could not check that code. Please try again.");
+    } finally {
+      setCodeChecking(false);
+    }
+  };
+
+  // A shared link can carry a code (`/checkout?discount=SPRING20`), the way an
+  // affiliate hands one out. Applied once the cart has a subtotal to check.
+  const [linkCodeTried, setLinkCodeTried] = useState(false);
+  useEffect(() => {
+    if (linkCodeTried || totalPrice <= 0) return;
+    setLinkCodeTried(true);
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const fromLink = params.get("discount") || params.get("code");
+      if (fromLink) {
+        setCodeInput(fromLink);
+        void applyDiscountCode(fromLink);
+      }
+    } catch {
+      /* no URL to read */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalPrice, linkCodeTried]);
 
   // Checkout upsell — products flagged is_checkout_addon. Only forms PuraMass
   // can fulfil are offered (a valid 10-pack and/or vial SKU); store stock is
@@ -442,13 +529,28 @@ export default function PuramassCheckoutContent({
   // server may round a cent further in the buyer's favour when it splits this
   // across the line prices, so these are a floor on the saving rather than an
   // exact promise of the charge.
-  const adSaving = adDiscountOn(totalPrice);
-  const offerSaving = cartOffer.amountOn(Math.max(0, totalPrice - adSaving));
-  const discount = adSaving + offerSaving;
+  //
+  // A discount code does not stack with the first-order discount: the larger
+  // of the two applies, the same rule the hand-off uses.
+  const welcomeSaving = adDiscountOn(totalPrice);
+  const welcomePercent = welcomeSaving > 0 ? adDiscount.percent : 0;
+  const codePercent = appliedCode ? discountCodePercent(appliedCode, totalPrice) : 0;
+  const codeWins = appliedCode !== null && codePercent > 0 && codePercent >= welcomePercent;
+  const codeSaving = codeWins ? Math.round(totalPrice * codePercent) / 100 : 0;
+  const adSaving = codeWins ? 0 : welcomeSaving;
+  const firstSaving = codeSaving + adSaving;
+  const offerSaving = cartOffer.amountOn(Math.max(0, totalPrice - firstSaving));
+  const discount = firstSaving + offerSaving;
   const discountedSubtotal = Math.max(0, totalPrice - discount);
   const showDiscount = discount > 0;
   const showAdDiscount = adDiscountEligible && adSaving > 0;
   const showOfferDiscount = offerSaving > 0;
+  const showCodeDiscount = codeSaving > 0;
+  const appliedLabels = [
+    showCodeDiscount && appliedCode ? `code ${appliedCode.code}` : null,
+    showAdDiscount ? `${adDiscount.percent}% first-order discount` : null,
+    showOfferDiscount ? `${cartOffer.percent}% limited-time offer` : null,
+  ].filter(Boolean) as string[];
 
   // A live picker means a delivery method has to be chosen before paying;
   // otherwise there is only one shipping price and nothing to pick.
@@ -577,6 +679,7 @@ export default function PuramassCheckoutContent({
             }
           : undefined,
         referralCode: referralCode || undefined,
+        discountCode: appliedCode?.code || undefined,
       };
 
       const res = await fetch("/api/checkout/puramass", {
@@ -590,7 +693,14 @@ export default function PuramassCheckoutContent({
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        if (res.status === 409 && Array.isArray(json.unmapped)) {
+        if (json.discount_code_error) {
+          // The code stopped applying between preview and pay (the cart
+          // shrank under its minimum, or it hit its limit). Drop it so the
+          // buyer can pay without it or try another.
+          setAppliedCode(null);
+          setCodeError(json.error || "That code no longer applies.");
+          setError(`${json.error || "That discount code no longer applies."} Remove it or try another to continue.`);
+        } else if (res.status === 409 && Array.isArray(json.unmapped)) {
           setUnmapped(json.unmapped);
           setError("Some items aren't available for the secure hosted checkout.");
         } else if (res.status === 409 && Array.isArray(json.rates)) {
@@ -1189,6 +1299,73 @@ export default function PuramassCheckoutContent({
                     )}
                   </div>
 
+                  {/* ---- Discount code ---- */}
+                  <div className="mt-4 pt-4 border-t border-line">
+                    <label
+                      htmlFor="discount-code"
+                      className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-ink"
+                    >
+                      <Ticket className="h-3.5 w-3.5 text-ink-muted" />
+                      Discount code
+                    </label>
+                    {appliedCode ? (
+                      <div className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                        <span className="text-sm text-emerald-800">
+                          <span className="font-mono font-semibold">{appliedCode.code}</span>
+                          <span className="ml-2 text-xs">{appliedCode.description}</span>
+                          {!codeWins && codePercent > 0 && (
+                            <span className="mt-0.5 block text-[11px] text-emerald-700">
+                              Your first-order discount is larger, so it applies instead.
+                            </span>
+                          )}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAppliedCode(null);
+                            setCodeInput("");
+                            setCodeError(null);
+                          }}
+                          className="rounded p-1 text-emerald-700 transition-colors hover:bg-emerald-100"
+                          aria-label="Remove discount code"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <form
+                        className="flex gap-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          void applyDiscountCode(codeInput);
+                        }}
+                      >
+                        <input
+                          id="discount-code"
+                          value={codeInput}
+                          onChange={(e) => {
+                            setCodeInput(e.target.value.toUpperCase());
+                            setCodeError(null);
+                          }}
+                          placeholder="Enter code"
+                          autoComplete="off"
+                          className="min-w-0 flex-1 rounded-lg border border-line bg-white px-3 py-2 font-mono text-sm uppercase text-ink placeholder:font-sans placeholder:normal-case placeholder:text-ink-muted focus:border-teal focus:outline-none"
+                        />
+                        <button
+                          type="submit"
+                          disabled={codeChecking || !codeInput.trim()}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface disabled:opacity-50"
+                        >
+                          {codeChecking && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                          Apply
+                        </button>
+                      </form>
+                    )}
+                    {codeError && (
+                      <p className="mt-1.5 text-xs text-amber-700">{codeError}</p>
+                    )}
+                  </div>
+
                   {/* ---- Totals ---- */}
                   <div className="mt-4 pt-4 border-t border-line space-y-2">
                     <div className="flex items-center justify-between">
@@ -1197,6 +1374,17 @@ export default function PuramassCheckoutContent({
                         ${totalPrice.toFixed(2)}
                       </span>
                     </div>
+                    {showCodeDiscount && appliedCode && (
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1.5 text-sm text-emerald-700">
+                          <Ticket className="h-3.5 w-3.5" />
+                          Code {appliedCode.code}
+                        </span>
+                        <span className="text-sm font-semibold text-emerald-700 tabular-nums">
+                          -${codeSaving.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                     {showAdDiscount && (
                       <div className="flex items-center justify-between">
                         <span className="inline-flex items-center gap-1.5 text-sm text-emerald-700">
@@ -1247,11 +1435,8 @@ export default function PuramassCheckoutContent({
                       <BadgePercent className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" />
                       <div className="text-[11px] leading-snug text-emerald-800">
                         <p className="font-semibold">
-                          {showAdDiscount && showOfferDiscount
-                            ? `Your ${adDiscount.percent}% first-order discount and ${cartOffer.percent}% offer are already applied.`
-                            : showOfferDiscount
-                              ? `Your ${cartOffer.percent}% limited-time offer is already applied.`
-                              : `Your ${adDiscount.percent}% first-order discount is already applied.`}
+                          Your {appliedLabels.join(" and ")}{" "}
+                          {appliedLabels.length > 1 ? "are" : "is"} already applied.
                         </p>
                         <p className="mt-0.5 text-emerald-700">
                           The secure checkout page shows the discounted prices —
