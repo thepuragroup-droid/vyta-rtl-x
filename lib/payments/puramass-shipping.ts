@@ -170,8 +170,12 @@ export function selectHostedRate(
 ): HostedShippingRate | null {
   const id = String(courierId ?? '').trim();
   if (!id) return null;
+  const match = rates.find((r) => r.courier_id === id);
+  if (match) return match;
+  // The quote's own flat rate carries the configured fee; the bare default is
+  // only a last resort when the quote didn't include one.
   if (id === PURAMASS_FLAT_COURIER_ID) return flatHostedRate();
-  return rates.find((r) => r.courier_id === id) ?? null;
+  return null;
 }
 
 /**
