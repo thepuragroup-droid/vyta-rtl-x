@@ -49,6 +49,7 @@ import {
 import type { ShippingAddressErrors } from "@/lib/payments/puramass-address";
 import FreeShippingProgress from "@/components/FreeShippingProgress";
 import { usePromos } from "@/contexts/PromosContext";
+import { isValidPhone } from "@/lib/phone";
 
 interface AddonProduct {
   id: string;
@@ -327,6 +328,7 @@ export default function PuramassCheckoutContent({
   const { adDiscount, adDiscountEligible, adDiscountOn, cartOffer } = usePromos();
 
   const [email, setEmail] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -509,6 +511,7 @@ export default function PuramassCheckoutContent({
     setEmail((e) => e || customer.email || "");
     setFirstName((f) => f || customer.first_name || "");
     setLastName((l) => l || customer.last_name || "");
+    setShipping((f) => (f.phone ? f : { ...f, phone: customer.phone || "" }));
   }, [customer]);
 
   const emailValid = emailRegex.test(email.trim());
@@ -571,6 +574,7 @@ export default function PuramassCheckoutContent({
   // otherwise there is only one shipping price and nothing to pick.
   const deliveryChosen = !shippingRatesEnabled || !ratesLive || !!selectedRate;
   const namesValid = firstName.trim() !== "" && lastName.trim() !== "";
+  const phoneValid = isValidPhone(shipping.phone);
   // With live rates on, the flat fee is only a fallback: until a quote has
   // come back (and, if live, a courier is picked) there is no shipping price
   // to show, so the summary says what's still needed instead of a number.
@@ -579,6 +583,7 @@ export default function PuramassCheckoutContent({
   const canSubmit =
     emailValid &&
     namesValid &&
+    phoneValid &&
     (!shippingRatesEnabled || addressReady) &&
     !ratesLoading &&
     deliveryChosen;
@@ -703,6 +708,7 @@ export default function PuramassCheckoutContent({
           email: email.trim(),
           firstName: firstName.trim() || undefined,
           lastName: lastName.trim() || undefined,
+          phone: shipping.phone.trim(),
         },
         // Ship-to + the delivery method chosen above. Only the courier's id
         // travels: the server re-quotes and prices it, so nothing the browser
@@ -988,6 +994,33 @@ export default function PuramassCheckoutContent({
                     </div>
                   </div>
 
+                  <div>
+                    <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
+                      Phone <span className="text-teal-dark">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={shipping.phone}
+                      onChange={(e) => setShip({ phone: e.target.value })}
+                      onBlur={() => setPhoneTouched(true)}
+                      placeholder="(416) 555-0199"
+                      required
+                      autoComplete="tel"
+                      inputMode="tel"
+                      className={INPUT_CLASS}
+                    />
+                    <FieldError
+                      message={
+                        phoneTouched && !phoneValid
+                          ? "Enter a valid phone number (at least 10 digits)."
+                          : addressErrors.phone
+                      }
+                    />
+                    <p className="mt-1.5 text-[11px] leading-snug text-ink-muted">
+                      Used only if we or the courier need to reach you about your order.
+                    </p>
+                  </div>
+
                   {/* ---- Ship-to. Only asked for when a courier has to quote it. ---- */}
                   {shippingRatesEnabled && (
                     <div className="border-t border-line pt-4 mt-1">
@@ -1106,24 +1139,6 @@ export default function PuramassCheckoutContent({
                             />
                           )}
                           <FieldError message={addressErrors.state} />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
-                            Phone
-                          </label>
-                          <input
-                            type="tel"
-                            value={shipping.phone}
-                            onChange={(e) => setShip({ phone: e.target.value })}
-                            placeholder="Optional"
-                            autoComplete="tel"
-                            className={INPUT_CLASS}
-                          />
-                          <p className="mt-1.5 text-[11px] leading-snug text-ink-muted">
-                            Only used if the courier needs to reach you about the delivery.
-                            Leave it blank and we&apos;ll give them our number instead.
-                          </p>
                         </div>
                       </div>
                     </div>
@@ -1552,6 +1567,8 @@ export default function PuramassCheckoutContent({
                       ? "Enter a valid email to continue."
                       : !namesValid
                         ? "Enter your first and last name to continue."
+                        : !phoneValid
+                          ? "Enter a valid phone number to continue."
                         : shippingRatesEnabled && !addressReady
                           ? "Enter your shipping address to continue."
                           : ratesLoading

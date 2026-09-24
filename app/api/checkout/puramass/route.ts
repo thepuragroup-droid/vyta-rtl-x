@@ -52,6 +52,7 @@ import { isCustomerFirstOrder } from '@/lib/promos/first-order';
 import { lookupDiscountCode } from '@/lib/affiliate/discount-codes';
 import { resolvePriceMap } from '@/lib/pricing/resolve';
 import { packPriceFor, round2, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
+import { isValidPhone } from '@/lib/phone';
 
 // All access is server-side against the service-role client (RLS-bypassing).
 const db = createClient(
@@ -322,6 +323,14 @@ export async function POST(req: NextRequest) {
   if (!firstName || !lastName) {
     return NextResponse.json({ error: 'Enter your first and last name.' }, { status: 400 });
   }
+  // Required on every checkout, whether or not a ship-to is collected here.
+  const phone = String(body?.customer?.phone ?? body?.shipping?.phone ?? '').trim();
+  if (!isValidPhone(phone)) {
+    return NextResponse.json(
+      { error: 'Enter a valid phone number.', fields: { phone: 'Enter a valid phone number.' } },
+      { status: 400 },
+    );
+  }
   const referralCode = String(body?.referralCode ?? '').trim() || null;
   const discountCodeInput = String(body?.discountCode ?? '').trim() || null;
 
@@ -336,7 +345,7 @@ export async function POST(req: NextRequest) {
     full_name:
       [firstName, lastName].filter(Boolean).join(' ').trim() ||
       String(body?.shipping?.full_name ?? '').trim(),
-    phone: body?.shipping?.phone,
+    phone,
     address: body?.shipping?.address,
     address2: body?.shipping?.address2,
     city: body?.shipping?.city,
@@ -652,7 +661,7 @@ export async function POST(req: NextRequest) {
   try {
     order = await createPuramassOrder({
       items,
-      customer: { email, first_name: firstName, last_name: lastName },
+      customer: { email, first_name: firstName, last_name: lastName, phone },
       partnerReference,
       currency: PURAMASS_CURRENCY,
       shippingTotalCents,
@@ -811,7 +820,7 @@ export async function POST(req: NextRequest) {
         (address.ok ? address.value.full_name : '') ||
         [firstName, lastName].filter(Boolean).join(' ') ||
         null,
-      customerPhone: address.ok ? address.value.phone ?? null : null,
+      customerPhone: phone,
       lines: invoiceLines,
       subtotal: chargedSubtotal,
       shipping: shippingTotalCents / 100,
