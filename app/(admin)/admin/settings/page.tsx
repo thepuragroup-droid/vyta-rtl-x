@@ -187,8 +187,11 @@ export default function SettingsPage() {
 
   const handleSavePuramassFlatShipping = () => {
     if (isReadOnly) return;
-    const amount = Number(puramassFlatShippingInput);
-    if (!Number.isFinite(amount) || amount < 0) {
+    // A blank box shows the default as its placeholder, but Number('') is 0 —
+    // saving it would silently make shipping free while the field read "35".
+    const raw = puramassFlatShippingInput.trim();
+    const amount = Number(raw);
+    if (raw === '' || !Number.isFinite(amount) || amount < 0) {
       toast.error('Enter a shipping fee of zero or more.');
       return;
     }

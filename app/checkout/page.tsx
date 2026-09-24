@@ -2433,7 +2433,11 @@ function CheckoutRouter() {
         if (cancelled) return;
         setGuestCheckoutEnabled(s.guest_checkout_enabled ?? true);
         setShippingRatesEnabled(!!s.puramass_shipping_rates_enabled);
-        setFlatShipping(Number(s.puramass_flat_shipping) || DEFAULT_FLAT_SHIPPING);
+        // The fee the hand-off will actually charge. `||` here once turned a
+        // stored 0 into the $35 default, so the page quoted shipping the
+        // server then sent as $0.
+        const flat = Number(s.puramass_flat_shipping);
+        setFlatShipping(Number.isFinite(flat) && flat >= 0 ? flat : DEFAULT_FLAT_SHIPPING);
         setFreeShipping({
           active: !!s.puramass_free_shipping_active,
           threshold: Number(s.puramass_free_shipping_threshold) || 0,
