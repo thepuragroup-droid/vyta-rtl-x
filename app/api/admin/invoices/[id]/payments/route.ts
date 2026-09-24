@@ -43,7 +43,7 @@ export async function POST(
   if (!amt || amt <= 0) {
     return NextResponse.json({ error: 'Amount must be positive' }, { status: 400 });
   }
-  if (!['card', 'e-transfer', 'cash', 'other'].includes(method)) {
+  if (!['card', 'cash', 'other'].includes(method)) {
     return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 });
   }
 

@@ -80,6 +80,7 @@ export type InvoiceStatus =
   // flipped to `paid` — or to `expired` if the payment link lapses unpaid.
   | 'pending_payment'
   | 'expired';
+// 'e-transfer' is no longer accepted for new payments; kept so historical rows still type-check.
 export type PaymentMethod = 'card' | 'e-transfer' | 'cash' | 'other';
 
 export interface Invoice {
