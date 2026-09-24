@@ -226,7 +226,7 @@ export default function SettingsPage() {
   const runCleanupSkus = useCallback(async () => {
     if (
       !window.confirm(
-        'Clear all PuraMass SKU mappings whose value is not prefixed "aminocan-"? You can re-run Sync afterward.',
+        'Clear all Stealth Health SKU mappings whose value is not prefixed "vyta-"? You can re-run Sync afterward.',
       )
     ) {
       return;
@@ -723,14 +723,14 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <p className="text-sm font-medium text-ink">Product SKU mapping</p>
-              <p className="text-xs text-ink-muted">Match your products to PuraMass catalog SKUs by name + strength.</p>
+              <p className="text-xs text-ink-muted">Match your products to Stealth Health catalog SKUs by name + strength.</p>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={runCleanupSkus} disabled={isReadOnly || puramassCleaning}
-                title="Clear mappings whose SKU is not prefixed aminocan-"
+                title="Clear mappings whose SKU is not prefixed vyta-"
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-teal/40 disabled:opacity-50">
                 <Trash2 className={`w-4 h-4 ${puramassCleaning ? 'animate-pulse' : ''}`} />
-                {puramassCleaning ? 'Cleaning…' : 'Clean up non-aminocan SKUs'}
+                {puramassCleaning ? 'Cleaning…' : 'Clean up non-vyta SKUs'}
               </button>
               <button onClick={runSyncSkus} disabled={isReadOnly || puramassSyncing}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-ink text-white rounded-lg text-sm font-medium hover:bg-ink/90 disabled:opacity-50">
@@ -747,7 +747,7 @@ export default function SettingsPage() {
               vials {puramassCleanup.cleared_vial}) on{' '}
               <span className="font-semibold">{puramassCleanup.cleared_products}</span> product
               {puramassCleanup.cleared_products === 1 ? '' : 's'} not prefixed{' '}
-              <span className="font-mono text-xs">aminocan-</span>.
+              <span className="font-mono text-xs">vyta-</span>.
               {puramassCleanup.products.length > 0 && (
                 <span className="block mt-1 text-xs text-ink-muted">
                   {puramassCleanup.products.join(', ')}
@@ -766,7 +766,7 @@ export default function SettingsPage() {
               </div>
               <p className="text-xs text-ink-muted">
                 Catalog source: <span className="font-medium text-ink">{puramassReport.source}</span>{' '}
-                ({puramassReport.partner_catalog_count} <span className="font-mono">aminocan-</span> SKUs
+                ({puramassReport.partner_catalog_count} <span className="font-mono">vyta-</span> SKUs
                 of {puramassReport.catalog_count} · packs {puramassReport.by_mapping.box.updated},
                 vials {puramassReport.by_mapping.vial.updated} mapped)
               </p>

@@ -20,7 +20,7 @@ const db = createClient(
 
 // Only our own partner SKUs (this namespace) are mapped. Any other SKU in the
 // catalog response is ignored by the sync and purged by the cleanup route.
-const VYTA_SKU_PREFIX = 'aminocan-';
+const VYTA_SKU_PREFIX = 'vyta-';
 
 type Mapping = 'box' | 'vial';
 
@@ -40,9 +40,9 @@ async function verifyAdmin(req: NextRequest) {
 
 /**
  * POST /api/admin/puramass/sync-skus — auto-fill `products.puramass_sku`
- * (10-pack) and `products.puramass_sku_vial` (single vial) by matching each
+ * (case) and `products.puramass_sku_vial` (single vial) by matching each
  * product against the PuraMass catalog. The catalog is split by SKU suffix into
- * a box set (…-10-pack / general) and a vial set (…-vial); each product is
+ * a box set (…-case / general) and a vial set (…-vial); each product is
  * matched against both. Only `exact`/`matched` results are written;
  * `ambiguous`/`unmatched` are reported per mapping for a human. Admin only.
  */
@@ -74,13 +74,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Only target our own partner SKUs — those prefixed `aminocan-`. Any other
+  // Only target our own partner SKUs — those prefixed `vyta-`. Any other
   // SKU in the catalog response (general / other-partner) is left alone.
   const partnerCatalog = catalog.filter((c) =>
     c.sku.toLowerCase().startsWith(VYTA_SKU_PREFIX),
   );
   // Split by SKU suffix: vial set = …-vial; box set = everything else
-  // (…-10-pack and general products within the aminocan- namespace).
+  // (…-case and general products within the vyta- namespace).
   const vialCatalog = partnerCatalog.filter((c) => c.sku.toLowerCase().endsWith('-vial'));
   const boxCatalog = partnerCatalog.filter((c) => !c.sku.toLowerCase().endsWith('-vial'));
 
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
     const result = matchProductToPuramass(p.name, p.strength, catalogSet);
 
     // Only ever write a SKU in our own namespace. A match that somehow lands on
-    // a non-`aminocan-` SKU is treated as unmatched (never written).
+    // a non-`vyta-` SKU is treated as unmatched (never written).
     const matchedIsPartner =
       !!result.sku && result.sku.toLowerCase().startsWith(VYTA_SKU_PREFIX);
 

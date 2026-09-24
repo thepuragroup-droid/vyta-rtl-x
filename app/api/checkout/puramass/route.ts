@@ -49,7 +49,7 @@ import {
 import { isCustomerFirstOrder } from '@/lib/promos/first-order';
 import { lookupDiscountCode } from '@/lib/affiliate/discount-codes';
 import { resolvePriceMap } from '@/lib/pricing/resolve';
-import { casePriceFor, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
+import { packPriceFor, round2, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
 
 // All access is server-side against the service-role client (RLS-bypassing).
 const db = createClient(
@@ -144,38 +144,58 @@ async function readSiteSettings(): Promise<Record<string, any>> {
  * browser that could name its own prices could hand itself either.
  *
  * Priced through the same chain the storefront quotes from (customer override >
- * active pricelist > products.price, then the vial/pack rule), so what is
- * checked here is what the buyer saw in their cart. A line we cannot price at
- * all comes back at zero and simply contributes nothing to the subtotal — the
- * same behaviour the threshold has always had.
+ * active pricelist > products.price, then the pack rule), the same way the
+ * regular order route does, so what is sent is the pack price the buyer saw
+ * in their cart. A line we cannot price comes back at zero, which the caller
+ * refuses to send.
+ *
+ * Keyed by `${product id}::${pack size}`, and priced per PACK: one unit of a
+ * 5-pack line is the 5-pack's price.
  */
 async function priceCartLines(
-  lines: { id: string; mapping: 'box' | 'vial'; units: number }[],
+  lines: { id: string; packSize: number }[],
   products: Map<string, any>,
   customerId: string | null,
 ): Promise<Map<string, number>> {
   const ids = [...new Set(lines.map((l) => l.id))];
-  let priceMap = new Map<string, { price: number }>();
+  let priceMap = new Map<string, { price: number; source: string; base: number }>();
   try {
     priceMap = await resolvePriceMap(db, { customerId, productIds: ids });
   } catch (err) {
     console.error('[puramass] price resolution failed:', err);
   }
 
-  // Keyed by product + mapping: the same product can appear as both a pack and
-  // a single vial, at two different unit prices.
   const unitCents = new Map<string, number>();
   for (const line of lines) {
     const product = products.get(line.id);
     if (!product) continue;
-    const priced = {
-      price: priceMap.get(line.id)?.price ?? Number(product.price ?? 0),
-      vial_price: product.vial_price ?? null,
-      vials_per_box: product.vials_per_box ?? null,
+    const vialsPerBox = vialsPerBoxOf(product.vials_per_box);
+    const resolved = priceMap.get(line.id) ?? {
+      price: Number(product.price ?? 0),
+      source: 'base',
+      base: Number(product.price ?? 0),
     };
-    const unit = line.mapping === 'vial' ? vialPriceFor(priced) : casePriceFor(priced);
+    // Same rule as app/api/orders-email: a pricelist / per-customer override
+    // restates the per-vial price and drops the catalog's fixed pack prices.
+    const vialPrice =
+      resolved.source === 'base'
+        ? vialPriceFor({
+            price: resolved.base,
+            vial_price: product.vial_price ?? null,
+            vials_per_box: vialsPerBox,
+          })
+        : round2(resolved.price / vialsPerBox);
+    const unit = packPriceFor(
+      {
+        price: resolved.base,
+        vial_price: vialPrice,
+        vials_per_box: vialsPerBox,
+        pack_options: resolved.source === 'base' ? (product.pack_options ?? null) : null,
+      },
+      line.packSize,
+    );
     unitCents.set(
-      `${line.id}::${line.mapping}`,
+      `${line.id}::${line.packSize}`,
       Number.isFinite(unit) && unit > 0 ? Math.round(unit * 100) : 0,
     );
   }
@@ -383,7 +403,7 @@ export async function POST(req: NextRequest) {
   let products: any[] = [];
   const withVial = await db
     .from('products')
-    .select('id, name, price, vial_price, vials_per_box, puramass_sku, puramass_sku_vial')
+    .select('id, name, price, vial_price, vials_per_box, pack_options, puramass_sku, puramass_sku_vial')
     .in('id', ids);
   if (withVial.error) {
     const boxOnly = await db
@@ -399,50 +419,52 @@ export async function POST(req: NextRequest) {
   }
   const byId = new Map(products.map((p) => [p.id, p]));
 
-  // 7a. Decide each line's SKU mapping now that the case size is known.
-  //     PuraMass only stocks two forms per product: a single vial and a full
-  //     10-pack. A line whose pack size IS the product's case maps to the box
-  //     SKU; EVERY other pack — a 3-pack, a 5-pack, a single vial — is
-  //     fulfilled as that many single vials, because there is no PuraMass SKU
-  //     for a partial pack and dividing by it would ship the wrong quantity.
-  const normalized: { id: string; mapping: 'box' | 'vial'; units: number }[] = [];
+  // 7a. Decide each line's SKU now that the products are loaded. Stealth
+  //     Health stocks two SKUs per product: a single vial (`puramass_sku_vial`)
+  //     and a case (`puramass_sku`). A single vial maps to the vial SKU; EVERY
+  //     pack of more than one — a 3-pack, a 5-pack, a 10-pack, a 20-pack —
+  //     maps to the case SKU, one unit per pack, priced at that pack's own
+  //     price (`unit_price_cents` below).
+  const normalized: { id: string; mapping: 'box' | 'vial'; packSize: number; units: number }[] = [];
   for (const line of rawLines) {
-    const perBox = vialsPerBoxOf(byId.get(line.id)?.vials_per_box);
-    const asBox = line.packSize > 1 && line.packSize === perBox;
+    const asBox = line.packSize > 1;
     normalized.push({
       id: line.id,
       mapping: asBox ? 'box' : 'vial',
-      units: clampPacks(asBox ? Math.round(line.vials / perBox) : line.vials),
+      packSize: asBox ? line.packSize : 1,
+      units: clampPacks(asBox ? Math.max(1, Math.round(line.vials / line.packSize)) : line.vials),
     });
   }
 
-  // 8. Merge lines by resolved SKU, carrying our own unit price alongside the
-  //    quantity; collect any unmapped products. A vial line with no vial
-  //    mapping is tagged so the customer sees the specific form.
+  // 8. Merge lines by SKU AND pack size, carrying our own price for one unit
+  //    alongside the quantity; collect any unmapped products. A 5-pack and a
+  //    10-pack of one product share the case SKU at different prices, so they
+  //    travel as separate lines rather than being merged at one price.
   //
-  //    Two cart lines can land on one SKU (the same product added twice), so
-  //    quantities are summed and re-clamped — and the discount below is worked
-  //    out from THESE merged lines, after the clamp, so what it is measured
-  //    against is exactly what gets sent.
+  //    The same pack added twice is summed and re-clamped — and the discount
+  //    below is worked out from THESE merged lines, after the clamp, so what it
+  //    is measured against is exactly what gets sent.
   const unitCentsByLine = await priceCartLines(normalized, byId, customerId);
-  const linesBySku = new Map<string, { quantity: number; unitPriceCents: number }>();
+  const linesBySku = new Map<string, { sku: string; quantity: number; unitPriceCents: number }>();
   const unmapped: string[] = [];
   for (const line of normalized) {
     const product = byId.get(line.id);
     const sku = (line.mapping === 'vial' ? product?.puramass_sku_vial : product?.puramass_sku)?.trim();
     if (!sku) {
       const base = product?.name ?? line.id;
-      const label = line.mapping === 'vial' ? `${base} (single vial)` : base;
+      const label = line.mapping === 'vial' ? `${base} (single vial)` : `${base} (pack of ${line.packSize})`;
       if (!unmapped.includes(label)) unmapped.push(label);
       continue;
     }
-    const merged = linesBySku.get(sku);
-    linesBySku.set(sku, {
+    const key = `${sku}::${line.packSize}`;
+    const merged = linesBySku.get(key);
+    linesBySku.set(key, {
+      sku,
       quantity: clampPacks((merged?.quantity ?? 0) + line.units),
-      // `||` rather than `??`: two products can share one PuraMass SKU, and a
-      // line we failed to price (0) must not shut out a sibling we did.
+      // `||` rather than `??`: two products can share one SKU, and a line we
+      // failed to price (0) must not shut out a sibling we did.
       unitPriceCents:
-        merged?.unitPriceCents || unitCentsByLine.get(`${line.id}::${line.mapping}`) || 0,
+        merged?.unitPriceCents || unitCentsByLine.get(`${line.id}::${line.packSize}`) || 0,
     });
   }
 
@@ -459,9 +481,9 @@ export async function POST(req: NextRequest) {
   // 8a. Every line travels with OUR price. Nothing is left to PuraMass's own
   //     catalog, so a line we could not price stops the hand-off here rather
   //     than going out without one and being charged at their list.
-  const unpriced = [...linesBySku.entries()]
-    .filter(([, line]) => !(line.unitPriceCents > 0))
-    .map(([sku]) => sku);
+  const unpriced = [...linesBySku.values()]
+    .filter((line) => !(line.unitPriceCents > 0))
+    .map((line) => line.sku);
   if (unpriced.length > 0) {
     console.error('[puramass] hand-off refused: no price for %s', unpriced.join(', '));
     return NextResponse.json(
@@ -559,10 +581,10 @@ export async function POST(req: NextRequest) {
   const discountedBySku = new Map(
     (discount?.lines ?? []).map((l) => [l.key, l.discountedUnitPriceCents]),
   );
-  const items: PuramassOrderLine[] = [...linesBySku.entries()].map(([sku, line]) => ({
-    sku,
+  const items: PuramassOrderLine[] = [...linesBySku.entries()].map(([key, line]) => ({
+    sku: line.sku,
     quantity: line.quantity,
-    unit_price_cents: discountedBySku.get(sku) ?? line.unitPriceCents,
+    unit_price_cents: discountedBySku.get(key) ?? line.unitPriceCents,
   }));
 
   // 9. Price the shipping. Re-quoted here rather than trusted from the

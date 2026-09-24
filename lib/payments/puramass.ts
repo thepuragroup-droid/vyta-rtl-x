@@ -23,7 +23,8 @@ import crypto from 'node:crypto';
 // ---- Types ----------------------------------------------------------------
 
 /**
- * quantity = number of catalog units (a 10-pack SKU or a single-vial SKU),
+ * quantity = number of catalog units (a case SKU, one per pack of any size, or a
+ * single-vial SKU),
  * clamped 1–99.
  *
  * `unit_price_cents` is OUR price for one of those units, in cents of the
