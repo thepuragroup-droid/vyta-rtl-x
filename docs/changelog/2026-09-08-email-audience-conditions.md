@@ -93,7 +93,7 @@ recipient run the same predicate rather than two that agree until they don't.
 - Sends are still one email per person, resolved per recipient — no CC, no BCC,
   no shared cart or payment link. Conditions decide *who* is on the list; they
   change nothing about what each person receives.
-- Promo codes are still generated on app.puramass.com and pasted in.
+- Promo codes are still generated on app.vytabio.com and pasted in.
 - The recipient cap of 40 per send is unchanged; conditions make a batch easier
   to build, not bigger.
 

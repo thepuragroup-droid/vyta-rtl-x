@@ -8,7 +8,7 @@
  * those rows into an email carrying that link back to them, optionally with a
  * discount code.
  *
- * NO CODE IS ISSUED HERE. Promo codes are generated on app.puramass.com and
+ * NO CODE IS ISSUED HERE. Promo codes are generated on app.vytabio.com and
  * pasted into the composer; the discount type and amount an admin enters only
  * decide how the offer is *stated* in the email — PuraMass does the real
  * arithmetic when the buyer types the code on its checkout page. That is why

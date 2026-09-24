@@ -14,7 +14,7 @@
  * why the cart blocks are resolved per person rather than copied from the draft
  * the admin previewed (see lib/customer/outreach.ts).
  *
- * PROMO CODES ARE NOT ISSUED HERE. They are generated on app.puramass.com and
+ * PROMO CODES ARE NOT ISSUED HERE. They are generated on app.vytabio.com and
  * pasted into the composer; the discount type and amount only decide how the
  * offer is worded and what the email's "estimated total" says.
  *

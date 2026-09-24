@@ -9,7 +9,7 @@
 -- discount code, from /admin/puramass-orders.
 --
 -- Nothing here issues a promo code. Codes are generated on the Stealth Health
--- platform (app.puramass.com) and pasted into the composer; these columns only
+-- platform (app.vytabio.com) and pasted into the composer; these columns only
 -- record which code was offered, so a redemption can be traced back to the send
 -- that caused it.
 --
@@ -32,7 +32,7 @@ COMMENT ON COLUMN puramass_orders.recovery_email_sent_at IS
 COMMENT ON COLUMN puramass_orders.recovery_email_count IS
   'How many recovery emails this hand-off has had. Surfaced in the admin so nobody sends a fourth.';
 COMMENT ON COLUMN puramass_orders.recovery_promo_code IS
-  'The promo code offered in the last recovery email. Generated on app.puramass.com — recorded here, never issued here.';
+  'The promo code offered in the last recovery email. Generated on app.vytabio.com — recorded here, never issued here.';
 COMMENT ON COLUMN puramass_orders.recovery_discount_type IS
   '''percentage'' or ''fixed'' — how recovery_discount_value should be read.';
 COMMENT ON COLUMN puramass_orders.recovery_discount_value IS

@@ -370,9 +370,9 @@ export default function BulkEmailDialog({
         }}
         promoNote={
           anyCart
-            ? 'Promo codes are generated in app.puramass.com (the Stealth Health platform). ' +
+            ? 'Promo codes are generated in app.vytabio.com (the Stealth Health platform). ' +
               'Create the code there first, then paste it below — the same code goes to everyone on ' +
-              'this send, and PuraMass applies the real discount when each customer enters it.'
+              'this send, and Stealth Health applies the real discount when each customer enters it.'
             : undefined
         }
         sending={sending}

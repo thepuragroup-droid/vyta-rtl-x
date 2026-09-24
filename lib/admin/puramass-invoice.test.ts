@@ -27,7 +27,7 @@ const ORDER_PAYLOAD = {
   partner_reference: 'amc_587be30c-2259-431c-974c-c91bd550336e',
   currency: 'usd',
   subtotal_cents: 66700,
-  payment_link: 'https://app.puramass.com/transaction/jC0LrMp8pdipj7ky1u0k',
+  payment_link: 'https://app.vytabio.com/transaction/jC0LrMp8pdipj7ky1u0k',
   created_at: '2026-08-18T19:59:58.221Z',
   paid_at: '2026-08-18T20:04:30.392Z',
   expires_at: '2026-08-25T19:59:58.204Z',
