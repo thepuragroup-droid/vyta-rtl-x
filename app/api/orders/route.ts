@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
 
 // POST /api/orders — DISABLED (410 Gone).
-// The legacy crypto-checkout path. New orders go through the e-Transfer flow
-// (/api/orders-email). This route now only serves the public order lookup used
+// The legacy crypto-checkout path. New orders go through the Stealth Health
+// hosted checkout (/api/checkout/puramass). This route now only serves the public order lookup used
 // by the tracking page, so it deliberately avoids importing the crypto wallet /
 // price-feed modules (which can fail at module load and 500 the whole route).
 export async function POST() {
   return NextResponse.json(
     {
       error: 'Crypto checkout is no longer accepted at this endpoint.',
-      hint: 'Use the e-Transfer checkout flow.',
+      hint: 'Use the hosted checkout at /checkout.',
     },
     { status: 410 },
   );

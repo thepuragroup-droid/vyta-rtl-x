@@ -197,7 +197,7 @@ export default function ContactPage() {
               },
               {
                 q: 'What payment methods do you accept?',
-                a: 'We accept Interac e-Transfer and cryptocurrency payments (Bitcoin, Ethereum, USDT) for your convenience and privacy.'
+                a: 'We accept major credit and debit cards through our secure checkout partner — no card data ever touches our servers.'
               },
               {
                 q: 'Are your peptides research-grade?',

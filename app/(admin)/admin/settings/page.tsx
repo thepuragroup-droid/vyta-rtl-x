@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Settings as SettingsIcon, AlertCircle, AlertTriangle, Check, CreditCard, Send, Mail, Plus,
   Trash2, FileText, ChevronRight, MapPin, Users, ToggleRight, ToggleLeft,
-  Truck, KeyRound, Wallet, Bell, Clock, ShieldCheck, RefreshCw, Megaphone,
+  Truck, KeyRound, Bell, Clock, ShieldCheck, RefreshCw, Megaphone,
 } from 'lucide-react';
 import { supabase, type SiteSettings } from '@/lib/supabase';
 import { useToast } from '@/contexts/ToastContext';
@@ -92,11 +92,6 @@ export default function SettingsPage() {
   const [abandonedHoursInput, setAbandonedHoursInput] = useState('12');
   const [abandonedCheckoutHoursInput, setAbandonedCheckoutHoursInput] = useState('1');
   const [pickupAddressInput, setPickupAddressInput] = useState('');
-  const [etForm, setEtForm] = useState({
-    recipient_email: '',
-    security_question: '',
-    security_answer_hint: '',
-  });
   const [easyshipApiKeyInput, setEasyshipApiKeyInput] = useState('');
   const [puramassFlatShippingInput, setPuramassFlatShippingInput] = useState('');
   const [klaviyoKeyInput, setKlaviyoKeyInput] = useState('');
@@ -135,11 +130,6 @@ export default function SettingsPage() {
       setKlForm({
         public_key: s.klaviyo_public_key ?? '',
         list_id: s.klaviyo_list_id ?? '',
-      });
-      setEtForm({
-        recipient_email: s.etransfer_recipient_email ?? '',
-        security_question: s.etransfer_security_question ?? '',
-        security_answer_hint: s.etransfer_security_answer_hint ?? '',
       });
       setShipForm({
         line_1: s.shipping_origin?.line_1 ?? '',
@@ -206,12 +196,6 @@ export default function SettingsPage() {
     if (isReadOnly || !settings) return;
     setSettings({ ...settings, easyship_enabled: enabled });
     saveSettings({ easyship_enabled: enabled });
-  };
-
-  const handlePuramassToggle = (enabled: boolean) => {
-    if (isReadOnly || !settings) return;
-    setSettings({ ...settings, puramass_checkout_enabled: enabled });
-    saveSettings({ puramass_checkout_enabled: enabled });
   };
 
   const handleSavePuramassFlatShipping = () => {
@@ -316,15 +300,6 @@ export default function SettingsPage() {
   const handleSavePickupAddress = () => {
     if (isReadOnly) return;
     saveSettings({ pickup_address: pickupAddressInput.trim() });
-  };
-
-  const handleSaveEtransfer = () => {
-    if (isReadOnly) return;
-    saveSettings({
-      etransfer_recipient_email: etForm.recipient_email.trim(),
-      etransfer_security_question: etForm.security_question.trim(),
-      etransfer_security_answer_hint: etForm.security_answer_hint.trim(),
-    });
   };
 
   const handleSaveShipping = () => {
@@ -671,41 +646,6 @@ export default function SettingsPage() {
         )}
       </Card>
 
-      {/* 6b. e-Transfer Instructions */}
-      <Card icon={<Wallet className="w-4 h-4 text-teal-dark" />} title="e-Transfer Instructions"
-        subtitle="Interac details for the payment-instructions email sent automatically when a shipment order is placed (and when you resend from an order).">
-        <div className="space-y-2">
-          <div>
-            <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">Recipient email</label>
-            <input
-              type="email" value={etForm.recipient_email} disabled={isReadOnly}
-              onChange={(e) => setEtForm({ ...etForm, recipient_email: e.target.value })}
-              placeholder="payments@yourbusiness.com" className={`w-full ${INPUT}`} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">Security question</label>
-            <input
-              type="text" value={etForm.security_question} disabled={isReadOnly}
-              onChange={(e) => setEtForm({ ...etForm, security_question: e.target.value })}
-              placeholder="e.g. What is our product category?" className={`w-full ${INPUT}`} />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">Security answer hint</label>
-            <input
-              type="text" value={etForm.security_answer_hint} disabled={isReadOnly}
-              onChange={(e) => setEtForm({ ...etForm, security_answer_hint: e.target.value })}
-              placeholder="e.g. Peptides (all lowercase)" className={`w-full ${INPUT}`} />
-          </div>
-        </div>
-        <button onClick={handleSaveEtransfer} disabled={isReadOnly || saving}
-          className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 bg-ink text-white rounded-lg text-sm font-medium hover:bg-ink/90 disabled:opacity-50">
-          <Check className="w-4 h-4" /> Save e-Transfer settings
-        </button>
-        <p className="text-xs text-ink-muted mt-2">
-          These feed the instructions email sent automatically at checkout. Leave a field blank to use the built-in default. You can still edit everything (and CC / attach images) when resending from an order.
-        </p>
-      </Card>
-
       {/* 7. Guest Checkout */}
       <Card icon={<Users className="w-4 h-4 text-teal-dark" />} title="Guest Checkout"
         subtitle="Allow customers to check out without an account.">
@@ -725,7 +665,7 @@ export default function SettingsPage() {
 
       {/* 7b. Stealth Health Hosted Checkout */}
       <Card icon={<ShieldCheck className="w-4 h-4 text-teal-dark" />} title="Stealth Health Checkout"
-        subtitle="Hand the cart off to the Stealth Health hosted checkout instead of the on-site flow. Pricing, shipping, and fulfilment are handled by Stealth Health.">
+        subtitle="Checkout hands the cart off to the Stealth Health hosted checkout. Pricing, shipping, and fulfilment are handled by Stealth Health.">
         {/* Credential status banner */}
         <div className={`mb-4 rounded-lg border px-4 py-3 text-sm flex items-center gap-2 ${
           settings.puramass_configured
@@ -736,22 +676,8 @@ export default function SettingsPage() {
           <span>
             {settings.puramass_configured
               ? 'API key detected — hosted checkout can run.'
-              : 'No API key detected. Set PURAMASS_API_KEY on the server before enabling.'}
+              : 'No API key detected. Set PURAMASS_API_KEY on the server — checkout cannot take orders without it.'}
           </span>
-        </div>
-
-        {/* Enable toggle */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <SelectCard
-            selected={settings.puramass_checkout_enabled} disabled={isReadOnly}
-            onClick={() => handlePuramassToggle(true)}
-            icon={<ToggleRight className="w-5 h-5" />} title="Enabled"
-            desc="Send customers to the Stealth Health hosted checkout." />
-          <SelectCard
-            selected={!settings.puramass_checkout_enabled} disabled={isReadOnly}
-            onClick={() => handlePuramassToggle(false)}
-            icon={<ToggleLeft className="w-5 h-5" />} title="Disabled"
-            desc="Use the existing on-site checkout." />
         </div>
 
         {/* Shipping rates on the hosted checkout */}

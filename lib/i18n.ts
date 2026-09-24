@@ -61,7 +61,7 @@ export const translations: Record<Language, Translations> = {
     },
     hero: {
       title: 'Premium Research Peptides',
-      subtitle: 'Your trusted source for high-quality research peptides in Canada. Fast domestic shipping and secure payment via Interac e-Transfer.',
+      subtitle: 'Your trusted source for high-quality research peptides in Canada. Fast domestic shipping and secure card checkout.',
       cta: 'Shop Products',
       learnMore: 'Learn More',
     },
@@ -72,8 +72,8 @@ export const translations: Record<Language, Translations> = {
         description: 'Fast and discreet delivery to customers across Canada',
       },
       crypto: {
-        title: 'Interac e-Transfer',
-        description: 'Simple, secure checkout paid by Interac e-Transfer',
+        title: 'Secure Checkout',
+        description: 'Simple, secure card checkout',
       },
       quality: {
         title: 'Premium Quality',
@@ -91,7 +91,7 @@ export const translations: Record<Language, Translations> = {
       addToCart: 'Add to Cart',
     },
     footer: {
-      description: 'Premium research peptides with Canada-wide shipping and secure Interac e-Transfer payment.',
+      description: 'Premium research peptides with Canada-wide shipping and secure card checkout.',
       quickLinks: 'Quick Links',
       support: 'Support',
       paymentMethods: 'Payment Methods',
@@ -109,7 +109,7 @@ export const translations: Record<Language, Translations> = {
     },
     hero: {
       title: 'Péptidos de Investigación Premium',
-      subtitle: 'Su fuente confiable de péptidos de investigación de alta calidad en Canadá. Envío nacional rápido y pago seguro mediante Interac e-Transfer.',
+      subtitle: 'Su fuente confiable de péptidos de investigación de alta calidad en Canadá. Envío nacional rápido y pago seguro con tarjeta.',
       cta: 'Ver Productos',
       learnMore: 'Saber Más',
     },
@@ -120,8 +120,8 @@ export const translations: Record<Language, Translations> = {
         description: 'Entrega rápida y discreta a clientes en todo Canadá',
       },
       crypto: {
-        title: 'Interac e-Transfer',
-        description: 'Pago sencillo y seguro mediante Interac e-Transfer',
+        title: 'Pago seguro',
+        description: 'Pago con tarjeta sencillo y seguro',
       },
       quality: {
         title: 'Calidad Premium',
@@ -139,7 +139,7 @@ export const translations: Record<Language, Translations> = {
       addToCart: 'Agregar al Carrito',
     },
     footer: {
-      description: 'Péptidos de investigación premium con envío en todo Canadá y pago seguro mediante Interac e-Transfer.',
+      description: 'Péptidos de investigación premium con envío en todo Canadá y pago seguro con tarjeta.',
       quickLinks: 'Enlaces Rápidos',
       support: 'Soporte',
       paymentMethods: 'Métodos de Pago',
@@ -157,7 +157,7 @@ export const translations: Record<Language, Translations> = {
     },
     hero: {
       title: 'Peptide Nghiên Cứu Cao Cấp',
-      subtitle: 'Nguồn cung cấp peptide nghiên cứu chất lượng cao đáng tin cậy tại Canada. Giao hàng nội địa nhanh chóng và thanh toán an toàn qua Interac e-Transfer.',
+      subtitle: 'Nguồn cung cấp peptide nghiên cứu chất lượng cao đáng tin cậy tại Canada. Giao hàng nội địa nhanh chóng và thanh toán thẻ an toàn.',
       cta: 'Mua Sản Phẩm',
       learnMore: 'Tìm Hiểu Thêm',
     },
@@ -168,8 +168,8 @@ export const translations: Record<Language, Translations> = {
         description: 'Giao hàng nhanh chóng và kín đáo đến khách hàng trên toàn Canada',
       },
       crypto: {
-        title: 'Interac e-Transfer',
-        description: 'Thanh toán đơn giản và an toàn qua Interac e-Transfer',
+        title: 'Thanh toán an toàn',
+        description: 'Thanh toán bằng thẻ đơn giản và an toàn',
       },
       quality: {
         title: 'Chất Lượng Cao Cấp',
@@ -187,7 +187,7 @@ export const translations: Record<Language, Translations> = {
       addToCart: 'Thêm Vào Giỏ',
     },
     footer: {
-      description: 'Peptide nghiên cứu cao cấp với giao hàng toàn Canada và thanh toán an toàn qua Interac e-Transfer.',
+      description: 'Peptide nghiên cứu cao cấp với giao hàng toàn Canada và thanh toán thẻ an toàn.',
       quickLinks: 'Liên Kết Nhanh',
       support: 'Hỗ Trợ',
       paymentMethods: 'Phương Thức Thanh Toán',

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Package, CreditCard, Tag, Truck, Copy, Check, Save, Mail, Wallet,
-  Printer, PackagePlus, ExternalLink, Loader2, X, Paperclip, Send,
+  Package, CreditCard, Tag, Truck, Copy, Check, Save, Mail,
+  Printer, PackagePlus, ExternalLink, Loader2, X, Send,
   MapPin, RotateCcw, AlertTriangle,
 } from 'lucide-react';
 import {
@@ -81,17 +81,6 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState('');
 
-  // e-Transfer instructions: template preview + confirmation modal state.
-  const [etOpen, setEtOpen] = useState(false);
-  const [etLoading, setEtLoading] = useState(false);
-  const [etError, setEtError] = useState<string | null>(null);
-  const [etTo, setEtTo] = useState('');
-  const [etCc, setEtCc] = useState('');
-  const [etSubject, setEtSubject] = useState('');
-  const [etBody, setEtBody] = useState('');
-  const [etAttachments, setEtAttachments] = useState<
-    { filename: string; content: string; dataUrl: string }[]
-  >([]);
 
   const [shipBusy, setShipBusy] = useState(false);
   const [shipMsg, setShipMsg] = useState<string | null>(null);
@@ -227,84 +216,6 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
     navigator.clipboard.writeText(text);
     setCopied(label);
     setTimeout(() => setCopied(''), 2000);
-  };
-
-  // Open the confirmation modal: fetch the rendered template so the admin
-  // reviews (and can edit) the exact message before anything is sent.
-  const openETransferModal = async () => {
-    if (!data) return;
-    const order = data.order;
-    setEtOpen(true);
-    setEtLoading(true);
-    setEtError(null);
-    setEtAttachments([]);
-    setEtCc('');
-    try {
-      const tpl = await apiFetch<{ to: string; subject: string; body: string }>(
-        `/api/admin/orders/${order.id}/send-etransfer-instructions`,
-        { method: 'GET' },
-      );
-      setEtTo(tpl.to || order.customer_email || '');
-      setEtSubject(tpl.subject || '');
-      setEtBody(tpl.body || '');
-    } catch (err: any) {
-      setEtError(err?.message || 'Failed to load template');
-    }
-    setEtLoading(false);
-  };
-
-  const handleETransferAttach = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    e.target.value = ''; // allow re-selecting the same file
-    const read = await Promise.all(
-      files.map(
-        (file) =>
-          new Promise<{ filename: string; content: string; dataUrl: string }>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              const dataUrl = String(reader.result || '');
-              resolve({
-                filename: file.name,
-                content: dataUrl.replace(/^data:[^;]+;base64,/, ''),
-                dataUrl,
-              });
-            };
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(file);
-          }),
-      ),
-    );
-    setEtAttachments((prev) => [...prev, ...read]);
-  };
-
-  const removeETransferAttachment = (idx: number) => {
-    setEtAttachments((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const confirmSendETransferInstructions = async () => {
-    if (!data) return;
-    setEmailSending(true);
-    setEtError(null);
-    try {
-      await apiFetch(`/api/admin/orders/${data.order.id}/send-etransfer-instructions`, {
-        method: 'POST',
-        timeoutMs: 30_000,
-        body: JSON.stringify({
-          to: etTo || undefined,
-          cc: etCc || undefined,
-          subject: etSubject,
-          body: etBody,
-          attachments: etAttachments.map((a) => ({ filename: a.filename, content: a.content })),
-        }),
-      });
-      setEtOpen(false);
-      setEmailSent('etransfer');
-      setTimeout(() => setEmailSent(''), 3000);
-    } catch (err: any) {
-      console.error('Failed to send e-Transfer instructions:', err);
-      setEtError(err?.message || 'Failed to send instructions');
-    }
-    setEmailSending(false);
   };
 
   const sendShippingEmail = async () => {
@@ -813,26 +724,6 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
                 {!trackingInput && (
                   <p className="text-[10px] text-ink-muted">Add tracking number to enable shipping email</p>
                 )}
-
-                {(order.source === 'e-transfer' || order.source === 'e-transfer-pickup') && (
-                  <>
-                    <div className="h-px bg-line my-2" />
-                    <button
-                      onClick={openETransferModal}
-                      disabled={emailSending}
-                      className="w-full px-3 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-lg text-sm hover:bg-amber-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {emailSent === 'etransfer' ? (
-                        <><Check className="w-3.5 h-3.5" /> Sent!</>
-                      ) : (
-                        <><Wallet className="w-3.5 h-3.5" /> Send e-Transfer Instructions</>
-                      )}
-                    </button>
-                    <p className="text-[10px] text-ink-muted">
-                      Preview &amp; confirm before sending. Template comes from Settings → site_settings.etransfer_*
-                    </p>
-                  </>
-                )}
               </div>
             </div>
           )}
@@ -870,144 +761,6 @@ export default function OrderManagementPanel({ orderId, editable, onOrderChange 
           )}
         </div>
       </div>
-
-      {/* e-Transfer instructions — preview / edit / confirm modal */}
-      {etOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:p-8"
-          onClick={() => !emailSending && setEtOpen(false)}
-        >
-          <div
-            className="w-full max-w-2xl my-auto bg-surface border border-line rounded-xl shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-line">
-              <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-amber-500" />
-                Send e-Transfer Instructions
-              </h3>
-              <button
-                onClick={() => !emailSending && setEtOpen(false)}
-                className="text-ink-muted hover:text-ink transition-colors disabled:opacity-50"
-                disabled={emailSending}
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {etLoading ? (
-              <div className="py-16 text-center text-ink-muted text-sm flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" /> Loading template…
-              </div>
-            ) : (
-              <div className="p-5 space-y-4">
-                <p className="text-xs text-ink-muted">
-                  Review the message below. Nothing is sent until you press{' '}
-                  <span className="text-ink font-medium">Confirm &amp; Send</span>.
-                </p>
-
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wide text-ink-muted mb-1">To</label>
-                  <input
-                    type="text"
-                    value={etTo}
-                    onChange={(e) => setEtTo(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
-                    placeholder="customer@email.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wide text-ink-muted mb-1">CC</label>
-                  <input
-                    type="text"
-                    value={etCc}
-                    onChange={(e) => setEtCc(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
-                    placeholder="Comma-separated emails (optional)"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wide text-ink-muted mb-1">Subject</label>
-                  <input
-                    type="text"
-                    value={etSubject}
-                    onChange={(e) => setEtSubject(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wide text-ink-muted mb-1">Message</label>
-                  <textarea
-                    value={etBody}
-                    onChange={(e) => setEtBody(e.target.value)}
-                    rows={12}
-                    className="w-full px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-teal/40 resize-y"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wide text-ink-muted mb-1">Attachments</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {etAttachments.map((a, idx) => (
-                      <div key={idx} className="relative group">
-                        <img
-                          src={a.dataUrl}
-                          alt={a.filename}
-                          className="w-16 h-16 object-cover rounded-lg border border-line"
-                        />
-                        <button
-                          onClick={() => removeETransferAttachment(idx)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 opacity-90 hover:opacity-100"
-                          aria-label={`Remove ${a.filename}`}
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <label className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-line rounded-lg text-xs text-ink-muted hover:text-ink hover:border-teal cursor-pointer transition-colors">
-                    <Paperclip className="w-3.5 h-3.5" /> Attach images
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleETransferAttach}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-
-                {etError && <p className="text-xs text-red-500">{etError}</p>}
-
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-line">
-                  <button
-                    onClick={() => setEtOpen(false)}
-                    disabled={emailSending}
-                    className="px-4 py-2 text-sm text-ink-muted hover:text-ink transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmSendETransferInstructions}
-                    disabled={emailSending || !etTo}
-                    className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-lg text-sm hover:bg-amber-500/20 transition-colors disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {emailSending ? (
-                      <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending…</>
-                    ) : (
-                      <><Send className="w-3.5 h-3.5" /> Confirm &amp; Send</>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Refund modal */}
       {refundOpen && (

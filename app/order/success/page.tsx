@@ -5,9 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 // This page used to hard-code a "Payment Confirmed!" screen, which was
-// misleading: Interac e-Transfer orders are created as `pending` and are not
-// paid until the customer sends the transfer and an admin confirms it. It is no
-// longer part of the checkout flow (checkout shows an inline confirmation), so
+// misleading: orders are created as `pending` and are not paid until payment
+// is confirmed. It is no longer part of the checkout flow, so
 // any stale link/bookmark that lands here is forwarded to the real order
 // tracker instead of asserting a payment that hasn't happened.
 function OrderSuccessRedirect() {

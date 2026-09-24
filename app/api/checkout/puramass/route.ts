@@ -177,7 +177,7 @@ async function priceCartLines(
       source: 'base',
       base: Number(product.price ?? 0),
     };
-    // Same rule as app/api/orders-email: a pricelist / per-customer override
+    // Same rule as the retired on-site checkout: a pricelist / per-customer override
     // restates the per-vial price and drops the catalog's fixed pack prices.
     const vialPrice =
       resolved.source === 'base'
@@ -277,7 +277,7 @@ async function earnsAdDiscount(
  * `resolveHostedShipping`).
  */
 export async function POST(req: NextRequest) {
-  // 1. Rate-limit by IP (same budget as the crypto/e-transfer checkout).
+  // 1. Rate-limit by IP (same budget as the legacy on-site checkout).
   const ip = getClientIp(req);
   const rl = checkRateLimit(`puramass:${ip}`, RATE_LIMITS.orders);
   if (!rl.allowed) {
@@ -295,12 +295,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 3. Enabled? Everything this route reads from site_settings comes off this
-  //    one row — the checkout toggle here, shipping and the promos below.
+  // 3. Settings. Everything this route reads from site_settings comes off this
+  //    one row — shipping and the promos below. The hosted checkout is the
+  //    only checkout, so there is no on/off toggle to honour here.
   const settingsRow = await readSiteSettings();
-  if (!settingsRow.puramass_checkout_enabled) {
-    return NextResponse.json({ error: 'Hosted checkout is disabled.' }, { status: 403 });
-  }
 
   // 4. Parse + validate.
   let body: any;

@@ -118,9 +118,8 @@ export async function setFulfillmentStatus(
     return { error: `status ${next} not allowed for ${inv.fulfillment_type}`, status: 400 };
   }
 
-  // Payment gate: goods must not leave before payment is received. Interac
-  // e-Transfer is manual, so an order stays `pending` until an admin confirms
-  // the transfer. Block the hand-off states (shipped / picked up / dropped off)
+  // Payment gate: goods must not leave before payment is received. An order
+  // stays `pending` until its payment is confirmed. Block the hand-off states (shipped / picked up / dropped off)
   // until the linked order has moved past pending. Packing is allowed so staff
   // can prep ahead of payment.
   const HANDOFF: FulfillmentStatus[] = ['shipped', 'picked_up', 'dropped_off'];

@@ -950,7 +950,6 @@ export default function InvoiceDetailPage() {
                   className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
                 >
                   <option value="card">Card</option>
-                  <option value="e-transfer">E-Transfer</option>
                   <option value="cash">Cash</option>
                   <option value="other">Other</option>
                 </select>

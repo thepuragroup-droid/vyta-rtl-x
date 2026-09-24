@@ -95,10 +95,11 @@ function shape(data: Record<string, any> | null | undefined) {
     invoice_admin_email_body: d.invoice_admin_email_body ?? DEFAULT_ADMIN_BODY,
     pickup_address: d.pickup_address ?? '',
     guest_checkout_enabled: d.guest_checkout_enabled ?? true,
-    // Stealth Health hosted checkout. Read on its own from the same row (never folded
-    // into a column fallback) and merged in — plus a read-only credential flag
-    // derived from server env (the API key itself is never returned).
-    puramass_checkout_enabled: d.puramass_checkout_enabled ?? false,
+    // Stealth Health hosted checkout is the only checkout, so it is always on
+    // (the old on-site e-Transfer flow and its toggle were removed). The
+    // credential flag below is derived from server env (the API key itself is
+    // never returned).
+    puramass_checkout_enabled: true,
     // Hosted-checkout shipping. Normalised through the same shaper the checkout
     // itself uses, so the storefront and the server can never disagree about
     // whether the promo is live — above all, it is forced off without live
@@ -109,7 +110,7 @@ function shape(data: Record<string, any> | null | undefined) {
     puramass_free_shipping_enabled: hostedShipping.freeShippingEnabled,
     puramass_free_shipping_threshold: hostedShipping.freeShippingThreshold,
     puramass_free_shipping_active:
-      !!d.puramass_checkout_enabled && hostedShipping.freeShippingEnabled,
+      hostedShipping.freeShippingEnabled,
     puramass_configured: isPuramassConfigured(),
     // Paid-ads welcome discount. Like the free-shipping promo above, `_active`
     // folds in the hosted-checkout toggle: the discount is applied by lowering
@@ -118,7 +119,7 @@ function shape(data: Record<string, any> | null | undefined) {
     // honour must not be advertised.
     ad_discount_enabled: adDiscount.enabled,
     ad_discount_percent: adDiscount.percent,
-    ad_discount_active: !!d.puramass_checkout_enabled && adDiscount.enabled,
+    ad_discount_active: adDiscount.enabled,
     // Limited-time cart offer — "add one more item and get X% off". Same shape
     // as the two promos above, and `_active` folds in the same hosted-checkout
     // toggle for the same reason: the saving travels as lowered line prices,
@@ -127,16 +128,12 @@ function shape(data: Record<string, any> | null | undefined) {
     cart_offer_min_items: cartOffer.minItems,
     cart_offer_percent: cartOffer.percent,
     cart_offer_ends_at: cartOffer.endsAt,
-    cart_offer_active: !!d.puramass_checkout_enabled && cartOffer.enabled,
+    cart_offer_active: cartOffer.enabled,
     // The two merchandising blocks on the cart. Nothing is discounted by
     // either, so they carry no `_active` twin — they are on unless switched
     // off, and default on for a store that has not been asked yet.
     cart_fbt_enabled: d.cart_fbt_enabled ?? true,
     cart_similar_enabled: d.cart_similar_enabled ?? true,
-    etransfer_enabled: d.etransfer_enabled ?? true,
-    etransfer_recipient_email: d.etransfer_recipient_email ?? '',
-    etransfer_security_question: d.etransfer_security_question ?? '',
-    etransfer_security_answer_hint: d.etransfer_security_answer_hint ?? '',
     easyship_enabled: d.easyship_enabled ?? false,
     easyship_api_key_set: Boolean(d.easyship_api_key),
     shipping_origin: d.shipping_origin ?? {},
@@ -228,10 +225,8 @@ export async function PUT(req: NextRequest) {
   for (const key of [
     'guest_checkout_enabled',
     'easyship_enabled',
-    'etransfer_enabled',
     'registration_alert_enabled',
     'abandoned_registration_enabled',
-    'puramass_checkout_enabled',
     'puramass_shipping_rates_enabled',
     'puramass_free_shipping_enabled',
     'ad_discount_enabled',
@@ -374,25 +369,12 @@ export async function PUT(req: NextRequest) {
     updates.abandoned_checkout_hours = n;
   }
 
-  // e-Transfer recipient email: validate when a non-empty value is provided.
-  if ('etransfer_recipient_email' in body) {
-    const email = String(body.etransfer_recipient_email ?? '').trim();
-    if (email && !emailRegex.test(email)) {
-      return NextResponse.json({ error: `Invalid email: ${email}` }, { status: 400 });
-    }
-    updates.etransfer_recipient_email = email;
-  }
-
   for (const key of [
     'invoice_customer_email_subject',
     'invoice_customer_email_body',
     'invoice_admin_email_subject',
     'invoice_admin_email_body',
     'pickup_address',
-    'etransfer_security_question',
-    'etransfer_security_answer_hint',
-    'etransfer_instructions_subject',
-    'etransfer_instructions_body',
   ] as const) {
     if (key in body) updates[key] = String(body[key] ?? '');
   }

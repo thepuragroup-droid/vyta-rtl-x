@@ -310,7 +310,7 @@ export interface SiteSettings {
   // Checkout config
   pickup_address: string;
   guest_checkout_enabled: boolean;
-  // Stealth Health hosted checkout: admin opt-in toggle + read-only credential status
+  // Stealth Health hosted checkout: always true (it is the only checkout) + read-only credential status
   // (`puramass_configured` is derived from server env, never a stored column).
   puramass_checkout_enabled: boolean;
   /** Hosted-checkout buyers pick a live courier rate; off = flat shipping fee. */
@@ -342,11 +342,6 @@ export interface SiteSettings {
   cart_fbt_enabled: boolean;
   /** Show the computed "You may also like" block on the cart. */
   cart_similar_enabled: boolean;
-  // e-Transfer (Interac) instructions config
-  etransfer_enabled: boolean;
-  etransfer_recipient_email: string;
-  etransfer_security_question: string;
-  etransfer_security_answer_hint: string;
   // Easyship shipping config
   easyship_enabled: boolean;
   easyship_api_key_set: boolean; // never the key itself
