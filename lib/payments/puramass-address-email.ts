@@ -1,12 +1,12 @@
 /**
  * The "we didn't catch your shipping address" email.
  *
- * Sent from /admin/stealth-health (Orders tab) when a PuraMass hand-off has no address on
+ * Sent from /admin/stealth-health (Orders tab) when a Stealth Health hand-off has no address on
  * it. The tone is a friendly nudge, not a dunning notice — the customer has
  * already paid; we simply can't ship without knowing where to.
  *
  * The email restates the whole order (invoice number, line items, totals,
- * transaction id and the link to the PuraMass transaction) for one reason: a
+ * transaction id and the link to the Stealth Health transaction) for one reason: a
  * bare "click here to enter your address" mail is indistinguishable from
  * phishing. Everything shown is something only we and the buyer know.
  *

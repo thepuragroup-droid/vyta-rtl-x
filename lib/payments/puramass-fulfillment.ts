@@ -1,11 +1,11 @@
 /**
- * Materialise a fulfillment invoice from a paid PuraMass (Stealth Health)
+ * Materialise a fulfillment invoice from a paid Stealth Health
  * hand-off, so the order surfaces in the warehouse fulfillment queue.
  *
- * PuraMass owns payment, shipping, and taxes — this invoice exists purely for
+ * Stealth Health owns payment, shipping, and taxes — this invoice exists purely for
  * the store's fulfillment/reconciliation visibility. It is marked
- * `source = 'stealth_health'` and carries no shipping address (PuraMass collects
- * it), which the queue UI explains with a tooltip. The address PuraMass reports
+ * `source = 'stealth_health'` and carries no shipping address (Stealth Health collects
+ * it), which the queue UI explains with a tooltip. The address Stealth Health reports
  * back lives on the hand-off ledger (`puramass_orders.shipping_address`) and is
  * surfaced on /admin/stealth-health (Orders tab).
  *
@@ -28,7 +28,7 @@ export interface StealthHealthLedgerRow {
   id: string;
   customer_id?: string | null;
   customer_email?: string | null;
-  /** Buyer name from the PuraMass customer block, when it reported one. */
+  /** Buyer name from the Stealth Health customer block, when it reported one. */
   customer_name?: string | null;
   items?: { sku?: string; quantity?: number }[] | null;
   subtotal_cents?: number | null;
@@ -58,9 +58,9 @@ export interface StealthHealthPaidItem {
 }
 
 /**
- * Which pricing unit a PuraMass line was sold in.
+ * Which pricing unit a Stealth Health line was sold in.
  *
- * PuraMass encodes the unit in the SKU suffix — `…-vial` is the single-vial
+ * Stealth Health encodes the unit in the SKU suffix — `…-vial` is the single-vial
  * listing, everything else (`…-case`, `…-10-pack`, plain) is a full box. That
  * suffix is the only authoritative signal we get: the partner's product *name*
  * is free text and the invoice line carries no product_id to join against.
@@ -76,19 +76,19 @@ export function puramassPriceType(
   const sku = (item.sku ?? '').trim().toLowerCase();
   if (sku) return sku.endsWith('-vial') ? 'vial' : 'box';
   // Pre-`paid_items` ledger rows have no SKU on the line — fall back to the
-  // name PuraMass ships, which suffixes the vial listing with "(Single Vial)".
+  // name Stealth Health ships, which suffixes the vial listing with "(Single Vial)".
   return /\(\s*single\s+vial\s*\)$/i.test((item.name ?? '').trim()) ? 'vial' : 'box';
 }
 
 const STEALTH_HEALTH_NOTE =
-  'Placed via Stealth Health (PuraMass hosted checkout). Payment, shipping, and taxes are handled by PuraMass.';
+  'Placed via Stealth Health hosted checkout. Payment, shipping, and taxes are handled by Stealth Health.';
 
 /**
  * The shipping fee stamped on a hand-off we have no figure for.
  *
  * Every hand-off made since the checkout started quoting couriers carries its
  * own `shipping_total_cents`, so this only ever applies to orders placed before
- * that — which were all priced by PuraMass in USD at a flat $35. It is a
+ * that — which were all priced by Stealth Health in USD at a flat $35. It is a
  * historical constant, deliberately not the configurable
  * `site_settings.puramass_flat_shipping`: changing today's flat fee must not
  * retroactively restate what an old order was recorded as costing.
@@ -197,7 +197,7 @@ export async function materializeStealthHealthFulfillment(
       const unitPrice =
         typeof it.unit_price_cents === 'number' ? it.unit_price_cents / 100 : 0;
       return {
-        description: (it.name || it.sku || 'PuraMass item').toString(),
+        description: (it.name || it.sku || 'Stealth Health item').toString(),
         qty,
         unit_price: unitPrice,
         line_total: +(qty * unitPrice).toFixed(2),
@@ -208,7 +208,7 @@ export async function materializeStealthHealthFulfillment(
       };
     });
 
-    // Invoice total: the PuraMass subtotal when known, else the line sum.
+    // Invoice total: the Stealth Health subtotal when known, else the line sum.
     const lineSum = lines.reduce((s, l) => s + l.line_total, 0);
     const subtotal =
       typeof ledger.subtotal_cents === 'number'
@@ -233,7 +233,7 @@ export async function materializeStealthHealthFulfillment(
         customer_name: ledger.customer_name ?? null,
         fulfillment_type: 'shipment',
         fulfillment_status: 'pending',
-        // Paid on the PuraMass hosted page — counts as a paid sale here.
+        // Paid on the Stealth Health hosted page — counts as a paid sale here.
         status: 'paid',
         currency,
         subtotal,
@@ -298,7 +298,7 @@ export async function materializeStealthHealthFulfillment(
  * Credit the affiliate for this sale. Separated so both the freshly-created and
  * already-materialised paths run it, and kept best-effort: an uncredited
  * commission is a bookkeeping problem, while a thrown error here would break a
- * webhook ACK and make PuraMass retry a payment we have already recorded.
+ * webhook ACK and make Stealth Health retry a payment we have already recorded.
  */
 async function creditAffiliate(
   db: SupabaseClient,

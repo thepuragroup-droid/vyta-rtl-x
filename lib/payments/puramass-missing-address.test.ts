@@ -1,6 +1,6 @@
 /**
  * Unit tests for the missing-shipping-address flow: validating what the
- * customer types, the emailed token, and the guard that stops a later PuraMass
+ * customer types, the emailed token, and the guard that stops a later Stealth Health
  * poll from overwriting an address the buyer gave us themselves.
  *
  * The repo has no test runner wired up, so these use Node's built-in
@@ -46,7 +46,7 @@ test('accepts a complete address and normalises it', () => {
     city: 'Scarborough',
     state: 'on',
     zip: 'M1S 3L6',
-    // Country is upper-cased so it always matches the ISO code PuraMass uses.
+    // Country is upper-cased so it always matches the ISO code Stealth Health uses.
     country: 'CA',
   });
 });

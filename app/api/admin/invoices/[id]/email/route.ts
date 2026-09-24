@@ -63,7 +63,7 @@ export async function POST(
   const amountPaid = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
   const amountDue = Math.max(0, Number(inv.total) - amountPaid);
 
-  // A PuraMass sale keeps the buyer's contact, ship-to address and refunds on
+  // A Stealth Health sale keeps the buyer's contact, ship-to address and refunds on
   // the hand-off ledger rather than on the invoice — pull them so the emailed
   // PDF carries them, and so a guest buyer still gets a name and a recipient.
   const puramass = isPuramassInvoice(inv) ? await fetchPuramassContext(db, inv.id) : null;

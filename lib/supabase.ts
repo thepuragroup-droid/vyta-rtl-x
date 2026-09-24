@@ -249,11 +249,11 @@ export interface Product {
   /** Optional secondary image for box/packaging. */
   box_image_url: string | null;
   strength: string | null;
-  /** PuraMass 10-pack SKU this product maps to (null = unmapped). */
+  /** Stealth Health 10-pack SKU this product maps to (null = unmapped). */
   puramass_sku: string | null;
-  /** PuraMass single-vial SKU this product maps to (null = unmapped). */
+  /** Stealth Health single-vial SKU this product maps to (null = unmapped). */
   puramass_sku_vial: string | null;
-  /** Offered as an upsell on the PuraMass checkout screen (store stock ignored). */
+  /** Offered as an upsell on the Stealth Health checkout screen (store stock ignored). */
   is_checkout_addon: boolean;
   purity: string | null;
   form: string | null;
@@ -310,7 +310,7 @@ export interface SiteSettings {
   // Checkout config
   pickup_address: string;
   guest_checkout_enabled: boolean;
-  // PuraMass hosted checkout: admin opt-in toggle + read-only credential status
+  // Stealth Health hosted checkout: admin opt-in toggle + read-only credential status
   // (`puramass_configured` is derived from server env, never a stored column).
   puramass_checkout_enabled: boolean;
   /** Hosted-checkout buyers pick a live courier rate; off = flat shipping fee. */

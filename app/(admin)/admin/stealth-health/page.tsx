@@ -2,7 +2,7 @@
 
 /**
  * /admin/stealth-health — the settlement dashboard for the Stealth Health
- * (PuraMass) partnership.
+ * (Stealth Health) partnership.
  *
  * Stealth Health runs the hosted checkout, so the buyer pays THEM while we ship
  * the goods. This page answers the three questions that follow from that:

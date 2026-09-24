@@ -274,7 +274,7 @@ export default function OrderDetailPage() {
                   {status.icon}
                   <span>{status.label}</span>
                 </div>
-                {/* PuraMass (Stealth Health) sales are paid + receipted on the
+                {/* Stealth Health sales are paid + receipted on the
                     partner's hosted page — our invoice route only serves native
                     orders, so show a note instead of a broken download. */}
                 {(order as any).source === 'stealth_health' ? (

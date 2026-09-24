@@ -32,10 +32,10 @@ export interface InvoiceListItem extends Invoice {
   sales_person_name: string | null;
   /** Present once the backorder-split phase ships; optional today. */
   is_backorder?: boolean;
-  /** Where the invoice came from — 'stealth_health' for a PuraMass hand-off. */
+  /** Where the invoice came from — 'stealth_health' for a Stealth Health hand-off. */
   source?: string | null;
   /**
-   * The PuraMass order behind this invoice, when it has one. Attached
+   * The Stealth Health order behind this invoice, when it has one. Attached
    * server-side from the hand-off ledger, which is where the buyer's phone and
    * shipping address live for those sales.
    */
@@ -61,7 +61,7 @@ export interface InvoiceListResult {
 export async function getInvoices(filters?: {
   status?: InvoiceStatus;
   customer_id?: string;
-  /** 'puramass' = PuraMass hand-offs only; 'manual' = everything else. */
+  /** 'puramass' = Stealth Health hand-offs only; 'manual' = everything else. */
   source?: 'puramass' | 'manual';
   q?: string;
   limit?: number;
@@ -92,7 +92,7 @@ export async function getInvoice(id: string): Promise<{
     customer_phone?: string;
     sales_person_name?: string;
     sales_person_email?: string;
-    /** 'stealth_health' for an invoice materialised from a PuraMass hand-off. */
+    /** 'stealth_health' for an invoice materialised from a Stealth Health hand-off. */
     source?: string | null;
   };
   line_items: InvoiceLineItem[];
@@ -481,7 +481,7 @@ export interface InvoiceShipmentResult {
 /**
  * Create the Easyship shipment for an invoice, with or without an order behind
  * it. The route picks the anchor; a Stealth Health hand-off ships off the
- * invoice using the address from the PuraMass ledger.
+ * invoice using the address from the Stealth Health ledger.
  */
 export async function createInvoiceShipment(
   id: string,
@@ -638,8 +638,8 @@ export async function getInvoiceTracking(
 // ---- PURAMASS HAND-OFF ----
 
 /**
- * The PuraMass order behind an invoice, or null when the invoice was raised
- * here rather than handed off to PuraMass.
+ * The Stealth Health order behind an invoice, or null when the invoice was raised
+ * here rather than handed off to Stealth Health.
  *
  * A separate call because the detail page reads the invoice under the caller's
  * RLS, while the hand-off ledger is service-role only — same shape as the
@@ -656,7 +656,7 @@ export async function getInvoicePuramass(
     );
     return res.puramass ?? null;
   } catch {
-    // The PuraMass block is supplementary — never break the detail page over it.
+    // The Stealth Health block is supplementary — never break the detail page over it.
     return null;
   }
 }
@@ -717,7 +717,7 @@ export interface EasyshipManualInvoice {
   /**
    * Which row holds this invoice's shipment: the order behind it, or the
    * invoice itself when there is no order (hand-written invoices and
-   * Stealth Health / PuraMass hand-offs).
+   * Stealth Health hand-offs).
    */
   anchor: 'order' | 'invoice';
   /** Null when the invoice anchors its own shipment. */

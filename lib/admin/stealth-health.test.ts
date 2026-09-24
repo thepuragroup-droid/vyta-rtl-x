@@ -153,7 +153,7 @@ test('invoice status follows the money once it leaves draft', () => {
   assert.equal(deriveInvoiceStatus('sent', 0, 0), 'sent');              // zero-value
 });
 
-test('currency normalises PuraMass lower-case, defaulting to USD', () => {
+test('currency normalises Stealth Health lower-case, defaulting to USD', () => {
   assert.equal(settlementCurrency('usd'), 'USD');
   assert.equal(settlementCurrency('cad'), 'CAD');
   assert.equal(settlementCurrency(null), 'USD');

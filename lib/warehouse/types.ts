@@ -38,8 +38,8 @@ export interface QueueItem {
   customer_id: string | null;
   customer_name: string | null;
   customer_email: string | null;
-  /** Invoice origin. 'stealth_health' = materialised from a paid PuraMass
-   *  hosted-checkout order (fulfilment/shipping owned by PuraMass). */
+  /** Invoice origin. 'stealth_health' = materialised from a paid Stealth Health
+   *  hosted-checkout order (fulfilment/shipping owned by Stealth Health). */
   source: string | null;
   status: string;
   fulfillment_type: FulfillmentType;
@@ -63,7 +63,7 @@ export interface QueueItem {
   order: QueueOrderJoin | null;
   /**
    * Ship-to for an invoice that has no `orders` row behind it. Today that is
-   * the PuraMass (Stealth Health) hand-off: the address lives on
+   * the Stealth Health hand-off: the address lives on
    * `puramass_orders.shipping_address` and is copied here on read, in the
    * `orders.shipping_address` shape the queue renders.
    */

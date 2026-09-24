@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The PuraMass hosted-checkout ledger, shown as the "Orders" tab of
+ * The Stealth Health hosted-checkout ledger, shown as the "Orders" tab of
  * /admin/stealth-health. It used to live at /admin/puramass-orders; the
  * hand-offs it lists are the raw rows every settlement figure on the rest of
  * this dashboard is derived from, so it now sits beside them.
@@ -90,7 +90,7 @@ export interface PuramassOrderRow {
   subtotal_cents: number | null;
   customer_id: string | null;
   customer_email: string | null;
-  /** Buyer name/phone PuraMass captured on its hosted page (null when absent). */
+  /** Buyer name/phone Stealth Health captured on its hosted page (null when absent). */
   customer_name: string | null;
   customer_phone: string | null;
   /** `{ address, address2, city, state, zip, country }` — null until reported. */
@@ -134,7 +134,7 @@ function accountVisibility(row: PuramassOrderRow): {
   const inv = row.invoice;
   if (!row.invoice_id || !inv) {
     if (row.status !== 'paid') {
-      return { displays: false, notLinked: false, reason: 'Not paid yet — no customer order exists until PuraMass confirms payment.' };
+      return { displays: false, notLinked: false, reason: 'Not paid yet — no customer order exists until Stealth Health confirms payment.' };
     }
     return { displays: false, notLinked: false, reason: 'Paid, but not yet materialised into an invoice — nothing shows in the account until it is.' };
   }
@@ -229,7 +229,7 @@ async function authHeaders(): Promise<Record<string, string>> {
 }
 
 /**
- * The shipping address PuraMass captured on its hosted page. It arrives with
+ * The shipping address Stealth Health captured on its hosted page. It arrives with
  * the webhook event or a poll, so plenty of rows legitimately have none yet —
  * those render an explanatory placeholder rather than an empty cell.
  */
@@ -247,8 +247,8 @@ function ShippingAddressCell({ row }: { row: PuramassOrderRow }) {
           className="block text-xs text-ink-light"
           title={
             row.status === 'payment_pending'
-              ? 'PuraMass reports the address once the order is paid. Sync to re-check.'
-              : 'PuraMass has not returned a shipping address for this order. Sync to re-check, or ask the customer directly.'
+              ? 'Stealth Health reports the address once the order is paid. Sync to re-check.'
+              : 'Stealth Health has not returned a shipping address for this order. Sync to re-check, or ask the customer directly.'
           }
         >
           No address yet
@@ -295,8 +295,8 @@ function ShippingAddressCell({ row }: { row: PuramassOrderRow }) {
             className="mt-1 inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700"
             title={
               row.shipping_address_updated_at
-                ? `The customer entered this on ${new Date(row.shipping_address_updated_at).toLocaleString()}. A PuraMass sync will not overwrite it.`
-                : 'The customer entered this themselves. A PuraMass sync will not overwrite it.'
+                ? `The customer entered this on ${new Date(row.shipping_address_updated_at).toLocaleString()}. A Stealth Health sync will not overwrite it.`
+                : 'The customer entered this themselves. A Stealth Health sync will not overwrite it.'
             }
           >
             From customer
@@ -329,7 +329,7 @@ function InvoiceCell({ row }: { row: PuramassOrderRow }) {
         title={
           row.status === 'paid'
             ? 'Paid, but no fulfilment invoice yet. Sync this order to materialise it.'
-            : 'An invoice is created once PuraMass confirms payment.'
+            : 'An invoice is created once Stealth Health confirms payment.'
         }
       >
         {row.status === 'paid' ? 'Not created' : '—'}
@@ -597,7 +597,7 @@ export default function OrdersTab() {
   };
 
   /**
-   * Poll PuraMass for many orders at once. Scoped to whatever the table is
+   * Poll Stealth Health for many orders at once. Scoped to whatever the table is
    * showing, so on the default Paid tab this is "re-read every paid order" —
    * the way to backfill shipping addresses, which the cron job never does
    * because it only polls orders still awaiting payment.
@@ -622,7 +622,7 @@ export default function OrdersTab() {
         if (json.errors) bits.push(`${json.errors} failed`);
         const msg = bits.join(' · ');
         if (json.rate_limited) {
-          toast.error(`${msg}. PuraMass rate-limited us — run it again shortly.`);
+          toast.error(`${msg}. Stealth Health rate-limited us — run it again shortly.`);
         } else if (json.errors) {
           toast.error(msg);
         } else {
@@ -1029,7 +1029,7 @@ export default function OrdersTab() {
           </div>
           <p className="max-w-2xl text-sm text-ink-muted">
             Every hosted-checkout hand-off, for reconciliation. Payment, fulfilment, and
-            emails are handled by PuraMass.
+            emails are handled by Stealth Health.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -1049,8 +1049,8 @@ export default function OrdersTab() {
             disabled={syncing || loading}
             title={
               status === 'all'
-                ? 'Re-read every order from PuraMass'
-                : `Re-read every ${filterLabel.toLowerCase()} order from PuraMass — picks up statuses and shipping addresses`
+                ? 'Re-read every order from Stealth Health'
+                : `Re-read every ${filterLabel.toLowerCase()} order from Stealth Health — picks up statuses and shipping addresses`
             }
             className="inline-flex items-center gap-1.5 rounded-lg bg-teal-dark px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ocean disabled:opacity-50"
           >
@@ -1059,7 +1059,7 @@ export default function OrdersTab() {
             ) : (
               <CloudDownload className="h-4 w-4" />
             )}
-            Sync {status === 'all' ? 'all' : filterLabel.toLowerCase()} from PuraMass
+            Sync {status === 'all' ? 'all' : filterLabel.toLowerCase()} from Stealth Health
           </button>
           <button
             onClick={load}
@@ -1115,7 +1115,7 @@ export default function OrdersTab() {
           <ShoppingCart className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal-dark" />
           <p className="text-xs leading-relaxed text-ink">
             Carts started more than {abandonedHours === 1 ? 'an hour' : `${abandonedHours} hours`} ago
-            that never reached payment. Their PuraMass checkout links are still live, so the cart
+            that never reached payment. Their Stealth Health checkout links are still live, so the cart
             button on each row emails one back to the buyer — with a promo code and a discount if you
             want to sweeten it. Tick several and{' '}
             <span className="font-medium">Chase carts</span> writes the message once and sends every
@@ -1328,8 +1328,8 @@ export default function OrdersTab() {
                       <button
                         onClick={() => refreshRow(row)}
                         disabled={!row.transaction_id || refreshingId === row.id}
-                        title={row.transaction_id ? 'Re-read this order from PuraMass' : 'No transaction to refresh'}
-                        aria-label="Refresh this order from PuraMass"
+                        title={row.transaction_id ? 'Re-read this order from Stealth Health' : 'No transaction to refresh'}
+                        aria-label="Refresh this order from Stealth Health"
                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface text-ink-muted transition-colors hover:border-ink/20 hover:text-ink disabled:opacity-40"
                       >
                         <RefreshCw className={`h-3.5 w-3.5 ${refreshingId === row.id ? 'animate-spin' : ''}`} />

@@ -57,7 +57,7 @@ export default function InvoiceDetailPage() {
       customer_phone?: string;
       sales_person_name?: string;
       sales_person_email?: string;
-      /** 'stealth_health' for an invoice materialised from a PuraMass hand-off. */
+      /** 'stealth_health' for an invoice materialised from a Stealth Health hand-off. */
       source?: string | null;
     };
     line_items: InvoiceLineItem[];
@@ -83,7 +83,7 @@ export default function InvoiceDetailPage() {
   const [tracking, setTracking] = useState<InvoiceTrackingSnapshot | null>(null);
   const [refreshingTracking, setRefreshingTracking] = useState(false);
 
-  // The PuraMass hand-off behind this invoice, when it is a PuraMass sale.
+  // The Stealth Health hand-off behind this invoice, when it is a Stealth Health sale.
   // Fetched separately: the invoice itself is read under the caller's RLS, but
   // the hand-off ledger (buyer phone, ship-to address) is service-role only.
   const [puramass, setPuramass] = useState<PuramassInvoiceContext | null>(null);
@@ -107,7 +107,7 @@ export default function InvoiceDetailPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Only PuraMass invoices have a hand-off to fetch; everything else skips the
+  // Only Stealth Health invoices have a hand-off to fetch; everything else skips the
   // round-trip entirely.
   useEffect(() => {
     let cancelled = false;
@@ -265,10 +265,10 @@ export default function InvoiceDetailPage() {
   const { invoice, line_items, payments, amount_paid, amount_due } = data;
   const cur = normalizeCurrency(invoice.currency);
   const money = (n: number) => formatMoney(n, cur);
-  // A PuraMass hand-off can carry two currencies at once: the goods as PuraMass
+  // A Stealth Health hand-off can carry two currencies at once: the goods as Stealth Health
   // charged them, and our shipment fee, which is USD and is what `cur` actually
   // describes. When the two differ, anything on the goods side has to be
-  // formatted in PuraMass's currency instead — otherwise a CAD sale reads as a
+  // formatted in Stealth Health's currency instead — otherwise a CAD sale reads as a
   // USD one. Null for every ordinary invoice, where `cur` covers everything.
   const split = puramassMoneySplit(invoice, puramass);
   const goodsCur: Currency = split?.goodsCurrency ?? cur;
@@ -288,12 +288,12 @@ export default function InvoiceDetailPage() {
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-teal/10 text-teal-dark border border-teal/20">
                 {cur}
               </span>
-              {/* Where this invoice came from: a PuraMass hand-off, or raised here. */}
+              {/* Where this invoice came from: a Stealth Health hand-off, or raised here. */}
               <InvoiceSourceBadge source={invoice.source} />
             </div>
             <p className="text-xs text-ink-muted">
               Created {new Date(invoice.created_at).toLocaleDateString()}
-              {puramass && ' · Payment collected by PuraMass'}
+              {puramass && ' · Payment collected by Stealth Health'}
             </p>
           </div>
         </div>
@@ -447,7 +447,7 @@ export default function InvoiceDetailPage() {
               )}
               {puramass && (
                 <div className="mt-1 text-[10px] uppercase tracking-wider text-teal-dark">
-                  Captured by PuraMass
+                  Captured by Stealth Health
                 </div>
               )}
             </div>
@@ -468,7 +468,7 @@ export default function InvoiceDetailPage() {
                 </span>
               );
             }
-            // A PuraMass sale has no local order — it is shipped off the
+            // A Stealth Health sale has no local order — it is shipped off the
             // invoice itself — so "no linked order" would read as a fault.
             // Show where it is going until a shipment exists to report on.
             if (puramass && !tracking?.hasShipment) {
@@ -546,9 +546,9 @@ export default function InvoiceDetailPage() {
                 <tbody className="divide-y divide-line/50">
                   {line_items.map((li) => {
                     const pt = (li as any).price_type === 'vial' ? 'vial' : 'box';
-                    // PuraMass lines were materialised from the partner's own
+                    // Stealth Health lines were materialised from the partner's own
                     // item list — show the SKU it charged against, so a line can
-                    // be traced back to PuraMass without leaving this page.
+                    // be traced back to Stealth Health without leaving this page.
                     const pmSku = puramass?.items.find(
                       (it) => it.name && it.name.toLowerCase() === (li.description ?? '').toLowerCase(),
                     )?.sku;
@@ -567,7 +567,7 @@ export default function InvoiceDetailPage() {
                             {pt === 'vial' ? 'Vial' : 'Box'}
                           </span>
                           {pmSku && (
-                            <div className="mt-0.5 font-mono text-[10px] text-ink-light" title="PuraMass SKU">
+                            <div className="mt-0.5 font-mono text-[10px] text-ink-light" title="Stealth Health SKU">
                               {pmSku}
                             </div>
                           )}
@@ -588,7 +588,7 @@ export default function InvoiceDetailPage() {
               {(() => {
                 const ft = (invoice as any).fulfillment_type ?? 'shipment';
                 const showFee = ft === 'pickup' && (invoice as any).show_processing_fee !== false && Number((invoice as any).processing_fee ?? 0) > 0;
-                // Goods sit in PuraMass's currency on a split invoice; the
+                // Goods sit in Stealth Health's currency on a split invoice; the
                 // shipment fee and anything we add here sit in ours.
                 const rows: Array<{ label: string; value: number; currency: Currency }> = [
                   {
@@ -628,17 +628,17 @@ export default function InvoiceDetailPage() {
                   </div>
                 </>
               )}
-              {/* Refunds happen on the PuraMass side, so they never reduce the
+              {/* Refunds happen on the Stealth Health side, so they never reduce the
                   invoice total — show them against it instead of hiding them. */}
               {(puramass?.refunded_total_cents ?? 0) > 0 && (
                 <>
                   <div className="flex justify-between text-sm text-amber-700">
-                    <span>Refunded by PuraMass</span>
+                    <span>Refunded by Stealth Health</span>
                     <span className="tabular-nums">– {goodsMoney(puramass!.refunded_total_cents / 100)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-ink">
                     <span>Net of refunds</span>
-                    {/* PuraMass refunds the goods, so on a split invoice they
+                    {/* Stealth Health refunds the goods, so on a split invoice they
                         come off the goods half only — the shipping fee we
                         charged is untouched and still shown beside it. */}
                     <InvoiceTotalAmount
@@ -740,7 +740,7 @@ export default function InvoiceDetailPage() {
                 )}
                 {puramass && (
                   <p className="pt-2 text-[11px] text-ink-muted">
-                    Entered by the buyer on the PuraMass checkout page — not editable here.
+                    Entered by the buyer on the Stealth Health checkout page — not editable here.
                   </p>
                 )}
               </div>
@@ -749,8 +749,8 @@ export default function InvoiceDetailPage() {
             )}
           </div>
 
-          {/* PuraMass hand-off — the partner's own record of this sale, and the
-              ship-to it captured. Read-only here: PuraMass Orders is where it
+          {/* Stealth Health hand-off — the partner's own record of this sale, and the
+              ship-to it captured. Read-only here: Stealth Health Orders is where it
               gets re-synced or the customer gets asked for a missing address. */}
           {puramass && <PuramassShipToPanel puramass={puramass} />}
           {puramass && <PuramassOrderPanel puramass={puramass} />}
@@ -800,12 +800,12 @@ export default function InvoiceDetailPage() {
             <div>
               <p className="text-xs text-ink-muted mb-1">Source</p>
               <p className="text-sm text-ink">
-                {isPuramassInvoice(invoice) ? 'PuraMass hosted checkout' : 'Created in this admin'}
+                {isPuramassInvoice(invoice) ? 'Stealth Health hosted checkout' : 'Created in this admin'}
               </p>
               {isPuramassInvoice(invoice) && !puramass && !puramassLoading && (
                 <p className="mt-1 text-[11px] text-amber-600">
-                  No matching PuraMass hand-off found — the ledger row may have
-                  been removed. Check PuraMass Orders.
+                  No matching Stealth Health hand-off found — the ledger row may have
+                  been removed. Check Stealth Health Orders.
                 </p>
               )}
             </div>

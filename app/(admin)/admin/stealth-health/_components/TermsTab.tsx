@@ -140,7 +140,7 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
             <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-3">Shipment fee</p>
             <div className="grid sm:grid-cols-2 gap-4 items-end">
               <Field label={`Flat shipment fee (${terms.currency})`}
-                hint="The fee booked on every PuraMass sale.">
+                hint="The fee booked on every Stealth Health sale.">
                 <input type="number" min="0" step="0.01" value={shippingFee} inputMode="decimal"
                   onChange={(e) => setShippingFee(e.target.value)}
                   className="w-full px-3 py-2 border border-line rounded-lg text-sm tabular-nums" />

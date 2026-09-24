@@ -37,7 +37,7 @@ export interface AbandonedCartLite {
   /** 'payment_pending' | 'expired'. */
   status: string;
   createdAt: string;
-  /** False when PuraMass never gave us a link, so no button can be sent. */
+  /** False when Stealth Health never gave us a link, so no button can be sent. */
   hasPaymentLink: boolean;
   /** Cart subtotal in `currency`, or null when the ledger has no amount. */
   total: number | null;
@@ -144,7 +144,7 @@ export function timeAgo(iso: string): string {
  * "$240.00 USD" — null when the ledger carried no amount.
  *
  * Zero counts as no amount, exactly as it does in the email (`knownAmount` in
- * promo-email.ts): PuraMass sends `subtotal_cents: 0` for a hand-off it never
+ * promo-email.ts): Stealth Health sends `subtotal_cents: 0` for a hand-off it never
  * priced, and a "$0.00 USD" chip reads as a worthless cart rather than as a
  * missing figure.
  */

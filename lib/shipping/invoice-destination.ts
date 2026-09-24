@@ -3,7 +3,7 @@
  *
  * Easyship was wired to `orders` only, which left every invoice that has no
  * order behind it unable to book a shipment at all. The biggest group is
- * Stealth Health / PuraMass: those invoices are materialised from the hosted
+ * Stealth Health: those invoices are materialised from the hosted
  * checkout, deliberately carry no order row, and keep their ship-to on the
  * hand-off ledger (`puramass_orders.shipping_address`) — see
  * lib/payments/puramass-fulfillment.ts. Drop-ship and plain customer invoices
@@ -14,11 +14,11 @@
  * most likely to be right:
  *
  *   1. the linked order's `shipping_address` (it was captured at checkout)
- *   2. the PuraMass hand-off ledger, for a Stealth Health invoice
+ *   2. the Stealth Health hand-off ledger, for a Stealth Health invoice
  *   3. the drop-ship client (`invoices.client_id`), when ships_to_client is on
  *   4. the customer's saved shipping profile
  *
- * Everything is tolerant of missing data — an invoice PuraMass hasn't reported
+ * Everything is tolerant of missing data — an invoice Stealth Health hasn't reported
  * an address for yet is the normal case, not an error, so it resolves to null
  * with a `reason` the caller can show or log rather than throwing.
  */
@@ -27,7 +27,7 @@ import { toShippingAddress } from '@/lib/payments/puramass-address';
 import { countryAlpha2 } from '@/lib/shipping/regions';
 
 /** Where the address came from — surfaced so the UI never presents an address
- *  PuraMass reported and one an admin typed here as the same thing. */
+ *  Stealth Health reported and one an admin typed here as the same thing. */
 export type InvoiceDestinationSource =
   | 'order'
   | 'puramass'
@@ -93,7 +93,7 @@ export function isShippableDestination(
 }
 
 /**
- * Read the PuraMass hand-off ledger for an invoice and normalise its ship-to.
+ * Read the Stealth Health hand-off ledger for an invoice and normalise its ship-to.
  * Best-effort: a ledger row that can't be read (address columns not migrated
  * yet) resolves to null, exactly as the warehouse queue already degrades.
  */
@@ -162,14 +162,14 @@ export async function resolveInvoiceDestination(
     }
   }
 
-  // 2. Stealth Health / PuraMass — the ledger owns the address.
+  // 2. Stealth Health — the ledger owns the address.
   if (invoice.source === 'stealth_health') {
     const dest = await puramassDestination(db, invoice.id);
     if (isShippableDestination(dest)) return { destination: dest, reason: null };
     return {
       destination: null,
       reason:
-        'PuraMass has not reported a shipping address for this order yet — ask the customer for it from the Stealth Health tab.',
+        'Stealth Health has not reported a shipping address for this order yet — ask the customer for it from the Stealth Health tab.',
     };
   }
 

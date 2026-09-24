@@ -18,7 +18,7 @@ const db = createClient(
  *
  *   1. The visitor's attribution row gets the customer id and email, which is
  *      what lets a hosted-checkout payment be traced back to the ad that
- *      produced it — PuraMass only ever tells us an email address.
+ *      produced it — Stealth Health only ever tells us an email address.
  *   2. The customer row gets the acquisition channel, frozen. Only if it is
  *      still empty: the campaign that originally won this customer keeps the
  *      credit, and signing in from a later Meta ad must not rewrite history.

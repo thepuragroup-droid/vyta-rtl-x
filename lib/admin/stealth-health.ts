@@ -1,5 +1,5 @@
 /**
- * Stealth Health (PuraMass) settlement — the money side of the partnership.
+ * Stealth Health settlement — the money side of the partnership.
  *
  * Stealth Health runs the hosted checkout, so the buyer pays THEM while we ship
  * the goods. Every paid row in `puramass_orders` is therefore cash they are
@@ -50,7 +50,7 @@ export interface SettlementTerms {
   commission_pct: number;
   /** Flat fee they retain per paid order, in cents. */
   flat_fee_cents: number;
-  /** The flat shipment fee booked on every PuraMass sale, in cents. */
+  /** The flat shipment fee booked on every Stealth Health sale, in cents. */
   shipping_fee_cents: number;
   /** True when that shipment fee is remitted to us rather than kept by them. */
   shipping_remitted: boolean;
@@ -91,9 +91,9 @@ export interface SettlementOrderInput {
 export interface OrderSettlement {
   id: string;
   currency: Currency;
-  /** Goods PuraMass charged for. */
+  /** Goods Stealth Health charged for. */
   gross_cents: number;
-  /** Refunded on the PuraMass side. */
+  /** Refunded on the Stealth Health side. */
   refunds_cents: number;
   /** gross − refunds, floored at 0. */
   net_cents: number;
@@ -110,7 +110,7 @@ export interface OrderSettlement {
   excluded: boolean;
 }
 
-/** PuraMass reports currency lower-cased ('usd'); the hosted checkout is USD. */
+/** Stealth Health reports currency lower-cased ('usd'); the hosted checkout is USD. */
 export function settlementCurrency(value: unknown): Currency {
   return String(value ?? 'usd').toUpperCase() === 'CAD' ? 'CAD' : 'USD';
 }

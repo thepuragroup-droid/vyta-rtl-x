@@ -21,7 +21,7 @@ const db = createClient(
  * Read-only — it creates no shipment and no order. The amounts it returns are
  * NOT trusted at hand-off either: /api/checkout/puramass re-quotes through the
  * same helper and matches on `courier_id`, so a price edited in the browser
- * never reaches PuraMass.
+ * never reaches Stealth Health.
  *
  * Body: { vials: number, destination: { country, postal_code, city, state? } }
  * Response: { live: boolean, rates: HostedShippingRate[], note: string | null }

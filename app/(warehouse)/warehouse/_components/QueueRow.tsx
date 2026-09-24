@@ -86,7 +86,7 @@ export default function QueueRow({
           )}
           {item.source === 'stealth_health' && (
             <span
-              title="Placed through Stealth Health (PuraMass hosted checkout)"
+              title="Placed through Stealth Health hosted checkout"
               className="text-[10px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-indigo-500/10 text-indigo-700 shrink-0"
             >
               Stealth Health

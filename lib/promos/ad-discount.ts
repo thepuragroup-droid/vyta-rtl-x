@@ -15,7 +15,7 @@
  *
  * ## Why the discount is distributed over the line prices
  *
- * The PuraMass hosted order has no discount field. It has `unit_price_cents`
+ * The Stealth Health hosted order has no discount field. It has `unit_price_cents`
  * per line, and that is the only lever we have — so the discount is taken off
  * the lines themselves before the payload is sent, and the hosted page charges
  * the already-discounted amounts. `distributeAdDiscount` does that split.
@@ -28,7 +28,7 @@
  *
  * ## The zero-price boundary
  *
- * One thing the partner API cannot express: a line at zero. PuraMass reads a
+ * One thing the partner API cannot express: a line at zero. Stealth Health reads a
  * zero `unit_price_cents` as "use your own catalog price", so
  * `buildPuramassOrderBody` refuses one — "free" would arrive as "full list".
  * The functions here happily return a zero (100% off really is zero), but the
@@ -141,7 +141,7 @@ export function adDiscountAmount(subtotal: number, percent: number): number {
 
 /** One line of the order as it would be priced WITHOUT the discount. */
 export interface AdDiscountLine {
-  /** Whatever the caller identifies the line by — the PuraMass SKU, here. */
+  /** Whatever the caller identifies the line by — the Stealth Health SKU, here. */
   key: string;
   /** Our undiscounted price for ONE catalog unit, in cents. */
   unitPriceCents: number;

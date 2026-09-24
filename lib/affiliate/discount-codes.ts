@@ -168,7 +168,7 @@ export type DiscountCodeEvaluation =
  * The hosted order can only take money off by lowering line prices, so every
  * code is expressed as a percentage of the list subtotal — a fixed amount is
  * converted here. Capped at MAX_DISCOUNT_PERCENT: a zero line price is read
- * by PuraMass as "use your own price" and charged at full list.
+ * by Stealth Health as "use your own price" and charged at full list.
  */
 export function evaluateDiscountCode(
   code: Pick<

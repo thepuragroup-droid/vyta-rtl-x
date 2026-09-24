@@ -1,5 +1,5 @@
 /**
- * Unit tests for the PuraMass shipping-address plumbing: normalising the
+ * Unit tests for the Stealth Health shipping-address plumbing: normalising the
  * `shipping` / `customer` blocks, building the additive ledger patch, and
  * formatting the address for the admin UI.
  *
@@ -21,7 +21,7 @@ import {
 } from './puramass-address';
 import { isMissingColumnError, stripUnmigratedFields } from './puramass-columns';
 
-/** The order payload PuraMass returns, verbatim from the partner docs. */
+/** The order payload Stealth Health returns, verbatim from the partner docs. */
 const SAMPLE_ORDER = {
   transaction_id: '2dyDrM7oFgACGsfjb4d5',
   status: 'paid',

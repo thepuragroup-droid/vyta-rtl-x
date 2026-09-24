@@ -89,7 +89,7 @@ function shape(data: Record<string, any> | null | undefined) {
     invoice_admin_email_body: d.invoice_admin_email_body ?? DEFAULT_ADMIN_BODY,
     pickup_address: d.pickup_address ?? '',
     guest_checkout_enabled: d.guest_checkout_enabled ?? true,
-    // PuraMass hosted checkout. Read on its own from the same row (never folded
+    // Stealth Health hosted checkout. Read on its own from the same row (never folded
     // into a column fallback) and merged in — plus a read-only credential flag
     // derived from server env (the API key itself is never returned).
     puramass_checkout_enabled: d.puramass_checkout_enabled ?? false,
@@ -107,7 +107,7 @@ function shape(data: Record<string, any> | null | undefined) {
     puramass_configured: isPuramassConfigured(),
     // Paid-ads welcome discount. Like the free-shipping promo above, `_active`
     // folds in the hosted-checkout toggle: the discount is applied by lowering
-    // the line prices on the PuraMass hand-off, so there is nowhere to apply it
+    // the line prices on the Stealth Health hand-off, so there is nowhere to apply it
     // when that is not the live checkout — and an offer the checkout would not
     // honour must not be advertised.
     ad_discount_enabled: adDiscount.enabled,
@@ -228,7 +228,7 @@ export async function PUT(req: NextRequest) {
   // How much the paid-ads welcome discount takes off. Bounded on both sides
   // rather than merely non-negative: 0 switches the promo off, and the ceiling
   // is 99 rather than 100 because the discount travels as per-line
-  // `unit_price_cents` and PuraMass reads a zero there as "no price given" —
+  // `unit_price_cents` and Stealth Health reads a zero there as "no price given" —
   // giving the goods away would charge full list instead. See
   // lib/promos/ad-discount.ts.
   if ('ad_discount_percent' in body) {
@@ -309,7 +309,7 @@ export async function PUT(req: NextRequest) {
   }
 
   // Abandoned-checkout window, same shape. Capped at 30 days: a longer window
-  // just fills the list with carts whose payment links PuraMass has expired.
+  // just fills the list with carts whose payment links Stealth Health has expired.
   if ('abandoned_checkout_hours' in body) {
     const n = Math.floor(Number(body.abandoned_checkout_hours));
     if (!Number.isFinite(n) || n < 1 || n > 24 * 30) {

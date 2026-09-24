@@ -14,7 +14,7 @@ const db = createClient(
  *
  * Returns a snapshot of the invoice's shipping / tracking state — from the
  * linked order when there is one, and from the invoice itself when there
- * isn't. A Stealth Health / PuraMass hand-off has no order row by design
+ * isn't. A Stealth Health hand-off has no order row by design
  * (see lib/payments/puramass-fulfillment.ts) but can still anchor its own
  * Easyship shipment, so `hasOrder: false` no longer means "not shipped".
  *

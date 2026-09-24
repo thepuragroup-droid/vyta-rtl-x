@@ -21,7 +21,7 @@ interface DeletePuramassOrdersDialogProps {
 }
 
 /**
- * Confirmation dialog for deleting PuraMass hand-off ledger rows.
+ * Confirmation dialog for deleting Stealth Health hand-off ledger rows.
  *
  * The nuance this dialog exists to surface: a paid hand-off may have
  * materialised into a customer-facing invoice (the buyer's account order + the
@@ -70,7 +70,7 @@ export default function DeletePuramassOrdersDialog({
               <AlertTriangle className="w-5 h-5 text-red-500" />
             </div>
             <h2 className="text-lg font-bold text-ink">
-              Delete {count} PuraMass order{plural}
+              Delete {count} Stealth Health order{plural}
             </h2>
           </div>
           <button
@@ -95,7 +95,7 @@ export default function DeletePuramassOrdersDialog({
             <span className="font-medium">
               {count} hand-off ledger record{plural}
             </span>
-            . This is the reconciliation record of the PuraMass hosted-checkout
+            . This is the reconciliation record of the Stealth Health hosted-checkout
             hand-off.
           </p>
 

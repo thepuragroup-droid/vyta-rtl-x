@@ -1,8 +1,8 @@
 /**
- * Unit tests for the PuraMass → invoice join: normalising a hand-off ledger row
+ * Unit tests for the Stealth Health → invoice join: normalising a hand-off ledger row
  * into the block /admin/invoices, /admin/invoices/[id] and the printable
  * invoice render, and building the ledger patch that captures the rest of the
- * PuraMass order payload.
+ * Stealth Health order payload.
  *
  * The repo has no test runner wired up, so these use Node's built-in
  * `node:test` + `node:assert` (zero dependencies). Run with a TS-aware loader,
@@ -20,7 +20,7 @@ import { buildPuramassOrderDetailPatch } from '../payments/puramass';
 import { puramassPriceType } from '../payments/puramass-fulfillment';
 import { stripUnmigratedFields } from '../payments/puramass-columns';
 
-/** A paid order exactly as PuraMass reports it. */
+/** A paid order exactly as Stealth Health reports it. */
 const ORDER_PAYLOAD = {
   transaction_id: 'jC0LrMp8pdipj7ky1u0k',
   status: 'paid',
@@ -91,7 +91,7 @@ const LEDGER_ROW = {
 
 // ---- Source detection -----------------------------------------------------
 
-test('only a stealth_health invoice counts as a PuraMass sale', () => {
+test('only a stealth_health invoice counts as a Stealth Health sale', () => {
   assert.equal(isPuramassInvoice({ source: PURAMASS_INVOICE_SOURCE }), true);
   assert.equal(isPuramassInvoice({ source: null }), false);
   assert.equal(isPuramassInvoice({}), false);
@@ -106,7 +106,7 @@ test('normalises a ledger row into the invoice block', () => {
   assert.equal(ctx.transaction_id, 'jC0LrMp8pdipj7ky1u0k');
   assert.equal(ctx.partner_reference, ORDER_PAYLOAD.partner_reference);
   assert.equal(ctx.status, 'paid');
-  // Currency is upper-cased for display; the ledger stores PuraMass's 'usd'.
+  // Currency is upper-cased for display; the ledger stores Stealth Health's 'usd'.
   assert.equal(ctx.currency, 'USD');
   assert.equal(ctx.customer_name, 'Jordan Grosman');
   assert.equal(ctx.customer_phone, '+14167239851');
@@ -116,7 +116,7 @@ test('normalises a ledger row into the invoice block', () => {
   assert.equal(centsToAmount(ctx.subtotal_cents), 667);
 });
 
-test('prefers the priced PuraMass items over the hand-off sku list', () => {
+test('prefers the priced Stealth Health items over the hand-off sku list', () => {
   const ctx = normalizePuramassContext(LEDGER_ROW);
   assert.equal(ctx.items.length, 2);
   assert.equal(ctx.items[1].sku, 'aminocan-hgh-191aa-somatropin-36-iu-vial');
@@ -141,7 +141,7 @@ test('an order with no address reported yet normalises to null, not a shell', ()
   assert.equal(ctx.shipping_address_source, null);
 });
 
-test('reads refunds under any of the names PuraMass may use', () => {
+test('reads refunds under any of the names Stealth Health may use', () => {
   const ctx = normalizePuramassContext({
     ...LEDGER_ROW,
     refunded_total_cents: 14500,
@@ -206,7 +206,7 @@ test('the missing-column fallback drops the order-detail columns too', () => {
 // ---- Price type (box vs vial) ---------------------------------------------
 
 test('the SKU suffix decides the pricing unit', () => {
-  // `…-vial` is PuraMass's single-vial listing; everything else is a box.
+  // `…-vial` is Stealth Health's single-vial listing; everything else is a box.
   assert.equal(
     puramassPriceType({ sku: 'aminocan-retatrutide-10mg-vial' }),
     'vial',

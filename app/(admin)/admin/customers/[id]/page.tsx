@@ -1229,7 +1229,7 @@ export default function CustomerDetailPage() {
                         {abandoned.chased > 0 ? ` · already chased ${abandoned.chased}×` : ''}
                         {abandoned.hasPaymentLink
                           ? '. The email carries the Stealth Health link that still takes payment for it.'
-                          : '. PuraMass gave us no link for this one, so no button can be sent.'}
+                          : '. Stealth Health gave us no link for this one, so no button can be sent.'}
                       </>
                     ),
                     defaultOn: true,

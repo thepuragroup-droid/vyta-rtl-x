@@ -60,7 +60,7 @@ interface AddonProduct {
   stock_quantity: number;
   image_url: string | null;
   box_image_url: string | null;
-  /** Forms PuraMass can actually fulfil (derived from the SKU mappings). */
+  /** Forms Stealth Health can actually fulfil (derived from the SKU mappings). */
   allowedUnits: PurchaseUnit[];
   /** Cheapest offered unit price, for the "from $X" label. */
   fromPrice: number;
@@ -288,7 +288,7 @@ function readReferralCode(): string {
 }
 
 /**
- * PuraMass hosted-checkout screen. Collects contact info, shows the cart
+ * Stealth Health hosted-checkout screen. Collects contact info, shows the cart
  * summary, then hands the cart off to `/api/checkout/puramass` and redirects
  * to the payment link.
  *
@@ -475,7 +475,7 @@ export default function PuramassCheckoutContent({
       price: p.price,
       vial_price: p.vial_price,
       vials_per_box: p.vials_per_box,
-      // Deliberately NOT the product's own pack options: PuraMass fulfils
+      // Deliberately NOT the product's own pack options: Stealth Health fulfils
       // these add-ons and only stocks a single vial and a full 10-pack, so the
       // picker stays on the default pair, narrowed further by allowedUnits.
       pack_sizes: null,
@@ -721,7 +721,7 @@ export default function PuramassCheckoutContent({
 
       if (json.payment_link) {
         // GA4 `begin_checkout`. This is the last event Google gets from this
-        // path: payment happens on PuraMass's own domain, so no `purchase`
+        // path: payment happens on Stealth Health's own domain, so no `purchase`
         // event can ever fire client-side here. Ads optimisation on this
         // funnel has to be fed from the server side of the ledger instead.
         trackBeginCheckout(items.map(cartItemToAnalytics));
@@ -1424,7 +1424,7 @@ export default function PuramassCheckoutContent({
                       </span>
                     </div>
                   </div>
-                  {/* The buyer is about to leave for PuraMass's own page, where
+                  {/* The buyer is about to leave for Stealth Health's own page, where
                       there is no discount line to look at — the saving is
                       already baked into the prices sent over. Say so here,
                       while they can still see both numbers. */}

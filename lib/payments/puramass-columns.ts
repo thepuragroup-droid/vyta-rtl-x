@@ -1,5 +1,5 @@
 /**
- * Tolerance for the PuraMass address columns not being queryable yet.
+ * Tolerance for the Stealth Health address columns not being queryable yet.
  *
  * `shipping_address` / `customer_name` / `customer_phone` arrive with
  * puramass-shipping-address-migration.sql; the provenance and
@@ -15,7 +15,7 @@
  * the fallback simply never fires.
  */
 
-/** Columns added by the two PuraMass address migrations. */
+/** Columns added by the two Stealth Health address migrations. */
 export const PURAMASS_ADDRESS_COLUMNS = [
   // puramass-shipping-address-migration.sql
   'shipping_address',
