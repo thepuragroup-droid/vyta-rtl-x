@@ -134,7 +134,6 @@ export function applyHandlingFee(cost: number, config: ShippingConfig): number {
 // not a valid rates request on any current API version, so every quote threw
 // and checkout silently fell back to the flat rate.
 function buildRatesBody(payload: EasyshipRateRequest) {
-  const box = payload.boxes?.[0];
   return {
     origin_address: {
       country_alpha2: payload.origin_country_alpha2,
@@ -151,7 +150,9 @@ function buildRatesBody(payload: EasyshipRateRequest) {
     incoterms: 'DDU',
     insurance: { is_insured: false },
     courier_settings: { show_courier_logo_url: false, apply_shipping_rules: true },
-    shipping_settings: { units: { weight: 'kg', dimensions: 'cm' } },
+    // Rate quotes use a fixed minimal parcel: 1 lb, 1x1x1 in. Configured box
+    // dims were arriving as 0 and Easyship rejects any dimension <= 0.
+    shipping_settings: { units: { weight: 'lb', dimensions: 'in' } },
     // 2024-09 requires parcels[].items[] — a parcel described only by a box +
     // total weight is rejected ("parcels[0].items can't be blank"). Represent
     // the whole shipment as a single item carrying the total weight + box dims.
@@ -162,15 +163,11 @@ function buildRatesBody(payload: EasyshipRateRequest) {
             // Each rate item must carry an hs_code; 17049000 = "Dry Food &
             // Supplements". (item_category_id is not accepted by this schema.)
             hs_code: payload.hs_code ?? '17049000',
-            actual_weight: payload.total_actual_weight,
+            actual_weight: 1,
             declared_currency: payload.declared_currency ?? 'CAD',
             declared_customs_value: payload.declared_customs_value ?? 50,
             // dimensions is a required nested object on the rate item.
-            dimensions: {
-              length: box?.length ?? 15,
-              width: box?.width ?? 10,
-              height: box?.height ?? 5,
-            },
+            dimensions: { length: 1, width: 1, height: 1 },
           },
         ],
       },
@@ -349,7 +346,18 @@ export async function createEasyshipShipment(
       // quantity, weight, dimensions, customs value) directly on the parcel —
       // they live on parcels[].items[], with the parcel carrying box dims +
       // total_actual_weight. Mirror the item shape the /rates endpoint accepts.
-      parcels: payload.parcels.map((p) => ({
+      // Easyship rejects dims/weight <= 0 — fall back to the minimum (1 cm,
+      // 1 lb ≈ 0.4536 kg) when a value is missing or zero.
+      parcels: payload.parcels.map((raw) => {
+        const pos = (v: unknown, d: number) => (Number(v) > 0 ? Number(v) : d);
+        const p = {
+          ...raw,
+          length: pos(raw.length, 1),
+          width: pos(raw.width, 1),
+          height: pos(raw.height, 1),
+          actual_weight: pos(raw.actual_weight, 0.4536),
+        };
+        return {
         box: { length: p.length, width: p.width, height: p.height },
         total_actual_weight: p.actual_weight * (p.quantity || 1),
         items: [
@@ -366,7 +374,8 @@ export async function createEasyshipShipment(
             dimensions: { length: p.length, width: p.width, height: p.height },
           },
         ],
-      })),
+        };
+      }),
     }),
   });
 
