@@ -57,20 +57,28 @@ test('an unusable shipping figure is omitted so PuraMass quotes it', () => {
   }
 });
 
-test('an unpriced line falls back to the partner catalog price', () => {
+test('every line carries a whole-cent unit price', () => {
   const body = buildPuramassOrderBody({
     ...BASE,
     items: [
-      { sku: 'a-vial', quantity: 2 },
-      { sku: 'b-vial', quantity: 1, unit_price_cents: 0 },
+      { sku: 'a-vial', quantity: 2, unit_price_cents: 4500 },
       { sku: 'c-vial', quantity: 3, unit_price_cents: 8712.4 },
     ],
   });
   assert.deepEqual((body as any).items, [
-    { sku: 'a-vial', quantity: 2 },
-    { sku: 'b-vial', quantity: 1 },
+    { sku: 'a-vial', quantity: 2, unit_price_cents: 4500 },
     { sku: 'c-vial', quantity: 3, unit_price_cents: 8712 },
   ]);
+});
+
+test('a line without a usable price is refused, never left to the partner catalog', () => {
+  for (const unit_price_cents of [0, -100, Number.NaN, undefined as unknown as number]) {
+    assert.throws(
+      () => buildPuramassOrderBody({ ...BASE, items: [{ sku: 'a-vial', quantity: 1, unit_price_cents }] }),
+      /No price for a-vial/,
+      String(unit_price_cents),
+    );
+  }
 });
 
 test('customer block keeps only the fields that carry a value', () => {

@@ -28,9 +28,9 @@
  *
  * ## The zero-price boundary
  *
- * One thing the partner API cannot express: a line at zero. `unit_price_cents`
- * is optional there, so `buildPuramassOrderBody` omits a zero and PuraMass then
- * charges its OWN catalog price — meaning "free" would arrive as "full list".
+ * One thing the partner API cannot express: a line at zero. PuraMass reads a
+ * zero `unit_price_cents` as "use your own catalog price", so
+ * `buildPuramassOrderBody` refuses one — "free" would arrive as "full list".
  * The functions here happily return a zero (100% off really is zero), but the
  * caller must refuse to send a split that produced one, and the admin settings
  * route caps the percentage at 99 so it cannot be reached by configuration.

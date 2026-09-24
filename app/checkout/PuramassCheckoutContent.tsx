@@ -740,13 +740,9 @@ export default function PuramassCheckoutContent({
             ),
           },
         });
-        // TEMP: log the PuraMass request body instead of redirecting.
-        console.log("[puramass] TEMP order request body:", json.debug_request_body);
-        console.log("[puramass] TEMP payment link (not redirecting):", json.payment_link);
-        setSubmitting(false);
-        return;
         // Keep `submitting` true through the redirect so the CTA stays locked.
-        // window.location.href = json.payment_link;
+        window.location.href = json.payment_link;
+        return;
       }
       setError("Could not start checkout. Please try again.");
       setSubmitting(false);

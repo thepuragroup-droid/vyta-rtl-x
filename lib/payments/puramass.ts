@@ -27,15 +27,14 @@ import crypto from 'node:crypto';
  * clamped 1–99.
  *
  * `unit_price_cents` is OUR price for one of those units, in cents of the
- * order's `currency`. It is optional: omit it and PuraMass falls back to its
- * own catalog price for the SKU. The storefront deliberately omits it — goods
- * pricing stays PuraMass's own, and only the shipping total is ours (see
- * `shippingTotalCents`).
+ * order's `currency`, with any discount already taken off. Always sent: the
+ * partner API would fall back to PuraMass's own catalog price for a line
+ * without one, and goods are charged at our prices, never theirs.
  */
 export interface PuramassOrderLine {
   sku: string;
   quantity: number;
-  unit_price_cents?: number;
+  unit_price_cents: number;
 }
 
 export interface PuramassCustomer {
@@ -308,24 +307,23 @@ export interface PuramassOrderRequest {
  * Build the POST /partner/store/orders body. Split out from the request so the
  * payload shape can be unit-tested without a network call.
  *
- * Every money field is optional on the partner's side. An unpriced line is
- * omitted rather than sent as a zero/NaN, so it falls back to PuraMass's own
- * catalog price. Shipping is the exception: a zero is sent as
+ * Every line must carry a positive `unit_price_cents`. The partner reads a
+ * missing or zero price as "use your own catalog price", so a line without a
+ * usable one throws here rather than going out and being charged at
+ * PuraMass's list. A zero shipping total, on the other hand, is sent as
  * `shipping_total_cents: 0`, because that is how an order that earned free
  * shipping is expressed. Only an absent shipping figure leaves the field off,
- * which lets PuraMass quote shipping on its hosted page (what it has always
- * done).
+ * which lets PuraMass quote shipping on its hosted page.
  */
 export function buildPuramassOrderBody(args: PuramassOrderRequest): Record<string, unknown> {
   const shipping = shippingCents(args.shippingTotalCents);
   return {
     items: args.items.map((i) => {
       const unit = optionalCents(i.unit_price_cents);
-      return {
-        sku: i.sku,
-        quantity: i.quantity,
-        ...(unit !== undefined ? { unit_price_cents: unit } : {}),
-      };
+      if (unit === undefined) {
+        throw new PuramassApiError(500, `No price for ${i.sku}`);
+      }
+      return { sku: i.sku, quantity: i.quantity, unit_price_cents: unit };
     }),
     currency: String(args.currency || PURAMASS_CURRENCY).trim().toLowerCase(),
     customer: cleanCustomer(args.customer),
@@ -337,7 +335,7 @@ export function buildPuramassOrderBody(args: PuramassOrderRequest): Record<strin
 
 /**
  * POST /partner/store/orders — create a hosted-checkout order.
- * Sends `{ sku, quantity, unit_price_cents? }` lines, the order `currency`,
+ * Sends `{ sku, quantity, unit_price_cents }` lines, the order `currency`,
  * `payment.mode: "customer"`, and our `partner_reference` (idempotency key;
  * reusing the same reference is a safe retry). No shipping address is sent:
  * the buyer types their real one on the hosted page, and it comes back to us

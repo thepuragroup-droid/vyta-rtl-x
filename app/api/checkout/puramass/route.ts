@@ -5,7 +5,6 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import {
   isPuramassConfigured,
   createPuramassOrder,
-  buildPuramassOrderBody,
   PuramassApiError,
   PURAMASS_CURRENCY,
   type PuramassOrderLine,
@@ -457,16 +456,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // 8a. Every line travels with OUR price. Nothing is left to PuraMass's own
+  //     catalog, so a line we could not price stops the hand-off here rather
+  //     than going out without one and being charged at their list.
+  const unpriced = [...linesBySku.entries()]
+    .filter(([, line]) => !(line.unitPriceCents > 0))
+    .map(([sku]) => sku);
+  if (unpriced.length > 0) {
+    console.error('[puramass] hand-off refused: no price for %s', unpriced.join(', '));
+    return NextResponse.json(
+      { error: 'We could not price your cart. Please try again or contact support.' },
+      { status: 500 },
+    );
+  }
+
   // 8b. The discounts: the paid-ads welcome discount and the limited-time cart
   //     offer. Both can land on one order.
   //
   //     The hosted order has no discount field, so the only way to take money
   //     off is to send lower prices: `distributeAdDiscount` splits the
   //     percentage across the lines and each one travels as its own
-  //     `unit_price_cents`. Lines are otherwise sent WITHOUT a price, which
-  //     leaves goods pricing to PuraMass's own catalog — the behaviour every
-  //     undiscounted hand-off has always had, and the reason the prices only
-  //     appear when there is something to take off them.
+  //     `unit_price_cents`. Undiscounted lines carry our list price. Our own
+  //     summary shows the saving as one deduction off the subtotal; the hosted
+  //     page can only show the already-reduced line prices.
   //
   //     Stacked promos are COMPOSED into one percentage and split once
   //     (`combineDiscountPercents`: 25% then 10% is 32.5% off, not 35%). Two
@@ -479,11 +491,9 @@ export async function POST(req: NextRequest) {
   //     from the settings row's own minimum and end date, measured against the
   //     quantities this request is actually ordering.
   //
-  //     Two guards on the split, both about that same zero: it is only sent
-  //     when every line has a real price to discount AND every discounted
-  //     price is still above zero. Either way out is a hand-off with no prices
-  //     at all, which is what an undiscounted order has always been: the buyer
-  //     pays list rather than being handed free product by a pricing failure.
+  //     One guard on the split, about that same zero: every discounted price
+  //     must still be above zero. If one is not, the discount is dropped and
+  //     the lines go out at list, rather than handing out free product.
   const visitor = readVisitorContext(req.cookies);
   const adDiscountSettings = shapeAdDiscountSettings(settingsRow);
   const earnedAd = await earnsAdDiscount(adDiscountSettings, customerId, visitor);
@@ -526,10 +536,8 @@ export async function POST(req: NextRequest) {
     codeBeatsAd ? appliedCode!.percent : 0,
     earnedOffer ? cartOfferSettings.percent : 0,
   );
-  const everyLinePriced = [...linesBySku.values()].every((line) => line.unitPriceCents > 0);
-
   let discount: ReturnType<typeof distributeAdDiscount> | null = null;
-  if (discountPercent > 0 && everyLinePriced) {
+  if (discountPercent > 0) {
     const split = distributeAdDiscount(
       [...linesBySku.entries()].map(([sku, line]) => ({
         key: sku,
@@ -542,14 +550,10 @@ export async function POST(req: NextRequest) {
       discount = split;
     } else {
       console.error(
-        '[puramass] discount skipped: %s%% would zero a line price, which this API reads as "use your own price"',
+        '[puramass] discount skipped: %s%% would zero a line price; sending list prices',
         discountPercent,
       );
     }
-  } else if (discountPercent > 0) {
-    console.error(
-      '[puramass] discount skipped: the catalog could not price every line, and a zero price would be charged at full list',
-    );
   }
 
   const discountedBySku = new Map(
@@ -558,9 +562,7 @@ export async function POST(req: NextRequest) {
   const items: PuramassOrderLine[] = [...linesBySku.entries()].map(([sku, line]) => ({
     sku,
     quantity: line.quantity,
-    ...(discountedBySku.has(sku)
-      ? { unit_price_cents: discountedBySku.get(sku) }
-      : {}),
+    unit_price_cents: discountedBySku.get(sku) ?? line.unitPriceCents,
   }));
 
   // 9. Price the shipping. Re-quoted here rather than trusted from the
@@ -606,19 +608,15 @@ export async function POST(req: NextRequest) {
   const partnerReference = `amc_${crypto.randomUUID()}`;
 
   // 11. Create the hosted order.
-  const orderArgs = {
-    items,
-    customer: { email, first_name: firstName, last_name: lastName },
-    partnerReference,
-    currency: PURAMASS_CURRENCY,
-    shippingTotalCents,
-  };
-  // TEMP: log the exact POST /partner/store/orders body for debugging.
-  const debugRequestBody = buildPuramassOrderBody(orderArgs);
-  console.log('[puramass] TEMP order request body:', JSON.stringify(debugRequestBody));
   let order;
   try {
-    order = await createPuramassOrder(orderArgs);
+    order = await createPuramassOrder({
+      items,
+      customer: { email, first_name: firstName, last_name: lastName },
+      partnerReference,
+      currency: PURAMASS_CURRENCY,
+      shippingTotalCents,
+    });
   } catch (err) {
     if (err instanceof PuramassApiError) {
       // Surface 4xx messages (client can act on them); collapse the rest to 502
@@ -761,7 +759,5 @@ export async function POST(req: NextRequest) {
     cart_offer_percent: discount && earnedOffer ? cartOfferSettings.percent : 0,
     discount_percent: discount ? discount.percent : 0,
     ad_discount: discount ? discount.discountCents / 100 : 0,
-    // TEMP: echoed so the checkout page can log it instead of redirecting.
-    debug_request_body: debugRequestBody,
   });
 }
