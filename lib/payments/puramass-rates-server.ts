@@ -46,6 +46,8 @@ export interface HostedQuote {
   note: string | null;
   /** The settings the quote was produced under, so callers don't re-read them. */
   settings: HostedShippingSettings;
+  /** TEMP DEBUG: why the quote fell back to the flat rate. Remove once diagnosed. */
+  debug?: string;
 }
 
 /**
@@ -63,17 +65,23 @@ export async function quoteHostedRates(
   settings?: HostedShippingSettings,
 ): Promise<HostedQuote> {
   const cfgSettings = settings ?? (await getHostedShippingSettings(db));
-  const flatQuote = (note: string | null): HostedQuote => ({
+  const flatQuote = (note: string | null, debug?: string): HostedQuote => ({
     live: false,
     rates: [flatHostedRate(cfgSettings.flatShipping)],
     note,
     settings: cfgSettings,
+    debug,
   });
 
-  if (!cfgSettings.ratesEnabled) return flatQuote(null);
+  if (!cfgSettings.ratesEnabled) return flatQuote(null, 'hosted rates disabled in settings');
 
   const cfg = await getShippingConfig(db);
-  if (!cfg.enabled || !cfg.apiKey) return flatQuote(null);
+  if (!cfg.enabled || !cfg.apiKey) {
+    return flatQuote(
+      null,
+      `easyship not configured (enabled=${cfg.enabled}, apiKey=${cfg.apiKey ? 'set' : 'missing'})`,
+    );
+  }
 
   const box = cfg.box ?? {};
   let rates: HostedShippingRate[];
@@ -103,11 +111,17 @@ export async function quoteHostedRates(
     rates = rankHostedRates(raw, cfg);
   } catch (err: any) {
     console.error('[puramass] hosted rate quote failed:', err?.message ?? err);
-    return flatQuote('Live shipping rates are unavailable right now.');
+    return flatQuote(
+      'Live shipping rates are unavailable right now.',
+      `easyship error: ${err?.message ?? String(err)}`,
+    );
   }
 
   if (rates.length === 0) {
-    return flatQuote('No courier rates were returned for this address.');
+    return flatQuote(
+      'No courier rates were returned for this address.',
+      'easyship returned no rates after courier filtering',
+    );
   }
   return { live: true, rates, note: null, settings: cfgSettings };
 }
