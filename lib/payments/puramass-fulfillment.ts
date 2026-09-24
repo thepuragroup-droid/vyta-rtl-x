@@ -591,9 +591,11 @@ export async function expireStealthHealthInvoices(
 /**
  * Book the Easyship shipment for a paid order.
  *
- * A buyer who chose a courier on our checkout has already paid for that exact
- * service, so booking it passes `force` and `courierId`. A flat-fee order
- * picked no service, so it defers to the site-wide auto-create toggle. The
+ * Every paid order gets a shipment record, whatever the site-wide auto-create
+ * toggle says (`force`). A buyer who chose a courier on our checkout has
+ * already paid for that exact service, so it is booked as-is. A flat-fee or
+ * free-shipping order picked no service — live rates weren't on screen — so
+ * the fastest allowed service from a fresh quote is booked instead. The
  * shipment is a DRAFT; buying the label stays governed by
  * `easyship_auto_buy_label`.
  *
@@ -607,9 +609,12 @@ async function bookShipment(
 ): Promise<void> {
   try {
     const { autoCreateShipmentForInvoice } = await import('@/lib/shipping/auto-shipment');
-    await autoCreateShipmentForInvoice(db, invoiceId, !!courierId, {
-      ...(courierId ? { courierIdOverride: courierId } : {}),
-    });
+    await autoCreateShipmentForInvoice(
+      db,
+      invoiceId,
+      true,
+      courierId ? { courierIdOverride: courierId } : { courierPreference: 'fastest' },
+    );
   } catch (err) {
     console.error('[stealth-health] shipment booking failed:', err);
   }
