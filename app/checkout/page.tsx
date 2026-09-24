@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import { Beaker, Loader2 } from "lucide-react";
 import PuramassCheckoutContent from "./PuramassCheckoutContent";
 import { DEFAULT_FLAT_SHIPPING } from "@/lib/payments/puramass-settings";
 
