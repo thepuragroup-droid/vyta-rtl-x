@@ -93,7 +93,10 @@ function CheckoutRouter() {
         if (cancelled) return;
         setGuestCheckoutEnabled(s.guest_checkout_enabled ?? true);
         setShippingRatesEnabled(!!s.puramass_shipping_rates_enabled);
-        setFlatShipping(Number(s.puramass_flat_shipping) || DEFAULT_FLAT_SHIPPING);
+        // `??` + a finite check, not `||`: a saved fee of 0 is a real setting
+        // (free flat shipping), not a missing one.
+        const flat = Number(s.puramass_flat_shipping ?? DEFAULT_FLAT_SHIPPING);
+        setFlatShipping(Number.isFinite(flat) && flat >= 0 ? flat : DEFAULT_FLAT_SHIPPING);
         setFreeShipping({
           active: !!s.puramass_free_shipping_active,
           threshold: Number(s.puramass_free_shipping_threshold) || 0,

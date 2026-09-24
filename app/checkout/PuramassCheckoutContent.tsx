@@ -1289,9 +1289,19 @@ export default function PuramassCheckoutContent({
 
                     {!shippingRatesEnabled ? (
                       <p className="text-xs leading-relaxed text-ink-muted">
-                        Flat <span className="font-semibold text-ink">${flatShipping.toFixed(2)}</span>{" "}
-                        tracked shipping on every order. You&apos;ll give the courier your
-                        delivery address on the secure checkout page.
+                        {flatShipping > 0 ? (
+                          <>
+                            Flat <span className="font-semibold text-ink">${flatShipping.toFixed(2)}</span>{" "}
+                            tracked shipping on every order.
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-semibold text-emerald-700">Free</span> tracked
+                            shipping on every order.
+                          </>
+                        )}{" "}
+                        You&apos;ll give the courier your delivery address on the secure checkout
+                        page.
                       </p>
                     ) : !addressReady ? (
                       <p className="text-xs leading-relaxed text-ink-muted">
@@ -1456,7 +1466,7 @@ export default function PuramassCheckoutContent({
                           </span>
                         ) : shippingRatesEnabled && ratesLive && !selectedRate ? (
                           <span className="text-ink-muted">Choose a courier above</span>
-                        ) : freeShipping ? (
+                        ) : freeShipping || shippingCost === 0 ? (
                           <span className="font-semibold text-emerald-700">Free</span>
                         ) : (
                           `$${shippingCost.toFixed(2)}`
