@@ -59,6 +59,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const KLAVIYO_INIT_SNIPPET = `!function(){if(!window.klaviyo){window._klOnsite=window._klOnsite||[];try{window.klaviyo=new Proxy({},{get:function(n,i){return"push"===i?function(){var n;(n=window._klOnsite).push.apply(n,arguments)}:function(){for(var n=arguments.length,o=new Array(n),w=0;w<n;w++)o[w]=arguments[w];var t="function"==typeof o[o.length-1]?o.pop():void 0,e=new Promise((function(n){window._klOnsite.push([i].concat(o,[function(i){t&&t(i),n(i)}]))}));return e}}})}catch(n){window.klaviyo=window.klaviyo||[],window.klaviyo.push=function(){var n;(n=window._klOnsite).push.apply(n,arguments)}}}}();`;
+
 function MaybeWeb3Provider({ children }: { children: React.ReactNode }) {
   if (!siteConfig.cryptoPaymentsEnabled) return <>{children}</>;
   return <Web3Provider>{children}</Web3Provider>;
@@ -73,6 +75,7 @@ export default async function RootLayout({
     gtm_container_id: gtmId,
     ga4_measurement_id: ga4Id,
     tracking_consent_required: consentRequired,
+    klaviyo_public_key: klaviyoId,
   } = await getServerSiteConfig();
 
   // Google Tag Manager, installed exactly as the container snippet specifies:
@@ -117,6 +120,12 @@ window.gtag=window.gtag||gtag;gtag('js',new Date());gtag('config','${ga4Id}');`,
             />
           </>
         )}
+        {/* Klaviyo object initializer, from Klaviyo's install snippet. It
+            only defines window.klaviyo as a queue onto window._klOnsite — no
+            network or cookies — so calls made before klaviyo.js arrives are
+            replayed once it does. klaviyo.js itself is loaded by SiteTracking,
+            and only after the visitor accepts the cookie banner. */}
+        {klaviyoId && <script dangerouslySetInnerHTML={{ __html: KLAVIYO_INIT_SNIPPET }} />}
         {/* Google Tag Manager */}
         {gtmSnippet && <script dangerouslySetInnerHTML={{ __html: gtmSnippet }} />}
         {/* End Google Tag Manager */}

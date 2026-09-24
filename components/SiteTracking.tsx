@@ -200,7 +200,7 @@ export default function SiteTracking() {
         <Script
           id="klaviyo-onsite"
           strategy="afterInteractive"
-          src={`https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=${encodeURIComponent(klaviyo)}`}
+          src={`https://static.klaviyo.com/onsite/js/${encodeURIComponent(klaviyo)}/klaviyo.js?company_id=${encodeURIComponent(klaviyo)}`}
         />
       )}
 

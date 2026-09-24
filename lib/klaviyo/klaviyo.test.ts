@@ -56,6 +56,15 @@ test('the storefront only gets a Site ID when enabled + onsite on + the id is we
   assert.equal(klaviyoOnsiteKey({ ...row, klaviyo_public_key: '<script>' }), null);
 });
 
+test('the built-in Site ID applies only until one is saved in Admin', () => {
+  assert.equal(klaviyoOnsiteKey({ klaviyo_enabled: false }, 'SY9j8v'), 'SY9j8v');
+  assert.equal(klaviyoOnsiteKey(null, 'SY9j8v'), 'SY9j8v');
+  const saved = { klaviyo_enabled: true, klaviyo_public_key: 'AbC123' };
+  assert.equal(klaviyoOnsiteKey(saved, 'SY9j8v'), 'AbC123');
+  assert.equal(klaviyoOnsiteKey({ ...saved, klaviyo_enabled: false }, 'SY9j8v'), null);
+  assert.equal(klaviyoOnsiteKey({ ...saved, klaviyo_onsite_enabled: false }, 'SY9j8v'), null);
+});
+
 test('the private key never leaks through the onsite key', () => {
   assert.equal(
     klaviyoOnsiteKey({ klaviyo_enabled: true, klaviyo_private_api_key: 'pk_secret_123456' }),
