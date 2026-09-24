@@ -9,6 +9,7 @@ import {
 import { materializeStealthHealthFulfillment } from '@/lib/payments/puramass-fulfillment';
 import { isMissingColumnError, stripUnmigratedFields } from '@/lib/payments/puramass-columns';
 import { attributeHostedPurchase } from '@/lib/analytics/attribution-server';
+import { logWebhookEvent, type WebhookOutcome } from '@/lib/payments/puramass-webhook-log';
 
 // Needs the raw request body + node:crypto (via the client) for HMAC verify.
 export const runtime = 'nodejs';
@@ -57,29 +58,87 @@ async function findLedgerRow(column: string, value: string): Promise<any> {
  * deduped on `event_id`. Any authentic event is ACKed 2xx within the delivery
  * window (even unmatched/unknown) so it isn't retried forever; only
  * signature/secret/DB-write failures return non-2xx to trigger a retry.
+ *
+ * Every delivery — authentic or not, matched or not — is recorded in
+ * `puramass_webhook_events` with its body and our response.
  */
 export async function POST(req: NextRequest) {
   const raw = await req.text();
+  const ctx: DeliveryContext = { signatureValid: false };
+
+  let result: HandlerResult;
+  try {
+    result = await handle(req, raw, ctx);
+  } catch (err) {
+    console.error('[stealth-health] webhook handler threw:', err);
+    result = {
+      outcome: 'error',
+      status: 500,
+      body: { error: 'internal error' },
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+
+  // Record every delivery — what arrived and what we answered.
+  await logWebhookEvent(db, {
+    raw,
+    payload: ctx.payload,
+    signatureValid: ctx.signatureValid,
+    outcome: result.outcome,
+    responseStatus: result.status,
+    responseBody: result.body,
+    puramassOrderId: ctx.orderId ?? null,
+    error: result.error ?? null,
+  });
+
+  return NextResponse.json(result.body, { status: result.status });
+}
+
+interface DeliveryContext {
+  signatureValid: boolean;
+  payload?: unknown;
+  orderId?: string;
+}
+
+interface HandlerResult {
+  outcome: WebhookOutcome;
+  status: number;
+  body: Record<string, unknown>;
+  error?: string;
+}
+
+function reply(
+  outcome: WebhookOutcome,
+  body: Record<string, unknown>,
+  status: number,
+  error?: string,
+): HandlerResult {
+  return { outcome, status, body, error };
+}
+
+async function handle(req: NextRequest, raw: string, ctx: DeliveryContext): Promise<HandlerResult> {
 
   // Missing secret → fail with 500 (we cannot authenticate the event).
   if (!isPuramassWebhookConfigured()) {
     console.error('[stealth-health] PURAMASS_WEBHOOK_SECRET not set — rejecting');
-    return NextResponse.json({ error: 'webhook not configured' }, { status: 500 });
+    return reply('not_configured', { error: 'webhook not configured' }, 500);
   }
 
   // Verify HMAC-SHA256 over the raw body.
   const signature = req.headers.get('x-stealth-signature');
   if (!verifyPuramassSignature(raw, signature)) {
-    return NextResponse.json({ error: 'bad signature' }, { status: 401 });
+    return reply('bad_signature', { error: 'bad signature' }, 401);
   }
+  ctx.signatureValid = true;
 
   let payload: any;
   try {
     payload = JSON.parse(raw);
   } catch {
     // Authentic but unparseable — ACK so it isn't retried forever.
-    return NextResponse.json({ received: true, matched: false }, { status: 200 });
+    return reply('unparseable', { received: true, matched: false }, 200);
   }
+  ctx.payload = payload;
 
   const eventId: string | null = payload?.event_id ?? null;
   const partnerReference: string | null = payload?.partner_reference ?? null;
@@ -103,12 +162,13 @@ export async function POST(req: NextRequest) {
 
   // Unknown order — ACK so PuraMass stops retrying.
   if (!row) {
-    return NextResponse.json({ received: true, matched: false }, { status: 200 });
+    return reply('unmatched', { received: true, matched: false }, 200);
   }
+  ctx.orderId = row.id;
 
   // Idempotency: already processed this exact event.
   if (eventId && row.last_event_id === eventId) {
-    return NextResponse.json({ received: true, deduped: true }, { status: 200 });
+    return reply('deduped', { received: true, deduped: true }, 200);
   }
 
   const update: Record<string, unknown> = {};
@@ -158,7 +218,7 @@ export async function POST(req: NextRequest) {
     if (error) {
       // DB write failure → non-2xx so PuraMass retries.
       console.error('[stealth-health] ledger update failed:', error);
-      return NextResponse.json({ error: 'update failed' }, { status: 500 });
+      return reply('update_failed', { error: 'update failed' }, 500, error.message);
     }
   }
 
@@ -190,5 +250,5 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({ received: true, matched: true }, { status: 200 });
+  return reply('matched', { received: true, matched: true }, 200);
 }
