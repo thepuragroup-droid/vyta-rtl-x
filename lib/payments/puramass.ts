@@ -116,7 +116,7 @@ export class PuramassApiError extends Error {
   status: number;
   detail: string;
   constructor(status: number, detail: string) {
-    super(detail || `PuraMass API error ${status}`);
+    super(detail || `Stealth Health API error ${status}`);
     this.name = 'PuramassApiError';
     this.status = status;
     this.detail = detail;
@@ -157,7 +157,7 @@ function sanitizeDetail(body: unknown, status: number): string {
     const msg = b.error ?? b.message ?? b.detail ?? (b.errors && JSON.stringify(b.errors));
     if (typeof msg === 'string' && msg.trim()) return msg.trim().slice(0, 300);
   }
-  return `PuraMass API error ${status}`;
+  return `Stealth Health API error ${status}`;
 }
 
 /**
@@ -171,7 +171,7 @@ export async function puramassFetch(
   init: RequestInit = {},
 ): Promise<any> {
   const { apiKey, partnerId, baseUrl } = config();
-  if (!apiKey) throw new PuramassApiError(503, 'PuraMass is not configured');
+  if (!apiKey) throw new PuramassApiError(503, 'Stealth Health is not configured');
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -189,9 +189,9 @@ export async function puramassFetch(
     });
   } catch (err: any) {
     if (err?.name === 'AbortError') {
-      throw new PuramassApiError(504, 'PuraMass request timed out');
+      throw new PuramassApiError(504, 'Stealth Health request timed out');
     }
-    throw new PuramassApiError(502, 'Could not reach PuraMass');
+    throw new PuramassApiError(502, 'Could not reach Stealth Health');
   } finally {
     clearTimeout(timer);
   }
@@ -355,7 +355,7 @@ export async function createPuramassOrder(args: PuramassOrderRequest): Promise<P
   const paymentLink = order.payment_link ?? order.paymentLink ?? '';
   const transactionId = order.transaction_id ?? order.transactionId ?? '';
   if (!paymentLink || !transactionId) {
-    throw new PuramassApiError(502, 'PuraMass did not return a payment link');
+    throw new PuramassApiError(502, 'Stealth Health did not return a payment link');
   }
 
   return {

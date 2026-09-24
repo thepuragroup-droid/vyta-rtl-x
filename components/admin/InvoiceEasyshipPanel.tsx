@@ -38,7 +38,7 @@ import {
  *  and one typed into this admin must never read the same to whoever packs. */
 const DESTINATION_SOURCE_LABEL: Record<string, string> = {
   order: 'from the linked order',
-  puramass: 'reported by PuraMass on the hosted checkout',
+  puramass: 'reported by Stealth Health on the hosted checkout',
   client: 'from the drop-ship client',
   customer: 'from the customer profile',
 };

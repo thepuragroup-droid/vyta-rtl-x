@@ -135,7 +135,7 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
         doc.fillColor('#6E8898').fontSize(8).text(
           pm.shipping_address_source === 'customer'
             ? 'Confirmed by the customer'
-            : 'Reported by PuraMass',
+            : 'Reported by Stealth Health',
           left,
           sy,
           { width: width / 2 },
@@ -152,7 +152,7 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
       if (inv.status) metaRow('STATUS', inv.status.toUpperCase(), y + 60);
       if (inv.puramass) {
         metaRow(
-          'PURAMASS TXN',
+          'STEALTH HEALTH TXN',
           inv.puramass.transaction_id || inv.puramass.partner_reference || '—',
           y + 90,
         );
@@ -206,7 +206,7 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
         totalRow('Amount Due', money(inv.amount_due ?? (Number(inv.total) - Number(inv.amount_paid))), true);
       }
       if ((inv.puramass?.refunded_total ?? 0) > 0) {
-        totalRow('Refunded (PuraMass)', `- ${money(inv.puramass!.refunded_total)}`);
+        totalRow('Refunded (Stealth Health)', `- ${money(inv.puramass!.refunded_total)}`);
         totalRow('Net of refunds', money(Number(inv.total) - inv.puramass!.refunded_total), true);
       }
 

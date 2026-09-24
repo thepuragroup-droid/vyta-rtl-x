@@ -6,7 +6,10 @@ import {
   buildPuramassContactPatch,
   buildPuramassOrderDetailPatch,
 } from '@/lib/payments/puramass';
-import { materializeStealthHealthFulfillment } from '@/lib/payments/puramass-fulfillment';
+import {
+  materializeStealthHealthFulfillment,
+  expireStealthHealthInvoices,
+} from '@/lib/payments/puramass-fulfillment';
 import { isMissingColumnError, stripUnmigratedFields } from '@/lib/payments/puramass-columns';
 import { attributeHostedPurchase } from '@/lib/analytics/attribution-server';
 import { logWebhookEvent, type WebhookOutcome } from '@/lib/payments/puramass-webhook-log';
@@ -222,8 +225,9 @@ async function handle(req: NextRequest, raw: string, ctx: DeliveryContext): Prom
     }
   }
 
-  // On payment, surface the order in the warehouse fulfillment queue
-  // (idempotent; best-effort — never blocks the ACK).
+  // On payment, flip the order's invoice to paid (or create it for an older
+  // hand-off), which surfaces it in the warehouse queue, takes the stock and
+  // emails the admins (idempotent; best-effort — never blocks the ACK).
   if (status === 'paid') {
     // Credit the campaign that won this buyer. The email is the only link back
     // to their pre-checkout visit — PuraMass owns the payment page, so no
@@ -248,6 +252,12 @@ async function handle(req: NextRequest, raw: string, ctx: DeliveryContext): Prom
       },
       Array.isArray(orderBody?.items) ? orderBody.items : [],
     );
+  }
+
+  // An unpaid link that lapsed or was cancelled takes its pending invoice with
+  // it, so it never reads as money owed.
+  if (status === 'expired' || status === 'cancelled') {
+    await expireStealthHealthInvoices(db, [row.invoice_id]);
   }
 
   return reply('matched', { received: true, matched: true }, 200);

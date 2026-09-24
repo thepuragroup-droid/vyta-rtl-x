@@ -59,7 +59,7 @@ export function InvoiceSourceBadge({
     return (
       <span
         className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-teal/10 text-teal-dark align-middle"
-        title="Placed through the Stealth Health (PuraMass) hosted checkout. Payment, taxes and the shipping address are collected by the partner and reported back to us."
+        title="Placed through the Stealth Health checkout. Payment, taxes and the shipping address are collected by the partner and reported back to us."
       >
         <Store className="w-3 h-3" /> Stealth Health
       </span>
@@ -124,8 +124,8 @@ export function PuramassShipTo({
           className="block text-xs text-ink-light"
           title={
             puramass.status === 'payment_pending'
-              ? 'PuraMass reports the address once the order is paid.'
-              : 'PuraMass has not returned a shipping address for this order. Re-sync it on PuraMass Orders, or ask the customer directly.'
+              ? 'Stealth Health reports the address once the order is paid.'
+              : 'Stealth Health has not returned a shipping address for this order. Re-sync it on Stealth Health Orders, or ask the customer directly.'
           }
         >
           No shipping address yet
@@ -169,8 +169,8 @@ export function PuramassShipTo({
             className="mt-1 inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700"
             title={
               puramass.shipping_address_updated_at
-                ? `The customer entered this on ${new Date(puramass.shipping_address_updated_at).toLocaleString()}. A PuraMass sync will not overwrite it.`
-                : 'The customer entered this themselves. A PuraMass sync will not overwrite it.'
+                ? `The customer entered this on ${new Date(puramass.shipping_address_updated_at).toLocaleString()}. A Stealth Health sync will not overwrite it.`
+                : 'The customer entered this themselves. A Stealth Health sync will not overwrite it.'
             }
           >
             From customer
@@ -204,7 +204,7 @@ export function PuramassShipToPanel({ puramass }: { puramass: PuramassInvoiceCon
         <h2 className="font-semibold text-ink text-sm flex items-center gap-2">
           <MapPin className="w-4 h-4 text-teal-dark" /> Ship To
         </h2>
-        <span className="text-[10px] uppercase tracking-wider text-ink-muted">via PuraMass</span>
+        <span className="text-[10px] uppercase tracking-wider text-ink-muted">via Stealth Health</span>
       </div>
       <PuramassShipTo puramass={puramass} />
       {puramass.customer_email && (
@@ -232,7 +232,7 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
     <div className="bg-white rounded-xl border border-teal/30 p-5">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-semibold text-ink text-sm flex items-center gap-2">
-          <CreditCard className="w-4 h-4 text-teal-dark" /> PuraMass Order
+          <CreditCard className="w-4 h-4 text-teal-dark" /> Stealth Health Order
         </h2>
         <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-semibold ${badge}`}>
           {label}
@@ -240,8 +240,8 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
       </div>
 
       <p className="text-xs text-ink-muted mb-3">
-        Paid on the PuraMass hosted checkout. Payment, taxes and the shipping
-        address are PuraMass&apos;s record — this invoice mirrors them for
+        Paid on the Stealth Health checkout. Payment, taxes and the shipping
+        address are Stealth Health&apos;s record — this invoice mirrors them for
         fulfilment.
       </p>
 
@@ -288,7 +288,7 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
         <div className="mt-3 pt-3 border-t border-line/60">
           <div className="flex items-center justify-between text-sm">
             <span className="inline-flex items-center gap-1.5 text-amber-700 font-medium">
-              <RotateCcw className="w-3.5 h-3.5" /> Refunded by PuraMass
+              <RotateCcw className="w-3.5 h-3.5" /> Refunded by Stealth Health
             </span>
             <span className="tabular-nums font-semibold text-amber-700">
               – {formatMoney(refunded, cur)}
@@ -317,7 +317,7 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
       {puramass.items.some((i) => i.sku) && (
         <div className="mt-3 pt-3 border-t border-line/60">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
-            PuraMass SKUs
+            Stealth Health SKUs
           </p>
           <ul className="space-y-1">
             {puramass.items.map((item, i) => (
@@ -345,7 +345,7 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-xs text-teal-dark hover:text-teal-dark/80"
           >
-            <ExternalLink className="w-3.5 h-3.5" /> PuraMass transaction
+            <ExternalLink className="w-3.5 h-3.5" /> Stealth Health transaction
           </a>
         )}
         <Link
@@ -398,7 +398,7 @@ export function InvoiceTotalAmount({
     <span
       className={`inline-flex flex-col ${align === 'right' ? 'items-end' : 'items-start'} ${className}`}
       title={
-        `PuraMass charged the goods in ${split.goodsCurrency}; the ` +
+        `Stealth Health charged the goods in ${split.goodsCurrency}; the ` +
         `${split.shippingCurrency} shipping fee is ours and is not converted. ` +
         'This invoice has no single-currency total.'
       }

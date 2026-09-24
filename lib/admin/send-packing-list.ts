@@ -210,7 +210,7 @@ function renderEmailBody(v: EmailVars): string {
 <html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#07203a;background:#ffffff;padding:24px">
   <table role="presentation" width="100%" style="max-width:560px;margin:0 auto">
     <tr><td>
-      <div style="font-weight:800;font-size:18px;letter-spacing:2px">PURAMASS</div>
+      <div style="font-weight:800;font-size:18px;letter-spacing:2px">VYTA</div>
       <div style="font-size:11px;color:#56707f;margin-bottom:20px">vytabio.com  ·  support@vytabio.com</div>
       <h2 style="margin:0 0 8px 0;font-size:20px">Packing list for ${escape(v.shipToName)}</h2>
       <p style="margin:0 0 12px 0;color:#56707f">
@@ -232,7 +232,7 @@ function renderEmailBody(v: EmailVars): string {
 
 function renderEmailBodyText(v: EmailVars): string {
   return [
-    `PURAMASS  ·  vytabio.com`,
+    `VYTA  ·  vytabio.com`,
     ``,
     `Packing list for ${v.shipToName}`,
     `Invoice ${v.invoiceNumber}`,

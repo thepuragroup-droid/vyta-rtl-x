@@ -169,7 +169,7 @@ export async function resolveInvoiceDestination(
     return {
       destination: null,
       reason:
-        'PuraMass has not reported a shipping address for this order yet — ask the customer for it from the Stealth Health tab.',
+        'Stealth Health has not reported a shipping address for this order yet — ask the customer for it from the Stealth Health tab.',
     };
   }
 

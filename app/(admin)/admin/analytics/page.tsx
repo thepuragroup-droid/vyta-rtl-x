@@ -600,16 +600,16 @@ function PuramassSection({ pm, hasRange, from, to }: {
         <div className="w-8 h-8 rounded-lg bg-teal/10 flex items-center justify-center">
           <CreditCard className="w-4 h-4 text-teal-dark" />
         </div>
-        <h2 className="text-lg font-bold text-ink">Stealth Health / PuraMass — Paid Orders</h2>
+        <h2 className="text-lg font-bold text-ink">Stealth Health — Paid Orders</h2>
       </div>
       <p className="text-sm text-ink-muted mb-4 ml-10">
-        Orders handed off to PuraMass hosted checkout {hasRange ? 'over the selected range' : 'all-time'} — a separate
+        Orders handed off to Stealth Health checkout {hasRange ? 'over the selected range' : 'all-time'} — a separate
         revenue stream from your storefront invoices. Headline figures are shown in {primary}.
       </p>
 
       {pm.total_handoffs === 0 ? (
         <div className="rounded-xl border border-line bg-white p-8 text-center text-sm text-ink-muted">
-          No PuraMass hand-offs in this range yet.
+          No Stealth Health hand-offs in this range yet.
         </div>
       ) : (
         <>
@@ -705,7 +705,7 @@ function PuramassSection({ pm, hasRange, from, to }: {
           <div className="grid md:grid-cols-2 gap-6">
             <MiniTrendChart
               title="Daily paid orders"
-              subtitle={pm.daily_truncated ? `Most recent ${pm.daily.length} days` : 'PuraMass paid orders per day'}
+              subtitle={pm.daily_truncated ? `Most recent ${pm.daily.length} days` : 'Stealth Health paid orders per day'}
               points={dailyPoints}
               series={[{ key: 'paid', label: 'Paid orders', color: C.paid, fill: true }]}
             />

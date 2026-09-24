@@ -301,7 +301,7 @@ export function puramassMoneySplit(
 
 /** Human label for a PuraMass payment status. */
 export const PURAMASS_STATUS_LABEL: Record<string, string> = {
-  paid: 'Paid on PuraMass',
+  paid: 'Paid on Stealth Health',
   payment_pending: 'Awaiting payment',
   expired: 'Link expired',
   cancelled: 'Cancelled',

@@ -38,6 +38,9 @@ export async function GET(req: NextRequest) {
     // fulfillable and stay on the backorders worklist. `not.is.true` keeps
     // rows where is_backorder is false OR null (legacy rows).
     .not('is_backorder', 'is', true)
+    // A Stealth Health invoice exists from the moment the buyer is sent to
+    // pay; it is not an order to pack until it is paid.
+    .not('status', 'in', '(pending_payment,expired)')
     .order('created_at', { ascending: false });
 
   if (fStatus) q = q.eq('fulfillment_status', fStatus);

@@ -39,6 +39,8 @@ const invoiceStatusDot: Record<InvoiceStatus, string> = {
   partial: 'bg-amber-500',
   overdue: 'bg-red-500',
   cancelled: 'bg-ink-light',
+  pending_payment: 'bg-amber-500',
+  expired: 'bg-ink-light',
 };
 
 const DASHBOARD_GUIDES = GUIDES.slice(0, 4);

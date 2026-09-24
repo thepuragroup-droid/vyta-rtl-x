@@ -301,7 +301,7 @@ export default function PromosPage() {
             <span>
               Live courier rates are switched off, so every order pays the flat shipping
               fee and there is nothing for this promo to waive. Turn on{' '}
-              <span className="font-medium">PuraMass Checkout → Shipping → Live courier rates</span>{' '}
+              <span className="font-medium">Stealth Health Checkout → Shipping → Live courier rates</span>{' '}
               first.{' '}
               <Link
                 href="/admin/settings"
@@ -422,10 +422,10 @@ export default function PromosPage() {
           <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
-              The PuraMass hosted checkout is switched off, and it is the only checkout
+              The Stealth Health checkout is switched off, and it is the only checkout
               that carries our own line prices — so there is nowhere for this discount to
               be applied. Turn on{' '}
-              <span className="font-medium">PuraMass Checkout</span> first.{' '}
+              <span className="font-medium">Stealth Health Checkout</span> first.{' '}
               <Link
                 href="/admin/settings"
                 className="inline-flex items-center gap-1 font-medium underline underline-offset-2"
@@ -545,9 +545,9 @@ export default function PromosPage() {
           <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
-              The PuraMass hosted checkout is switched off, and it is the only checkout
+              The Stealth Health checkout is switched off, and it is the only checkout
               that carries our own line prices — so there is nowhere for this discount to
-              be applied. Turn on <span className="font-medium">PuraMass Checkout</span>{' '}
+              be applied. Turn on <span className="font-medium">Stealth Health Checkout</span>{' '}
               first.{' '}
               <Link
                 href="/admin/settings"

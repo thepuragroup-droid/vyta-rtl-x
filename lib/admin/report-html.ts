@@ -239,13 +239,13 @@ export function reportShell(opts: ReportShellOptions): string {
 
   const head = branded
     ? `<div class="brandhead">
-    <div class="brandname">PURAMASS</div>
+    <div class="brandname">VYTA</div>
     <h1>${escapeHtml(title)}</h1>
     <div class="goldrule"></div>
     ${meta.length ? `<div class="reportmeta">${meta.map((m) => `<span>${escapeHtml(m)}</span>`).join('')}</div>` : ''}
   </div>`
     : `<h1>${escapeHtml(title)}</h1>
-  <p class="sub">PuraMass · Generated ${escapeHtml(new Date().toLocaleString())}</p>`;
+  <p class="sub">VYTA · Generated ${escapeHtml(new Date().toLocaleString())}</p>`;
 
   const filtersHtml = filters.length
     ? `<div class="filters"><strong>Filters</strong>${filters.map((f) => `<span>${escapeHtml(f)}</span>`).join('')}</div>`
@@ -253,11 +253,11 @@ export function reportShell(opts: ReportShellOptions): string {
 
   const foot = branded
     ? `<div class="foot">
-    <span><strong>PuraMass</strong> · Puramass.com${footRight ? ` · ${escapeHtml(footRight)}` : ''}</span>
+    <span><strong>VYTA</strong> · vytabio.com${footRight ? ` · ${escapeHtml(footRight)}` : ''}</span>
     <span>Confidential — internal use only</span>
   </div>`
     : `<div class="foot">
-    <span>PuraMass · ${escapeHtml(title)}</span>
+    <span>VYTA · ${escapeHtml(title)}</span>
     <span>${escapeHtml(footRight)}</span>
   </div>`;
 

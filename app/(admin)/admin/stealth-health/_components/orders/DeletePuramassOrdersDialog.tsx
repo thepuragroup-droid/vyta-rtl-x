@@ -70,7 +70,7 @@ export default function DeletePuramassOrdersDialog({
               <AlertTriangle className="w-5 h-5 text-red-500" />
             </div>
             <h2 className="text-lg font-bold text-ink">
-              Delete {count} PuraMass order{plural}
+              Delete {count} Stealth Health order{plural}
             </h2>
           </div>
           <button
@@ -95,7 +95,7 @@ export default function DeletePuramassOrdersDialog({
             <span className="font-medium">
               {count} hand-off ledger record{plural}
             </span>
-            . This is the reconciliation record of the PuraMass hosted-checkout
+            . This is the reconciliation record of the Stealth Health checkout
             hand-off.
           </p>
 

@@ -86,7 +86,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
   // payment/shipping, so several normal invoice fields are intentionally blank.
   const stealthHealth = item.source === 'stealth_health';
   const STEALTH_HEALTH_TIP =
-    'This order was placed through Stealth Health (PuraMass hosted checkout). PuraMass collects and owns the payment, shipping, and contact details — that’s why some fields are missing here.';
+    'This order was placed through the Stealth Health checkout. Stealth Health collects and owns the payment, shipping, and contact details — that’s why some fields are missing here.';
 
   // A shipment with no bought label yet. Auto-create at checkout can fail
   // (label_state 'not_created'/'failed'), leaving staff no way to ship.

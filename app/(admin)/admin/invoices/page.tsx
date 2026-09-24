@@ -485,7 +485,7 @@ export default function InvoicesIndex() {
           {pm?.transaction_id && (
             <div
               className="mt-0.5 font-mono text-[10px] text-ink-light truncate max-w-[10rem]"
-              title={`PuraMass transaction ${pm.transaction_id}`}
+              title={`Stealth Health transaction ${pm.transaction_id}`}
             >
               {pm.transaction_id}
             </div>
@@ -565,7 +565,7 @@ export default function InvoicesIndex() {
                 {pm && !pm.shipping_address && (
                   <span
                     className="inline-flex items-center gap-1 text-[10px] text-amber-700"
-                    title="PuraMass has not reported a shipping address for this order — it can't be packed until one arrives. Re-sync it, or ask the customer, on PuraMass Orders."
+                    title="Stealth Health has not reported a shipping address for this order — it can't be packed until one arrives. Re-sync it, or ask the customer, on Stealth Health Orders."
                   >
                     <AlertTriangle className="w-2.5 h-2.5" /> No address
                   </span>
@@ -754,7 +754,7 @@ export default function InvoicesIndex() {
             className="w-full sm:w-auto pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
           >
             <option value="all">All Sources</option>
-            <option value="puramass">PuraMass orders</option>
+            <option value="puramass">Stealth Health orders</option>
             <option value="manual">Created here</option>
           </select>
         </div>
@@ -1080,7 +1080,7 @@ function InvoicePreviewCard({
       {pm && (
         <div className="mb-3 pb-3 border-b border-line/60">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-            Ship to · via PuraMass
+            Ship to · via Stealth Health
           </div>
           <PuramassShipTo puramass={pm} compact />
         </div>

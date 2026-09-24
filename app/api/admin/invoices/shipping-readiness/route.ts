@@ -30,7 +30,7 @@ interface ReadinessDestination {
  *  address the partner reported never reads like one typed here. */
 const DESTINATION_LABEL: Record<string, string> = {
   order: 'from the linked order',
-  puramass: 'from the PuraMass hand-off',
+  puramass: 'from the Stealth Health hand-off',
   client: 'from the drop-ship client',
   customer: 'from the customer profile',
 };

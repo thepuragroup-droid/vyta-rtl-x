@@ -41,6 +41,8 @@ const statusColors: Record<InvoiceStatus, string> = {
   partial: 'bg-amber-500/10 text-amber-600 border-amber-200',
   overdue: 'bg-red-500/10 text-red-600 border-red-200',
   cancelled: 'bg-gray-500/10 text-gray-500 border-gray-200 line-through',
+  pending_payment: 'bg-amber-500/10 text-amber-700 border-amber-200',
+  expired: 'bg-gray-200 text-gray-600 border-gray-300',
 };
 
 export default function InvoiceDetailPage() {
@@ -293,7 +295,7 @@ export default function InvoiceDetailPage() {
             </div>
             <p className="text-xs text-ink-muted">
               Created {new Date(invoice.created_at).toLocaleDateString()}
-              {puramass && ' · Payment collected by PuraMass'}
+              {puramass && ' · Payment collected by Stealth Health'}
             </p>
           </div>
         </div>
@@ -447,7 +449,7 @@ export default function InvoiceDetailPage() {
               )}
               {puramass && (
                 <div className="mt-1 text-[10px] uppercase tracking-wider text-teal-dark">
-                  Captured by PuraMass
+                  Captured by Stealth Health
                 </div>
               )}
             </div>
@@ -567,7 +569,7 @@ export default function InvoiceDetailPage() {
                             {pt === 'vial' ? 'Vial' : 'Box'}
                           </span>
                           {pmSku && (
-                            <div className="mt-0.5 font-mono text-[10px] text-ink-light" title="PuraMass SKU">
+                            <div className="mt-0.5 font-mono text-[10px] text-ink-light" title="Stealth Health SKU">
                               {pmSku}
                             </div>
                           )}
@@ -633,7 +635,7 @@ export default function InvoiceDetailPage() {
               {(puramass?.refunded_total_cents ?? 0) > 0 && (
                 <>
                   <div className="flex justify-between text-sm text-amber-700">
-                    <span>Refunded by PuraMass</span>
+                    <span>Refunded by Stealth Health</span>
                     <span className="tabular-nums">– {goodsMoney(puramass!.refunded_total_cents / 100)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-ink">
@@ -740,7 +742,7 @@ export default function InvoiceDetailPage() {
                 )}
                 {puramass && (
                   <p className="pt-2 text-[11px] text-ink-muted">
-                    Entered by the buyer on the PuraMass checkout page — not editable here.
+                    Entered by the buyer on the Stealth Health checkout page — not editable here.
                   </p>
                 )}
               </div>
@@ -750,7 +752,7 @@ export default function InvoiceDetailPage() {
           </div>
 
           {/* PuraMass hand-off — the partner's own record of this sale, and the
-              ship-to it captured. Read-only here: PuraMass Orders is where it
+              ship-to it captured. Read-only here: Stealth Health Orders is where it
               gets re-synced or the customer gets asked for a missing address. */}
           {puramass && <PuramassShipToPanel puramass={puramass} />}
           {puramass && <PuramassOrderPanel puramass={puramass} />}
@@ -800,12 +802,12 @@ export default function InvoiceDetailPage() {
             <div>
               <p className="text-xs text-ink-muted mb-1">Source</p>
               <p className="text-sm text-ink">
-                {isPuramassInvoice(invoice) ? 'PuraMass hosted checkout' : 'Created in this admin'}
+                {isPuramassInvoice(invoice) ? 'Stealth Health checkout' : 'Created in this admin'}
               </p>
               {isPuramassInvoice(invoice) && !puramass && !puramassLoading && (
                 <p className="mt-1 text-[11px] text-amber-600">
-                  No matching PuraMass hand-off found — the ledger row may have
-                  been removed. Check PuraMass Orders.
+                  No matching Stealth Health hand-off found — the ledger row may have
+                  been removed. Check Stealth Health Orders.
                 </p>
               )}
             </div>

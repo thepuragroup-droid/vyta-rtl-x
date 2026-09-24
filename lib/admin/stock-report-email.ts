@@ -102,7 +102,7 @@ export function renderStockReportEmailHtml(
 <html><body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#07203A">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;margin:0 auto;background:#ffffff">
     <tr><td style="padding:28px 24px;text-align:center;border-bottom:2px solid #07203A">
-      <div style="font-size:24px;font-weight:700">PURAMASS</div>
+      <div style="font-size:24px;font-weight:700">VYTA</div>
       <div style="font-size:11px;letter-spacing:0.15em;color:#438B9E;text-transform:uppercase;margin-top:4px">Stock Report</div>
     </td></tr>
     <tr><td style="padding:20px 18px 0;text-align:center;font-size:13px;color:#56707F">
@@ -124,7 +124,7 @@ export function renderStockReportEmailHtml(
       </a>
     </td></tr>
     <tr><td style="background:#F7FAFB;border-top:1px solid #DCE7EB;padding:16px;text-align:center;font-size:11px;color:#6E8898">
-      Automated Stock Report from PuraMass Admin
+      Automated Stock Report from VYTA Admin
     </td></tr>
   </table>
 </body></html>`;
@@ -132,7 +132,7 @@ export function renderStockReportEmailHtml(
 
 function renderTextBody(report: StockReport): string {
   return [
-    'PURAMASS  ·  Stock Report',
+    'VYTA  ·  Stock Report',
     `Generated ${new Date(report.generatedAt).toLocaleString()}`,
     '',
     `Products: ${report.totals.products}  ·  Active: ${report.totals.active}`,
@@ -193,7 +193,7 @@ export async function sendStockReportEmail(
   const needTail =
     report.totals.needToOrder > 0 ? ` — ${report.totals.needToOrder} units to order` : '';
   const subject =
-    opts.subject ?? `PuraMass Stock Report (${report.totals.products} products${needTail})`;
+    opts.subject ?? `VYTA Stock Report (${report.totals.products} products${needTail})`;
 
   const res = await sendMail({
     to: clean,

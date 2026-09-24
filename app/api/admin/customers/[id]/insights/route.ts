@@ -400,8 +400,10 @@ async function buildPurchaseData({
   }
 
   // 2. Invoices — line items are a separate table. Drafts are excluded: they
-  //    aren't money the customer has committed to.
-  const billableInvoices = invoices.filter((i) => i.status !== 'draft' && i.status !== 'void');
+  //    aren't money the customer has committed to, and neither are unpaid
+  //    Stealth Health hand-offs (pending payment, or lapsed).
+  const UNBILLABLE = new Set(['draft', 'void', 'pending_payment', 'expired']);
+  const billableInvoices = invoices.filter((i) => !UNBILLABLE.has(i.status));
   const invoiceIds = billableInvoices.map((i) => i.id);
   let lineItems: any[] = [];
   if (invoiceIds.length > 0) {
@@ -429,13 +431,18 @@ async function buildPurchaseData({
   //    not yet materialised). Only SKUs and quantities exist for those, so the
   //    SKU is resolved to a product name and the spend is left at zero —
   //    counting an unpaid hand-off as revenue would be a lie.
-  const orphanPuramass = puramassOrders.filter((p) => !p.invoice_id);
+  //    Hand-offs are now invoiced before payment, so "no billable invoice" —
+  //    not "no invoice" — is what makes one an orphan here.
+  const billableIds = new Set(billableInvoices.map((i) => i.id));
+  const orphanPuramass = puramassOrders.filter(
+    (p) => !p.invoice_id || !billableIds.has(p.invoice_id),
+  );
   const skuMap = await skuNames(orphanPuramass.flatMap((p) => p.items.map((i) => i.sku ?? '')));
   for (const p of orphanPuramass) {
     for (const it of p.items) {
       const sku = it.sku ?? '';
       tally.add({
-        name: skuMap[sku] ?? sku ?? 'PuraMass item',
+        name: skuMap[sku] ?? sku ?? 'Stealth Health item',
         quantity: Math.max(1, Math.round(num(it.quantity) || 1)),
         amount: 0,
         currency: (p.currency ?? 'USD').toUpperCase(),

@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!isPuramassConfigured()) {
-    return NextResponse.json({ error: 'PuraMass is not configured.' }, { status: 503 });
+    return NextResponse.json({ error: 'Stealth Health is not configured.' }, { status: 503 });
   }
 
   let body: any;
@@ -63,9 +63,9 @@ export async function POST(req: NextRequest) {
       if (err.status >= 400 && err.status < 500) {
         return NextResponse.json({ error: err.detail }, { status: err.status });
       }
-      return NextResponse.json({ error: 'Could not reach PuraMass.' }, { status: 502 });
+      return NextResponse.json({ error: 'Could not reach Stealth Health.' }, { status: 502 });
     }
-    return NextResponse.json({ error: 'Could not reach PuraMass.' }, { status: 502 });
+    return NextResponse.json({ error: 'Could not reach Stealth Health.' }, { status: 502 });
   }
 
   // Read the row first so the address/contact patch can diff against what is
