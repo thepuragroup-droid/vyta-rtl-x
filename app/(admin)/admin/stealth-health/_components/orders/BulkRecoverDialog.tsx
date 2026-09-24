@@ -70,7 +70,7 @@ export default function BulkRecoverDialog({ rows, onClose, onSent }: Props) {
   useEffect(() => {
     let cancelled = false;
     if (ids.length === 0) {
-      setLoadError('None of the selected orders have a customer email on them, so there is nobody to write to. Sync them from PuraMass first.');
+      setLoadError('None of the selected orders have a customer email on them, so there is nobody to write to. Sync them from Stealth Health first.');
       return;
     }
     (async () => {

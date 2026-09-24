@@ -1,16 +1,16 @@
 /**
  * Abandoned-checkout recovery — the server half.
  *
- * A PuraMass (Stealth Health) hand-off that never reaches `paid` is a cart the
+ * A Stealth Health hand-off that never reaches `paid` is a cart the
  * buyer walked away from, and the ledger already holds everything needed to go
  * after it: their email, the line items, and the hosted `payment_link`, which
- * keeps taking payment until PuraMass expires it. This module turns one of
+ * keeps taking payment until Stealth Health expires it. This module turns one of
  * those rows into an email carrying that link back to them, optionally with a
  * discount code.
  *
  * NO CODE IS ISSUED HERE. Promo codes are generated on app.vytabio.com and
  * pasted into the composer; the discount type and amount an admin enters only
- * decide how the offer is *stated* in the email — PuraMass does the real
+ * decide how the offer is *stated* in the email — Stealth Health does the real
  * arithmetic when the buyer types the code on its checkout page. That is why
  * the totals in the email are labelled "estimated".
  *
@@ -198,7 +198,7 @@ export function cartFromSummary(summary: OrderSummary): CartSummary {
 /**
  * The line under the button.
  *
- * An expired or cancelled hand-off keeps its link in the email — PuraMass
+ * An expired or cancelled hand-off keeps its link in the email — Stealth Health
  * sometimes still honours it, and a buyer who clicks a dead one and emails us
  * is a better outcome than a buyer we never contacted. But it must not be
  * presented as live, so the note says what state the order is in.

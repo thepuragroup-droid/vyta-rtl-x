@@ -1,20 +1,20 @@
 /**
- * The PuraMass side of an invoice.
+ * The Stealth Health side of an invoice.
  *
- * A paid PuraMass (Stealth Health) hand-off is materialised into a local
+ * A paid Stealth Health hand-off is materialised into a local
  * invoice (`invoices.source = 'stealth_health'`) so the warehouse and the
  * customer account can see it — see lib/payments/puramass-fulfillment.ts. That
  * invoice deliberately carries none of the buyer's contact or shipping detail:
- * PuraMass collects it on its hosted checkout page and reports it back onto the
+ * Stealth Health collects it on its hosted checkout page and reports it back onto the
  * hand-off ledger (`puramass_orders`), which is the source of truth for it.
  *
  * This module is the join. Given invoice ids, it reads the matching ledger rows
  * and normalises them into one shape the admin invoice table, the invoice
  * detail view and the printable invoice all render — so every surface says the
- * same thing, and says plainly that the data came from PuraMass rather than
+ * same thing, and says plainly that the data came from Stealth Health rather than
  * from someone typing it into this admin.
  *
- * Everything is tolerant of missing data. An order PuraMass has not reported an
+ * Everything is tolerant of missing data. An order Stealth Health has not reported an
  * address for is the normal case (there is a whole "ask the customer" flow for
  * it), and the newer ledger columns may not be migrated yet — reads use
  * `select('*')` precisely so a missing column can never fail the query.
@@ -23,13 +23,13 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { toShippingAddress, type ShippingAddressLike } from '@/lib/payments/puramass-address';
 import { normalizeCurrency, type Currency } from '@/lib/currency';
 
-/** `invoices.source` for an invoice materialised from a PuraMass hand-off. */
+/** `invoices.source` for an invoice materialised from a Stealth Health hand-off. */
 export const PURAMASS_INVOICE_SOURCE = 'stealth_health';
 
 /** How the buyer's shipping address reached us. */
 export type PuramassAddressSource = 'puramass' | 'customer' | null;
 
-/** One line as PuraMass reports it, prices in cents. */
+/** One line as Stealth Health reports it, prices in cents. */
 export interface PuramassContextItem {
   sku: string | null;
   name: string | null;
@@ -37,7 +37,7 @@ export interface PuramassContextItem {
   unit_price_cents: number | null;
 }
 
-/** One refund PuraMass recorded against the transaction. */
+/** One refund Stealth Health recorded against the transaction. */
 export interface PuramassContextRefund {
   id: string | null;
   amount_cents: number | null;
@@ -46,44 +46,44 @@ export interface PuramassContextRefund {
 }
 
 /**
- * Everything the invoice surfaces know about the PuraMass order behind an
+ * Everything the invoice surfaces know about the Stealth Health order behind an
  * invoice. Flat and pre-normalised: the UI never re-parses the ledger's JSONB.
  */
 export interface PuramassInvoiceContext {
   /** `puramass_orders.id` — the ledger row this came from. */
   ledger_id: string;
-  /** Our reference, echoed back by PuraMass on every payload. */
+  /** Our reference, echoed back by Stealth Health on every payload. */
   partner_reference: string;
   transaction_id: string | null;
-  /** PuraMass's hosted page for this transaction. */
+  /** Stealth Health's hosted page for this transaction. */
   payment_link: string | null;
-  /** Payment status on the PuraMass side (`paid`, `payment_pending`, …). */
+  /** Payment status on the Stealth Health side (`paid`, `payment_pending`, …). */
   status: string;
   currency: string;
-  /** Goods total PuraMass charged, in cents (excludes our shipment fee). */
+  /** Goods total Stealth Health charged, in cents (excludes our shipment fee). */
   subtotal_cents: number | null;
-  /** Refunded on the PuraMass side, in cents. 0 when nothing was refunded. */
+  /** Refunded on the Stealth Health side, in cents. 0 when nothing was refunded. */
   refunded_total_cents: number;
   refunds: PuramassContextRefund[];
   created_at: string | null;
   paid_at: string | null;
   /** When the hosted payment link stops accepting payment. */
   expires_at: string | null;
-  /** Buyer contact as captured on the PuraMass hosted page. */
+  /** Buyer contact as captured on the Stealth Health hosted page. */
   customer_name: string | null;
   customer_email: string | null;
   customer_phone: string | null;
-  /** Where the parcel goes. Null until PuraMass (or the buyer) reports one. */
+  /** Where the parcel goes. Null until Stealth Health (or the buyer) reports one. */
   shipping_address: ShippingAddressLike | null;
   shipping_address_source: PuramassAddressSource;
   shipping_address_updated_at: string | null;
   /** When the "we didn't catch your address" email last went out. */
   address_requested_at: string | null;
-  /** Priced lines from PuraMass, falling back to the hand-off sku/qty list. */
+  /** Priced lines from Stealth Health, falling back to the hand-off sku/qty list. */
   items: PuramassContextItem[];
 }
 
-/** True when this invoice was materialised from a PuraMass hand-off. */
+/** True when this invoice was materialised from a Stealth Health hand-off. */
 export function isPuramassInvoice(invoice: { source?: string | null } | null | undefined): boolean {
   return invoice?.source === PURAMASS_INVOICE_SOURCE;
 }
@@ -117,7 +117,7 @@ function asArray(v: unknown): unknown[] {
 }
 
 /**
- * Normalise refunds. PuraMass's refund shape isn't pinned down by the partner
+ * Normalise refunds. Stealth Health's refund shape isn't pinned down by the partner
  * contract, so each field is read from the handful of names it could plausibly
  * arrive under and anything unrecognised is simply dropped rather than shown
  * raw on an invoice.
@@ -134,7 +134,7 @@ function normalizeRefunds(raw: unknown): PuramassContextRefund[] {
 }
 
 /**
- * Priced lines, preferring what PuraMass charged (`paid_items`) over the
+ * Priced lines, preferring what Stealth Health charged (`paid_items`) over the
  * sku/quantity list we sent at hand-off (`items`). The hand-off list carries no
  * prices, so those rows come back with `unit_price_cents: null`.
  */
@@ -180,13 +180,13 @@ export function normalizePuramassContext(row: Record<string, unknown>): Puramass
 }
 
 /**
- * Load the PuraMass context for a set of invoices, keyed by invoice id.
+ * Load the Stealth Health context for a set of invoices, keyed by invoice id.
  *
  * SERVER ONLY (the ledger is service-role locked). Best-effort: any failure
  * yields an empty map, because an invoice list that renders without the
- * PuraMass block is far better than one that 500s. `select('*')` is deliberate
+ * Stealth Health block is far better than one that 500s. `select('*')` is deliberate
  * — naming columns would break the query on a database that hasn't run the
- * later PuraMass migrations yet.
+ * later Stealth Health migrations yet.
  */
 export async function fetchPuramassContexts(
   db: SupabaseClient,
@@ -246,9 +246,9 @@ interface InvoiceMoneyFields {
   currency?: unknown;
 }
 
-/** The two halves of a PuraMass invoice's money, each in its own currency. */
+/** The two halves of a Stealth Health invoice's money, each in its own currency. */
 export interface PuramassMoneySplit {
-  /** Goods total, in the currency PuraMass reported charging it in. */
+  /** Goods total, in the currency Stealth Health reported charging it in. */
   goods: number;
   goodsCurrency: Currency;
   /** Our shipment fee, in the currency the invoice recorded it in. */
@@ -262,22 +262,22 @@ function amount(value: unknown): number {
 }
 
 /**
- * Split a PuraMass invoice into the goods PuraMass charged and the shipment fee
+ * Split a Stealth Health invoice into the goods Stealth Health charged and the shipment fee
  * we added, when the two are in different currencies.
  *
- * PuraMass charges the goods on its hosted page and reports back the currency
+ * Stealth Health charges the goods on its hosted page and reports back the currency
  * it used (`puramass_orders.currency`), which is not always USD.
  *
  * On a hand-off priced by our own checkout the shipment fee is in that same
  * currency (see `resolveFulfillmentShipping`), so there is nothing to split and
  * this returns null. It still matters for the older invoices that pair a goods
- * amount PuraMass reported with the flat USD fee this admin used to stamp
+ * amount Stealth Health reported with the flat USD fee this admin used to stamp
  * regardless: there `invoices.total` is a sum of two currencies and the
  * invoice's own currency describes only the fee. Nothing in this system
  * converts between the two, so the invoice surfaces show both amounts rather
  * than a sum that would read as one currency.
  *
- * Null when there is nothing to split: no PuraMass order behind the invoice, or
+ * Null when there is nothing to split: no Stealth Health order behind the invoice, or
  * both halves already in the same currency — then the invoice's own currency
  * covers the whole total, as it does everywhere else.
  */
@@ -290,7 +290,7 @@ export function puramassMoneySplit(
   const shippingCurrency = normalizeCurrency(invoice.currency);
   if (goodsCurrency === shippingCurrency) return null;
   return {
-    // The ledger's own subtotal is what PuraMass says it charged; the
+    // The ledger's own subtotal is what Stealth Health says it charged; the
     // invoice's is only a copy of it, so prefer the ledger.
     goods: centsToAmount(puramass.subtotal_cents) ?? amount(invoice.subtotal),
     goodsCurrency,
@@ -299,15 +299,15 @@ export function puramassMoneySplit(
   };
 }
 
-/** Human label for a PuraMass payment status. */
+/** Human label for a Stealth Health payment status. */
 export const PURAMASS_STATUS_LABEL: Record<string, string> = {
-  paid: 'Paid on PuraMass',
+  paid: 'Paid on Stealth Health',
   payment_pending: 'Awaiting payment',
   expired: 'Link expired',
   cancelled: 'Cancelled',
 };
 
-/** Badge classes per PuraMass payment status, matching /admin/stealth-health (Orders tab). */
+/** Badge classes per Stealth Health payment status, matching /admin/stealth-health (Orders tab). */
 export const PURAMASS_STATUS_BADGE: Record<string, string> = {
   paid: 'bg-emerald-100 text-emerald-700',
   payment_pending: 'bg-amber-100 text-amber-700',

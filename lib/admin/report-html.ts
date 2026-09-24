@@ -8,7 +8,7 @@
  * attachment, see lib/admin/stock-report-pdf.ts).
  *
  * Two variants share one stylesheet:
- *   • branded   — the PURAMASS wordmark, gold rule, black table header and
+ *   • branded   — the STEALTH HEALTH wordmark, gold rule, black table header and
  *                 cream zebra rows used by the /admin/products reports.
  *   • unbranded — the plainer heading used by the customers / orders /
  *                 invoices / audit-log reports.
@@ -43,7 +43,7 @@ export interface ReportShellOptions {
   footRight?: string;
   /** Append the auto-print script (disabled by `?print=0`). */
   autoPrint?: boolean;
-  /** Use the PURAMASS branded layout. */
+  /** Use the STEALTH HEALTH branded layout. */
   branded?: boolean;
   /** Meta line items rendered under the gold rule (branded layout only). */
   meta?: string[];
@@ -195,7 +195,7 @@ const REPORT_CSS = `
   .empty { padding: 24px; text-align: center; color: #56707F; font-size: 12px; }
   .foot { margin-top: 32px; padding-top: 12px; border-top: 1px solid #DCE7EB; font-size: 10px; color: #56707F; display: flex; justify-content: space-between; }
 
-  /* ---- Branded PURAMASS layout (admin/products reports) ---- */
+  /* ---- Branded STEALTH HEALTH layout (admin/products reports) ---- */
   body.branded .brandhead { margin-bottom: 18px; }
   body.branded .brandname { font-size: 26px; font-weight: 800; letter-spacing: 0.16em; color: #438B9E; margin: 0 0 2px; }
   body.branded h1 { font-size: 20px; font-weight: 700; color: #07203A; margin: 0 0 10px; }
@@ -239,13 +239,13 @@ export function reportShell(opts: ReportShellOptions): string {
 
   const head = branded
     ? `<div class="brandhead">
-    <div class="brandname">PURAMASS</div>
+    <div class="brandname">STEALTH HEALTH</div>
     <h1>${escapeHtml(title)}</h1>
     <div class="goldrule"></div>
     ${meta.length ? `<div class="reportmeta">${meta.map((m) => `<span>${escapeHtml(m)}</span>`).join('')}</div>` : ''}
   </div>`
     : `<h1>${escapeHtml(title)}</h1>
-  <p class="sub">PuraMass · Generated ${escapeHtml(new Date().toLocaleString())}</p>`;
+  <p class="sub">Stealth Health · Generated ${escapeHtml(new Date().toLocaleString())}</p>`;
 
   const filtersHtml = filters.length
     ? `<div class="filters"><strong>Filters</strong>${filters.map((f) => `<span>${escapeHtml(f)}</span>`).join('')}</div>`
@@ -253,11 +253,11 @@ export function reportShell(opts: ReportShellOptions): string {
 
   const foot = branded
     ? `<div class="foot">
-    <span><strong>PuraMass</strong> · Puramass.com${footRight ? ` · ${escapeHtml(footRight)}` : ''}</span>
+    <span><strong>Stealth Health</strong>${footRight ? ` · ${escapeHtml(footRight)}` : ''}</span>
     <span>Confidential — internal use only</span>
   </div>`
     : `<div class="foot">
-    <span>PuraMass · ${escapeHtml(title)}</span>
+    <span>Stealth Health · ${escapeHtml(title)}</span>
     <span>${escapeHtml(footRight)}</span>
   </div>`;
 

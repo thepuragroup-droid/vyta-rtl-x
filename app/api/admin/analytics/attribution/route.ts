@@ -53,7 +53,7 @@ export interface ChannelRow {
   orders: number;            // storefront orders attributed to this channel
   paid_orders: number;
   order_revenue: number;     // CAD, native storefront orders
-  hosted_orders: number;     // PuraMass hand-offs
+  hosted_orders: number;     // Stealth Health hand-offs
   hosted_paid: number;
   hosted_revenue: number;    // USD, hosted checkout
   rates: {

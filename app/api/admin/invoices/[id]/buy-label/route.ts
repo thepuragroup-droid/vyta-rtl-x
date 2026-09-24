@@ -15,7 +15,7 @@ const db = createClient(
  * invoice's shipment, wherever that shipment is anchored.
  *
  * The order-side twin (`/api/admin/orders/[id]/buy-label`) can only reach a
- * shipment that hangs off an order, which leaves a Stealth Health / PuraMass
+ * shipment that hangs off an order, which leaves a Stealth Health
  * hand-off — no order row by design — with a draft shipment and no way to pay
  * for its label from the admin. This routes itself the same way shipment
  * creation does.

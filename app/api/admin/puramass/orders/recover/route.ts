@@ -9,7 +9,7 @@
  * actions it sits beside on /admin/stealth-health (Orders tab).
  *
  * The discount is PRESENTATION. Nothing here issues, reserves or validates a
- * code: codes are generated on app.vytabio.com, and PuraMass applies the real
+ * code: codes are generated on app.vytabio.com, and Stealth Health applies the real
  * discount when the buyer types the code on its checkout page. The type and
  * amount entered here decide how the offer is worded and what the email's
  * "estimated total" says, nothing more.

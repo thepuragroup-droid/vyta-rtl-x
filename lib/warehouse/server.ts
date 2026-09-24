@@ -761,11 +761,11 @@ export async function buildQueueRow(row: any): Promise<QueueItem> {
 
 
 /**
- * Copy the PuraMass ship-to onto the Stealth Health rows of a queue page.
+ * Copy the Stealth Health ship-to onto the Stealth Health rows of a queue page.
  *
  * A Stealth Health invoice is materialised from the hosted checkout and has no
  * `orders` row, so the address the warehouse needs lives on the hand-off ledger
- * (`puramass_orders.shipping_address`) — either as PuraMass reported it or as
+ * (`puramass_orders.shipping_address`) — either as Stealth Health reported it or as
  * the customer typed it into the missing-address form. It is read here rather
  * than snapshotted onto the invoice because it can land (or be corrected) long
  * after the invoice exists.

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Column configuration for the PuraMass orders table.
+ * Column configuration for the Stealth Health orders table.
  *
  * The ledger carries far more per order than an admin needs at a glance, so the
  * table ships with the core set visible and keeps the reconciliation
@@ -39,14 +39,14 @@ export interface ColumnMeta {
 export const COLUMNS: ColumnMeta[] = [
   { key: 'date', label: 'Date', hint: 'When the hand-off was created', locked: true },
   { key: 'customer', label: 'Customer', hint: 'Name, email and phone', locked: true },
-  { key: 'address', label: 'Ship to', hint: 'Shipping address from PuraMass' },
+  { key: 'address', label: 'Ship to', hint: 'Shipping address from Stealth Health' },
   { key: 'items', label: 'Items', hint: 'SKUs and quantities' },
   { key: 'total', label: 'Subtotal', hint: 'Order subtotal and currency' },
   { key: 'status', label: 'Status', hint: 'Payment status', locked: true },
   { key: 'recovery', label: 'Recovery', hint: 'Abandoned-cart chases: how many, when, and the code offered' },
   { key: 'invoice', label: 'Invoice', hint: 'Linked invoice, its status and fulfilment' },
   { key: 'account', label: 'Customer view', hint: 'Whether the buyer sees this order' },
-  { key: 'transaction', label: 'Transaction', hint: 'PuraMass transaction id' },
+  { key: 'transaction', label: 'Transaction', hint: 'Stealth Health transaction id' },
   { key: 'reference', label: 'Reference', hint: 'Our partner_reference' },
   { key: 'referral', label: 'Affiliate', hint: 'Affiliate code captured at checkout, and whose it is' },
   { key: 'updated', label: 'Updated', hint: 'Last change to the ledger row' },

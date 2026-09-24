@@ -2,7 +2,7 @@
  * Address normalisation for the store report's location breakdown.
  *
  * Addresses reach us from three places that disagree about spelling: the
- * storefront checkout form (free text), the customer record, and the PuraMass
+ * storefront checkout form (free text), the customer record, and the Stealth Health
  * hosted checkout. Without normalising, "ON", "Ontario" and "ontario" become
  * three rows and the state view looks empty per row instead of ranked.
  *

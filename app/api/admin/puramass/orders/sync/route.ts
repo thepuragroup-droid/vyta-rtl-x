@@ -39,7 +39,7 @@ async function verifyReadAccess(req: NextRequest): Promise<boolean> {
 }
 
 /**
- * POST /api/admin/puramass/orders/sync — poll PuraMass for many orders at once.
+ * POST /api/admin/puramass/orders/sync — poll Stealth Health for many orders at once.
  *
  * The bulk counterpart to the per-row refresh: same read
  * (`GET /partner/store/orders/{id}`) and the same idempotent
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
   if (!isPuramassConfigured()) {
-    return NextResponse.json({ error: 'PuraMass is not configured.' }, { status: 503 });
+    return NextResponse.json({ error: 'Stealth Health is not configured.' }, { status: 503 });
   }
 
   let body: any = {};

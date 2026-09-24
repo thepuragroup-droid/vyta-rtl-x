@@ -41,7 +41,7 @@ interface RequestAddressDialogProps {
  * when the order already has an address.
  *
  * The recipient is prefilled from the ledger and is almost always right —
- * PuraMass reports the buyer's email on every order, and the address is missing
+ * Stealth Health reports the buyer's email on every order, and the address is missing
  * for an unrelated reason (its payload carries `shipping: null`). It stays
  * editable for the two cases the prefill can't cover: a hand-off with no email
  * on the row at all, and a customer who asks for the link somewhere else.

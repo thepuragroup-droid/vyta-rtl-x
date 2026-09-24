@@ -91,7 +91,7 @@ export async function getAutoShipmentSettings(
  *
  * An `order` for anything that came through the storefront or was raised as an
  * order in this admin. An `invoice` for the ones that have no order behind them
- * — Stealth Health / PuraMass hand-offs above all, which are materialised
+ * — Stealth Health hand-offs above all, which are materialised
  * straight into `invoices` and keep their ship-to on the hand-off ledger (see
  * lib/shipping/invoice-destination.ts).
  *
@@ -306,7 +306,7 @@ async function createShipmentForSubject(
     // than letting the raw error be the answer.
     //
     // The phone falls back to the house number from Settings → shipping
-    // origin: an address that reached us without one (a PuraMass hand-off
+    // origin: an address that reached us without one (a Stealth Health hand-off
     // reports whatever the buyer typed) still needs a number a courier can
     // call, and that is the one we already send as the sender's.
     const destinationPhone = firstNonBlank(dest.phone, subject.phone, cfg.origin.phone);
@@ -527,7 +527,7 @@ export async function autoCreateShipmentForOrder(
 /**
  * Create the Easyship shipment for an invoice that has no order behind it.
  *
- * This is what makes Stealth Health / PuraMass hand-offs shippable: the
+ * This is what makes Stealth Health hand-offs shippable: the
  * destination comes from the hand-off ledger (or the drop-ship client, or the
  * customer profile — see resolveInvoiceDestination), the weight from the
  * invoice's own lines, and the shipment is written back onto the invoice.

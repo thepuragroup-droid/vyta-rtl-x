@@ -207,7 +207,7 @@ export async function updateCustomer(
 
 /**
  * A customer-facing order that may be backed by a real `orders` row or by a
- * paid PuraMass (Stealth Health) invoice surfaced as an order. The extra fields
+ * paid Stealth Health invoice surfaced as an order. The extra fields
  * are read defensively by the account UI via `(order as any)`.
  */
 export type CustomerOrder = Order & {
@@ -218,9 +218,9 @@ export type CustomerOrder = Order & {
 };
 
 /**
- * Map a paid PuraMass invoice (+ its line items) into the customer-facing order
+ * Map a paid Stealth Health invoice (+ its line items) into the customer-facing order
  * shape so it renders alongside native orders in /account and /dashboard.
- * PuraMass owns payment/shipping/taxes, so address/tracking/crypto are absent.
+ * Stealth Health owns payment/shipping/taxes, so address/tracking/crypto are absent.
  */
 function mapInvoiceToOrder(inv: any, lineItems: any[] = []): CustomerOrder {
   const items = (lineItems ?? []).map((li) => ({
@@ -261,7 +261,7 @@ function mapInvoiceToOrder(inv: any, lineItems: any[] = []): CustomerOrder {
 }
 
 /**
- * Get all orders for a customer — native `orders` plus paid PuraMass invoices
+ * Get all orders for a customer — native `orders` plus paid Stealth Health invoices
  * (source = 'stealth_health') linked to this customer — newest first.
  */
 export async function getCustomerOrders(customerId: string): Promise<CustomerOrder[]> {
@@ -271,7 +271,7 @@ export async function getCustomerOrders(customerId: string): Promise<CustomerOrd
       .select('*')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false }),
-    // Paid PuraMass sales live in `invoices` (the fulfilment record). Degrades
+    // Paid Stealth Health sales live in `invoices` (the fulfilment record). Degrades
     // to no extra rows if the source column/table isn't present.
     supabase
       .from('invoices')
@@ -287,7 +287,7 @@ export async function getCustomerOrders(customerId: string): Promise<CustomerOrd
   }
   if (invoicesRes.error) {
     // Non-fatal — just show native orders.
-    console.error('Error fetching PuraMass invoices:', invoicesRes.error);
+    console.error('Error fetching Stealth Health invoices:', invoicesRes.error);
   }
 
   const orders = (ordersRes.data ?? []) as CustomerOrder[];
@@ -300,7 +300,7 @@ export async function getCustomerOrders(customerId: string): Promise<CustomerOrd
 
 /**
  * Get an order with its items. Resolves a native `orders` row first; falls back
- * to a paid PuraMass invoice surfaced as an order (with its invoice line items).
+ * to a paid Stealth Health invoice surfaced as an order (with its invoice line items).
  */
 export async function getOrderWithItems(
   orderId: string
@@ -324,7 +324,7 @@ export async function getOrderWithItems(
     return { order: order as CustomerOrder, items: items || [] };
   }
 
-  // Not a native order — try a paid PuraMass invoice.
+  // Not a native order — try a paid Stealth Health invoice.
   const { data: inv } = await supabase
     .from('invoices')
     .select('*')

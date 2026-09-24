@@ -4,7 +4,7 @@
  *
  *   1. **Account customers** — rows in `customers`. Full profile, auth-backed,
  *      everything the admin surfaces can act on.
- *   2. **PuraMass buyers** — people who only ever bought through the PuraMass
+ *   2. **Stealth Health buyers** — people who only ever bought through the Stealth Health
  *      (Stealth Health) hosted checkout and never registered here. All we know
  *      about them is what the partner reported on the order payload: name,
  *      email, phone, and a shipping address. There is no account, no login, no
@@ -12,7 +12,7 @@
  *
  * The two are deliberately NOT normalised into one shape and pretended to be
  * equivalent — the UI leans on `source` to draw a hard visual line, and every
- * field a PuraMass buyer can't have is explicitly `null` rather than faked.
+ * field a Stealth Health buyer can't have is explicitly `null` rather than faked.
  *
  * SERVER ONLY: `puramass_orders` is service-role-locked, so everything here
  * runs behind an admin-gated route with the service key.
@@ -27,7 +27,7 @@ import { normalizeEmail, puramassId } from './customer-id';
 /** Where a directory row came from. */
 export type CustomerSource = 'account' | 'puramass';
 
-/** A PuraMass hand-off, trimmed to what the customer surfaces need. */
+/** A Stealth Health hand-off, trimmed to what the customer surfaces need. */
 export interface PuramassOrderLite {
   id: string;
   partner_reference: string;
@@ -47,7 +47,7 @@ export interface PuramassOrderLite {
   created_at: string;
 }
 
-/** Aggregated PuraMass activity for one email address. */
+/** Aggregated Stealth Health activity for one email address. */
 export interface PuramassProfile {
   email: string;
   name: string | null;
@@ -63,7 +63,7 @@ export interface PuramassProfile {
   firstOrderAt: string;
   lastOrderAt: string;
   lastPaidAt: string | null;
-  /** The account this ledger row is linked to, when PuraMass hand-off had one. */
+  /** The account this ledger row is linked to, when Stealth Health hand-off had one. */
   customerId: string | null;
 }
 
@@ -78,7 +78,7 @@ export interface DirectoryRow {
   state: string | null;
   country: string | null;
   role: string | null;
-  /** Account creation date, or the first PuraMass order date for a buyer. */
+  /** Account creation date, or the first Stealth Health order date for a buyer. */
   created_at: string;
   last_login_at: string | null;
   preferred_currency: string | null;
@@ -94,7 +94,7 @@ export interface DirectoryRow {
   /** Saved drop-ship recipients in this customer's address book. */
   clients: number;
   purchase_breakdown: { invoices: number; orders: number; puramass: number };
-  /** PuraMass activity attached to this person (either source). */
+  /** Stealth Health activity attached to this person (either source). */
   puramass_orders: number;
   puramass_paid_orders: number;
   puramass_paid_cents: number;
@@ -195,9 +195,9 @@ function asItems(raw: unknown): { sku?: string; quantity?: number }[] {
 }
 
 /**
- * Read the PuraMass hand-off ledger, optionally narrowed to one email and/or a
+ * Read the Stealth Health hand-off ledger, optionally narrowed to one email and/or a
  * set of statuses. Returns `[]` (never throws) when the table or its address
- * columns are unavailable — a missing PuraMass integration must not break the
+ * columns are unavailable — a missing Stealth Health integration must not break the
  * page.
  */
 export async function fetchPuramassLedger(
@@ -289,7 +289,7 @@ export async function fetchClientCounts(
  * Fold a ledger into one profile per email address.
  *
  * Name/phone/address are taken from the most recent order that actually
- * carries them — PuraMass fills those in progressively (the address often
+ * carries them — Stealth Health fills those in progressively (the address often
  * arrives a poll or two after the hand-off), so the newest row is not
  * necessarily the most complete one.
  */
@@ -365,7 +365,7 @@ export function splitName(full: string | null): { first: string | null; last: st
   return { first: parts[0], last: parts.slice(1).join(' ') };
 }
 
-/** Build one PuraMass-only directory row from a folded profile. */
+/** Build one Stealth Health-only directory row from a folded profile. */
 export function puramassDirectoryRow(profile: PuramassProfile): DirectoryRow {
   const { first, last } = splitName(profile.name);
   return {
@@ -378,11 +378,11 @@ export function puramassDirectoryRow(profile: PuramassProfile): DirectoryRow {
     city: profile.city,
     state: profile.state,
     country: profile.country,
-    // No account, so no role. The UI shows a PuraMass badge instead.
+    // No account, so no role. The UI shows a Stealth Health badge instead.
     role: null,
     created_at: profile.firstOrderAt,
     last_login_at: null,
-    // PuraMass prices in USD; that's the only currency signal we have.
+    // Stealth Health prices in USD; that's the only currency signal we have.
     preferred_currency: 'USD',
     active: true,
     claimed_by_id: null,
@@ -394,7 +394,7 @@ export function puramassDirectoryRow(profile: PuramassProfile): DirectoryRow {
     lead: null,
     purchases: 0,
     purchase_breakdown: { invoices: 0, orders: 0, puramass: 0 },
-    // A ships-to-client address book hangs off an account; a PuraMass-only
+    // A ships-to-client address book hangs off an account; a Stealth Health-only
     // buyer has no account row for one to belong to.
     clients: 0,
     puramass_orders: profile.orderCount,

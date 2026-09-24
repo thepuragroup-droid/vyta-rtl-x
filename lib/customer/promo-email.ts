@@ -260,7 +260,7 @@ export function formatDiscount(discount: DiscountInput): string {
 /**
  * A money figure this email is willing to print, or null.
  *
- * **Zero means "we do not have this amount", not "free".** The PuraMass ledger
+ * **Zero means "we do not have this amount", not "free".** The Stealth Health ledger
  * carries `subtotal_cents: 0` on a hand-off it never priced, and printing that
  * put "Subtotal $0.00 · Total $0.00" under a real basket in a discount nudge —
  * an email offering 20% off nothing, sent to somebody who knows what they put

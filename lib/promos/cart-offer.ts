@@ -48,7 +48,7 @@ export const DEFAULT_CART_OFFER_MIN_ITEMS = 2;
  * The most a discount may ever be, in percent.
  *
  * 99 rather than 100 because the discount travels to the hosted checkout as
- * per-line `unit_price_cents`, and PuraMass reads a zero there as "no price
+ * per-line `unit_price_cents`, and Stealth Health reads a zero there as "no price
  * given" — giving the goods away would charge full list instead. See
  * lib/promos/ad-discount.ts.
  */

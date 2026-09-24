@@ -1,5 +1,5 @@
 /**
- * PuraMass catalog snapshot + SKU matcher.
+ * Stealth Health catalog snapshot + SKU matcher.
  *
  * Pure module — no I/O. Used two ways:
  *   1. `matchProductToPuramass` auto-fills `products.puramass_sku` from the
@@ -31,7 +31,7 @@ export interface PuramassMatchResult {
 }
 
 /**
- * Bundled copy of the PuraMass catalog.
+ * Bundled copy of the Stealth Health catalog.
  *
  * ⚠️  SEED DATA — derived from the SKU/name examples in the build spec, NOT a
  * live export. Refresh from `GET /partner/store/products` (see the admin
@@ -115,7 +115,7 @@ function isSubset(sub: Set<string>, sup: Set<string>): boolean {
 }
 
 /**
- * Match a store product to a PuraMass catalog SKU. Tiers, most-confident first:
+ * Match a store product to a Stealth Health catalog SKU. Tiers, most-confident first:
  *
  *   1. `exact`     — normalised names equal (tries `name`, then `name strength`).
  *   2. `matched`   — dose signatures equal AND every non-dose word of the

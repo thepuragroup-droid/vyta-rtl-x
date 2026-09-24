@@ -204,7 +204,7 @@ export async function POST(req: NextRequest) {
 
   if (!isPuramassConfigured()) {
     return NextResponse.json(
-      { error: 'No PuraMass partner API key is configured in this environment.' },
+      { error: 'No Stealth Health partner API key is configured in this environment.' },
       { status: 409 },
     );
   }

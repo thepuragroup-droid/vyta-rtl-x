@@ -1,7 +1,7 @@
 /**
- * Shipping for the PuraMass (Stealth Health) hosted checkout.
+ * Shipping for the Stealth Health hosted checkout.
  *
- * PuraMass now accepts a `shipping_total_cents` on the order it creates, so the
+ * Stealth Health now accepts a `shipping_total_cents` on the order it creates, so the
  * shipping the buyer pays is ours to decide instead of a flat fee we could only
  * guess at. This module holds the rules for deciding it:
  *

@@ -49,8 +49,8 @@ export default function InvoicesIndex() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
-  // Origin filter — PuraMass hand-offs read very differently from invoices
-  // raised here, and reconciling one against PuraMass means seeing only those.
+  // Origin filter — Stealth Health hand-offs read very differently from invoices
+  // raised here, and reconciling one against Stealth Health means seeing only those.
   const [sourceFilter, setSourceFilter] = useState<'all' | 'puramass' | 'manual'>('all');
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -384,7 +384,7 @@ export default function InvoicesIndex() {
       const g = groups[gi];
       g.invoices.push(inv);
       g.count += 1;
-      // A PuraMass sale can straddle two currencies (goods as PuraMass charged
+      // A Stealth Health sale can straddle two currencies (goods as Stealth Health charged
       // them, shipping in ours), so it lands in both buckets rather than
       // putting a mixed sum under the invoice's stored currency.
       const split = puramassMoneySplit(inv, inv.puramass);
@@ -437,9 +437,9 @@ export default function InvoicesIndex() {
     const effective = inv.status_effective ?? inv.status;
     const meta = INVOICE_STATUS_META[effective];
     const isOverdueRow = effective === 'overdue';
-    // PuraMass hand-off behind this invoice, when there is one. Everything it
-    // carries (phone, ship-to, transaction) comes from PuraMass, never from
-    // this admin — the badge and the "From PuraMass" chip say so.
+    // Stealth Health hand-off behind this invoice, when there is one. Everything it
+    // carries (phone, ship-to, transaction) comes from Stealth Health, never from
+    // this admin — the badge and the "From Stealth Health" chip say so.
     const pm = inv.puramass ?? null;
     return (
       <tr
@@ -485,7 +485,7 @@ export default function InvoicesIndex() {
           {pm?.transaction_id && (
             <div
               className="mt-0.5 font-mono text-[10px] text-ink-light truncate max-w-[10rem]"
-              title={`PuraMass transaction ${pm.transaction_id}`}
+              title={`Stealth Health transaction ${pm.transaction_id}`}
             >
               {pm.transaction_id}
             </div>
@@ -496,7 +496,7 @@ export default function InvoicesIndex() {
           {inv.customer_email_display && (
             <div className="text-xs text-ink-muted">{inv.customer_email_display}</div>
           )}
-          {/* PuraMass collects the buyer's phone and ship-to on its hosted page;
+          {/* Stealth Health collects the buyer's phone and ship-to on its hosted page;
               neither is on the invoice row, so both come off the hand-off ledger. */}
           {pm?.customer_phone && (
             <div className="text-xs text-ink-muted">{pm.customer_phone}</div>
@@ -565,7 +565,7 @@ export default function InvoicesIndex() {
                 {pm && !pm.shipping_address && (
                   <span
                     className="inline-flex items-center gap-1 text-[10px] text-amber-700"
-                    title="PuraMass has not reported a shipping address for this order — it can't be packed until one arrives. Re-sync it, or ask the customer, on PuraMass Orders."
+                    title="Stealth Health has not reported a shipping address for this order — it can't be packed until one arrives. Re-sync it, or ask the customer, on Stealth Health Orders."
                   >
                     <AlertTriangle className="w-2.5 h-2.5" /> No address
                   </span>
@@ -754,7 +754,7 @@ export default function InvoicesIndex() {
             className="w-full sm:w-auto pl-10 pr-8 py-2.5 bg-white border border-line rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-teal/40 appearance-none"
           >
             <option value="all">All Sources</option>
-            <option value="puramass">PuraMass orders</option>
+            <option value="puramass">Stealth Health orders</option>
             <option value="manual">Created here</option>
           </select>
         </div>
@@ -1080,7 +1080,7 @@ function InvoicePreviewCard({
       {pm && (
         <div className="mb-3 pb-3 border-b border-line/60">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-1">
-            Ship to · via PuraMass
+            Ship to · via Stealth Health
           </div>
           <PuramassShipTo puramass={pm} compact />
         </div>

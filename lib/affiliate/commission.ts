@@ -175,7 +175,7 @@ export type RecordCommissionResult =
  * pre-check cannot, since the webhook and a poll can land at the same instant.
  * A duplicate-key error is therefore a success, not a failure.
  *
- * The base is the goods SUBTOTAL. Shipping is PuraMass's flat fee and is not
+ * The base is the goods SUBTOTAL. Shipping is Stealth Health's flat fee and is not
  * the affiliate's to earn on — note this differs from the sales-person stream
  * in app/api/admin/invoices/route.ts, which commissions on the invoice total.
  *

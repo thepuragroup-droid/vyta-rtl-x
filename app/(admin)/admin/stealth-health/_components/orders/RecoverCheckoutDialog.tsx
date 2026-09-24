@@ -167,7 +167,7 @@ export default function RecoverCheckoutDialog({ order, onClose, onSend }: Props)
         ? 'This checkout has since been paid — there is nothing to recover.'
         : `A ${draft.order.status.replace(/_/g, ' ')} hand-off cannot be recovered.`
       : !draft.order.customer_email
-        ? 'This hand-off has no customer email on it, so there is nobody to send to. Sync it from PuraMass first — the buyer\'s address arrives with the order.'
+        ? 'This hand-off has no customer email on it, so there is nobody to send to. Sync it from Stealth Health first — the buyer\'s address arrives with the order.'
         : null;
 
   // ---- Loading / error / sent / blocked states share one small shell -------

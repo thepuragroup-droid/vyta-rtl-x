@@ -101,7 +101,7 @@ export interface AnalyticsSummary {
   // signed-in ones; figures from before attribution started collecting are
   // therefore not comparable with those after it.
   funnel: FunnelSummary;
-  // Paid orders handed off to Stealth Health / PuraMass (the hosted-checkout
+  // Paid orders handed off to Stealth Health (the hosted-checkout
   // ledger), a separate revenue stream from the storefront invoices above.
   puramass: PuramassSummary;
 }
@@ -123,7 +123,7 @@ export interface PuramassSummary {
   units: number;              // item quantities across paid orders
   conversion: number;         // paid_orders / total_handoffs (%)
   // Headline figures use the currency with the most paid revenue; the full
-  // split lives in by_currency (PuraMass hosted checkout is usually USD).
+  // split lives in by_currency (Stealth Health hosted checkout is usually USD).
   primary_currency: 'USD' | 'CAD';
   gross: number;
   refunds: number;
@@ -444,7 +444,7 @@ export async function GET(req: NextRequest) {
     daily_truncated: dailyAll.length > daily.length,
   };
 
-  // ---- PuraMass / Stealth Health paid-order analytics ----
+  // ---- Stealth Health paid-order analytics ----
   // The hand-off ledger (puramass_orders) is a separate revenue stream from the
   // storefront invoices. `refunded_total_cents` is added by a later migration,
   // so fall back to a column set without it if PostgREST can't see it yet.
@@ -468,7 +468,7 @@ export async function GET(req: NextRequest) {
   }
   const pmRows = (pmRes.data ?? []) as any[];
 
-  // PuraMass reports currency lower-cased (e.g. 'usd'); default to USD since the
+  // Stealth Health reports currency lower-cased (e.g. 'usd'); default to USD since the
   // hosted checkout is USD-denominated.
   const pmCurOf = (c: unknown): 'USD' | 'CAD' =>
     String(c ?? 'usd').toUpperCase() === 'CAD' ? 'CAD' : 'USD';
@@ -535,7 +535,7 @@ export async function GET(req: NextRequest) {
   const pmPrimary: 'USD' | 'CAD' = pmByCurrency.USD.net >= pmByCurrency.CAD.net ? 'USD' : 'CAD';
   const pmPrimaryBucket = pmByCurrency[pmPrimary];
 
-  // Resolve PuraMass SKUs to product names for the "top products" list.
+  // Resolve Stealth Health SKUs to product names for the "top products" list.
   const pmProductNames: Record<string, string> = {};
   const pmSkus = [...pmSkuAgg.keys()];
   if (pmSkus.length > 0) {

@@ -5,7 +5,7 @@
  * address page and by the server route that validates what it submits, so the
  * two can never disagree about what counts as a valid country or region code.
  *
- * The country list is the set PuraMass ships to in practice plus the usual
+ * The country list is the set Stealth Health ships to in practice plus the usual
  * international destinations; `OTHER_COUNTRY` keeps the form usable for
  * anywhere not listed rather than blocking the customer.
  */

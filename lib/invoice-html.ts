@@ -38,8 +38,8 @@ export interface RenderInvoiceHtmlOptions {
    *  been paid yet; "draft" reads like an unfinished internal document. */
   viewer?: 'admin' | 'customer';
   /**
-   * The PuraMass hand-off behind this invoice, when it has one
-   * (`invoices.source = 'stealth_health'`). PuraMass collects the buyer's
+   * The Stealth Health hand-off behind this invoice, when it has one
+   * (`invoices.source = 'stealth_health'`). Stealth Health collects the buyer's
    * contact and shipping address on its hosted checkout page, so for these
    * sales the invoice row itself has no ship-to — it lives on the hand-off
    * ledger, and this is how it reaches the printed document.
@@ -95,20 +95,20 @@ export function renderInvoiceHtml({
   const statusLabel =
     viewer === 'customer' && invoice.status === 'draft' ? 'pending' : invoice.status;
 
-  // ---- PuraMass hand-off ---------------------------------------------------
-  // For a PuraMass sale everything below comes off the hand-off ledger, not off
-  // this invoice: PuraMass took the payment on its own hosted page and captured
+  // ---- Stealth Health hand-off ---------------------------------------------------
+  // For a Stealth Health sale everything below comes off the hand-off ledger, not off
+  // this invoice: Stealth Health took the payment on its own hosted page and captured
   // the buyer's contact + shipping address there. The document says so, so a
   // packer never mistakes a partner-reported address for one typed in here.
   const pmAddressLines = formatAddressLines(puramass?.shipping_address ?? null);
   const pmAddressNote = puramass?.shipping_address
     ? puramass.shipping_address_source === 'customer'
       ? 'Confirmed by the customer'
-      : 'Reported by PuraMass'
+      : 'Reported by Stealth Health'
     : '';
   const pmRefunded = centsToAmount(puramass?.refunded_total_cents ?? 0) ?? 0;
 
-  /** PuraMass SKU per line, matched on the name the invoice line was built from. */
+  /** Stealth Health SKU per line, matched on the name the invoice line was built from. */
   const pmSkuByName = new Map<string, string>();
   for (const item of puramass?.items ?? []) {
     if (item.sku && item.name) pmSkuByName.set(item.name.toLowerCase(), item.sku);
@@ -193,7 +193,7 @@ export function renderInvoiceHtml({
       <h2>Invoice</h2>
       <div class="number">${invoice.invoice_number}</div>
       <div style="margin-top:8px"><span class="status-badge">${statusLabel}</span></div>
-      ${puramass ? '<div class="origin">Placed via PuraMass</div>' : ''}
+      ${puramass ? '<div class="origin">Placed via Stealth Health</div>' : ''}
     </div>
   </header>
 
@@ -209,7 +209,7 @@ export function renderInvoiceHtml({
       <p><strong>${esc(puramass.customer_name ?? customerName)}</strong><br>
       ${pmAddressLines.length > 0
         ? pmAddressLines.map((l) => esc(l)).join('<br>')
-        : 'No shipping address on file yet — PuraMass has not reported one.'}
+        : 'No shipping address on file yet — Stealth Health has not reported one.'}
       ${puramass.customer_phone ? `<br>${esc(puramass.customer_phone)}` : ''}</p>
       ${pmAddressNote ? `<p class="note">${pmAddressNote}</p>` : ''}
     </div>` : ''}
@@ -229,7 +229,7 @@ export function renderInvoiceHtml({
 
   ${puramass ? `
   <div class="source-strip">
-    <div class="source-title">PuraMass hosted checkout — payment, taxes &amp; shipping collected by PuraMass</div>
+    <div class="source-title">Stealth Health hosted checkout — payment, taxes &amp; shipping collected by Stealth Health</div>
     <div><h4>Transaction</h4><p>${esc(puramass.transaction_id ?? '—')}</p></div>
     <div><h4>Our reference</h4><p>${esc(puramass.partner_reference || '—')}</p></div>
     <div><h4>Payment status</h4><p>${esc(PURAMASS_STATUS_LABEL[puramass.status] ?? puramass.status ?? '—')}${
@@ -263,7 +263,7 @@ export function renderInvoiceHtml({
       <div class="totals-row total"><span>Total</span><span>${fmt(invoice.total)} ${cur}</span></div>
       ${amountPaid > 0 ? `<div class="totals-row"><span>Paid</span><span>– ${fmt(amountPaid)}</span></div>` : ''}
       ${pmRefunded > 0 ? `
-      <div class="totals-row refund"><span>Refunded by PuraMass</span><span>– ${fmt(pmRefunded)}</span></div>
+      <div class="totals-row refund"><span>Refunded by Stealth Health</span><span>– ${fmt(pmRefunded)}</span></div>
       <div class="totals-row"><span>Net of refunds</span><span>${fmt(Number(invoice.total) - pmRefunded)}</span></div>` : ''}
       ${amountDue !== Number(invoice.total) ? `<div class="totals-row due"><span>Amount Due</span><span>${fmt(amountDue)}</span></div>` : ''}
     </div>
@@ -282,7 +282,7 @@ export function renderInvoiceHtml({
 
   ${(puramass?.refunds ?? []).length > 0 ? `
   <div class="payments-section">
-    <h3>PuraMass Refunds</h3>
+    <h3>Stealth Health Refunds</h3>
     ${(puramass?.refunds ?? []).map((r) => `
     <div class="pmt-row">
       <span>${r.created_at ? formatDate(r.created_at) : '—'}</span>

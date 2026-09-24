@@ -2412,7 +2412,7 @@ function CheckoutLoadingScreen() {
 }
 
 // Routes /checkout between the existing (crypto / e-transfer) checkout and the
-// PuraMass hosted hand-off, based on the admin toggle. The settings read is
+// Stealth Health hosted hand-off, based on the admin toggle. The settings read is
 // `no-store` because it decides which checkout the customer sees. Every cart
 // entry point (Proceed, Buy Now, cart drawer) navigates here, so this single
 // branch covers them all.

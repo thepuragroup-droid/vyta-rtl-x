@@ -26,7 +26,7 @@ export interface SummaryItem {
 export interface OrderSummary {
   reference: string;
   transaction_id: string | null;
-  /** PuraMass's hosted page for this transaction, when we captured it. */
+  /** Stealth Health's hosted page for this transaction, when we captured it. */
   transaction_link: string | null;
   invoice_id: string | null;
   invoice_number: string | null;
@@ -51,7 +51,7 @@ function money(v: unknown): number | null {
 }
 
 /**
- * Human names for the SKUs on the ledger. PuraMass SKUs map to products via
+ * Human names for the SKUs on the ledger. Stealth Health SKUs map to products via
  * `products.puramass_sku` (10-pack) or `products.puramass_sku_vial` (single
  * vial); anything unmapped falls back to the SKU itself.
  */

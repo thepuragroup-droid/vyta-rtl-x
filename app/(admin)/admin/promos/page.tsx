@@ -174,7 +174,7 @@ export default function PromosPage() {
 
   // ---- Paid-ads welcome discount ----
   //
-  // Applied by lowering the line prices on the PuraMass hand-off, so like the
+  // Applied by lowering the line prices on the Stealth Health hand-off, so like the
   // free-shipping promo it has nowhere to land unless the hosted checkout is
   // the live one. The control is locked until it is, for the same reason.
   const hostedLive = settings.puramass_checkout_enabled;
@@ -209,7 +209,7 @@ export default function PromosPage() {
   //
   // Locked behind the same hosted-checkout toggle as the welcome discount, and
   // for the same reason: the saving is taken off the line prices sent to
-  // PuraMass, so there is nowhere to apply it when that isn't the live
+  // Stealth Health, so there is nowhere to apply it when that isn't the live
   // checkout. It stacks with the welcome discount — the two percentages
   // compose (25% then 10% = 32.5% off), never add.
   const offerLocked = isReadOnly || !hostedLive;
@@ -301,7 +301,7 @@ export default function PromosPage() {
             <span>
               Live courier rates are switched off, so every order pays the flat shipping
               fee and there is nothing for this promo to waive. Turn on{' '}
-              <span className="font-medium">PuraMass Checkout → Shipping → Live courier rates</span>{' '}
+              <span className="font-medium">Stealth Health Checkout → Shipping → Live courier rates</span>{' '}
               first.{' '}
               <Link
                 href="/admin/settings"
@@ -422,10 +422,10 @@ export default function PromosPage() {
           <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
-              The PuraMass hosted checkout is switched off, and it is the only checkout
+              The Stealth Health hosted checkout is switched off, and it is the only checkout
               that carries our own line prices — so there is nowhere for this discount to
               be applied. Turn on{' '}
-              <span className="font-medium">PuraMass Checkout</span> first.{' '}
+              <span className="font-medium">Stealth Health Checkout</span> first.{' '}
               <Link
                 href="/admin/settings"
                 className="inline-flex items-center gap-1 font-medium underline underline-offset-2"
@@ -545,9 +545,9 @@ export default function PromosPage() {
           <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
-              The PuraMass hosted checkout is switched off, and it is the only checkout
+              The Stealth Health hosted checkout is switched off, and it is the only checkout
               that carries our own line prices — so there is nowhere for this discount to
-              be applied. Turn on <span className="font-medium">PuraMass Checkout</span>{' '}
+              be applied. Turn on <span className="font-medium">Stealth Health Checkout</span>{' '}
               first.{' '}
               <Link
                 href="/admin/settings"

@@ -164,7 +164,7 @@ test('the recovery email carries the cart, the code and the link', () => {
   assert.match(html, /\$200\.00 USD/);
   assert.match(html, /−\$30\.00 USD/);
   assert.match(html, /\$170\.00 USD/);
-  // And the total is labelled as an estimate, because PuraMass does the real sum.
+  // And the total is labelled as an estimate, because Stealth Health does the real sum.
   assert.match(html, /Estimated total/);
 });
 
@@ -294,7 +294,7 @@ test('every template offers a usable starting point', () => {
 test('an amount is only printable when it is a real, positive figure', () => {
   assert.equal(knownAmount(200), 200);
   assert.equal(knownAmount(0.01), 0.01);
-  // PuraMass sends 0 cents for a hand-off it never priced.
+  // Stealth Health sends 0 cents for a hand-off it never priced.
   assert.equal(knownAmount(0), null);
   assert.equal(knownAmount(-5), null);
   assert.equal(knownAmount(null), null);

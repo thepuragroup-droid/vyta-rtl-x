@@ -621,13 +621,13 @@ async function attachOrderItems(
   }
 }
 
-// ---- hosted-checkout (PuraMass / Stealth Health) channel ----
+// ---- hosted-checkout (Stealth Health) channel ----
 
 async function collectPuramass(
   fromDay: string, toDay: string, paidOnly: boolean,
 ): Promise<Slice> {
   // `select('*')` on purpose: naming columns breaks the query on a database
-  // that hasn't run the later PuraMass migrations (address / refund columns).
+  // that hasn't run the later Stealth Health migrations (address / refund columns).
   const { data, error } = await scopeToPaidAds(
     db
       .from('puramass_orders')
@@ -708,7 +708,7 @@ async function collectPuramass(
       if (!customer.name) customer.name = text(r.customer_name);
     }
 
-    // `paid_items` is what PuraMass charged (priced); `items` is the sku list we
+    // `paid_items` is what Stealth Health charged (priced); `items` is the sku list we
     // sent at hand-off (no prices). Prefer the former.
     const paidLines = asArray(r.paid_items);
     const lines = paidLines.length > 0 ? paidLines : asArray(r.items);
@@ -726,7 +726,7 @@ async function collectPuramass(
       if (!seenProducts.has(productKey)) { p.orders += 1; seenProducts.add(productKey); }
       p.sales += unit * qty;
       if (buyer) p.customers.add(buyer);
-      // The vial/pack split is decided by which PuraMass SKU it is; resolved
+      // The vial/pack split is decided by which Stealth Health SKU it is; resolved
       // against the catalog once the whole range has been read.
       p.units.other += qty;
       touchSaleDates(p, day);
@@ -750,12 +750,12 @@ async function collectPuramass(
   return slice;
 }
 
-/** PuraMass reports currency lower-cased; the hosted checkout is USD by default. */
+/** Stealth Health reports currency lower-cased; the hosted checkout is USD by default. */
 function pmCurrency(v: unknown): Currency {
   return normalizeCurrency(String(v ?? 'usd').toUpperCase());
 }
 
-// ---- catalog enrichment (category + the PuraMass vial/pack split) ----
+// ---- catalog enrichment (category + the Stealth Health vial/pack split) ----
 
 /**
  * Attach the catalog category to every product bucket, and — for hosted

@@ -498,7 +498,7 @@ export default function SettingsPage() {
             <p className="text-sm font-medium text-ink mb-2">Abandoned checkout (started, never paid)</p>
             <p className="text-xs text-ink-muted mb-3">
               How long a hosted checkout sits unpaid before the Abandoned tab on{' '}
-              <span className="font-medium text-ink">PuraMass Orders</span> lists it as a cart worth
+              <span className="font-medium text-ink">Stealth Health Orders</span> lists it as a cart worth
               chasing. Nothing is sent automatically — the tab is where an admin picks a cart and
               emails the payment link back, optionally with a promo code.
             </p>
@@ -630,9 +630,9 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      {/* 7b. PuraMass Hosted Checkout */}
-      <Card icon={<ShieldCheck className="w-4 h-4 text-teal-dark" />} title="PuraMass Checkout"
-        subtitle="Hand the cart off to the PuraMass hosted checkout instead of the on-site flow. Pricing, shipping, and fulfilment are handled by PuraMass.">
+      {/* 7b. Stealth Health Hosted Checkout */}
+      <Card icon={<ShieldCheck className="w-4 h-4 text-teal-dark" />} title="Stealth Health Checkout"
+        subtitle="Hand the cart off to the Stealth Health hosted checkout instead of the on-site flow. Pricing, shipping, and fulfilment are handled by Stealth Health.">
         {/* Credential status banner */}
         <div className={`mb-4 rounded-lg border px-4 py-3 text-sm flex items-center gap-2 ${
           settings.puramass_configured
@@ -653,7 +653,7 @@ export default function SettingsPage() {
             selected={settings.puramass_checkout_enabled} disabled={isReadOnly}
             onClick={() => handlePuramassToggle(true)}
             icon={<ToggleRight className="w-5 h-5" />} title="Enabled"
-            desc="Send customers to the PuraMass hosted checkout." />
+            desc="Send customers to the Stealth Health hosted checkout." />
           <SelectCard
             selected={!settings.puramass_checkout_enabled} disabled={isReadOnly}
             onClick={() => handlePuramassToggle(false)}
@@ -667,10 +667,10 @@ export default function SettingsPage() {
           <p className="text-xs text-ink-muted mb-3">
             With live rates on, the checkout asks for the delivery address and offers the
             fastest UPS, FedEx and Canada Post services for it — the buyer picks one and
-            that amount is sent to PuraMass as the shipping total. The{' '}
+            that amount is sent to Stealth Health as the shipping total. The{' '}
             <span className="font-medium text-ink">Processing fee</span> configured under
             Shipping &amp; Easyship is folded into every quoted price and never itemised
-            for the buyer. Off, everyone pays the flat fee below and PuraMass collects the
+            for the buyer. Off, everyone pays the flat fee below and Stealth Health collects the
             address on its own page.
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -791,7 +791,7 @@ export default function SettingsPage() {
               )}
               {puramassReport.unmatched.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-ink mb-1">Unmatched (no PuraMass equivalent found):</p>
+                  <p className="text-xs font-semibold text-ink mb-1">Unmatched (no Stealth Health equivalent found):</p>
                   <p className="text-xs text-ink-muted">
                     {puramassReport.unmatched
                       .map((u) => `${u.name} (${u.mapping === 'vial' ? 'vial' : 'pack'})`)

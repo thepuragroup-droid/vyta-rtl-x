@@ -41,7 +41,7 @@ async function verifyAdmin(req: NextRequest) {
 /**
  * POST /api/admin/puramass/sync-skus — auto-fill `products.puramass_sku`
  * (case) and `products.puramass_sku_vial` (single vial) by matching each
- * product against the PuraMass catalog. The catalog is split by SKU suffix into
+ * product against the Stealth Health catalog. The catalog is split by SKU suffix into
  * a box set (…-case / general) and a vial set (…-vial); each product is
  * matched against both. Only `exact`/`matched` results are written;
  * `ambiguous`/`unmatched` are reported per mapping for a human. Admin only.

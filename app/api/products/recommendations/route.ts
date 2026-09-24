@@ -129,7 +129,7 @@ async function curatedIds(cartIds: string[]): Promise<Map<string, string | null>
  * `order_items` covers the crypto/e-transfer checkout, and `puramass_orders`
  * the hosted one — which is the live checkout, so leaving it out would mean
  * ranking today's carts on history that stopped being written. Its lines carry
- * PuraMass SKUs rather than product ids, so they are mapped back through the
+ * Stealth Health SKUs rather than product ids, so they are mapped back through the
  * catalog's `puramass_sku` / `puramass_sku_vial` columns.
  */
 async function readHistory(products: any[]): Promise<PurchaseLine[]> {

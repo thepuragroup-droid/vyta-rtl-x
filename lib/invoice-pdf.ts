@@ -24,12 +24,12 @@ export interface InvoicePdfPayment {
 }
 
 /**
- * The PuraMass hand-off behind a `source = 'stealth_health'` invoice.
+ * The Stealth Health hand-off behind a `source = 'stealth_health'` invoice.
  *
- * PuraMass collects the buyer's contact and shipping address on its hosted
+ * Stealth Health collects the buyer's contact and shipping address on its hosted
  * checkout page, so for those sales none of this is on the invoice row — it
  * comes off the hand-off ledger (see lib/admin/puramass-invoice.ts). The
- * attachment prints it under its own heading, attributed to PuraMass, so the
+ * attachment prints it under its own heading, attributed to Stealth Health, so the
  * emailed document is packable and nobody mistakes it for locally-entered data.
  */
 export interface InvoicePdfPuramass {
@@ -40,9 +40,9 @@ export interface InvoicePdfPuramass {
   customer_name: string | null;
   customer_phone: string | null;
   shipping_address: ShippingAddressLike | null;
-  /** 'customer' when the buyer typed it in after PuraMass reported none. */
+  /** 'customer' when the buyer typed it in after Stealth Health reported none. */
   shipping_address_source: 'puramass' | 'customer' | null;
-  /** Refunded on the PuraMass side, in the invoice's currency. */
+  /** Refunded on the Stealth Health side, in the invoice's currency. */
   refunded_total: number;
 }
 
@@ -63,7 +63,7 @@ export interface InvoicePdfInput {
   amount_due?: number;
   line_items: InvoicePdfLine[];
   payments?: InvoicePdfPayment[];
-  /** Present only for invoices materialised from a PuraMass hand-off. */
+  /** Present only for invoices materialised from a Stealth Health hand-off. */
   puramass?: InvoicePdfPuramass | null;
 }
 
@@ -107,7 +107,7 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
       if (inv.customer_email) doc.fillColor('#56707F').fontSize(10).text(inv.customer_email);
       if (inv.customer_phone) doc.fillColor('#56707F').fontSize(10).text(inv.customer_phone);
 
-      // Ship To — PuraMass sales only, where the address lives on the hand-off
+      // Ship To — Stealth Health sales only, where the address lives on the hand-off
       // ledger instead of the invoice.
       const pm = inv.puramass ?? null;
       if (pm) {
@@ -135,7 +135,7 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
         doc.fillColor('#6E8898').fontSize(8).text(
           pm.shipping_address_source === 'customer'
             ? 'Confirmed by the customer'
-            : 'Reported by PuraMass',
+            : 'Reported by Stealth Health',
           left,
           sy,
           { width: width / 2 },
@@ -152,13 +152,13 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
       if (inv.status) metaRow('STATUS', inv.status.toUpperCase(), y + 60);
       if (inv.puramass) {
         metaRow(
-          'PURAMASS TXN',
+          'STEALTH HEALTH TXN',
           inv.puramass.transaction_id || inv.puramass.partner_reference || '—',
           y + 90,
         );
       }
 
-      // Items table. The Ship To block (PuraMass sales) needs the extra room.
+      // Items table. The Ship To block (Stealth Health sales) needs the extra room.
       y = inv.puramass ? 300 : 210;
       const cols = { desc: left, qty: left + 250, unit: left + 320, disc: left + 400, total: left + 460 };
       doc.fillColor('#56707F').fontSize(9).font('Helvetica-Bold');
@@ -206,7 +206,7 @@ export function renderInvoicePdf(inv: InvoicePdfInput): Promise<Buffer> {
         totalRow('Amount Due', money(inv.amount_due ?? (Number(inv.total) - Number(inv.amount_paid))), true);
       }
       if ((inv.puramass?.refunded_total ?? 0) > 0) {
-        totalRow('Refunded (PuraMass)', `- ${money(inv.puramass!.refunded_total)}`);
+        totalRow('Refunded (Stealth Health)', `- ${money(inv.puramass!.refunded_total)}`);
         totalRow('Net of refunds', money(Number(inv.total) - inv.puramass!.refunded_total), true);
       }
 

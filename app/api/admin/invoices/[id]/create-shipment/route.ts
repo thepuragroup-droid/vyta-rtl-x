@@ -20,7 +20,7 @@ const db = createClient(
  *
  * The order-side twin (`/api/admin/orders/[id]/create-shipment`) can only ship
  * an invoice that is bound to an order, which leaves every Stealth Health /
- * PuraMass hand-off unshippable — those are materialised straight into
+ * Stealth Health hand-off unshippable — those are materialised straight into
  * `invoices` and keep their address on the hand-off ledger. This route routes
  * itself: order-bound invoices still ship off the order row, the rest anchor
  * the shipment on the invoice.

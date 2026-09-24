@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
   const customerId = await resolveCustomerId(request);
 
   // Checkout add-ons: products flagged is_checkout_addon, offered as an upsell
-  // on the PuraMass checkout screen. Store stock is intentionally ignored
-  // (PuraMass fulfils these). Degrades to an empty list if the column is
+  // on the Stealth Health checkout screen. Store stock is intentionally ignored
+  // (Stealth Health fulfils these). Degrades to an empty list if the column is
   // missing (migration not yet run), so the upsell simply hides.
   if (addon === '1' || addon === 'true') {
     const { data, error } = await supabase

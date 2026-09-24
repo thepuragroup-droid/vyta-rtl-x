@@ -14,7 +14,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 /**
  * Statuses worth chasing.
  *
- * `expired` and `cancelled` are in deliberately: PuraMass expires a hosted link
+ * `expired` and `cancelled` are in deliberately: Stealth Health expires a hosted link
  * on its own schedule, and the buyer behind it is still worth reaching — the
  * email just has to be honest about the link's state.
  */
@@ -114,7 +114,7 @@ export function recoveryOffer(row: RecoveryFields): string | null {
  * Falls back to the default when the setting (or the whole column) isn't there:
  * an unmigrated database should still be able to list abandoned checkouts.
  * Capped at 30 days — beyond that the list just fills with carts whose payment
- * links PuraMass has long since expired.
+ * links Stealth Health has long since expired.
  */
 export async function loadAbandonedHours(db: SupabaseClient): Promise<number> {
   try {

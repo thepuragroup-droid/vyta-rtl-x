@@ -11,7 +11,7 @@ const db = createClient(
 /**
  * GET /api/admin/invoices/[id]/puramass
  *
- * The PuraMass hand-off behind an invoice, for the invoice detail view.
+ * The Stealth Health hand-off behind an invoice, for the invoice detail view.
  *
  * The detail page reads the invoice itself straight from Supabase under the
  * caller's RLS, but the hand-off ledger (`puramass_orders`) is service-role
@@ -19,7 +19,7 @@ const db = createClient(
  * passing an admin check. Hence this small server route, alongside the tracking
  * one, rather than a client query.
  *
- * Responds `{ puramass: null }` for any invoice that isn't a PuraMass sale, so
+ * Responds `{ puramass: null }` for any invoice that isn't a Stealth Health sale, so
  * the caller can render the same way for both without special-casing a 404.
  */
 export async function GET(

@@ -33,7 +33,7 @@ async function verifyAccess(req: NextRequest): Promise<Access> {
   const role = (data?.role ?? 'customer') as UserRole;
   if (role === 'admin' || role === 'assistant') return { ok: true, scope: 'all' };
   // Affiliates reach /admin/customers as part of their scoped portal — they get
-  // the customers bound to them and nothing else (no PuraMass ledger).
+  // the customers bound to them and nothing else (no Stealth Health ledger).
   if (role === 'affiliate') return { ok: true, scope: 'affiliate', affiliateId: user.id };
   return { ok: false };
 }
@@ -75,7 +75,7 @@ const mergeTallies = (...parts: (Tally | undefined)[]): Tally =>
 /**
  * Count what each person has actually bought, without counting anything twice.
  *
- * The same purchase can exist in up to three places: a PuraMass hand-off is
+ * The same purchase can exist in up to three places: a Stealth Health hand-off is
  * materialised into an invoice, and a storefront order can be invoiced too. So
  * invoices are the spine — an order or a hand-off only counts on its own when
  * no invoice was raised against it.
@@ -171,8 +171,8 @@ function countUninvoicedPaid(profile: { orders: { status: string; invoice_id: st
  * GET /api/admin/customers/directory
  *
  * The merged customer list behind /admin/customers: every account customer,
- * plus everyone who only ever bought through the PuraMass hosted checkout.
- * PuraMass buyers have no account row, so they are synthesised from the
+ * plus everyone who only ever bought through the Stealth Health hosted checkout.
+ * Stealth Health buyers have no account row, so they are synthesised from the
  * hand-off ledger and marked `source: 'puramass'` — the page draws the line.
  *
  * Filtering and sorting happen client-side (the list is small and the pills
@@ -204,7 +204,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // The PuraMass ledger is service-role only and irrelevant to an affiliate's
+  // The Stealth Health ledger is service-role only and irrelevant to an affiliate's
   // scoped view, so it's read for admin/assistant alone.
   const [ledger, tallies, leadData, clientCounts, nudgeData] = await Promise.all([
     access.scope === 'all' ? fetchPuramassLedger(db) : Promise.resolve([]),
@@ -242,7 +242,7 @@ export async function GET(req: NextRequest) {
     // isn't re-added below as a synthetic buyer row.
     seenEmails.add(email);
     if (EXCLUDED_ROLES.has(c.role ?? 'customer')) continue;
-    // A registered customer who also bought via PuraMass — match on email
+    // A registered customer who also bought via Stealth Health — match on email
     // first (most hand-offs are guests), then on the ledger's account link.
     const pm = puramassByEmail.get(email) ?? puramassByCustomerId.get(c.id) ?? null;
     const tally = mergeTallies(tallies.byId.get(c.id), tallies.byEmail.get(email), {
@@ -312,8 +312,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     customers: rows,
     counts,
-    // False for an affiliate's scoped view, where the PuraMass ledger is not
-    // read at all — the UI must not read "0 PuraMass orders" as "none exist".
+    // False for an affiliate's scoped view, where the Stealth Health ledger is not
+    // read at all — the UI must not read "0 Stealth Health orders" as "none exist".
     puramassAvailable: access.scope === 'all',
     // False until customer-crm-migration.sql runs; the UI then explains why
     // every row reads as unclaimed rather than implying nobody has claimed one.

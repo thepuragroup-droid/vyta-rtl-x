@@ -1,5 +1,5 @@
 /**
- * Unit tests for the PuraMass webhook delivery-log row builder.
+ * Unit tests for the Stealth Health webhook delivery-log row builder.
  * Run with `node --test --import tsx lib/payments/puramass-webhook-log.test.ts`.
  */
 import test from 'node:test';
