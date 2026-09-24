@@ -5,7 +5,6 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import {
   isPuramassConfigured,
   createPuramassOrder,
-  buildPuramassOrderBody,
   PuramassApiError,
   PURAMASS_CURRENCY,
   type PuramassOrderLine,
@@ -50,7 +49,7 @@ import {
 import { isCustomerFirstOrder } from '@/lib/promos/first-order';
 import { lookupDiscountCode } from '@/lib/affiliate/discount-codes';
 import { resolvePriceMap } from '@/lib/pricing/resolve';
-import { casePriceFor, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
+import { packPriceFor, round2, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
 
 // All access is server-side against the service-role client (RLS-bypassing).
 const db = createClient(
@@ -145,38 +144,58 @@ async function readSiteSettings(): Promise<Record<string, any>> {
  * browser that could name its own prices could hand itself either.
  *
  * Priced through the same chain the storefront quotes from (customer override >
- * active pricelist > products.price, then the vial/pack rule), so what is
- * checked here is what the buyer saw in their cart. A line we cannot price at
- * all comes back at zero and simply contributes nothing to the subtotal — the
- * same behaviour the threshold has always had.
+ * active pricelist > products.price, then the pack rule), the same way the
+ * regular order route does, so what is sent is the pack price the buyer saw
+ * in their cart. A line we cannot price comes back at zero, which the caller
+ * refuses to send.
+ *
+ * Keyed by `${product id}::${pack size}`, and priced per PACK: one unit of a
+ * 5-pack line is the 5-pack's price.
  */
 async function priceCartLines(
-  lines: { id: string; mapping: 'box' | 'vial'; units: number }[],
+  lines: { id: string; packSize: number }[],
   products: Map<string, any>,
   customerId: string | null,
 ): Promise<Map<string, number>> {
   const ids = [...new Set(lines.map((l) => l.id))];
-  let priceMap = new Map<string, { price: number }>();
+  let priceMap = new Map<string, { price: number; source: string; base: number }>();
   try {
     priceMap = await resolvePriceMap(db, { customerId, productIds: ids });
   } catch (err) {
     console.error('[puramass] price resolution failed:', err);
   }
 
-  // Keyed by product + mapping: the same product can appear as both a pack and
-  // a single vial, at two different unit prices.
   const unitCents = new Map<string, number>();
   for (const line of lines) {
     const product = products.get(line.id);
     if (!product) continue;
-    const priced = {
-      price: priceMap.get(line.id)?.price ?? Number(product.price ?? 0),
-      vial_price: product.vial_price ?? null,
-      vials_per_box: product.vials_per_box ?? null,
+    const vialsPerBox = vialsPerBoxOf(product.vials_per_box);
+    const resolved = priceMap.get(line.id) ?? {
+      price: Number(product.price ?? 0),
+      source: 'base',
+      base: Number(product.price ?? 0),
     };
-    const unit = line.mapping === 'vial' ? vialPriceFor(priced) : casePriceFor(priced);
+    // Same rule as app/api/orders-email: a pricelist / per-customer override
+    // restates the per-vial price and drops the catalog's fixed pack prices.
+    const vialPrice =
+      resolved.source === 'base'
+        ? vialPriceFor({
+            price: resolved.base,
+            vial_price: product.vial_price ?? null,
+            vials_per_box: vialsPerBox,
+          })
+        : round2(resolved.price / vialsPerBox);
+    const unit = packPriceFor(
+      {
+        price: resolved.base,
+        vial_price: vialPrice,
+        vials_per_box: vialsPerBox,
+        pack_options: resolved.source === 'base' ? (product.pack_options ?? null) : null,
+      },
+      line.packSize,
+    );
     unitCents.set(
-      `${line.id}::${line.mapping}`,
+      `${line.id}::${line.packSize}`,
       Number.isFinite(unit) && unit > 0 ? Math.round(unit * 100) : 0,
     );
   }
@@ -384,7 +403,7 @@ export async function POST(req: NextRequest) {
   let products: any[] = [];
   const withVial = await db
     .from('products')
-    .select('id, name, price, vial_price, vials_per_box, puramass_sku, puramass_sku_vial')
+    .select('id, name, price, vial_price, vials_per_box, pack_options, puramass_sku, puramass_sku_vial')
     .in('id', ids);
   if (withVial.error) {
     const boxOnly = await db
@@ -400,50 +419,52 @@ export async function POST(req: NextRequest) {
   }
   const byId = new Map(products.map((p) => [p.id, p]));
 
-  // 7a. Decide each line's SKU mapping now that the case size is known.
-  //     PuraMass only stocks two forms per product: a single vial and a full
-  //     10-pack. A line whose pack size IS the product's case maps to the box
-  //     SKU; EVERY other pack — a 3-pack, a 5-pack, a single vial — is
-  //     fulfilled as that many single vials, because there is no PuraMass SKU
-  //     for a partial pack and dividing by it would ship the wrong quantity.
-  const normalized: { id: string; mapping: 'box' | 'vial'; units: number }[] = [];
+  // 7a. Decide each line's SKU now that the products are loaded. Stealth
+  //     Health stocks two SKUs per product: a single vial (`puramass_sku_vial`)
+  //     and a case (`puramass_sku`). A single vial maps to the vial SKU; EVERY
+  //     pack of more than one — a 3-pack, a 5-pack, a 10-pack, a 20-pack —
+  //     maps to the case SKU, one unit per pack, priced at that pack's own
+  //     price (`unit_price_cents` below).
+  const normalized: { id: string; mapping: 'box' | 'vial'; packSize: number; units: number }[] = [];
   for (const line of rawLines) {
-    const perBox = vialsPerBoxOf(byId.get(line.id)?.vials_per_box);
-    const asBox = line.packSize > 1 && line.packSize === perBox;
+    const asBox = line.packSize > 1;
     normalized.push({
       id: line.id,
       mapping: asBox ? 'box' : 'vial',
-      units: clampPacks(asBox ? Math.round(line.vials / perBox) : line.vials),
+      packSize: asBox ? line.packSize : 1,
+      units: clampPacks(asBox ? Math.max(1, Math.round(line.vials / line.packSize)) : line.vials),
     });
   }
 
-  // 8. Merge lines by resolved SKU, carrying our own unit price alongside the
-  //    quantity; collect any unmapped products. A vial line with no vial
-  //    mapping is tagged so the customer sees the specific form.
+  // 8. Merge lines by SKU AND pack size, carrying our own price for one unit
+  //    alongside the quantity; collect any unmapped products. A 5-pack and a
+  //    10-pack of one product share the case SKU at different prices, so they
+  //    travel as separate lines rather than being merged at one price.
   //
-  //    Two cart lines can land on one SKU (the same product added twice), so
-  //    quantities are summed and re-clamped — and the discount below is worked
-  //    out from THESE merged lines, after the clamp, so what it is measured
-  //    against is exactly what gets sent.
+  //    The same pack added twice is summed and re-clamped — and the discount
+  //    below is worked out from THESE merged lines, after the clamp, so what it
+  //    is measured against is exactly what gets sent.
   const unitCentsByLine = await priceCartLines(normalized, byId, customerId);
-  const linesBySku = new Map<string, { quantity: number; unitPriceCents: number }>();
+  const linesBySku = new Map<string, { sku: string; quantity: number; unitPriceCents: number }>();
   const unmapped: string[] = [];
   for (const line of normalized) {
     const product = byId.get(line.id);
     const sku = (line.mapping === 'vial' ? product?.puramass_sku_vial : product?.puramass_sku)?.trim();
     if (!sku) {
       const base = product?.name ?? line.id;
-      const label = line.mapping === 'vial' ? `${base} (single vial)` : base;
+      const label = line.mapping === 'vial' ? `${base} (single vial)` : `${base} (pack of ${line.packSize})`;
       if (!unmapped.includes(label)) unmapped.push(label);
       continue;
     }
-    const merged = linesBySku.get(sku);
-    linesBySku.set(sku, {
+    const key = `${sku}::${line.packSize}`;
+    const merged = linesBySku.get(key);
+    linesBySku.set(key, {
+      sku,
       quantity: clampPacks((merged?.quantity ?? 0) + line.units),
-      // `||` rather than `??`: two products can share one PuraMass SKU, and a
-      // line we failed to price (0) must not shut out a sibling we did.
+      // `||` rather than `??`: two products can share one SKU, and a line we
+      // failed to price (0) must not shut out a sibling we did.
       unitPriceCents:
-        merged?.unitPriceCents || unitCentsByLine.get(`${line.id}::${line.mapping}`) || 0,
+        merged?.unitPriceCents || unitCentsByLine.get(`${line.id}::${line.packSize}`) || 0,
     });
   }
 
@@ -457,16 +478,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // 8a. Every line travels with OUR price. Nothing is left to PuraMass's own
+  //     catalog, so a line we could not price stops the hand-off here rather
+  //     than going out without one and being charged at their list.
+  const unpriced = [...linesBySku.values()]
+    .filter((line) => !(line.unitPriceCents > 0))
+    .map((line) => line.sku);
+  if (unpriced.length > 0) {
+    console.error('[puramass] hand-off refused: no price for %s', unpriced.join(', '));
+    return NextResponse.json(
+      { error: 'We could not price your cart. Please try again or contact support.' },
+      { status: 500 },
+    );
+  }
+
   // 8b. The discounts: the paid-ads welcome discount and the limited-time cart
   //     offer. Both can land on one order.
   //
   //     The hosted order has no discount field, so the only way to take money
   //     off is to send lower prices: `distributeAdDiscount` splits the
   //     percentage across the lines and each one travels as its own
-  //     `unit_price_cents`. Lines are otherwise sent WITHOUT a price, which
-  //     leaves goods pricing to PuraMass's own catalog — the behaviour every
-  //     undiscounted hand-off has always had, and the reason the prices only
-  //     appear when there is something to take off them.
+  //     `unit_price_cents`. Undiscounted lines carry our list price. Our own
+  //     summary shows the saving as one deduction off the subtotal; the hosted
+  //     page can only show the already-reduced line prices.
   //
   //     Stacked promos are COMPOSED into one percentage and split once
   //     (`combineDiscountPercents`: 25% then 10% is 32.5% off, not 35%). Two
@@ -479,11 +513,9 @@ export async function POST(req: NextRequest) {
   //     from the settings row's own minimum and end date, measured against the
   //     quantities this request is actually ordering.
   //
-  //     Two guards on the split, both about that same zero: it is only sent
-  //     when every line has a real price to discount AND every discounted
-  //     price is still above zero. Either way out is a hand-off with no prices
-  //     at all, which is what an undiscounted order has always been: the buyer
-  //     pays list rather than being handed free product by a pricing failure.
+  //     One guard on the split, about that same zero: every discounted price
+  //     must still be above zero. If one is not, the discount is dropped and
+  //     the lines go out at list, rather than handing out free product.
   const visitor = readVisitorContext(req.cookies);
   const adDiscountSettings = shapeAdDiscountSettings(settingsRow);
   const earnedAd = await earnsAdDiscount(adDiscountSettings, customerId, visitor);
@@ -526,10 +558,8 @@ export async function POST(req: NextRequest) {
     codeBeatsAd ? appliedCode!.percent : 0,
     earnedOffer ? cartOfferSettings.percent : 0,
   );
-  const everyLinePriced = [...linesBySku.values()].every((line) => line.unitPriceCents > 0);
-
   let discount: ReturnType<typeof distributeAdDiscount> | null = null;
-  if (discountPercent > 0 && everyLinePriced) {
+  if (discountPercent > 0) {
     const split = distributeAdDiscount(
       [...linesBySku.entries()].map(([sku, line]) => ({
         key: sku,
@@ -542,25 +572,19 @@ export async function POST(req: NextRequest) {
       discount = split;
     } else {
       console.error(
-        '[puramass] discount skipped: %s%% would zero a line price, which this API reads as "use your own price"',
+        '[puramass] discount skipped: %s%% would zero a line price; sending list prices',
         discountPercent,
       );
     }
-  } else if (discountPercent > 0) {
-    console.error(
-      '[puramass] discount skipped: the catalog could not price every line, and a zero price would be charged at full list',
-    );
   }
 
   const discountedBySku = new Map(
     (discount?.lines ?? []).map((l) => [l.key, l.discountedUnitPriceCents]),
   );
-  const items: PuramassOrderLine[] = [...linesBySku.entries()].map(([sku, line]) => ({
-    sku,
+  const items: PuramassOrderLine[] = [...linesBySku.entries()].map(([key, line]) => ({
+    sku: line.sku,
     quantity: line.quantity,
-    ...(discountedBySku.has(sku)
-      ? { unit_price_cents: discountedBySku.get(sku) }
-      : {}),
+    unit_price_cents: discountedBySku.get(key) ?? line.unitPriceCents,
   }));
 
   // 9. Price the shipping. Re-quoted here rather than trusted from the
@@ -606,19 +630,15 @@ export async function POST(req: NextRequest) {
   const partnerReference = `amc_${crypto.randomUUID()}`;
 
   // 11. Create the hosted order.
-  const orderArgs = {
-    items,
-    customer: { email, first_name: firstName, last_name: lastName },
-    partnerReference,
-    currency: PURAMASS_CURRENCY,
-    shippingTotalCents,
-  };
-  // TEMP: log the exact POST /partner/store/orders body for debugging.
-  const debugRequestBody = buildPuramassOrderBody(orderArgs);
-  console.log('[puramass] TEMP order request body:', JSON.stringify(debugRequestBody));
   let order;
   try {
-    order = await createPuramassOrder(orderArgs);
+    order = await createPuramassOrder({
+      items,
+      customer: { email, first_name: firstName, last_name: lastName },
+      partnerReference,
+      currency: PURAMASS_CURRENCY,
+      shippingTotalCents,
+    });
   } catch (err) {
     if (err instanceof PuramassApiError) {
       // Surface 4xx messages (client can act on them); collapse the rest to 502
@@ -761,7 +781,5 @@ export async function POST(req: NextRequest) {
     cart_offer_percent: discount && earnedOffer ? cartOfferSettings.percent : 0,
     discount_percent: discount ? discount.percent : 0,
     ad_discount: discount ? discount.discountCents / 100 : 0,
-    // TEMP: echoed so the checkout page can log it instead of redirecting.
-    debug_request_body: debugRequestBody,
   });
 }

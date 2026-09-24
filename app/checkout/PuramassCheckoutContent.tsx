@@ -412,8 +412,8 @@ export default function PuramassCheckoutContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalPrice, linkCodeTried]);
 
-  // Checkout upsell — products flagged is_checkout_addon. Only forms PuraMass
-  // can fulfil are offered (a valid 10-pack and/or vial SKU); store stock is
+  // Checkout upsell — products flagged is_checkout_addon. Only forms Stealth
+  // Health can fulfil are offered (a case and/or vial SKU); store stock is
   // ignored. Products with neither valid form are dropped.
   useEffect(() => {
     let cancelled = false;
@@ -431,7 +431,7 @@ export default function PuramassCheckoutContent({
           .map((p: any): AddonProduct => {
             const boxOk =
               typeof p.puramass_sku === "string" &&
-              p.puramass_sku.toLowerCase().endsWith("-10-pack");
+              /-(case|10-pack)$/.test(p.puramass_sku.trim().toLowerCase());
             const vialOk =
               typeof p.puramass_sku_vial === "string" &&
               p.puramass_sku_vial.toLowerCase().endsWith("-vial");
@@ -740,13 +740,9 @@ export default function PuramassCheckoutContent({
             ),
           },
         });
-        // TEMP: log the PuraMass request body instead of redirecting.
-        console.log("[puramass] TEMP order request body:", json.debug_request_body);
-        console.log("[puramass] TEMP payment link (not redirecting):", json.payment_link);
-        setSubmitting(false);
-        return;
         // Keep `submitting` true through the redirect so the CTA stays locked.
-        // window.location.href = json.payment_link;
+        window.location.href = json.payment_link;
+        return;
       }
       setError("Could not start checkout. Please try again.");
       setSubmitting(false);

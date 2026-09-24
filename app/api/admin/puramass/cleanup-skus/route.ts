@@ -9,7 +9,7 @@ const db = createClient(
 );
 
 // Mappings must live in our own partner namespace; anything else is stale.
-const VYTA_SKU_PREFIX = 'aminocan-';
+const VYTA_SKU_PREFIX = 'vyta-';
 const isPartnerSku = (s: string | null | undefined) =>
   (s ?? '').trim().toLowerCase().startsWith(VYTA_SKU_PREFIX);
 
@@ -26,7 +26,7 @@ async function verifyAdmin(req: NextRequest) {
 /**
  * POST /api/admin/puramass/cleanup-skus — clear any product PuraMass mapping
  * (`puramass_sku` / `puramass_sku_vial`) whose value is NOT prefixed
- * `aminocan-` (e.g. stale placeholder SKUs). Clears per column and reports how
+ * `vyta-` (e.g. stale placeholder SKUs). Clears per column and reports how
  * many values/products were affected. Admin only. `{ dryRun?: boolean }`.
  */
 export async function POST(req: NextRequest) {
