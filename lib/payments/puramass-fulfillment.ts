@@ -23,6 +23,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { recordAffiliateCommission } from '@/lib/affiliate/commission';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
+import { splitName, trackPlacedOrder } from '@/lib/klaviyo/events';
 
 export interface StealthHealthLedgerRow {
   id: string;
@@ -286,6 +287,32 @@ export async function materializeStealthHealthFulfillment(
 
     await creditAffiliate(db, ledger, invoice.id);
     await bookShipment(db, invoice.id, courierId);
+
+    // Klaviyo "Placed Order" + "Ordered Product". Only on the pass that
+    // creates the invoice — it is keyed on the invoice id, so even a retry
+    // that slipped through would be deduped by Klaviyo. Never throws.
+    if (ledger.customer_email) {
+      const { first, last } = splitName(ledger.customer_name);
+      await trackPlacedOrder(db, {
+        orderId: invoice.id,
+        email: ledger.customer_email,
+        firstName: first,
+        lastName: last,
+        customerId: ledger.customer_id ?? null,
+        items: source.map((it, idx) => ({
+          sku: it.sku ?? null,
+          name: (it.name || it.sku || 'Item').toString(),
+          quantity: lines[idx]?.qty ?? 1,
+          price: lines[idx]?.unit_price ?? 0,
+          variant: lines[idx]?.price_type === 'vial' ? 'Single vial' : 'Box',
+        })),
+        subtotal,
+        shipping,
+        total,
+        currency,
+        source: 'stealth_health',
+      });
+    }
 
     return { created: true, invoiceId: invoice.id };
   } catch (err) {

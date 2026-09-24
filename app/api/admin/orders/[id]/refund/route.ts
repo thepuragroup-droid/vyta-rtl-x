@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { RefundRequest } from '@/lib/types/ecommerce';
 import { restoreStockForCancelledOrder } from '@/lib/order-stock';
+import { trackOrderStatusById } from '@/lib/klaviyo/events';
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -130,6 +131,9 @@ export async function POST(
   if (full_refund) {
     await restoreStockForCancelledOrder(db, params.id, actorEmail);
   }
+
+  // Klaviyo "Refunded Order" (best-effort, never throws; deduped per order).
+  await trackOrderStatusById(db, params.id, 'refunded');
 
   if (errors.length) {
     return NextResponse.json({ success: true, warnings: errors });

@@ -15,6 +15,11 @@ import {
   DEFAULT_ADMIN_SUBJECT,
   DEFAULT_ADMIN_BODY,
 } from '@/lib/invoice-email-templates';
+import {
+  KLAVIYO_LIST_ID_RE,
+  KLAVIYO_PUBLIC_KEY_RE,
+  shapeKlaviyoSettings,
+} from '@/lib/klaviyo/settings';
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -78,6 +83,7 @@ function shape(data: Record<string, any> | null | undefined) {
   const hostedShipping = shapeHostedShippingSettings(d);
   const adDiscount = shapeAdDiscountSettings(d);
   const cartOffer = shapeCartOfferSettings(d);
+  const klaviyo = shapeKlaviyoSettings(d);
   return {
     id: d.id ?? null,
     checkout_type: d.checkout_type === 'email' ? 'email' : 'crypto',
@@ -141,6 +147,17 @@ function shape(data: Record<string, any> | null | undefined) {
     // shown separately at checkout). 'flat' = CAD amount, 'pct' = % of rate.
     shipping_handling_fee_type: d.shipping_handling_fee_type === 'pct' ? 'pct' : 'flat',
     shipping_handling_fee_value: Number(d.shipping_handling_fee_value) || 0,
+    // Klaviyo. The private key is write-only — only whether one is set, and
+    // whether it comes from the admin UI or the KLAVIYO_PRIVATE_API_KEY env
+    // fallback. The public key is a client-side id and safe to return.
+    klaviyo_enabled: klaviyo.enabled,
+    klaviyo_private_key_set: klaviyo.keySource !== null,
+    klaviyo_private_key_source: klaviyo.keySource,
+    klaviyo_public_key: klaviyo.publicKey,
+    klaviyo_list_id: klaviyo.listId,
+    klaviyo_onsite_enabled: klaviyo.onsiteEnabled,
+    klaviyo_server_events_enabled: klaviyo.serverEventsEnabled,
+    klaviyo_sync_signups: klaviyo.syncSignups,
     // Registration alerts
     registration_alert_enabled: d.registration_alert_enabled ?? true,
     abandoned_registration_enabled: d.abandoned_registration_enabled ?? true,
@@ -221,8 +238,44 @@ export async function PUT(req: NextRequest) {
     'cart_offer_enabled',
     'cart_fbt_enabled',
     'cart_similar_enabled',
+    'klaviyo_enabled',
+    'klaviyo_onsite_enabled',
+    'klaviyo_server_events_enabled',
+    'klaviyo_sync_signups',
   ] as const) {
     if (key in body) updates[key] = Boolean(body[key]);
+  }
+
+  // Klaviyo public key (Site ID) and list id: short alphanumerics, or empty
+  // to clear.
+  for (const [key, re, label] of [
+    ['klaviyo_public_key', KLAVIYO_PUBLIC_KEY_RE, 'Klaviyo public key / Site ID'],
+    ['klaviyo_list_id', KLAVIYO_LIST_ID_RE, 'Klaviyo list ID'],
+  ] as const) {
+    if (key in body) {
+      const v = String(body[key] ?? '').trim();
+      if (v && !re.test(v)) {
+        return NextResponse.json({ error: `${label} looks invalid: ${v}` }, { status: 400 });
+      }
+      updates[key] = v;
+    }
+  }
+
+  // Klaviyo private key: write-only, same rules as the Easyship token — only
+  // overwritten when a non-empty value is sent; a single space clears it.
+  if (
+    'klaviyo_private_api_key' in body &&
+    typeof body.klaviyo_private_api_key === 'string' &&
+    body.klaviyo_private_api_key.length > 0
+  ) {
+    const key = body.klaviyo_private_api_key.trim();
+    if (key && !/^pk_[A-Za-z0-9_]{10,}$/.test(key)) {
+      return NextResponse.json(
+        { error: 'Klaviyo private API key should start with "pk_" (Klaviyo → Settings → API keys).' },
+        { status: 400 },
+      );
+    }
+    updates.klaviyo_private_api_key = key;
   }
 
   // How much the paid-ads welcome discount takes off. Bounded on both sides

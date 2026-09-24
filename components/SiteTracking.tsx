@@ -5,6 +5,8 @@ import Script from 'next/script';
 import { usePathname } from 'next/navigation';
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import { setAnalyticsMode } from '@/lib/analytics/ecommerce';
+import { klaviyoIdentify, setKlaviyoOnsiteMode } from '@/lib/analytics/klaviyo-onsite';
+import { useCustomer } from '@/contexts/CustomerContext';
 import {
   CONSENT_KEY,
   updateConsent,
@@ -50,8 +52,10 @@ export default function SiteTracking() {
     gtm_container_id: gtm,
     ga4_measurement_id: ga4,
     meta_pixel_id: pixel,
+    klaviyo_public_key: klaviyo,
     tracking_consent_required: consentRequired,
   } = config;
+  const { customer } = useCustomer();
 
   const [consent, setConsent] = useState<Consent>('unknown');
   const [hydrated, setHydrated] = useState(false);
@@ -75,7 +79,7 @@ export default function SiteTracking() {
     setHydrated(true);
   }, []);
 
-  const hasTracking = !!(gtm || ga4 || pixel);
+  const hasTracking = !!(gtm || ga4 || pixel || klaviyo);
   const shouldLoad = hydrated && hasTracking && (!consentRequired || consent === 'granted');
   const showBanner = hydrated && hasTracking && consentRequired && consent === 'unknown';
   // Both load independently in <head>; neither excludes the other.
@@ -96,6 +100,28 @@ export default function SiteTracking() {
     else if (useGtag) setAnalyticsMode('gtag');
     else setAnalyticsMode('off');
   }, [hydrated, useGtm, useGtag]);
+
+  // Klaviyo sets its own cookie (__kla_id) and has no consent mode, so like the
+  // Meta Pixel it stays off until the visitor accepts. Buffered onsite events
+  // flush once it is on, and are dropped on decline.
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!klaviyo) setKlaviyoOnsiteMode('off');
+    else if (shouldLoad) setKlaviyoOnsiteMode('on');
+    else if (consent === 'denied') setKlaviyoOnsiteMode('off');
+    else setKlaviyoOnsiteMode('pending');
+  }, [hydrated, klaviyo, shouldLoad, consent]);
+
+  // Signed-in shoppers: tie onsite activity (viewed product, added to cart) to
+  // their Klaviyo profile, so browse-abandonment flows can reach them.
+  useEffect(() => {
+    if (!klaviyo || !shouldLoad || !customer?.email) return;
+    klaviyoIdentify({
+      email: customer.email,
+      first_name: customer.first_name,
+      last_name: customer.last_name,
+    });
+  }, [klaviyo, shouldLoad, customer?.email, customer?.first_name, customer?.last_name]);
 
   // Fire page-view events on SPA navigation (the initial pageview is emitted by
   // each snippet's own init, so skip the first run). Keyed off the path rather
@@ -167,6 +193,15 @@ export default function SiteTracking() {
             fbq('track', 'PageView');
           `}
         </Script>
+      )}
+
+      {shouldLoad && klaviyo && (
+        // Onsite tracking plus any signup forms / pop-ups built in Klaviyo.
+        <Script
+          id="klaviyo-onsite"
+          strategy="afterInteractive"
+          src={`https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=${encodeURIComponent(klaviyo)}`}
+        />
       )}
 
       {showBanner && (

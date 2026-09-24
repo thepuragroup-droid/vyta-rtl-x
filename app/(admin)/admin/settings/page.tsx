@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Settings as SettingsIcon, AlertCircle, AlertTriangle, Check, CreditCard, Send, Mail, Plus,
   Trash2, FileText, ChevronRight, MapPin, Users, ToggleRight, ToggleLeft,
-  Truck, KeyRound, Wallet, Bell, Clock, ShieldCheck, RefreshCw,
+  Truck, KeyRound, Wallet, Bell, Clock, ShieldCheck, RefreshCw, Megaphone,
 } from 'lucide-react';
 import { supabase, type SiteSettings } from '@/lib/supabase';
 import { useToast } from '@/contexts/ToastContext';
@@ -14,6 +14,7 @@ import AddressAutocomplete, {
   type AddressSuggestion,
 } from '@/components/AddressAutocomplete';
 import ChangePasswordForm from '@/components/ChangePasswordForm';
+import ToggleSwitch from '@/components/admin/ToggleSwitch';
 import { DEFAULT_FLAT_SHIPPING } from '@/lib/payments/puramass-settings';
 
 const INPUT =
@@ -39,6 +40,24 @@ interface PuramassSyncReport {
   skipped_already_set: { id: string; name: string; mapping: PuramassMapping; sku: string }[];
   ambiguous: { id: string; name: string; mapping: PuramassMapping; candidates: string[] }[];
   unmatched: { id: string; name: string; mapping: PuramassMapping }[];
+}
+
+interface KlaviyoTestResult {
+  ok: boolean;
+  has_private_key?: boolean;
+  key_source?: 'typed' | 'db' | 'env' | null;
+  account?: {
+    id: string;
+    organization_name: string | null;
+    public_api_key: string | null;
+    default_sender_email: string | null;
+    timezone: string | null;
+    preferred_currency: string | null;
+  } | null;
+  lists?: { id: string; name: string }[];
+  errors?: string[];
+  warnings?: string[];
+  test_event?: { sent: boolean; email?: string; error?: string } | null;
 }
 
 interface PuramassCleanupReport {
@@ -80,6 +99,12 @@ export default function SettingsPage() {
   });
   const [easyshipApiKeyInput, setEasyshipApiKeyInput] = useState('');
   const [puramassFlatShippingInput, setPuramassFlatShippingInput] = useState('');
+  const [klaviyoKeyInput, setKlaviyoKeyInput] = useState('');
+  const [klForm, setKlForm] = useState({ public_key: '', list_id: '' });
+  const [klTestEmail, setKlTestEmail] = useState('');
+  const [klTest, setKlTest] = useState<KlaviyoTestResult | null>(null);
+  const [klTesting, setKlTesting] = useState(false);
+  const [klSyncing, setKlSyncing] = useState(false);
   const [diag, setDiag] = useState<Record<string, any> | null>(null);
   const [diagLoading, setDiagLoading] = useState(false);
   const [puramassSyncing, setPuramassSyncing] = useState(false);
@@ -107,6 +132,10 @@ export default function SettingsPage() {
       setPuramassFlatShippingInput(
         String(s.puramass_flat_shipping ?? DEFAULT_FLAT_SHIPPING),
       );
+      setKlForm({
+        public_key: s.klaviyo_public_key ?? '',
+        list_id: s.klaviyo_list_id ?? '',
+      });
       setEtForm({
         recipient_email: s.etransfer_recipient_email ?? '',
         security_question: s.etransfer_security_question ?? '',
@@ -320,6 +349,70 @@ export default function SettingsPage() {
     if (easyshipApiKeyInput.trim().length > 0) payload.easyship_api_key = easyshipApiKeyInput.trim();
     saveSettings(payload).then((s) => { if (s) setEasyshipApiKeyInput(''); });
   };
+
+  const handleKlaviyoToggle = (
+    key: 'klaviyo_enabled' | 'klaviyo_onsite_enabled' | 'klaviyo_server_events_enabled' | 'klaviyo_sync_signups',
+    enabled: boolean,
+  ) => {
+    if (isReadOnly || !settings) return;
+    setSettings({ ...settings, [key]: enabled });
+    saveSettings({ [key]: enabled });
+  };
+
+  const handleSaveKlaviyo = () => {
+    if (isReadOnly) return;
+    const payload: Record<string, any> = {
+      klaviyo_public_key: klForm.public_key.trim(),
+      klaviyo_list_id: klForm.list_id.trim(),
+    };
+    if (klaviyoKeyInput.length > 0) payload.klaviyo_private_api_key = klaviyoKeyInput;
+    saveSettings(payload).then((s) => { if (s) setKlaviyoKeyInput(''); });
+  };
+
+  const runKlaviyoTest = useCallback(async (withEvent: boolean) => {
+    setKlTesting(true);
+    try {
+      const body: Record<string, string> = {};
+      if (klaviyoKeyInput.trim()) body.private_api_key = klaviyoKeyInput.trim();
+      if (withEvent) body.test_email = klTestEmail.trim();
+      const res = await fetch('/api/admin/klaviyo/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Test failed');
+      setKlTest(json as KlaviyoTestResult);
+      // Fill the Site ID from the account when it hasn't been entered yet.
+      const pub = json?.account?.public_api_key;
+      if (pub) setKlForm((f) => (f.public_key ? f : { ...f, public_key: pub }));
+    } catch (e: any) {
+      setKlTest({ ok: false, errors: [e.message ?? 'Test failed'] });
+    } finally {
+      setKlTesting(false);
+    }
+  }, [klaviyoKeyInput, klTestEmail]);
+
+  const runKlaviyoSync = useCallback(async () => {
+    if (!window.confirm(
+      'Subscribe every existing customer who gave marketing consent at signup to the selected Klaviyo list?',
+    )) return;
+    setKlSyncing(true);
+    try {
+      const res = await fetch('/api/admin/klaviyo/sync-customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Sync failed');
+      toast.success(`Sent ${json.submitted} consenting customer${json.submitted === 1 ? '' : 's'} to Klaviyo`);
+    } catch (e: any) {
+      toast.error(e.message ?? 'Sync failed');
+    } finally {
+      setKlSyncing(false);
+    }
+  }, [toast]);
 
   const runDiagnose = useCallback(async () => {
     setDiagLoading(true);
@@ -981,7 +1074,180 @@ export default function SettingsPage() {
         )}
       </Card>
 
-      {/* 9. Info box */}
+      {/* 9. Klaviyo */}
+      <Card icon={<Megaphone className="w-4 h-4 text-teal-dark" />} title="Klaviyo"
+        subtitle="Email & SMS marketing: sync customers, orders and onsite activity to Klaviyo for flows, campaigns and signup forms.">
+        <div className="grid sm:grid-cols-2 gap-3 mb-4">
+          <SelectCard
+            selected={settings.klaviyo_enabled} disabled={isReadOnly}
+            onClick={() => handleKlaviyoToggle('klaviyo_enabled', true)}
+            icon={<ToggleRight className="w-5 h-5" />} title="Enabled"
+            desc="Send events and load Klaviyo on the storefront." />
+          <SelectCard
+            selected={!settings.klaviyo_enabled} disabled={isReadOnly}
+            onClick={() => handleKlaviyoToggle('klaviyo_enabled', false)}
+            icon={<ToggleLeft className="w-5 h-5" />} title="Disabled"
+            desc="Nothing is sent to Klaviyo." />
+        </div>
+
+        {/* Private key */}
+        <div className="mb-4">
+          <label className="flex items-center gap-2 text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
+            <KeyRound className="w-3.5 h-3.5" /> Private API key
+            <span className={settings.klaviyo_private_key_set ? 'text-emerald-600' : 'text-ink-muted'}>
+              {settings.klaviyo_private_key_set
+                ? settings.klaviyo_private_key_source === 'env'
+                  ? '• set via KLAVIYO_PRIVATE_API_KEY'
+                  : '• configured'
+                : '• not set'}
+            </span>
+          </label>
+          <input
+            type="password" value={klaviyoKeyInput} disabled={isReadOnly} autoComplete="off"
+            onChange={(e) => setKlaviyoKeyInput(e.target.value)}
+            placeholder={settings.klaviyo_private_key_set ? '•••••••• (leave blank to keep, a single space clears)' : 'pk_…'}
+            className={`w-full ${INPUT}`} />
+          <p className="text-xs text-ink-muted mt-1">
+            Klaviyo → Settings → API keys → Create Private API Key. Give it Full access to
+            Events, Profiles, Lists and Subscriptions, and Read access to Accounts. Stored
+            server-side only — never sent to the browser.
+          </p>
+        </div>
+
+        {/* Public key + list */}
+        <div className="grid sm:grid-cols-2 gap-3 mb-4">
+          <div>
+            <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
+              Public API key / Site ID
+            </label>
+            <input
+              type="text" value={klForm.public_key} disabled={isReadOnly} maxLength={12}
+              onChange={(e) => setKlForm({ ...klForm, public_key: e.target.value.trim() })}
+              placeholder="e.g. AbC123" className={`w-full ${INPUT}`} />
+            <p className="text-xs text-ink-muted mt-1">
+              6 characters, shown next to your API keys. “Test connection” fills it in.
+            </p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
+              Newsletter list
+            </label>
+            {klTest?.lists && klTest.lists.length > 0 ? (
+              <select
+                value={klForm.list_id} disabled={isReadOnly}
+                onChange={(e) => setKlForm({ ...klForm, list_id: e.target.value })}
+                className={`w-full ${INPUT}`}>
+                <option value="">— Don't subscribe anyone —</option>
+                {klForm.list_id && !klTest.lists.some((l) => l.id === klForm.list_id) && (
+                  <option value={klForm.list_id}>{klForm.list_id} (not found)</option>
+                )}
+                {klTest.lists.map((l) => (
+                  <option key={l.id} value={l.id}>{l.name} ({l.id})</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text" value={klForm.list_id} disabled={isReadOnly} maxLength={16}
+                onChange={(e) => setKlForm({ ...klForm, list_id: e.target.value.trim() })}
+                placeholder="List ID (run Test connection to pick)" className={`w-full ${INPUT}`} />
+            )}
+            <p className="text-xs text-ink-muted mt-1">
+              Only customers who tick the marketing-consent box are subscribed.
+            </p>
+          </div>
+        </div>
+
+        {/* What to sync */}
+        <div className="space-y-3 mb-4">
+          <ToggleSwitch
+            checked={settings.klaviyo_onsite_enabled} disabled={isReadOnly}
+            onChange={(v) => handleKlaviyoToggle('klaviyo_onsite_enabled', v)}
+            label="Onsite tracking & signup forms"
+            description="Loads klaviyo.js (after cookie consent): Viewed Product, Added to Cart, Viewed Cart, and any pop-up or embedded forms you publish in Klaviyo." />
+          <ToggleSwitch
+            checked={settings.klaviyo_server_events_enabled} disabled={isReadOnly}
+            onChange={(v) => handleKlaviyoToggle('klaviyo_server_events_enabled', v)}
+            label="Order & checkout events"
+            description="Started Checkout, Placed Order, Ordered Product, Confirmed / Fulfilled / Delivered / Cancelled / Refunded Order." />
+          <ToggleSwitch
+            checked={settings.klaviyo_sync_signups} disabled={isReadOnly}
+            onChange={(v) => handleKlaviyoToggle('klaviyo_sync_signups', v)}
+            label="Sync new accounts"
+            description="Creates the profile and a Created Account event on signup, and subscribes consenting customers to the list above." />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={handleSaveKlaviyo} disabled={isReadOnly || saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-ink text-white rounded-lg text-sm font-medium hover:bg-ink/90 disabled:opacity-50">
+            <Check className="w-4 h-4" /> Save Klaviyo settings
+          </button>
+          <button onClick={() => runKlaviyoTest(false)} disabled={isReadOnly || klTesting}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-teal/40 disabled:opacity-50">
+            <RefreshCw className={`w-4 h-4 ${klTesting ? 'animate-spin' : ''}`} /> {klTesting ? 'Testing…' : 'Test connection'}
+          </button>
+          <button onClick={runKlaviyoSync} disabled={isReadOnly || klSyncing || !settings.klaviyo_list_id}
+            title={settings.klaviyo_list_id ? undefined : 'Save a newsletter list first'}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-teal/40 disabled:opacity-50">
+            <Users className="w-4 h-4" /> {klSyncing ? 'Syncing…' : 'Sync consenting customers'}
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          <input
+            type="email" value={klTestEmail} disabled={isReadOnly}
+            onChange={(e) => setKlTestEmail(e.target.value)}
+            placeholder="you@example.com" className={`flex-1 min-w-[200px] ${INPUT}`} />
+          <button onClick={() => runKlaviyoTest(true)}
+            disabled={isReadOnly || klTesting || !emailRegex.test(klTestEmail.trim())}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface border border-line text-ink rounded-lg text-sm font-medium hover:border-teal/40 disabled:opacity-50">
+            <Send className="w-4 h-4" /> Send test event
+          </button>
+        </div>
+
+        {klTest && (
+          <div className={`mt-4 rounded-lg border p-4 text-sm ${
+            klTest.ok ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-amber-50 border-amber-200 text-amber-800'
+          }`}>
+            <p className="font-semibold mb-2 flex items-center gap-2">
+              {klTest.ok ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+              {klTest.account
+                ? `Connected to ${klTest.account.organization_name ?? 'Klaviyo'}`
+                : 'Klaviyo is not connected'}
+            </p>
+            {klTest.account && (
+              <ul className="space-y-1 text-xs">
+                <DiagRow label="Account ID" value={klTest.account.id} />
+                <DiagRow label="Site ID (public key)" value={klTest.account.public_api_key ?? '—'} />
+                {klTest.account.default_sender_email && (
+                  <DiagRow label="Default sender" value={klTest.account.default_sender_email} />
+                )}
+                <DiagRow label="Lists found" value={String(klTest.lists?.length ?? 0)} />
+                <DiagRow
+                  label="Key tested"
+                  value={klTest.key_source === 'typed' ? 'typed (not saved yet)' : klTest.key_source === 'env' ? 'env var' : 'saved'} />
+              </ul>
+            )}
+            {klTest.test_event && (
+              <p className="mt-2 text-xs">
+                {klTest.test_event.sent
+                  ? `Test event sent to ${klTest.test_event.email} — look for “VYTA Test Event” in Klaviyo → Analytics → Metrics.`
+                  : `Test event failed: ${klTest.test_event.error}`}
+              </p>
+            )}
+            {[...(klTest.errors ?? []), ...(klTest.warnings ?? [])].length > 0 && (
+              <div className="mt-3 pt-3 border-t border-current/20">
+                <ul className="list-disc list-inside space-y-0.5 text-xs">
+                  {(klTest.errors ?? []).map((e, i) => <li key={`e${i}`}>{e}</li>)}
+                  {(klTest.warnings ?? []).map((w, i) => <li key={`w${i}`} className="opacity-80">{w}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* 10. Info box */}
       <div className="flex gap-3 rounded-xl p-4 bg-blue-50 border border-blue-200 text-sm text-blue-800">
         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
         <div className="space-y-1">

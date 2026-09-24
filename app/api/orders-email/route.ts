@@ -6,6 +6,7 @@ import {
   sendETransferInstructions,
 } from "@/lib/email";
 import { renderETransferInstructions } from "@/lib/etransfer";
+import { trackPlacedOrder } from "@/lib/klaviyo/events";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 import { autoCreateShipmentForOrder } from "@/lib/shipping/auto-shipment";
 import { createInvoiceForOrder } from "@/lib/admin/order-invoice-server";
@@ -615,6 +616,42 @@ export async function POST(req: NextRequest) {
   const orderNumber = inserted.order_number;
 
   after(async () => {
+    // Klaviyo "Placed Order" + "Ordered Product" (best-effort, never throws).
+    // Payment arriving later is reported as "Confirmed Order" when an admin
+    // confirms it.
+    await trackPlacedOrder(db, {
+      orderId,
+      orderNumber,
+      email,
+      firstName: shipping.firstName,
+      lastName: shipping.lastName,
+      phone: shipping.phone ?? null,
+      customerId: verifiedCustomerId,
+      items: priced.map((it) => ({
+        productId: it.id,
+        name: it.name,
+        quantity: it.quantity,
+        price: it.price,
+        variant: it.unit === "vial" ? "Single vial" : `Pack of ${it.pack_size}`,
+      })),
+      subtotal,
+      shipping: shippingCost,
+      discount: discountTotal,
+      total,
+      currency: "CAD",
+      source: fulfillmentType === "pickup" ? "e-transfer-pickup" : "e-transfer",
+      shippingAddress:
+        fulfillmentType === "shipment"
+          ? {
+              address1: shipping.address ?? null,
+              city: shipping.city ?? null,
+              region: shipping.state ?? null,
+              zip: shipping.postalCode ?? null,
+              country: shipping.country ?? null,
+            }
+          : null,
+    });
+
     // Send customer ack + log.
     try {
       const ack = await sendETransferOrderAck({

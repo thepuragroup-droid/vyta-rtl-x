@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { klaviyoOnsiteKey } from '@/lib/klaviyo/settings';
 
 /**
  * Public site configuration — branding + tracking. Sourced from the
@@ -25,6 +26,11 @@ export interface SiteConfig {
   gtm_container_id: string | null;
   ga4_measurement_id: string | null;
   meta_pixel_id: string | null;
+  /**
+   * Klaviyo public key / Site ID for klaviyo.js — null unless the integration
+   * and onsite tracking are both switched on in Admin → Settings → Klaviyo.
+   */
+  klaviyo_public_key: string | null;
   tracking_consent_required: boolean;
 }
 
@@ -67,6 +73,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   gtm_container_id: FALLBACK_GTM_CONTAINER_ID,
   ga4_measurement_id: FALLBACK_GA4_MEASUREMENT_ID,
   meta_pixel_id: null,
+  klaviyo_public_key: null,
   tracking_consent_required: true,
 };
 
@@ -94,6 +101,11 @@ export function shapeSiteConfig(row: Record<string, any> | null | undefined): Si
     gtm_container_id: cleanString(d.gtm_container_id) ?? FALLBACK_GTM_CONTAINER_ID,
     ga4_measurement_id: cleanString(d.ga4_measurement_id) ?? FALLBACK_GA4_MEASUREMENT_ID,
     meta_pixel_id: cleanString(d.meta_pixel_id),
+    // A raw row carries the klaviyo_enabled / onsite switches and is gated on
+    // them; an already-shaped config (the client re-shapes /api/site-config)
+    // has only the resolved key, which is kept as is.
+    klaviyo_public_key:
+      'klaviyo_enabled' in d ? klaviyoOnsiteKey(d) : cleanString(d.klaviyo_public_key),
     tracking_consent_required: d.tracking_consent_required === false ? false : true,
   };
 }

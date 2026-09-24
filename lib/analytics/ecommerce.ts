@@ -28,6 +28,8 @@
  * the cookieless pings Consent Mode is designed to keep collecting.
  */
 
+import { forwardEcommerceToKlaviyo } from './klaviyo-onsite';
+
 export type AnalyticsMode = 'pending' | 'gtm' | 'gtag' | 'both' | 'off';
 
 /** GA4 `items[]` entry. Field names are GA4's, not the cart's. */
@@ -79,7 +81,11 @@ function dispatch(name: string, params: Record<string, any>): void {
 
 /** Fire an e-commerce event, or buffer it while consent is still pending. */
 function track(name: string, params: Record<string, any>): void {
-  if (typeof window === 'undefined' || mode === 'off') return;
+  if (typeof window === 'undefined') return;
+  // Klaviyo has its own consent/config gate (see ./klaviyo-onsite), so it is
+  // forwarded even when no Google tag is configured.
+  forwardEcommerceToKlaviyo(name, params);
+  if (mode === 'off') return;
   if (mode === 'pending') {
     if (buffered.length < MAX_BUFFERED) buffered.push({ name, params });
     return;
