@@ -57,10 +57,18 @@ export function shapeKlaviyoSettings(
   };
 }
 
-/** The Site ID the storefront should load klaviyo.js with, or null for none. */
-export function klaviyoOnsiteKey(row: Record<string, any> | null | undefined): string | null {
+/**
+ * The Site ID the storefront should load klaviyo.js with, or null for none.
+ * `fallback` applies only while no Site ID has been saved in Admin — once one
+ * is, the saved key and its enabled / onsite switches decide.
+ */
+export function klaviyoOnsiteKey(
+  row: Record<string, any> | null | undefined,
+  fallback: string | null = null,
+): string | null {
   const s = shapeKlaviyoSettings(row, {});
-  return s.enabled && s.onsiteEnabled && s.publicKey ? s.publicKey : null;
+  if (!s.publicKey) return fallback;
+  return s.enabled && s.onsiteEnabled ? s.publicKey : null;
 }
 
 /** Whether server-side events should be sent at all. */

@@ -52,11 +52,16 @@ function cleanString(v: unknown): string | null {
  */
 const BUILTIN_GTM_CONTAINER_ID = 'GTM-M2J3D7SG';
 const BUILTIN_GA4_MEASUREMENT_ID = 'G-F44F1BB1QV';
+// Klaviyo Site ID (public key) for klaviyo.js. Used until a Site ID is saved in
+// Admin → Settings → Klaviyo; once one is, that key and its on/off switches win.
+const BUILTIN_KLAVIYO_SITE_ID = 'SY9j8v';
 
 const FALLBACK_GTM_CONTAINER_ID =
   cleanString(process.env.NEXT_PUBLIC_GTM_CONTAINER_ID) ?? BUILTIN_GTM_CONTAINER_ID;
 const FALLBACK_GA4_MEASUREMENT_ID =
   cleanString(process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID) ?? BUILTIN_GA4_MEASUREMENT_ID;
+const FALLBACK_KLAVIYO_SITE_ID =
+  cleanString(process.env.NEXT_PUBLIC_KLAVIYO_SITE_ID) ?? BUILTIN_KLAVIYO_SITE_ID;
 
 /**
  * Historical hardcoded branding. Used as the SSR / first-client-render seed
@@ -73,7 +78,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   gtm_container_id: FALLBACK_GTM_CONTAINER_ID,
   ga4_measurement_id: FALLBACK_GA4_MEASUREMENT_ID,
   meta_pixel_id: null,
-  klaviyo_public_key: null,
+  klaviyo_public_key: FALLBACK_KLAVIYO_SITE_ID,
   tracking_consent_required: true,
 };
 
@@ -105,7 +110,9 @@ export function shapeSiteConfig(row: Record<string, any> | null | undefined): Si
     // them; an already-shaped config (the client re-shapes /api/site-config)
     // has only the resolved key, which is kept as is.
     klaviyo_public_key:
-      'klaviyo_enabled' in d ? klaviyoOnsiteKey(d) : cleanString(d.klaviyo_public_key),
+      'klaviyo_enabled' in d
+        ? klaviyoOnsiteKey(d, FALLBACK_KLAVIYO_SITE_ID)
+        : cleanString(d.klaviyo_public_key),
     tracking_consent_required: d.tracking_consent_required === false ? false : true,
   };
 }
