@@ -603,7 +603,7 @@ function PuramassSection({ pm, hasRange, from, to }: {
         <h2 className="text-lg font-bold text-ink">Stealth Health — Paid Orders</h2>
       </div>
       <p className="text-sm text-ink-muted mb-4 ml-10">
-        Orders handed off to Stealth Health checkout {hasRange ? 'over the selected range' : 'all-time'} — a separate
+        Orders handed off to Stealth Health hosted checkout {hasRange ? 'over the selected range' : 'all-time'} — a separate
         revenue stream from your storefront invoices. Headline figures are shown in {primary}.
       </p>
 
@@ -975,7 +975,7 @@ function MiniTrendChart({ title, subtitle, points, series, format }: {
 /**
  * Stealth Health revenue seen from OUR side of the deal.
  *
- * The PuraMass figures above are what buyers paid Stealth Health. Because they
+ * The Stealth Health figures above are what buyers paid Stealth Health. Because they
  * collect and we fulfil, that money is a receivable — this strip shows what it
  * is actually worth to us under the settlement terms, and what is still owed.
  * Loaded separately so a missing settlement migration degrades to nothing

@@ -14,7 +14,7 @@
  *
  * This used to be the invoice form's job, which meant editing an invoice and
  * ticking a checkbox to ship it. That is the wrong shape for a Stealth Health /
- * PuraMass hand-off in particular: nothing about the invoice needs editing, the
+ * Stealth Health hand-off in particular: nothing about the invoice needs editing, the
  * address was never typed here, and the whole interaction is "book this parcel".
  *
  * The shipment may be anchored on the invoice's order or on the invoice itself
@@ -34,7 +34,7 @@ import {
   type ShippingReadinessRate,
 } from '@/lib/admin/invoices';
 
-/** Where a server-resolved destination came from. An address PuraMass reported
+/** Where a server-resolved destination came from. An address Stealth Health reported
  *  and one typed into this admin must never read the same to whoever packs. */
 const DESTINATION_SOURCE_LABEL: Record<string, string> = {
   order: 'from the linked order',
@@ -117,7 +117,7 @@ export default function InvoiceEasyshipPanel({
   const hasShipment = tracking.hasShipment;
 
   // The destination is resolved server-side from the invoice (linked order →
-  // PuraMass ledger → drop-ship client → customer profile), so this needs no
+  // Stealth Health ledger → drop-ship client → customer profile), so this needs no
   // address of its own — which is the point for a hand-off.
   async function runReadiness() {
     setReadinessLoading(true);

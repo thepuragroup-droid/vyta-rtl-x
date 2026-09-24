@@ -201,7 +201,7 @@ function sanitizeSearch(raw: unknown): string {
 /**
  * Which row owns the parcel for an invoice. An invoice created from a web
  * order hangs its shipment off `orders`; a hand-written invoice and a
- * Stealth Health / PuraMass hand-off have no order row at all and carry the
+ * Stealth Health hand-off have no order row at all and carry the
  * shipment on `invoices` itself (easyship-invoice-shipment-migration.sql).
  * lib/shipping/auto-shipment.ts and the tracking route pick the anchor the
  * same way — order when there is one, invoice otherwise.

@@ -39,7 +39,7 @@ async function verifyReadAccess(req: NextRequest): Promise<boolean> {
 }
 
 /**
- * POST /api/admin/puramass/orders/sync — poll PuraMass for many orders at once.
+ * POST /api/admin/puramass/orders/sync — poll Stealth Health for many orders at once.
  *
  * The bulk counterpart to the per-row refresh: same read
  * (`GET /partner/store/orders/{id}`) and the same idempotent

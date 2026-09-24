@@ -1,5 +1,5 @@
 /**
- * Idempotent status-apply for PuraMass (Stealth Health) orders.
+ * Idempotent status-apply for Stealth Health orders.
  *
  * Shared by the scheduled poller (`/api/cron/puramass-poll`) — the pull-based
  * fallback for when the portal's webhook isn't delivered to this project — and
@@ -79,7 +79,7 @@ export async function applyPuramassStatus(
     | 'refunds'
   >,
 ): Promise<ApplyResult> {
-  // The shipping address PuraMass captured on its hosted page. It can land (or
+  // The shipping address Stealth Health captured on its hosted page. It can land (or
   // change) independently of the payment status, so it is applied on its own
   // whenever the status side is a no-op — including on terminal orders, which
   // is how a manual re-poll backfills an address onto an already-paid order.
@@ -88,7 +88,7 @@ export async function applyPuramassStatus(
     customer: remote?.customer,
   });
 
-  // Link expiry, refunds and the priced line items — PuraMass's own
+  // Link expiry, refunds and the priced line items — Stealth Health's own
   // bookkeeping, which the invoice pages read. Like the address, these move
   // independently of the payment status (a refund lands long after `paid`), so
   // they ride along on both the no-op and the status-flip path.

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Column configuration for the PuraMass orders table.
+ * Column configuration for the Stealth Health orders table.
  *
  * The ledger carries far more per order than an admin needs at a glance, so the
  * table ships with the core set visible and keeps the reconciliation

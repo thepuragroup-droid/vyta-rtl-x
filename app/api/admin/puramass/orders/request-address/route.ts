@@ -1,7 +1,7 @@
 /**
  * POST /api/admin/puramass/orders/request-address
  *
- * Emails the buyer a private link asking for the shipping address PuraMass
+ * Emails the buyer a private link asking for the shipping address Stealth Health
  * never reported, so a paid order stops being unshippable. Admin/assistant
  * only — the same bar as the sync/refresh actions next to it on
  * /admin/stealth-health (Orders tab).

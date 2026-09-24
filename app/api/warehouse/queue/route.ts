@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
   let items = await Promise.all((data ?? []).map(buildQueueRow));
 
   // Stealth Health invoices have no order behind them — their ship-to comes
-  // from the PuraMass hand-off ledger.
+  // from the Stealth Health hand-off ledger.
   items = await attachPuramassShipTo(db, items);
 
   if (labelState) {

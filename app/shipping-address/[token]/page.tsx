@@ -3,7 +3,7 @@
 /**
  * "Where should we send it?" — the page the missing-address email links to.
  *
- * A PuraMass hand-off sometimes arrives with no shipping address, which leaves
+ * A Stealth Health hand-off sometimes arrives with no shipping address, which leaves
  * a paid order unshippable. The email at /api/admin/puramass/orders/request-address
  * sends the buyer here with a one-order token in the URL; whatever they type is
  * written straight onto that order.

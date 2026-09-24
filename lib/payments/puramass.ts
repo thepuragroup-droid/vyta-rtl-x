@@ -1,11 +1,11 @@
 /**
- * PuraMass (Stealth Health) hosted-checkout API client.
+ * Stealth Health hosted-checkout API client.
  *
  * SERVER-ONLY. The API key is a live payment secret — this module must only
  * ever be imported by route handlers, never by client components. Env is read
  * at call time so it picks up runtime config.
  *
- * Partner API contract (fixed by PuraMass, identical on any site):
+ * Partner API contract (fixed by Stealth Health, identical on any site):
  *   Base URL   https://api.stealth.health   (override via PURAMASS_API_BASE_URL)
  *   Auth       X-Partner-ID + X-Api-Key on every call
  *   GET  /partner/store/products             — catalog (SKU source of truth)
@@ -29,7 +29,7 @@ import crypto from 'node:crypto';
  *
  * `unit_price_cents` is OUR price for one of those units, in cents of the
  * order's `currency`, with any discount already taken off. Always sent: the
- * partner API would fall back to PuraMass's own catalog price for a line
+ * partner API would fall back to Stealth Health's own catalog price for a line
  * without one, and goods are charged at our prices, never theirs.
  */
 export interface PuramassOrderLine {
@@ -45,7 +45,7 @@ export interface PuramassCustomer {
   phone?: string;
 }
 
-/** Shipping address as PuraMass reports it back on an order. */
+/** Shipping address as Stealth Health reports it back on an order. */
 export interface PuramassShippingAddress {
   address: string | null;
   address2: string | null;
@@ -55,7 +55,7 @@ export interface PuramassShippingAddress {
   country: string | null;
 }
 
-/** Buyer contact PuraMass captured on its hosted page. */
+/** Buyer contact Stealth Health captured on its hosted page. */
 export interface PuramassContact {
   name: string | null;
   email: string | null;
@@ -80,7 +80,7 @@ export interface PuramassCatalogProduct {
   image: string | null;
 }
 
-/** One priced line as PuraMass reports it on a paid order. */
+/** One priced line as Stealth Health reports it on a paid order. */
 export interface PuramassPaidItem {
   sku?: string;
   name?: string;
@@ -99,11 +99,11 @@ export interface PuramassOrderStatus {
   paid_at: string | null;
   expires_at: string | null;
   items: PuramassPaidItem[];
-  /** Total refunded on the PuraMass side, in cents. Null when not reported. */
+  /** Total refunded on the Stealth Health side, in cents. Null when not reported. */
   refunded_total_cents: number | null;
-  /** Refund records verbatim, in whatever shape PuraMass sends them. */
+  /** Refund records verbatim, in whatever shape Stealth Health sends them. */
   refunds: unknown[];
-  /** Null when PuraMass has not (yet) reported an address for this order. */
+  /** Null when Stealth Health has not (yet) reported an address for this order. */
   shipping: PuramassShippingAddress | null;
   customer: PuramassContact;
 }
@@ -257,10 +257,10 @@ function cleanCustomer(c: PuramassCustomer): Record<string, string> {
 /**
  * The currency our hand-offs are denominated in. Our catalog is priced in
  * Canadian dollars, so the hosted page is told to price and charge in CAD —
- * without it PuraMass falls back to its own USD listings and the buyer is
+ * without it Stealth Health falls back to its own USD listings and the buyer is
  * quoted a converted amount that doesn't match what our storefront showed.
  *
- * PuraMass reports currency back lower-cased, so we send it that way too.
+ * Stealth Health reports currency back lower-cased, so we send it that way too.
  */
 export const PURAMASS_CURRENCY = 'cad';
 
@@ -278,7 +278,7 @@ function optionalCents(value: unknown): number | undefined {
  * line with no price means "we couldn't price this, use your catalog"; a
  * shipping total of zero means "this order ships free" — the free-shipping
  * promo (see `freeHostedRate`) resolves to exactly that. Omitting it would let
- * PuraMass quote its own shipping on the hosted page, so a buyer shown $0.00 in
+ * Stealth Health quote its own shipping on the hosted page, so a buyer shown $0.00 in
  * our summary would be charged for shipping at the end.
  *
  * Only a missing, negative or non-numeric value leaves the field off, which is
@@ -299,7 +299,7 @@ export interface PuramassOrderRequest {
   currency?: string;
   /**
    * Our own shipping charge. `0` is meaningful — it charges the buyer nothing
-   * for shipping (the free-shipping promo). Omit to let PuraMass quote it.
+   * for shipping (the free-shipping promo). Omit to let Stealth Health quote it.
    */
   shippingTotalCents?: number;
 }
@@ -311,10 +311,10 @@ export interface PuramassOrderRequest {
  * Every line must carry a positive `unit_price_cents`. The partner reads a
  * missing or zero price as "use your own catalog price", so a line without a
  * usable one throws here rather than going out and being charged at
- * PuraMass's list. A zero shipping total, on the other hand, is sent as
+ * Stealth Health's list. A zero shipping total, on the other hand, is sent as
  * `shipping_total_cents: 0`, because that is how an order that earned free
  * shipping is expressed. Only an absent shipping figure leaves the field off,
- * which lets PuraMass quote shipping on its hosted page.
+ * which lets Stealth Health quote shipping on its hosted page.
  */
 export function buildPuramassOrderBody(args: PuramassOrderRequest): Record<string, unknown> {
   const shipping = shippingCents(args.shippingTotalCents);
@@ -362,7 +362,7 @@ export async function createPuramassOrder(args: PuramassOrderRequest): Promise<P
     status: String(order.status ?? 'payment_pending'),
     transaction_id: String(transactionId),
     payment_link: String(paymentLink),
-    // What PuraMass says it will charge in — normally the currency we asked
+    // What Stealth Health says it will charge in — normally the currency we asked
     // for, but the partner's answer is the one worth recording.
     currency: typeof order.currency === 'string' && order.currency.trim()
       ? order.currency.trim().toLowerCase()
@@ -381,7 +381,7 @@ function trimOrNull(v: unknown): string | null {
 }
 
 /**
- * Normalise the `shipping` block PuraMass returns on an order. Every field is
+ * Normalise the `shipping` block Stealth Health returns on an order. Every field is
  * optional, so a block whose fields are all blank is treated as "no address"
  * (null) rather than an empty shell — callers use that to decide whether they
  * actually learned anything.
@@ -425,7 +425,7 @@ export function normalizePuramassContact(raw: unknown): PuramassContact {
  *
  * One address never gets overwritten: one the buyer typed themselves on
  * /shipping-address/<token> (`shipping_address_source = 'customer'`). That flow
- * only exists because PuraMass had no address for the order, so a later partner
+ * only exists because Stealth Health had no address for the order, so a later partner
  * payload is the less-trustworthy of the two — and silently replacing what the
  * customer told us would send the parcel somewhere they didn't ask for.
  */
@@ -476,7 +476,7 @@ export function buildPuramassContactPatch(
  * and the priced line items.
  *
  * Unlike the address patch, these are simply mirrored from the newest payload —
- * they are PuraMass's own bookkeeping, so the latest report always wins. A
+ * they are Stealth Health's own bookkeeping, so the latest report always wins. A
  * payload that omits a block leaves the stored value alone rather than clearing
  * it, so an older event replayed after a refund can't erase it.
  *

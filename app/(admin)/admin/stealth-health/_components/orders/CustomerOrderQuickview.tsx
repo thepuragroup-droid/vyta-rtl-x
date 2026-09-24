@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Admin quickview: renders a paid PuraMass order exactly as the customer sees
+ * Admin quickview: renders a paid Stealth Health order exactly as the customer sees
  * it on /account/orders/[id]. Fidelity is guaranteed by pulling the data
  * through the SAME `getOrderWithItems` path the customer detail page uses, and
  * mirroring that page's markup (slate/cyan theme, receipt note, hidden address).
@@ -217,7 +217,7 @@ export default function CustomerOrderQuickview({
                           <span>{status.label}</span>
                         </div>
                       )}
-                      {/* PuraMass orders are receipted by the partner — matches
+                      {/* Stealth Health orders are receipted by the partner — matches
                           the customer detail page (no invoice download). */}
                       <span className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
                         <FileText className="h-4 w-4 text-cyan-600" />

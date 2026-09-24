@@ -28,9 +28,9 @@ Now:
    one unit of a line is (a pack of 5 → 5), and `adjust_stock_for_invoice` /
    `restore_stock_for_invoice` now take `qty × vials_per_unit`. Existing lines
    default to 1, so nothing else changes.
-6. **Naming.** Every user-facing "PuraMass" now reads "Stealth Health". Admin
-   report / stock-report / packing-list branding that said "PuraMass" now says
-   "VYTA".
+6. **Naming.** Every user-facing "PuraMass" now reads "Stealth Health",
+   including the stock report and packing-list branding (matching the admin
+   report shell renamed on main).
 
 ## Migration
 

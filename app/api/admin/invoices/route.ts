@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
   const status = sp.get('status') as InvoiceStatus | null;
   const customerId = sp.get('customer_id');
-  // Origin filter: PuraMass hand-offs vs invoices raised in this admin.
+  // Origin filter: Stealth Health hand-offs vs invoices raised in this admin.
   const source = sp.get('source');
   const q = (sp.get('q') ?? '').trim().toLowerCase();
   const limit = Math.min(Math.max(Number(sp.get('limit')) || 20, 1), 100);
@@ -89,8 +89,8 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // PuraMass hand-offs keep the buyer's contact + shipping address on the
-  // hand-off ledger, not on the invoice. Pull it for the PuraMass rows in scope
+  // Stealth Health hand-offs keep the buyer's contact + shipping address on the
+  // hand-off ledger, not on the invoice. Pull it for the Stealth Health rows in scope
   // so the table can show where the parcel is going, and so a search can match
   // a transaction id or a phone number the invoice row doesn't carry.
   const puramassCtx = await fetchPuramassContexts(
@@ -102,8 +102,8 @@ export async function GET(req: NextRequest) {
     const amount_paid = round2(paidMap.get(inv.id) ?? 0);
     const amount_due = round2(Math.max(0, Number(inv.total) - amount_paid));
     const puramass: PuramassInvoiceContext | null = puramassCtx.get(inv.id) ?? null;
-    // A PuraMass buyer is usually a guest here — fall back to the name/email
-    // PuraMass captured on its hosted page before showing an empty cell.
+    // A Stealth Health buyer is usually a guest here — fall back to the name/email
+    // Stealth Health captured on its hosted page before showing an empty cell.
     const customer_name_display = inv.customers
       ? `${inv.customers.first_name} ${inv.customers.last_name}`
       : (inv.customer_name ?? puramass?.customer_name ?? null);
@@ -144,7 +144,7 @@ export async function GET(req: NextRequest) {
   };
 
   // Apply search over invoice number + denormalized/linked customer fields.
-  // PuraMass rows also match on what only the hand-off ledger knows: the
+  // Stealth Health rows also match on what only the hand-off ledger knows: the
   // transaction id / our partner reference, the buyer's phone, and the city the
   // parcel is going to.
   const matched = q
@@ -366,7 +366,7 @@ export async function POST(req: NextRequest) {
   // post-response so the invoice save never waits on a network round-trip.
   //
   // Anchored on the order when the invoice has one; otherwise on the invoice
-  // itself, which is what makes a Stealth Health / PuraMass hand-off (no order
+  // itself, which is what makes a Stealth Health hand-off (no order
   // row by design) shippable — its destination comes from the hand-off ledger.
   function scheduleAutoShipment(
     invoiceIdForShip: string | null | undefined,

@@ -305,7 +305,7 @@ export async function createEasyshipShipment(
             .trim() || payload.destination.firstName,
         // Easyship rejects a shipment whose destination has no contact phone
         // ("destination_address.contact_phone can't be blank", 422). Plenty of
-        // addresses reach us without one — a PuraMass hand-off reports whatever
+        // addresses reach us without one — a Stealth Health hand-off reports whatever
         // the buyer typed — so fall back to the house number we already send as
         // the sender's, which is a real number a courier can call.
         ...(payload.destination.phone?.trim() || payload.origin.phone?.trim()

@@ -1,5 +1,5 @@
 /**
- * Delivery log for the PuraMass (Stealth Health) webhook.
+ * Delivery log for the Stealth Health webhook.
  *
  * Every POST to /api/webhooks/stealth-health is written to
  * `puramass_webhook_events` (puramass-webhook-events-migration.sql) with the

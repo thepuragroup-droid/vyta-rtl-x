@@ -19,7 +19,7 @@
  * PAYMENT_LINK_STATUSES in lib/payments/puramass-abandoned.ts for why
  * `cancelled` is deliberately left out of this path.
  *
- * SERVER ONLY — reads the PuraMass ledger with the service-role client.
+ * SERVER ONLY — reads the Stealth Health ledger with the service-role client.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {

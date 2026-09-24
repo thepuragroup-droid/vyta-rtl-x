@@ -215,7 +215,7 @@ function paidSale(over: Partial<Record<string, unknown>> = {}) {
 test('commission is 10% of the subtotal, and shipping is not in the base', async () => {
   const { db, inserted } = paidSale();
 
-  // $420.00 of goods. PuraMass adds a $35 flat shipping fee on the invoice;
+  // $420.00 of goods. Stealth Health adds a $35 flat shipping fee on the invoice;
   // the affiliate must not earn on it.
   const res = await recordAffiliateCommission(db, {
     invoiceId: 'inv-1',

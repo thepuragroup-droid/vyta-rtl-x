@@ -1,17 +1,17 @@
 'use client';
 
 /**
- * The PuraMass side of an invoice, as rendered on /admin/invoices and
+ * The Stealth Health side of an invoice, as rendered on /admin/invoices and
  * /admin/invoices/[id].
  *
- * A PuraMass (Stealth Health) sale is paid on PuraMass's own hosted checkout
- * page: PuraMass takes the money, collects the buyer's contact details and the
+ * A Stealth Health sale is paid on Stealth Health's own hosted checkout
+ * page: Stealth Health takes the money, collects the buyer's contact details and the
  * shipping address there, and reports them back onto the hand-off ledger. The
  * local invoice is materialised for fulfilment and reconciliation only, so none
  * of that detail is on the invoice row itself.
  *
  * These blocks surface it, and label every field with where it came from — an
- * address PuraMass reported and one an admin typed here must never look alike
+ * address Stealth Health reported and one an admin typed here must never look alike
  * to whoever is packing the parcel.
  */
 import React, { useState } from 'react';
@@ -41,7 +41,7 @@ function timeAgo(iso: string): string {
 }
 
 /**
- * Where an invoice came from. PuraMass hand-offs get a teal chip; anything
+ * Where an invoice came from. Stealth Health hand-offs get a teal chip; anything
  * else was raised in this admin and says so, so the two are never confused.
  *
  * Keyed on `invoices.source` rather than on the loaded hand-off, so it is right
@@ -52,14 +52,14 @@ export function InvoiceSourceBadge({
   compact = false,
 }: {
   source?: string | null;
-  /** Table rows show the PuraMass chip only — a chip on every row is noise. */
+  /** Table rows show the Stealth Health chip only — a chip on every row is noise. */
   compact?: boolean;
 }) {
   if (isPuramassInvoice({ source })) {
     return (
       <span
         className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-teal/10 text-teal-dark align-middle"
-        title="Placed through the Stealth Health checkout. Payment, taxes and the shipping address are collected by the partner and reported back to us."
+        title="Placed through the Stealth Health hosted checkout. Payment, taxes and the shipping address are collected by the partner and reported back to us."
       >
         <Store className="w-3 h-3" /> Stealth Health
       </span>
@@ -100,8 +100,8 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 }
 
 /**
- * Where the parcel goes, as PuraMass reported it (or as the buyer typed it on
- * /shipping-address/<token> when PuraMass had none).
+ * Where the parcel goes, as Stealth Health reported it (or as the buyer typed it on
+ * /shipping-address/<token> when Stealth Health had none).
  *
  * Plenty of orders legitimately have no address yet, so that case is explained
  * rather than left blank.
@@ -195,7 +195,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 /**
  * "Ship To" card for the invoice detail view. Separate from the customer card
  * because the two can legitimately differ: the invoice's customer is whoever
- * the account/email belongs to, while this is who PuraMass is shipping to.
+ * the account/email belongs to, while this is who Stealth Health is shipping to.
  */
 export function PuramassShipToPanel({ puramass }: { puramass: PuramassInvoiceContext }) {
   return (
@@ -217,9 +217,9 @@ export function PuramassShipToPanel({ puramass }: { puramass: PuramassInvoiceCon
 }
 
 /**
- * The hand-off itself: PuraMass's transaction, our reference, what PuraMass
- * charged, and anything it refunded. Everything here is PuraMass's record —
- * this admin cannot change it, it can only re-read it on PuraMass Orders.
+ * The hand-off itself: Stealth Health's transaction, our reference, what Stealth Health
+ * charged, and anything it refunded. Everything here is Stealth Health's record —
+ * this admin cannot change it, it can only re-read it on Stealth Health Orders.
  */
 export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceContext }) {
   const badge = PURAMASS_STATUS_BADGE[puramass.status] ?? 'bg-gray-200 text-gray-600';
@@ -240,7 +240,7 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
       </div>
 
       <p className="text-xs text-ink-muted mb-3">
-        Paid on the Stealth Health checkout. Payment, taxes and the shipping
+        Paid on the Stealth Health hosted checkout. Payment, taxes and the shipping
         address are Stealth Health&apos;s record — this invoice mirrors them for
         fulfilment.
       </p>
@@ -364,8 +364,8 @@ export function PuramassOrderPanel({ puramass }: { puramass: PuramassInvoiceCont
  * An invoice's money, as the invoice table, the row preview and the invoice
  * detail view all render it.
  *
- * Normally that is one amount in one currency. A PuraMass hand-off can be two:
- * PuraMass charges the goods in the currency it reports on the ledger, while
+ * Normally that is one amount in one currency. A Stealth Health hand-off can be two:
+ * Stealth Health charges the goods in the currency it reports on the ledger, while
  * the shipment fee stamped here is USD (see `puramassMoneySplit`). Nothing
  * converts between them, so rather than print their sum under the invoice's
  * stored currency — which describes the fee alone and made a CAD sale read as

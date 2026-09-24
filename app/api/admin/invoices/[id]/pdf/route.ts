@@ -53,9 +53,9 @@ export async function GET(
     .eq('invoice_id', params.id)
     .order('paid_at', { ascending: false });
 
-  // For a PuraMass sale the ship-to address, buyer phone and refunds live on
+  // For a Stealth Health sale the ship-to address, buyer phone and refunds live on
   // the hand-off ledger rather than on the invoice — pull them so the printed
-  // document is packable, and so it names PuraMass as their source.
+  // document is packable, and so it names Stealth Health as their source.
   const puramass = isPuramassInvoice(invoice)
     ? await fetchPuramassContext(db, invoice.id)
     : null;

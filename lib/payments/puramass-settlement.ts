@@ -1,5 +1,5 @@
 /**
- * PuraMass (Stealth Health) partner settlement ledger — GET /partner/settlement.
+ * Stealth Health partner settlement ledger — GET /partner/settlement.
  *
  * SERVER-ONLY: shares the transport, base URL and live API key with
  * lib/payments/puramass.ts. Never import this from a client component.

@@ -38,8 +38,8 @@ export interface RenderInvoiceHtmlOptions {
    *  been paid yet; "draft" reads like an unfinished internal document. */
   viewer?: 'admin' | 'customer';
   /**
-   * The PuraMass hand-off behind this invoice, when it has one
-   * (`invoices.source = 'stealth_health'`). PuraMass collects the buyer's
+   * The Stealth Health hand-off behind this invoice, when it has one
+   * (`invoices.source = 'stealth_health'`). Stealth Health collects the buyer's
    * contact and shipping address on its hosted checkout page, so for these
    * sales the invoice row itself has no ship-to — it lives on the hand-off
    * ledger, and this is how it reaches the printed document.
@@ -101,9 +101,9 @@ export function renderInvoiceHtml({
         ? 'pending payment'
         : invoice.status;
 
-  // ---- PuraMass hand-off ---------------------------------------------------
-  // For a PuraMass sale everything below comes off the hand-off ledger, not off
-  // this invoice: PuraMass took the payment on its own hosted page and captured
+  // ---- Stealth Health hand-off ---------------------------------------------------
+  // For a Stealth Health sale everything below comes off the hand-off ledger, not off
+  // this invoice: Stealth Health took the payment on its own hosted page and captured
   // the buyer's contact + shipping address there. The document says so, so a
   // packer never mistakes a partner-reported address for one typed in here.
   const pmAddressLines = formatAddressLines(puramass?.shipping_address ?? null);
@@ -114,7 +114,7 @@ export function renderInvoiceHtml({
     : '';
   const pmRefunded = centsToAmount(puramass?.refunded_total_cents ?? 0) ?? 0;
 
-  /** PuraMass SKU per line, matched on the name the invoice line was built from. */
+  /** Stealth Health SKU per line, matched on the name the invoice line was built from. */
   const pmSkuByName = new Map<string, string>();
   for (const item of puramass?.items ?? []) {
     if (item.sku && item.name) pmSkuByName.set(item.name.toLowerCase(), item.sku);
@@ -235,7 +235,7 @@ export function renderInvoiceHtml({
 
   ${puramass ? `
   <div class="source-strip">
-    <div class="source-title">Stealth Health checkout — payment, taxes &amp; shipping collected by Stealth Health</div>
+    <div class="source-title">Stealth Health hosted checkout — payment, taxes &amp; shipping collected by Stealth Health</div>
     <div><h4>Transaction</h4><p>${esc(puramass.transaction_id ?? '—')}</p></div>
     <div><h4>Our reference</h4><p>${esc(puramass.partner_reference || '—')}</p></div>
     <div><h4>Payment status</h4><p>${esc(PURAMASS_STATUS_LABEL[puramass.status] ?? puramass.status ?? '—')}${

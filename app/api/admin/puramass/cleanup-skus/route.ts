@@ -24,7 +24,7 @@ async function verifyAdmin(req: NextRequest) {
 }
 
 /**
- * POST /api/admin/puramass/cleanup-skus — clear any product PuraMass mapping
+ * POST /api/admin/puramass/cleanup-skus — clear any product Stealth Health mapping
  * (`puramass_sku` / `puramass_sku_vial`) whose value is NOT prefixed
  * `vyta-` (e.g. stale placeholder SKUs). Clears per column and reports how
  * many values/products were affected. Admin only. `{ dryRun?: boolean }`.

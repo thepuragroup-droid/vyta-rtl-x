@@ -54,7 +54,7 @@ async function findLedgerRow(column: string, value: string): Promise<any> {
 }
 
 /**
- * POST /api/webhooks/stealth-health — receive PuraMass status events
+ * POST /api/webhooks/stealth-health — receive Stealth Health status events
  * (`store_order.payment_complete`) and apply them to the hand-off ledger.
  *
  * Public: the HMAC signature is the auth. At-least-once delivery, so events are
@@ -163,7 +163,7 @@ async function handle(req: NextRequest, raw: string, ctx: DeliveryContext): Prom
     row = await findLedgerRow('partner_reference', partnerReference);
   }
 
-  // Unknown order — ACK so PuraMass stops retrying.
+  // Unknown order — ACK so Stealth Health stops retrying.
   if (!row) {
     return reply('unmatched', { received: true, matched: false }, 200);
   }
@@ -182,7 +182,7 @@ async function handle(req: NextRequest, raw: string, ctx: DeliveryContext): Prom
   // Fill the transaction id when we matched by partner_reference.
   if (transactionId && !row.transaction_id) update.transaction_id = transactionId;
 
-  // PuraMass collects the shipping address on its hosted page and reports it
+  // Stealth Health collects the shipping address on its hosted page and reports it
   // back here. Only non-empty, changed fields are written, so an event without
   // a `shipping` block never clears an address we already captured.
   Object.assign(
@@ -193,9 +193,9 @@ async function handle(req: NextRequest, raw: string, ctx: DeliveryContext): Prom
     }),
   );
 
-  // Link expiry, refunds and the priced items PuraMass charged for. The admin
+  // Link expiry, refunds and the priced items Stealth Health charged for. The admin
   // invoice pages read these off the ledger, so a refund reported here shows on
-  // the invoice rather than only inside PuraMass.
+  // the invoice rather than only inside Stealth Health.
   Object.assign(
     update,
     buildPuramassOrderDetailPatch({
@@ -219,7 +219,7 @@ async function handle(req: NextRequest, raw: string, ctx: DeliveryContext): Prom
         : { error: null });
     }
     if (error) {
-      // DB write failure → non-2xx so PuraMass retries.
+      // DB write failure → non-2xx so Stealth Health retries.
       console.error('[stealth-health] ledger update failed:', error);
       return reply('update_failed', { error: 'update failed' }, 500, error.message);
     }
@@ -230,7 +230,7 @@ async function handle(req: NextRequest, raw: string, ctx: DeliveryContext): Prom
   // emails the admins (idempotent; best-effort — never blocks the ACK).
   if (status === 'paid') {
     // Credit the campaign that won this buyer. The email is the only link back
-    // to their pre-checkout visit — PuraMass owns the payment page, so no
+    // to their pre-checkout visit — Stealth Health owns the payment page, so no
     // cookie of ours reaches it.
     await attributeHostedPurchase(db, {
       id: row.id,

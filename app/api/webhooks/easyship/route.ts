@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
   }
 
   // No order carries this shipment. It may still belong to an invoice that
-  // anchors its own — a Stealth Health / PuraMass hand-off has no order row by
+  // anchors its own — a Stealth Health hand-off has no order row by
   // design (see lib/shipping/auto-shipment.ts), so the tracking update lands
   // on the invoice instead.
   if (!order && easyshipId) {

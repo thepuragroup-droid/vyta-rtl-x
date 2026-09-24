@@ -1,11 +1,11 @@
 /**
- * Client-safe display helpers for the shipping address PuraMass reports back on
+ * Client-safe display helpers for the shipping address Stealth Health reports back on
  * an order (`puramass_orders.shipping_address`).
  *
  * Kept out of lib/payments/puramass.ts on purpose: that module is server-only
  * (it holds the API key and imports node:crypto), while these helpers render in
  * the admin UI. Everything here is tolerant of missing/partial data — an order
- * PuraMass has not reported an address for is the normal case, not an error.
+ * Stealth Health has not reported an address for is the normal case, not an error.
  */
 
 export interface ShippingAddressLike {
@@ -82,7 +82,7 @@ export function formatAddressOneLine(addr: ShippingAddressLike | null): string {
 
 // ---- Customer-submitted addresses ----------------------------------------
 //
-// When PuraMass reports no address, we email the customer a link to
+// When Stealth Health reports no address, we email the customer a link to
 // /shipping-address/<token> and they type one in. The form and the route that
 // stores it share the validation below so the browser and the server can never
 // disagree about what a complete address is.
@@ -100,7 +100,7 @@ export interface ShippingAddressInput {
 }
 
 export interface ValidatedShippingAddress {
-  /** The address block, shaped exactly like what PuraMass reports. */
+  /** The address block, shaped exactly like what Stealth Health reports. */
   address: Required<Pick<ShippingAddressLike, 'address' | 'city' | 'state' | 'zip' | 'country'>> &
     ShippingAddressLike;
   full_name: string;

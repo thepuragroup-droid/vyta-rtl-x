@@ -1,5 +1,5 @@
 /**
- * Unit tests for the PuraMass create-order payload builder.
+ * Unit tests for the Stealth Health create-order payload builder.
  *
  * The repo has no test runner wired up, so these use Node's built-in
  * `node:test` + `node:assert` (zero dependencies). Run with a TS-aware loader,
@@ -37,7 +37,7 @@ test('currency defaults to CAD and is always lower-cased', () => {
 });
 
 test('free shipping is sent as an explicit zero', () => {
-  // The promo resolves to a zero charge; omitting it would let PuraMass quote
+  // The promo resolves to a zero charge; omitting it would let Stealth Health quote
   // its own shipping and bill a buyer who was shown $0.00.
   const body = buildPuramassOrderBody({ ...BASE, shippingTotalCents: 0 });
   assert.deepEqual(body, {
@@ -50,7 +50,7 @@ test('free shipping is sent as an explicit zero', () => {
   });
 });
 
-test('an unusable shipping figure is omitted so PuraMass quotes it', () => {
+test('an unusable shipping figure is omitted so Stealth Health quotes it', () => {
   for (const shippingTotalCents of [undefined, -50, Number.NaN]) {
     const body = buildPuramassOrderBody({ ...BASE, shippingTotalCents });
     assert.equal('shipping_total_cents' in body, false, String(shippingTotalCents));

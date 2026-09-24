@@ -28,9 +28,9 @@ async function verifyReadAccess(req: NextRequest): Promise<boolean> {
 
 /**
  * POST /api/admin/puramass/orders/refresh — manual/backfill counterpart to the
- * webhook. Polls PuraMass for the current order status and updates the ledger
+ * webhook. Polls Stealth Health for the current order status and updates the ledger
  * row's status / paid_at / currency / subtotal, plus the shipping address and
- * buyer contact PuraMass captured on its hosted page. Unlike the cron poller
+ * buyer contact Stealth Health captured on its hosted page. Unlike the cron poller
  * this runs on any row, so it is how an already-paid historical order gets its
  * address backfilled. Admin/assistant only.
  */

@@ -29,7 +29,7 @@ export interface StealthHealthDailyPoint {
   orders: number;
   /** Earned that day, in cents (what they owe us for those orders). */
   earned_cents: number;
-  /** Gross the buyer paid PuraMass that day, in cents. */
+  /** Gross the buyer paid Stealth Health that day, in cents. */
   gross_cents: number;
 }
 

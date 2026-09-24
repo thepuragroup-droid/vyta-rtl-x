@@ -630,9 +630,9 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      {/* 7b. PuraMass Hosted Checkout */}
+      {/* 7b. Stealth Health Hosted Checkout */}
       <Card icon={<ShieldCheck className="w-4 h-4 text-teal-dark" />} title="Stealth Health Checkout"
-        subtitle="Hand the cart off to the Stealth Health checkout instead of the on-site flow. Pricing, shipping, and fulfilment are handled by Stealth Health.">
+        subtitle="Hand the cart off to the Stealth Health hosted checkout instead of the on-site flow. Pricing, shipping, and fulfilment are handled by Stealth Health.">
         {/* Credential status banner */}
         <div className={`mb-4 rounded-lg border px-4 py-3 text-sm flex items-center gap-2 ${
           settings.puramass_configured
@@ -653,7 +653,7 @@ export default function SettingsPage() {
             selected={settings.puramass_checkout_enabled} disabled={isReadOnly}
             onClick={() => handlePuramassToggle(true)}
             icon={<ToggleRight className="w-5 h-5" />} title="Enabled"
-            desc="Send customers to the Stealth Health checkout." />
+            desc="Send customers to the Stealth Health hosted checkout." />
           <SelectCard
             selected={!settings.puramass_checkout_enabled} disabled={isReadOnly}
             onClick={() => handlePuramassToggle(false)}

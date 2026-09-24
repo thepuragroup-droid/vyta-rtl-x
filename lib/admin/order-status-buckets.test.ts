@@ -97,7 +97,7 @@ test('both cancellation spellings land in the same bucket', () => {
 });
 
 test('a hosted-checkout refund stays under paid, so no order is counted twice', () => {
-  // PuraMass refunds are partial credits on an order that DID pay. If this ever
+  // Stealth Health refunds are partial credits on an order that DID pay. If this ever
   // returned 'refunded', the stack would lose that order from `paid` while the
   // revenue figures still counted it.
   for (const status of PURAMASS_STATUSES) {

@@ -61,10 +61,10 @@ export async function GET(
 
   const amountPaid = (payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
 
-  // A PuraMass hand-off carries none of the buyer's shipping detail on the
-  // invoice itself — PuraMass collects it on its hosted page and reports it
+  // A Stealth Health hand-off carries none of the buyer's shipping detail on the
+  // invoice itself — Stealth Health collects it on its hosted page and reports it
   // onto the hand-off ledger. Attach that so the detail view (and its PDF) can
-  // show where the parcel goes, and label it as PuraMass-sourced.
+  // show where the parcel goes, and label it as Stealth Health-sourced.
   const puramass = isPuramassInvoice(invoice)
     ? await fetchPuramassContext(db, invoice.id)
     : null;
@@ -73,7 +73,7 @@ export async function GET(
     invoice: {
       ...invoice,
       // Prefer the linked account, then whatever was denormalised onto the
-      // invoice, then what PuraMass captured. The last two matter for guest
+      // invoice, then what Stealth Health captured. The last two matter for guest
       // sales, which have no `customers` row to join.
       customer_name: invoice.customers
         ? `${invoice.customers.first_name} ${invoice.customers.last_name}`
@@ -237,7 +237,7 @@ export async function PATCH(
   // the PATCH doesn't wait on a network round-trip. Idempotent — the helper
   // skips when the invoice (or its order) already has a shipment, and routes
   // itself to the order when there is one, or to the invoice when there isn't
-  // (Stealth Health / PuraMass hand-offs, which never get an order row).
+  // (Stealth Health hand-offs, which never get an order row).
   if (body.create_easyship_shipment) {
     after(async () => {
       await autoCreateShipmentForInvoice(db, params.id, true, {

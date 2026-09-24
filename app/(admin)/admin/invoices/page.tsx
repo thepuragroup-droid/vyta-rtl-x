@@ -49,8 +49,8 @@ export default function InvoicesIndex() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
-  // Origin filter — PuraMass hand-offs read very differently from invoices
-  // raised here, and reconciling one against PuraMass means seeing only those.
+  // Origin filter — Stealth Health hand-offs read very differently from invoices
+  // raised here, and reconciling one against Stealth Health means seeing only those.
   const [sourceFilter, setSourceFilter] = useState<'all' | 'puramass' | 'manual'>('all');
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -384,7 +384,7 @@ export default function InvoicesIndex() {
       const g = groups[gi];
       g.invoices.push(inv);
       g.count += 1;
-      // A PuraMass sale can straddle two currencies (goods as PuraMass charged
+      // A Stealth Health sale can straddle two currencies (goods as Stealth Health charged
       // them, shipping in ours), so it lands in both buckets rather than
       // putting a mixed sum under the invoice's stored currency.
       const split = puramassMoneySplit(inv, inv.puramass);
@@ -437,9 +437,9 @@ export default function InvoicesIndex() {
     const effective = inv.status_effective ?? inv.status;
     const meta = INVOICE_STATUS_META[effective];
     const isOverdueRow = effective === 'overdue';
-    // PuraMass hand-off behind this invoice, when there is one. Everything it
-    // carries (phone, ship-to, transaction) comes from PuraMass, never from
-    // this admin — the badge and the "From PuraMass" chip say so.
+    // Stealth Health hand-off behind this invoice, when there is one. Everything it
+    // carries (phone, ship-to, transaction) comes from Stealth Health, never from
+    // this admin — the badge and the "From Stealth Health" chip say so.
     const pm = inv.puramass ?? null;
     return (
       <tr
@@ -496,7 +496,7 @@ export default function InvoicesIndex() {
           {inv.customer_email_display && (
             <div className="text-xs text-ink-muted">{inv.customer_email_display}</div>
           )}
-          {/* PuraMass collects the buyer's phone and ship-to on its hosted page;
+          {/* Stealth Health collects the buyer's phone and ship-to on its hosted page;
               neither is on the invoice row, so both come off the hand-off ledger. */}
           {pm?.customer_phone && (
             <div className="text-xs text-ink-muted">{pm.customer_phone}</div>

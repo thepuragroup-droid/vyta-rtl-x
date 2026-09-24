@@ -1,5 +1,5 @@
 /**
- * Unit tests for the PuraMass SKU matcher.
+ * Unit tests for the Stealth Health SKU matcher.
  *
  * The repo has no test runner wired up, so these use Node's built-in
  * `node:test` + `node:assert` (zero dependencies). Run with a TS-aware loader,

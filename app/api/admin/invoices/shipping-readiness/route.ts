@@ -51,10 +51,10 @@ interface Check {
  * fee can be auto-filled. Creates nothing.
  *
  * `invoice_id` lets the check run on an invoice whose address this admin never
- * typed — above all a Stealth Health / PuraMass hand-off, whose ship-to lives
+ * typed — above all a Stealth Health hand-off, whose ship-to lives
  * on the hand-off ledger rather than on a customer record. When the body
  * carries no usable destination, the invoice's own destination is resolved
- * server-side (order → PuraMass ledger → drop-ship client → customer profile)
+ * server-side (order → Stealth Health ledger → drop-ship client → customer profile)
  * and reported back as `destination`.
  *
  * Body: { destination?: { country, postal_code, city, state },

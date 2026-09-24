@@ -111,7 +111,7 @@ class PurchaseTally {
   }
 }
 
-/** Human names for PuraMass SKUs, via the products SKU mapping. */
+/** Human names for Stealth Health SKUs, via the products SKU mapping. */
 async function skuNames(skus: string[]): Promise<Record<string, string>> {
   // SKUs come from partner JSON — anything with a comma, paren or quote would
   // break out of the `in.(…)` list, so those rows are simply not looked up.
@@ -140,12 +140,12 @@ async function skuNames(skus: string[]): Promise<Record<string, string>> {
  * Everything the admin customer page shows, in one call:
  *   • profile + claim state
  *   • lifetime stats (spend per currency, order counts, first/last order)
- *   • native orders, invoices, and PuraMass hand-offs
+ *   • native orders, invoices, and Stealth Health hand-offs
  *   • what they've actually bought, aggregated per product
  *   • the browsing trail (searches / views / cart adds)
  *
  * `id` is either a customer UUID or the synthetic `pm:<email>` id of a
- * PuraMass-only buyer, who has no account row. For those, most of the payload
+ * Stealth Health-only buyer, who has no account row. For those, most of the payload
  * is legitimately empty — the page says so rather than pretending otherwise.
  */
 export async function GET(
@@ -280,7 +280,7 @@ function withLegacyClaim(lead: Lead, row: Record<string, any>): Lead {
 }
 
 /* ------------------------------------------------------------------ */
-/* PuraMass-only buyers                                                */
+/* Stealth Health-only buyers                                                */
 /* ------------------------------------------------------------------ */
 
 async function puramassOnlyInsights(email: string) {
@@ -366,7 +366,7 @@ async function puramassOnlyInsights(email: string) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Shared: orders/invoices/PuraMass → stats + product tally            */
+/* Shared: orders/invoices/Stealth Health → stats + product tally            */
 /* ------------------------------------------------------------------ */
 
 async function buildPurchaseData({
@@ -427,7 +427,7 @@ async function buildPurchaseData({
     });
   }
 
-  // 3. PuraMass hand-offs that never became an invoice (unpaid, expired, or
+  // 3. Stealth Health hand-offs that never became an invoice (unpaid, expired, or
   //    not yet materialised). Only SKUs and quantities exist for those, so the
   //    SKU is resolved to a product name and the spend is left at zero —
   //    counting an unpaid hand-off as revenue would be a lie.

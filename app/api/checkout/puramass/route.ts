@@ -73,7 +73,7 @@ interface IncomingLine {
  * are willing to charge.
  *
  * The browser sends back only a `courier_id` — never a price. Shipping is
- * money, so the only figure that may reach PuraMass is one Easyship has just
+ * money, so the only figure that may reach Stealth Health is one Easyship has just
  * confirmed, or the flat fee. Goes through the same `quoteHostedRates` helper
  * the rates endpoint uses, so the list priced here is the list the buyer was
  * shown.
@@ -260,15 +260,15 @@ async function earnsAdDiscount(
 }
 
 /**
- * POST /api/checkout/puramass — hand the cart off to the PuraMass hosted
- * checkout. Resolves each cart product to its PuraMass SKU server-side (never
+ * POST /api/checkout/puramass — hand the cart off to the Stealth Health hosted
+ * checkout. Resolves each cart product to its Stealth Health SKU server-side (never
  * trusting a client-sent SKU or price), converts cart quantity to packs,
  * creates the hosted order, records a ledger row, and returns the payment link
  * the storefront redirects to.
  *
  * The hand-off is denominated in CAD (`PURAMASS_CURRENCY`), so the hosted page
  * prices and charges in Canadian dollars instead of converting our catalog to
- * its own USD listings. Goods prices are normally PuraMass's own — ours are
+ * its own USD listings. Goods prices are normally Stealth Health's own — ours are
  * sent only when a discount applies (the paid-ads welcome discount, the
  * limited-time cart offer, or both composed into one), because lowering the
  * line prices is the only way this API has of taking money off (step 8b). The
@@ -324,7 +324,7 @@ export async function POST(req: NextRequest) {
   const discountCodeInput = String(body?.discountCode ?? '').trim() || null;
 
   // 4b. Ship-to. Only collected when the buyer picks a live courier rate —
-  //     with the flat fee there is nothing to quote, so PuraMass goes on
+  //     with the flat fee there is nothing to quote, so Stealth Health goes on
   //     collecting the address on its own hosted page as it always has.
   //
   //     The same validator the /shipping-address/<token> form uses, so the
@@ -494,7 +494,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 8a. Every line travels with OUR price. Nothing is left to PuraMass's own
+  // 8a. Every line travels with OUR price. Nothing is left to Stealth Health's own
   //     catalog, so a line we could not price stops the hand-off here rather
   //     than going out without one and being charged at their list.
   const unpriced = [...linesBySku.values()]
@@ -642,7 +642,7 @@ export async function POST(req: NextRequest) {
   }
   const shippingTotalCents = Math.round(shippingRate.total_charge * 100);
 
-  // 10. Our idempotency key, echoed back by PuraMass and unique in the ledger.
+  // 10. Our idempotency key, echoed back by Stealth Health and unique in the ledger.
   const partnerReference = `amc_${crypto.randomUUID()}`;
 
   // 11. Create the hosted order.
@@ -670,7 +670,7 @@ export async function POST(req: NextRequest) {
   // 12. Record the hand-off (best-effort — never block the redirect).
   //
   // The attribution snapshot is the important part of this row. Once the buyer
-  // is redirected to PuraMass they leave our cookies behind, and the payment
+  // is redirected to Stealth Health they leave our cookies behind, and the payment
   // comes back through a webhook that knows nothing but an email address — so
   // the channel has to be frozen here, on the way out, or it is lost.
   const attribution = attributionColumns(visitor);
@@ -694,7 +694,7 @@ export async function POST(req: NextRequest) {
   // The ship-to the buyer typed here. Marked `customer` so a later partner
   // payload can't overwrite it — see `buildPuramassContactPatch`. Only written
   // when we actually collected one, so a flat-fee hand-off still leaves
-  // PuraMass's own reported address to fill the row in.
+  // Stealth Health's own reported address to fill the row in.
   const addressColumns: Record<string, unknown> = address.ok
     ? {
         shipping_address: address.value.address,
@@ -721,7 +721,7 @@ export async function POST(req: NextRequest) {
 
   // Try the richest row first and shed the optional column groups one at a
   // time when the database says it doesn't know them. The hand-off has already
-  // been created on PuraMass's side, so the row MUST land — but an unmigrated
+  // been created on Stealth Health's side, so the row MUST land — but an unmigrated
   // column must not cost us the marketing attribution either, which is why the
   // newest group is dropped before the older one.
   // What the discounts took off, so a discounted order can be told from a

@@ -36,7 +36,7 @@ test('the branded variant carries the wordmark, meta line and confidential foote
     meta: ['Generated now', '3 products'], footRight: '3 products',
   });
   assert.ok(html.includes('class="branded"'));
-  assert.ok(html.includes('>VYTA<'));
+  assert.ok(html.includes('>STEALTH HEALTH<'));
   assert.ok(html.includes('class="goldrule"'));
   assert.ok(html.includes('<span>Generated now</span><span>3 products</span>'));
   assert.ok(html.includes('Confidential — internal use only'));
@@ -49,7 +49,7 @@ test('the unbranded variant keeps the plain heading', () => {
   // absent is the brand markup.
   assert.ok(!html.includes('<div class="brandhead">'));
   assert.ok(html.includes('<h1>Customers</h1>'));
-  assert.ok(html.includes('VYTA · Generated'));
+  assert.ok(html.includes('Stealth Health · Generated'));
 });
 
 test('titles and filter chips are escaped', () => {

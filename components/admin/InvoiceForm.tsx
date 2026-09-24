@@ -66,7 +66,7 @@ const EMPTY_LINE = (): LineItemDraft => ({
   price_type: 'box', box_price: null, vial_price: null,
 });
 
-/** Where a server-resolved destination came from. An address PuraMass reported
+/** Where a server-resolved destination came from. An address Stealth Health reported
  *  and one typed into this admin must never read the same to whoever packs the
  *  parcel. */
 const DESTINATION_SOURCE_LABEL: Record<string, string> = {
@@ -724,7 +724,7 @@ export default function InvoiceForm({ mode, invoiceId, initial }: InvoiceFormPro
   // ---- Easyship shipping-readiness pre-flight ----
   //
   // Deliberately does NOT require a picked customer. A Stealth Health /
-  // PuraMass hand-off has no customer to pick — PuraMass collected the buyer's
+  // Stealth Health hand-off has no customer to pick — Stealth Health collected the buyer's
   // details on its own checkout page and reported the address onto the hand-off
   // ledger — so when the form has no destination of its own the server resolves
   // the invoice's (ledger → drop-ship client → customer profile) and says which

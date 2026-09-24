@@ -82,11 +82,11 @@ export default function QueueDetail({ item, onMutate }: Props) {
   const idx = currentStepIndex(item.fulfillment_type, item.fulfillment_status);
   const orderCancelled =
     item.status === 'cancelled' || item.order?.status === 'cancelled';
-  // Materialised from a paid PuraMass hosted-checkout order. PuraMass owns
+  // Materialised from a paid Stealth Health hosted-checkout order. Stealth Health owns
   // payment/shipping, so several normal invoice fields are intentionally blank.
   const stealthHealth = item.source === 'stealth_health';
   const STEALTH_HEALTH_TIP =
-    'This order was placed through the Stealth Health checkout. Stealth Health collects and owns the payment, shipping, and contact details — that’s why some fields are missing here.';
+    'This order was placed through the Stealth Health hosted checkout. Stealth Health collects and owns the payment, shipping, and contact details — that’s why some fields are missing here.';
 
   // A shipment with no bought label yet. Auto-create at checkout can fail
   // (label_state 'not_created'/'failed'), leaving staff no way to ship.
@@ -106,7 +106,7 @@ export default function QueueDetail({ item, onMutate }: Props) {
 
   // Manually (re)create the EasyShip shipment. Goes through the invoice
   // endpoint, which routes itself: an order-bound invoice still ships off its
-  // order, and one without an order (a PuraMass hand-off) ships to the address
+  // order, and one without an order (a Stealth Health hand-off) ships to the address
   // the partner reported onto the ledger. force=true inside, so the
   // auto-create toggle is bypassed. That route is admin-gated, so
   // warehouse-only staff get a clear hint instead of a button.
@@ -769,7 +769,7 @@ function ShipToBlock({
   );
 
   if (!hasAddress) {
-    // A Stealth Health order has no address by design — PuraMass ships it — so
+    // A Stealth Health order has no address by design — Stealth Health ships it — so
     // explain that instead of the usual "verify with the customer" warning.
     if (isStealthHealth) {
       return (

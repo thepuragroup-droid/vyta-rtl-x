@@ -240,7 +240,7 @@ export function attributionColumns(ctx: VisitorContext): {
 /**
  * Attach an email (and optionally a customer) to a visitor.
  *
- * The email is what makes hosted-checkout purchases attributable: PuraMass
+ * The email is what makes hosted-checkout purchases attributable: Stealth Health
  * owns that payment page, so the only thing that comes back through the
  * webhook or the poller is an email address. Recording it here at checkout
  * time is what lets `attributeEmailPurchase` close the loop later.
@@ -314,7 +314,7 @@ export async function attributeEmailPurchase(
 /**
  * Close the attribution loop on a hosted-checkout payment.
  *
- * The buyer paid on PuraMass's domain, so nothing about the click that brought
+ * The buyer paid on Stealth Health's domain, so nothing about the click that brought
  * them in travels with the confirmation — the webhook and the poller both see
  * only a ledger row and an email. Called from each of them when an order flips
  * to `paid`.

@@ -1,7 +1,7 @@
 /**
  * "We didn't catch your shipping address" — request lifecycle.
  *
- * Some PuraMass (Stealth Health) hand-offs land with `shipping_address` NULL:
+ * Some Stealth Health hand-offs land with `shipping_address` NULL:
  * the partner never reported one, so the order can't be packed. Instead of
  * chasing the buyer by hand, an admin sends them a link from
  * /admin/stealth-health (Orders tab); they fill the address in on /shipping-address/<token>

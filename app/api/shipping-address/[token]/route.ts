@@ -1,5 +1,5 @@
 /**
- * Public shipping-address collection for a PuraMass order.
+ * Public shipping-address collection for a Stealth Health order.
  *
  *   GET  /api/shipping-address/<token>  — the order behind the emailed link
  *   POST /api/shipping-address/<token>  — store the address the buyer typed

@@ -12,7 +12,7 @@ import { expireStealthHealthInvoices } from '@/lib/payments/puramass-fulfillment
 /**
  * GET /api/cron/puramass-poll
  *
- * Pull-based payment confirmation for PuraMass (Stealth Health) hosted-checkout
+ * Pull-based payment confirmation for Stealth Health hosted-checkout
  * orders — the fallback for when the portal's webhook isn't delivered to this
  * project. One iteration of the manual "Refresh" action, on a timer.
  *

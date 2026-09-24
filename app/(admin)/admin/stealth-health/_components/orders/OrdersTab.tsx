@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The PuraMass hosted-checkout ledger, shown as the "Orders" tab of
+ * The Stealth Health hosted-checkout ledger, shown as the "Orders" tab of
  * /admin/stealth-health. It used to live at /admin/puramass-orders; the
  * hand-offs it lists are the raw rows every settlement figure on the rest of
  * this dashboard is derived from, so it now sits beside them.
@@ -90,7 +90,7 @@ export interface PuramassOrderRow {
   subtotal_cents: number | null;
   customer_id: string | null;
   customer_email: string | null;
-  /** Buyer name/phone PuraMass captured on its hosted page (null when absent). */
+  /** Buyer name/phone Stealth Health captured on its hosted page (null when absent). */
   customer_name: string | null;
   customer_phone: string | null;
   /** `{ address, address2, city, state, zip, country }` — null until reported. */
@@ -239,7 +239,7 @@ async function authHeaders(): Promise<Record<string, string>> {
 }
 
 /**
- * The shipping address PuraMass captured on its hosted page. It arrives with
+ * The shipping address Stealth Health captured on its hosted page. It arrives with
  * the webhook event or a poll, so plenty of rows legitimately have none yet —
  * those render an explanatory placeholder rather than an empty cell.
  */
@@ -607,7 +607,7 @@ export default function OrdersTab() {
   };
 
   /**
-   * Poll PuraMass for many orders at once. Scoped to whatever the table is
+   * Poll Stealth Health for many orders at once. Scoped to whatever the table is
    * showing, so on the default Paid tab this is "re-read every paid order" —
    * the way to backfill shipping addresses, which the cron job never does
    * because it only polls orders still awaiting payment.
