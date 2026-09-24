@@ -13,6 +13,7 @@
 // to propagate an affiliate's pricelist into their bound customers.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { round2, vialsPerBoxOf } from '@/lib/pricing';
 
 export type PriceSource = 'override' | 'pricelist' | 'base';
 
@@ -89,6 +90,13 @@ export async function resolvePriceMap(
  * Apply resolved prices to a list of catalogue rows in-place. Mutates `price`
  * on each row, and stamps `base_price` + `price_source` so the storefront can
  * show "was $X" badges when desired.
+ *
+ * A pricelist / customer override restates the per-vial price and drops the
+ * catalog's fixed pack prices — the rule the checkout hand-off prices by
+ * (`priceCartLines` in /api/checkout/puramass). So an overridden row also
+ * carries `vial_price = price / vials_per_box` and no `pack_options`;
+ * otherwise the storefront would keep quoting the catalog's own vial and pack
+ * prices, and the cart would show one figure while the buyer is charged another.
  */
 export async function applyResolvedPrices<
   T extends { id: string; price: number },
@@ -106,9 +114,12 @@ export async function applyResolvedPrices<
     const r = map.get(p.id);
     if (!r) return p as any;
     if (r.source === 'base') return p as any;
+    const vialsPerBox = vialsPerBoxOf((p as { vials_per_box?: number | null }).vials_per_box);
     return {
       ...p,
       price: r.price,
+      vial_price: round2(r.price / vialsPerBox),
+      pack_options: null,
       base_price: r.base,
       price_source: r.source,
     };

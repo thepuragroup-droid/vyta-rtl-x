@@ -31,7 +31,7 @@ import { useCart, type PurchaseUnit } from "@/contexts/CartContext";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { usePurchaseModal } from "@/contexts/PurchaseModalContext";
 import { supabase } from "@/lib/supabase";
-import { casePriceFor, vialPriceFor } from "@/lib/pricing";
+import { packOptionsFor, vialPriceFor } from "@/lib/pricing";
 import { trackBeginCheckout } from "@/lib/analytics/ecommerce";
 import { cartItemToAnalytics } from "@/lib/analytics/cart";
 import { trackActivity } from "@/lib/customer/activity";
@@ -57,6 +57,9 @@ interface AddonProduct {
   price: number;
   vial_price: number | null;
   vials_per_box: number | null;
+  /** The product's own packs (3, 5, 10, …) and their per-pack prices. */
+  pack_sizes: number[] | null;
+  pack_options: unknown;
   stock_quantity: number;
   image_url: string | null;
   box_image_url: string | null;
@@ -439,7 +442,16 @@ export default function PuramassCheckoutContent({
             if (vialOk) allowedUnits.push("vial");
             if (boxOk) allowedUnits.push("case");
             const vialPrice = vialPriceFor(p);
-            const fromPrice = vialOk ? vialPrice : casePriceFor(p);
+            // Every pack the product is sold in, each at its own price — the
+            // price the hand-off charges (`priceCartLines`). Quoting vial ×
+            // size instead showed e.g. a $375 10-pack as $700 here while
+            // Stealth Health was sent, and charged, $375.
+            const packs = packOptionsFor(p).filter((o) =>
+              o.size === 1 ? vialOk : boxOk,
+            );
+            const fromPrice = packs.length > 0
+              ? Math.min(...packs.map((o) => o.price))
+              : vialPrice;
             return {
               id: p.id,
               name: p.name,
@@ -447,6 +459,8 @@ export default function PuramassCheckoutContent({
               price: p.price,
               vial_price: p.vial_price ?? null,
               vials_per_box: p.vials_per_box ?? null,
+              pack_sizes: p.pack_sizes ?? null,
+              pack_options: p.pack_options ?? null,
               stock_quantity: p.stock_quantity ?? 0,
               image_url: p.image_url ?? null,
               box_image_url: p.box_image_url ?? null,
@@ -475,10 +489,12 @@ export default function PuramassCheckoutContent({
       price: p.price,
       vial_price: p.vial_price,
       vials_per_box: p.vials_per_box,
-      // Deliberately NOT the product's own pack options: Stealth Health fulfils
-      // these add-ons and only stocks a single vial and a full 10-pack, so the
-      // picker stays on the default pair, narrowed further by allowedUnits.
-      pack_sizes: null,
+      // The same packs the product page offers, at the same per-pack prices.
+      // Every multi-vial pack travels to Stealth Health as one case-SKU unit
+      // at that pack's own price, so what is quoted here is what is charged;
+      // allowedUnits drops the vial or the packs when a SKU is missing.
+      pack_sizes: p.pack_sizes,
+      pack_options: p.pack_options,
       stock_quantity: p.stock_quantity,
       image_url: p.image_url,
       box_image_url: p.box_image_url,
