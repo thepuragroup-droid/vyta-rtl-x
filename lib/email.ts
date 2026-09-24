@@ -1382,3 +1382,94 @@ export async function sendAbandonedRegistrationAlert(data: {
     return { success: false, error: "Failed to send email" };
   }
 }
+
+/**
+ * Tell the admins a Stealth Health order has been paid. Fired once, on the
+ * invoice's `pending_payment → paid` transition (or when a paid order is
+ * recorded for the first time), to the operational list from
+ * `getAdminAlertEmails`.
+ */
+export async function sendStealthHealthOrderAlert(data: {
+  to: string | string[];
+  invoiceId: string;
+  invoiceNumber: string | null;
+  customerName: string | null;
+  customerEmail: string | null;
+  items: Array<{ description: string; qty: number; lineTotal: number }>;
+  subtotal: number;
+  shipping: number;
+  shippingCourier: string | null;
+  total: number;
+  discountCode?: string | null;
+  shipTo?: string | null;
+}) {
+  const { to, invoiceId, invoiceNumber, customerName, customerEmail, items } = data;
+  if (!to || (Array.isArray(to) && to.length === 0)) {
+    return { success: false, error: "no admin recipients" };
+  }
+  const money = (n: number) => `$${(Number(n) || 0).toFixed(2)}`;
+  const label = invoiceNumber || "Stealth Health order";
+  const who = customerName || customerEmail || "Guest";
+
+  const row = (k: string, v: string, strong = false) => `
+    <tr><td style="padding:6px 0; font-size:13px; color:#56707F; width:140px; vertical-align:top;">${k}</td>
+        <td style="padding:6px 0; font-size:14px; color:#07203A;${strong ? " font-weight:600;" : ""}">${v}</td></tr>`;
+
+  const itemRows = items
+    .map(
+      (i) => `
+    <tr><td style="padding:6px 0; font-size:14px; color:#07203A; border-bottom:1px solid #EDF3F5;">${escapeHtml(i.description)} &times; ${i.qty}</td>
+        <td style="padding:6px 0; font-size:14px; color:#07203A; text-align:right; border-bottom:1px solid #EDF3F5;">${money(i.lineTotal)}</td></tr>`,
+    )
+    .join("");
+
+  const html = vytaShell(`
+    <div style="padding: 32px 24px;">
+      <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; padding: 16px; margin-bottom: 24px; text-align: center;">
+        <h2 style="font-size: 18px; font-weight: 600; color: #065F46; margin: 0;">New Stealth Health order paid</h2>
+        <p style="font-size: 13px; color: #065F46; margin: 6px 0 0;">${escapeHtml(label)} · ${money(data.total)} CAD</p>
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; margin-bottom: 20px;"><tbody>
+        ${row("Customer", escapeHtml(who), true)}
+        ${customerEmail && customerName ? row("Email", escapeHtml(customerEmail)) : ""}
+        ${data.shipTo ? row("Ship to", escapeHtml(data.shipTo)) : ""}
+        ${row("Courier", escapeHtml(data.shippingCourier || "Flat-rate shipping"))}
+        ${data.discountCode ? row("Discount code", escapeHtml(data.discountCode)) : ""}
+      </tbody></table>
+
+      <table style="width:100%; border-collapse:collapse; margin-bottom: 8px;"><tbody>
+        ${itemRows}
+        <tr><td style="padding:8px 0 2px; font-size:13px; color:#56707F;">Subtotal</td>
+            <td style="padding:8px 0 2px; font-size:13px; color:#07203A; text-align:right;">${money(data.subtotal)}</td></tr>
+        <tr><td style="padding:2px 0; font-size:13px; color:#56707F;">Shipping</td>
+            <td style="padding:2px 0; font-size:13px; color:#07203A; text-align:right;">${money(data.shipping)}</td></tr>
+        <tr><td style="padding:6px 0; font-size:15px; font-weight:700; color:#07203A;">Total (CAD)</td>
+            <td style="padding:6px 0; font-size:15px; font-weight:700; color:#07203A; text-align:right;">${money(data.total)}</td></tr>
+      </tbody></table>
+
+      <p style="font-size: 13px; color: #56707F; margin: 16px 0 20px; text-align:center;">
+        Payment was collected on the Stealth Health checkout. The order is now in the fulfillment queue.
+      </p>
+
+      ${insightsButton(`${SITE_URL}/admin/invoices/${invoiceId}`, "View invoice")}
+    </div>
+  `);
+
+  try {
+    const { data: result, error } = await getResend().emails.send({
+      from: fromEmail,
+      to,
+      subject: `New order: ${label} · ${who} · ${money(data.total)} CAD`,
+      html,
+    });
+    if (error) {
+      console.error("Error sending Stealth Health order alert:", error);
+      return { success: false, error: error.message };
+    }
+    return { success: true, id: result?.id };
+  } catch (error) {
+    console.error("Error sending Stealth Health order alert:", error);
+    return { success: false, error: "Failed to send email" };
+  }
+}

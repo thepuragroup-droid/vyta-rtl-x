@@ -69,7 +69,17 @@ export interface ValuationResult {
 
 // ---- MODULE 2: INVOICING ----
 
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'cancelled';
+export type InvoiceStatus =
+  | 'draft'
+  | 'sent'
+  | 'paid'
+  | 'partial'
+  | 'overdue'
+  | 'cancelled'
+  // Stealth Health hand-offs: invoiced when the buyer is sent to pay, then
+  // flipped to `paid` — or to `expired` if the payment link lapses unpaid.
+  | 'pending_payment'
+  | 'expired';
 export type PaymentMethod = 'card' | 'e-transfer' | 'cash' | 'other';
 
 export interface Invoice {

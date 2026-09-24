@@ -11,7 +11,10 @@
  * repeated `paid` read can never double-fire.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { materializeStealthHealthFulfillment } from '@/lib/payments/puramass-fulfillment';
+import {
+  materializeStealthHealthFulfillment,
+  expireStealthHealthInvoices,
+} from '@/lib/payments/puramass-fulfillment';
 import { attributeHostedPurchase } from '@/lib/analytics/attribution-server';
 import {
   buildPuramassContactPatch,
@@ -179,6 +182,10 @@ export async function applyPuramassStatus(
       Array.isArray(remote.items) ? remote.items : [],
     );
     materialized = res.created;
+  }
+
+  if (remoteStatus === 'expired' || remoteStatus === 'cancelled') {
+    await expireStealthHealthInvoices(db, [order.invoice_id]);
   }
 
   return {

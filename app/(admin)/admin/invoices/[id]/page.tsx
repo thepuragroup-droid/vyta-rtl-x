@@ -41,6 +41,8 @@ const statusColors: Record<InvoiceStatus, string> = {
   partial: 'bg-amber-500/10 text-amber-600 border-amber-200',
   overdue: 'bg-red-500/10 text-red-600 border-red-200',
   cancelled: 'bg-gray-500/10 text-gray-500 border-gray-200 line-through',
+  pending_payment: 'bg-amber-500/10 text-amber-700 border-amber-200',
+  expired: 'bg-gray-200 text-gray-600 border-gray-300',
 };
 
 export default function InvoiceDetailPage() {

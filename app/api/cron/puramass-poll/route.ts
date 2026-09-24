@@ -7,6 +7,7 @@ import {
 } from '@/lib/payments/puramass';
 import { applyPuramassStatus, type PuramassLedgerOrder } from '@/lib/payments/puramass-poll';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
+import { expireStealthHealthInvoices } from '@/lib/payments/puramass-fulfillment';
 
 /**
  * GET /api/cron/puramass-poll
@@ -66,8 +67,9 @@ export async function GET(req: NextRequest) {
       .update({ status: 'expired' })
       .eq('status', 'payment_pending')
       .lt('created_at', windowStart)
-      .select('id');
+      .select('id, invoice_id');
     expired = sweptRows?.length ?? 0;
+    await expireStealthHealthInvoices(db, (sweptRows ?? []).map((r: any) => r.invoice_id));
   }
 
   // 2. Poll set — still pending, within the window, has a transaction id.

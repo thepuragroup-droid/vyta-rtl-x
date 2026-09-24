@@ -128,7 +128,15 @@ export async function GET(req: NextRequest) {
     count: enriched.length,
     outstanding: round2(
       enriched
-        .filter((i) => i.status_effective !== 'paid' && i.status_effective !== 'draft')
+        // Unpaid Stealth Health hand-offs are not receivables: the buyer pays
+        // on the Stealth Health checkout or not at all.
+        .filter(
+          (i) =>
+            i.status_effective !== 'paid' &&
+            i.status_effective !== 'draft' &&
+            i.status_effective !== 'pending_payment' &&
+            i.status_effective !== 'expired',
+        )
         .reduce((s, i) => s + i.amount_due, 0),
     ),
     overdueCount: enriched.filter((i) => i.status_effective === 'overdue').length,

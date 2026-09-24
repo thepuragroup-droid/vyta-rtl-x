@@ -34,6 +34,7 @@ import {
 import { validateShippingAddress } from '@/lib/payments/puramass-address';
 import { isShippableCountry } from '@/lib/shipping/regions';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
+import { createPendingStealthHealthInvoice } from '@/lib/payments/puramass-fulfillment';
 import {
   distributeAdDiscount,
   isAdTraffic,
@@ -445,7 +446,19 @@ export async function POST(req: NextRequest) {
   //    below is worked out from THESE merged lines, after the clamp, so what it
   //    is measured against is exactly what gets sent.
   const unitCentsByLine = await priceCartLines(normalized, byId, customerId);
-  const linesBySku = new Map<string, { sku: string; quantity: number; unitPriceCents: number }>();
+  const linesBySku = new Map<
+    string,
+    {
+      sku: string;
+      quantity: number;
+      unitPriceCents: number;
+      // Carried for the invoice written at hand-off: which product the line
+      // takes stock from, and how many vials one unit of it is.
+      productId: string;
+      productName: string;
+      packSize: number;
+    }
+  >();
   const unmapped: string[] = [];
   for (const line of normalized) {
     const product = byId.get(line.id);
@@ -465,6 +478,9 @@ export async function POST(req: NextRequest) {
       // failed to price (0) must not shut out a sibling we did.
       unitPriceCents:
         merged?.unitPriceCents || unitCentsByLine.get(`${line.id}::${line.packSize}`) || 0,
+      productId: merged?.productId ?? line.id,
+      productName: merged?.productName ?? String(product?.name ?? sku),
+      packSize: line.packSize,
     });
   }
 
@@ -746,10 +762,14 @@ export async function POST(req: NextRequest) {
     { ...base, ...attribution },
     base,
   ];
+  let ledgerId: string | null = null;
   try {
     for (const row of attempts) {
-      const { error } = await db.from('puramass_orders').insert(row);
-      if (!error) break;
+      const { data, error } = await db.from('puramass_orders').insert(row).select('id').single();
+      if (!error) {
+        ledgerId = (data?.id as string | undefined) ?? null;
+        break;
+      }
       if (!isMissingColumnError(error)) {
         console.error('[puramass] ledger insert failed:', error.message);
         break;
@@ -757,6 +777,45 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error('[puramass] ledger insert threw:', err);
+  }
+
+  // 12b. The invoice, written now in `pending_payment` so it carries exactly
+  //      what the buyer was charged — goods, shipping and the courier they
+  //      picked — in CAD. It is flipped to paid by the webhook/poller.
+  //      Best-effort: if it cannot be written the order is invoiced on payment.
+  if (ledgerId) {
+    const invoiceLines = [...linesBySku.entries()].map(([key, line]) => ({
+      product_id: line.productId,
+      description:
+        line.packSize > 1
+          ? `${line.productName} — Pack of ${line.packSize}`
+          : `${line.productName} — Single vial`,
+      qty: line.quantity,
+      unit_price: (discountedBySku.get(key) ?? line.unitPriceCents) / 100,
+      price_type: (line.packSize > 1 ? 'box' : 'vial') as 'box' | 'vial',
+      vials_per_unit: line.packSize,
+    }));
+    const chargedSubtotal = invoiceLines.reduce((sum, l) => sum + l.qty * l.unit_price, 0);
+    const discountNote = discount
+      ? `Discount applied: ${discount.percent}% off` +
+        (appliedCode && codeBeatsAd ? ` (code ${appliedCode.code})` : '') +
+        ` — saved $${(discount.discountCents / 100).toFixed(2)} CAD.`
+      : null;
+    await createPendingStealthHealthInvoice(db, {
+      ledgerId,
+      customerId,
+      customerEmail: email,
+      customerName:
+        (address.ok ? address.value.full_name : '') ||
+        [firstName, lastName].filter(Boolean).join(' ') ||
+        null,
+      customerPhone: address.ok ? address.value.phone ?? null : null,
+      lines: invoiceLines,
+      subtotal: chargedSubtotal,
+      shipping: shippingTotalCents / 100,
+      courierId: pickedCourier ? shippingRate.courier_id : null,
+      note: discountNote,
+    });
   }
 
   // Tie the email to this visitor so the webhook/poller can attribute the

@@ -253,6 +253,7 @@ const STATUS_BADGE: Record<string, string> = {
   overdue: 'bg-red-500/10 text-red-600',
   void: 'bg-gray-500/10 text-gray-500',
   payment_pending: 'bg-amber-500/10 text-amber-700',
+  pending_payment: 'bg-amber-500/10 text-amber-700',
   expired: 'bg-gray-200 text-gray-600',
   cancelled: 'bg-red-500/10 text-red-700',
   pending: 'bg-amber-500/10 text-amber-700',
