@@ -278,7 +278,8 @@ export async function getCustomerOrders(customerId: string): Promise<CustomerOrd
       .select('*')
       .eq('customer_id', customerId)
       .eq('source', 'stealth_health')
-      .neq('status', 'draft')
+      // Unpaid hand-offs (still at checkout, or lapsed) are not orders yet.
+      .not('status', 'in', '(draft,pending_payment,expired)')
       .order('created_at', { ascending: false }),
   ]);
 
@@ -330,6 +331,7 @@ export async function getOrderWithItems(
     .select('*')
     .eq('id', orderId)
     .eq('source', 'stealth_health')
+    .not('status', 'in', '(draft,pending_payment,expired)')
     .maybeSingle();
 
   if (!inv) return null;

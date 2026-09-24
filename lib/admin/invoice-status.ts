@@ -15,6 +15,8 @@ export const INVOICE_STATUSES: InvoiceStatus[] = [
   'paid',
   'overdue',
   'cancelled',
+  'pending_payment',
+  'expired',
 ];
 
 export interface InvoiceStatusMeta {
@@ -57,6 +59,16 @@ export const INVOICE_STATUS_META: Record<InvoiceStatus, InvoiceStatusMeta> = {
     // Line-through matches the spec — a cancelled invoice reads as "voided"
     // in the list, so figures don't look like an outstanding amount.
     badge: 'bg-gray-500/10 text-gray-500 line-through',
+    pdf: { fg: '#56707F', bg: '#EDF3F5' },
+  },
+  pending_payment: {
+    label: 'Pending payment',
+    badge: 'bg-amber-500/10 text-amber-700',
+    pdf: { fg: '#b45309', bg: '#fffbeb' },
+  },
+  expired: {
+    label: 'Expired (unpaid)',
+    badge: 'bg-gray-200 text-gray-600',
     pdf: { fg: '#56707F', bg: '#EDF3F5' },
   },
 };

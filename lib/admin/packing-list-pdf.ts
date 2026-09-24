@@ -66,7 +66,7 @@ export async function renderPackingListPdf(input: PackingListInput): Promise<Buf
         margins: { top: 48, bottom: 48, left: 48, right: 48 },
         info: {
           Title: `Packing List ${input.invoice_number}`,
-          Author: 'PuraMass',
+          Author: 'Stealth Health',
         },
       });
       const chunks: Buffer[] = [];
@@ -80,7 +80,7 @@ export async function renderPackingListPdf(input: PackingListInput): Promise<Buf
 
       // ---- Header
       doc.font('Helvetica-Bold').fontSize(18).fillColor(INK)
-        .text('PURAMASS', left, doc.y, { continued: false });
+        .text('STEALTH HEALTH', left, doc.y, { continued: false });
       doc.font('Helvetica').fontSize(9).fillColor(MUTED)
         .text('vytabio.com  ·  support@vytabio.com');
       // Right-aligned document title on the same header band.
@@ -214,7 +214,7 @@ export async function renderPackingListPdf(input: PackingListInput): Promise<Buf
       const footerY = doc.page.height - 60;
       doc.moveTo(left, footerY).lineTo(right, footerY).strokeColor(RULE).stroke();
       doc.font('Helvetica').fontSize(8).fillColor(MUTED)
-        .text('PURAMASS  ·  vytabio.com', left, footerY + 8, { width, align: 'left' });
+        .text('STEALTH HEALTH  ·  vytabio.com', left, footerY + 8, { width, align: 'left' });
       doc.text(
         'No pricing shown on packing lists.',
         left, footerY + 8, { width, align: 'right' },

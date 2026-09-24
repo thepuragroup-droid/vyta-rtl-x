@@ -138,6 +138,16 @@ function accountVisibility(row: PuramassOrderRow): {
     }
     return { displays: false, notLinked: false, reason: 'Paid, but not yet materialised into an invoice — nothing shows in the account until it is.' };
   }
+  if (inv.status === 'pending_payment' || inv.status === 'expired') {
+    return {
+      displays: false,
+      notLinked: false,
+      reason:
+        inv.status === 'expired'
+          ? `Invoice ${inv.invoice_number} lapsed unpaid, so the account page hides it.`
+          : `Invoice ${inv.invoice_number} is waiting for payment on the Stealth Health checkout — it appears in the account once paid.`,
+    };
+  }
   if (inv.status === 'draft') {
     return { displays: false, notLinked: false, reason: 'The linked invoice is a draft, which the account page hides.' };
   }
@@ -329,7 +339,7 @@ function InvoiceCell({ row }: { row: PuramassOrderRow }) {
         title={
           row.status === 'paid'
             ? 'Paid, but no fulfilment invoice yet. Sync this order to materialise it.'
-            : 'An invoice is created once Stealth Health confirms payment.'
+            : 'No invoice was recorded for this checkout. New checkouts get one as soon as the buyer is sent to pay.'
         }
       >
         {row.status === 'paid' ? 'Not created' : '—'}

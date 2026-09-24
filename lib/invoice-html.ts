@@ -91,9 +91,15 @@ export function renderInvoiceHtml({
     paid: '#10b981',
     partial: '#f59e0b',
     overdue: '#ef4444',
+    pending_payment: '#d97706',
+    expired: '#56707f',
   };
   const statusLabel =
-    viewer === 'customer' && invoice.status === 'draft' ? 'pending' : invoice.status;
+    viewer === 'customer' && invoice.status === 'draft'
+      ? 'pending'
+      : invoice.status === 'pending_payment'
+        ? 'pending payment'
+        : invoice.status;
 
   // ---- Stealth Health hand-off ---------------------------------------------------
   // For a Stealth Health sale everything below comes off the hand-off ledger, not off

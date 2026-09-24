@@ -1,24 +1,28 @@
 /**
- * Materialise a fulfillment invoice from a paid Stealth Health
- * hand-off, so the order surfaces in the warehouse fulfillment queue.
+ * The local invoice behind a Stealth Health (PuraMass hosted checkout) order.
  *
- * Stealth Health owns payment, shipping, and taxes — this invoice exists purely for
- * the store's fulfillment/reconciliation visibility. It is marked
- * `source = 'stealth_health'` and carries no shipping address (Stealth Health collects
- * it), which the queue UI explains with a tooltip. The address Stealth Health reports
- * back lives on the hand-off ledger (`puramass_orders.shipping_address`) and is
- * surfaced on /admin/stealth-health (Orders tab).
+ * Lifecycle:
+ *   1. Hand-off — `createPendingStealthHealthInvoice` writes the invoice the
+ *      moment the buyer is sent to the hosted checkout: the exact lines, the
+ *      shipping they were charged and the courier they picked, in CAD, with
+ *      status `pending_payment`. It stays out of the warehouse queue, the
+ *      customer's account and every revenue figure until it is paid.
+ *   2. Paid — `materializeStealthHealthFulfillment` (webhook, poller, admin
+ *      refresh) flips it to `paid`. The pass that wins that flip takes the
+ *      stock, checks low-stock thresholds and emails the admins; every pass
+ *      credits the affiliate and books the Easyship shipment (both are
+ *      idempotent, so a failure on one pass is retried by the next).
+ *      A hand-off made before invoices were created up front has none, so
+ *      this creates it already paid.
+ *   3. Lapsed — `expireStealthHealthInvoice` moves an unpaid invoice to
+ *      `expired` when the payment link expires or is cancelled.
  *
- * Also credits the affiliate, if the buyer arrived through a referral code or
- * is bound to one. That runs on every call rather than only when the invoice is
- * first created, so a commission that failed to record on one pass is retried
- * by the next webhook delivery or poll instead of being lost — it is guarded by
- * a unique index on `commissions.invoice_id`, not by this function's control
- * flow. See `recordAffiliateCommission`.
+ * Stealth Health owns payment and taxes; the invoice exists for fulfillment
+ * and reconciliation. It is marked `source = 'stealth_health'` and its ship-to
+ * is read live from the hand-off ledger (`puramass_orders.shipping_address`).
  *
- * Idempotent: keyed on `puramass_orders.invoice_id`, so the webhook and the
- * polling refresh can both call it without creating duplicates. Never throws —
- * a failure here must not break webhook ACK / refresh.
+ * Nothing here throws — a failure must never break a webhook ACK, a poll, or
+ * the checkout redirect.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { recordAffiliateCommission } from '@/lib/affiliate/commission';
@@ -36,19 +40,6 @@ export interface StealthHealthLedgerRow {
   invoice_id?: string | null;
   /** Referral code captured at hand-off, if the buyer arrived through one. */
   referral_code?: string | null;
-  /** Lower-case currency the hand-off was priced in, e.g. 'cad'. */
-  currency?: string | null;
-  /**
-   * Shipping we charged at hand-off, in cents of `currency`. Set once the
-   * buyer picks a courier on our own checkout screen; null on hand-offs that
-   * predate that (and on flat-fee ones made before the column existed).
-   */
-  shipping_total_cents?: number | null;
-  /**
-   * Easyship `courier_service_id` the buyer chose and paid for. Null on a
-   * flat-fee hand-off, where no service was picked.
-   */
-  shipping_courier_id?: string | null;
 }
 
 export interface StealthHealthPaidItem {
@@ -58,18 +49,27 @@ export interface StealthHealthPaidItem {
   unit_price_cents?: number;
 }
 
+/** One invoice line as the hand-off knows it. */
+export interface StealthHealthInvoiceLine {
+  product_id: string | null;
+  description: string;
+  qty: number;
+  /** What was charged for one unit, in CAD (discounts already applied). */
+  unit_price: number;
+  price_type: 'box' | 'vial';
+  /** Vials in one unit — 1 for a single vial, N for a pack of N. */
+  vials_per_unit: number;
+}
+
+/** Statuses of a Stealth Health invoice that has not been paid. */
+export const UNPAID_HANDOFF_INVOICE_STATUSES = ['pending_payment', 'expired'] as const;
+
 /**
  * Which pricing unit a Stealth Health line was sold in.
  *
- * Stealth Health encodes the unit in the SKU suffix — `…-vial` is the single-vial
- * listing, everything else (`…-case`, `…-10-pack`, plain) is a full box. That
- * suffix is the only authoritative signal we get: the partner's product *name*
- * is free text and the invoice line carries no product_id to join against.
- *
- * Without this, the line insert below omitted `price_type` entirely and
- * Postgres applied its `NOT NULL DEFAULT 'box'`, so a single vial printed a
- * "Box" chip on the admin invoice, the customer's invoice PDF and the
- * warehouse packing list alike.
+ * The SKU suffix is the authoritative signal — `…-vial` is the single-vial
+ * listing, everything else (`…-case`, `…-10-pack`, plain) is a full box. The
+ * partner's product *name* is free text, so it is only a fallback.
  */
 export function puramassPriceType(
   item: { sku?: string | null; name?: string | null },
@@ -77,51 +77,32 @@ export function puramassPriceType(
   const sku = (item.sku ?? '').trim().toLowerCase();
   if (sku) return sku.endsWith('-vial') ? 'vial' : 'box';
   // Pre-`paid_items` ledger rows have no SKU on the line — fall back to the
-  // name Stealth Health ships, which suffixes the vial listing with "(Single Vial)".
+  // name, which suffixes the vial listing with "(Single Vial)".
   return /\(\s*single\s+vial\s*\)$/i.test((item.name ?? '').trim()) ? 'vial' : 'box';
 }
 
 const STEALTH_HEALTH_NOTE =
-  'Placed via Stealth Health hosted checkout. Payment, shipping, and taxes are handled by Stealth Health.';
+  'Placed via the Stealth Health checkout. Payment and taxes are handled by Stealth Health.';
 
 /**
- * The shipping fee stamped on a hand-off we have no figure for.
- *
- * Every hand-off made since the checkout started quoting couriers carries its
- * own `shipping_total_cents`, so this only ever applies to orders placed before
- * that — which were all priced by Stealth Health in USD at a flat $35. It is a
- * historical constant, deliberately not the configurable
- * `site_settings.puramass_flat_shipping`: changing today's flat fee must not
- * retroactively restate what an old order was recorded as costing.
+ * The shipping stamped on a hand-off that recorded no figure of its own.
+ * Every hand-off since the checkout started pricing shipping itself carries
+ * `shipping_total_cents`; this only covers rows older than that.
  */
 export const PURAMASS_LEGACY_SHIPPING = 35;
 
-/** Currency a local invoice is denominated in. */
-type InvoiceCurrency = 'CAD' | 'USD';
-
 /**
- * The shipment fee to stamp on the local invoice, and the currency it is in.
- *
- * The currency is always the order's own — never hardcoded. A hand-off priced
- * by our own checkout is in CAD and knows exactly what shipping cost, so the
- * invoice is wholly CAD, goods and shipping alike, and reads like every other
- * invoice in the system. An older hand-off has no currency recorded and no
- * shipping figure, so it resolves to USD and the historical flat fee — exactly
- * what it was recorded as before, which is the mixed-currency case
- * `puramassMoneySplit` exists to render.
- *
- * Invoices already written are never revisited, so nothing here restates one.
+ * The shipment fee to stamp on the invoice: exactly what the buyer was
+ * charged at hand-off. Stealth Health orders are always in CAD.
  */
 export function resolveFulfillmentShipping(
-  ledger: Pick<StealthHealthLedgerRow, 'currency' | 'shipping_total_cents'>,
-): { shipping: number; currency: InvoiceCurrency } {
-  const currency: InvoiceCurrency =
-    String(ledger.currency ?? '').toUpperCase() === 'CAD' ? 'CAD' : 'USD';
+  ledger: { shipping_total_cents?: number | null },
+): { shipping: number; currency: 'CAD' } {
   const cents = ledger.shipping_total_cents;
   if (typeof cents === 'number' && Number.isFinite(cents) && cents >= 0) {
-    return { shipping: +(cents / 100).toFixed(2), currency };
+    return { shipping: +(cents / 100).toFixed(2), currency: 'CAD' };
   }
-  return { shipping: PURAMASS_LEGACY_SHIPPING, currency };
+  return { shipping: PURAMASS_LEGACY_SHIPPING, currency: 'CAD' };
 }
 
 function trimOrNull(v: unknown): string | null {
@@ -129,28 +110,495 @@ function trimOrNull(v: unknown): string | null {
   return t ? t : null;
 }
 
+const round2 = (n: number) => +n.toFixed(2);
+
+// ---------------------------------------------------------------------------
+// 1. Hand-off
+// ---------------------------------------------------------------------------
+
 /**
- * Book the Easyship shipment for a paid hand-off.
+ * Insert invoice lines. `vials_per_unit` arrives with
+ * stealth-health-pending-invoice-migration.sql; without it the stock RPC would
+ * read a pack of 5 as one vial, so the retry drops `product_id` as well and
+ * the lines simply take no stock.
+ */
+async function insertLines(
+  db: SupabaseClient,
+  invoiceId: string,
+  lines: StealthHealthInvoiceLine[],
+): Promise<void> {
+  if (lines.length === 0) return;
+  const rows = lines.map((l) => ({
+    invoice_id: invoiceId,
+    product_id: l.product_id,
+    description: l.description,
+    qty: l.qty,
+    unit_price: l.unit_price,
+    line_total: round2(l.qty * l.unit_price),
+    discount_pct: 0,
+    price_type: l.price_type,
+    vials_per_unit: Math.max(1, Math.round(l.vials_per_unit) || 1),
+    qty_fulfilled: 0,
+    qty_backordered: 0,
+  }));
+  let { error } = await db.from('invoice_line_items').insert(rows);
+  if (error && isMissingColumnError(error)) {
+    ({ error } = await db
+      .from('invoice_line_items')
+      .insert(
+        rows.map((r) => {
+          const rest: Record<string, unknown> = { ...r };
+          delete rest.vials_per_unit;
+          delete rest.product_id;
+          return rest;
+        }),
+      ));
+  }
+  if (error) console.error('[stealth-health] invoice line insert failed:', error);
+}
+
+/** Insert the invoice header, shedding `easyship_courier_id` if unmigrated. */
+async function insertInvoice(
+  db: SupabaseClient,
+  row: Record<string, unknown>,
+  courierId: string | null,
+): Promise<{ id: string; invoice_number: string | null } | null> {
+  let { data, error } = await db
+    .from('invoices')
+    .insert(courierId ? { ...row, easyship_courier_id: courierId } : row)
+    .select('id, invoice_number')
+    .single();
+  if (error && courierId && isMissingColumnError(error)) {
+    ({ data, error } = await db.from('invoices').insert(row).select('id, invoice_number').single());
+  }
+  if (error || !data) {
+    console.error('[stealth-health] invoice insert failed:', error);
+    return null;
+  }
+  return data as { id: string; invoice_number: string | null };
+}
+
+/**
+ * Write the invoice for a hand-off that has just been created, in
+ * `pending_payment`, and link it to the ledger row. Returns the invoice id, or
+ * null when it could not be written — the order is then invoiced on payment
+ * instead, exactly as before this existed.
+ */
+export async function createPendingStealthHealthInvoice(
+  db: SupabaseClient,
+  args: {
+    ledgerId: string;
+    customerId: string | null;
+    customerEmail: string;
+    customerName: string | null;
+    customerPhone: string | null;
+    lines: StealthHealthInvoiceLine[];
+    /** Goods subtotal in CAD, after discounts. */
+    subtotal: number;
+    /** Shipping charged, in CAD. */
+    shipping: number;
+    /** Easyship service the buyer picked; null for the flat fee. */
+    courierId: string | null;
+    /** Extra note line, e.g. the discount that was applied. */
+    note?: string | null;
+  },
+): Promise<string | null> {
+  try {
+    const subtotal = round2(args.subtotal);
+    const shipping = round2(args.shipping);
+    const invoice = await insertInvoice(
+      db,
+      {
+        source: 'stealth_health',
+        customer_id: args.customerId,
+        customer_email: args.customerEmail,
+        customer_name: args.customerName,
+        customer_phone: args.customerPhone,
+        fulfillment_type: 'shipment',
+        fulfillment_status: 'pending',
+        status: 'pending_payment',
+        currency: 'CAD',
+        subtotal,
+        tax_total: 0,
+        shipping_cost: shipping,
+        total: round2(subtotal + shipping),
+        is_backorder: false,
+        non_payable: false,
+        notes: [STEALTH_HEALTH_NOTE, args.note].filter(Boolean).join('\n'),
+      },
+      trimOrNull(args.courierId),
+    );
+    if (!invoice) return null;
+
+    await insertLines(db, invoice.id, args.lines);
+
+    const { error: linkErr } = await db
+      .from('puramass_orders')
+      .update({ invoice_id: invoice.id })
+      .eq('id', args.ledgerId)
+      .is('invoice_id', null);
+    if (linkErr) console.error('[stealth-health] invoice link failed:', linkErr);
+
+    return invoice.id;
+  } catch (err) {
+    console.error('[stealth-health] createPendingStealthHealthInvoice threw:', err);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 2. Paid
+// ---------------------------------------------------------------------------
+
+/**
+ * The ledger row as stored, read with `*` so columns from migrations that have
+ * not run are simply absent rather than failing the read. Callers each select
+ * a different subset, so the fields this module depends on (shipping, courier,
+ * address, discount code) are read here rather than threaded through them.
+ */
+async function readLedger(db: SupabaseClient, ledgerId: string): Promise<Record<string, any>> {
+  try {
+    const { data } = await db.from('puramass_orders').select('*').eq('id', ledgerId).maybeSingle();
+    return (data as Record<string, any>) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Map a legacy hand-off's SKUs to products. Only single-vial SKUs are resolved:
+ * a case SKU covers every pack size, and the pack size of an old hand-off was
+ * never recorded, so its vial count cannot be known and it takes no stock.
+ */
+async function vialSkuProducts(
+  db: SupabaseClient,
+  skus: string[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const wanted = [...new Set(skus.filter(Boolean))];
+  if (wanted.length === 0) return out;
+  try {
+    const { data } = await db
+      .from('products')
+      .select('id, puramass_sku_vial')
+      .in('puramass_sku_vial', wanted);
+    for (const p of (data ?? []) as any[]) {
+      if (p.puramass_sku_vial && !out.has(p.puramass_sku_vial)) out.set(p.puramass_sku_vial, p.id);
+    }
+  } catch {
+    /* no mapping → no stock taken */
+  }
+  return out;
+}
+
+/** Create the invoice, already paid, for a hand-off that never got one. */
+async function createPaidInvoice(
+  db: SupabaseClient,
+  ledger: StealthHealthLedgerRow,
+  stored: Record<string, any>,
+  paidItems: StealthHealthPaidItem[] | null | undefined,
+): Promise<string | null> {
+  const source: StealthHealthPaidItem[] =
+    Array.isArray(paidItems) && paidItems.length > 0
+      ? paidItems
+      : (ledger.items ?? []).map((i) => ({ sku: i.sku, quantity: i.quantity }));
+
+  const vialProducts = await vialSkuProducts(
+    db,
+    source.filter((it) => puramassPriceType(it) === 'vial').map((it) => it.sku ?? ''),
+  );
+
+  const lines: StealthHealthInvoiceLine[] = source.map((it) => {
+    const priceType = puramassPriceType(it);
+    return {
+      product_id: priceType === 'vial' ? vialProducts.get(it.sku ?? '') ?? null : null,
+      description: (it.name || it.sku || 'Stealth Health item').toString(),
+      qty: Math.max(1, Math.round(Number(it.quantity ?? 1)) || 1),
+      unit_price: typeof it.unit_price_cents === 'number' ? it.unit_price_cents / 100 : 0,
+      price_type: priceType,
+      vials_per_unit: 1,
+    };
+  });
+
+  const lineSum = lines.reduce((s, l) => s + l.qty * l.unit_price, 0);
+  const subtotal =
+    typeof ledger.subtotal_cents === 'number'
+      ? round2(ledger.subtotal_cents / 100)
+      : round2(lineSum);
+  const { shipping } = resolveFulfillmentShipping(stored);
+  const courierId = trimOrNull(stored.shipping_courier_id);
+
+  const invoice = await insertInvoice(
+    db,
+    {
+      source: 'stealth_health',
+      customer_id: ledger.customer_id ?? null,
+      customer_email: ledger.customer_email ?? null,
+      customer_name: ledger.customer_name ?? null,
+      fulfillment_type: 'shipment',
+      fulfillment_status: 'pending',
+      status: 'paid',
+      currency: 'CAD',
+      subtotal,
+      tax_total: 0,
+      shipping_cost: shipping,
+      total: round2(subtotal + shipping),
+      is_backorder: false,
+      non_payable: false,
+      notes: STEALTH_HEALTH_NOTE,
+    },
+    courierId,
+  );
+  if (!invoice) return null;
+
+  await insertLines(db, invoice.id, lines);
+
+  await db
+    .from('puramass_orders')
+    .update({ invoice_id: invoice.id })
+    .eq('id', ledger.id)
+    .is('invoice_id', null);
+
+  return invoice.id;
+}
+
+/**
+ * Flip a hand-off invoice to paid. An `expired` one is included: a buyer can
+ * pay in the grace window after our sweep has already lapsed the link. Returns
+ * true only for the call that made the change, so the once-only side effects
+ * fire once however many webhooks and polls race in.
+ */
+async function markInvoicePaid(
+  db: SupabaseClient,
+  invoiceId: string,
+  ledger: StealthHealthLedgerRow,
+): Promise<boolean> {
+  const patch: Record<string, unknown> = { status: 'paid' };
+  if (ledger.customer_email) patch.customer_email = ledger.customer_email;
+  if (ledger.customer_name) patch.customer_name = ledger.customer_name;
+  const { data, error } = await db
+    .from('invoices')
+    .update(patch)
+    .eq('id', invoiceId)
+    .in('status', [...UNPAID_HANDOFF_INVOICE_STATUSES])
+    .select('id');
+  if (error) {
+    console.error('[stealth-health] mark paid failed:', error);
+    return false;
+  }
+  return (data ?? []).length > 0;
+}
+
+export async function materializeStealthHealthFulfillment(
+  db: SupabaseClient,
+  ledger: StealthHealthLedgerRow,
+  paidItems: StealthHealthPaidItem[] | null | undefined,
+): Promise<{ created: boolean; invoiceId?: string }> {
+  try {
+    const stored = await readLedger(db, ledger.id);
+    let invoiceId: string | null = ledger.invoice_id ?? stored.invoice_id ?? null;
+    let invoiceStatus: string | null = null;
+
+    if (invoiceId) {
+      const { data: inv } = await db
+        .from('invoices')
+        .select('id, status')
+        .eq('id', invoiceId)
+        .maybeSingle();
+      // A linked invoice that has since been deleted is recreated below.
+      if (inv) invoiceStatus = inv.status as string;
+      else invoiceId = null;
+    }
+
+    let firstPaid = false;
+    if (!invoiceId) {
+      invoiceId = await createPaidInvoice(db, ledger, stored, paidItems);
+      if (!invoiceId) return { created: false };
+      firstPaid = true;
+    } else if (
+      invoiceStatus &&
+      (UNPAID_HANDOFF_INVOICE_STATUSES as readonly string[]).includes(invoiceStatus)
+    ) {
+      firstPaid = await markInvoicePaid(db, invoiceId, ledger);
+    }
+
+    if (firstPaid) await onFirstPaid(db, invoiceId, ledger, stored);
+
+    await creditAffiliate(db, ledger, invoiceId, stored.discount_code_id ?? null);
+    // Retried on every pass so a shipment that failed to book once is picked
+    // up by the next webhook or poll; a no-op once the invoice carries one.
+    await bookShipment(db, invoiceId, trimOrNull(stored.shipping_courier_id));
+
+    // `created` reads as "this call put the order into the fulfillment queue".
+    return { created: firstPaid, invoiceId };
+  } catch (err) {
+    console.error('[stealth-health] materializeStealthHealthFulfillment threw:', err);
+    return { created: false };
+  }
+}
+
+function formatShipTo(addr: unknown): string | null {
+  if (!addr || typeof addr !== 'object') return null;
+  const a = addr as Record<string, unknown>;
+  const parts = [a.address, a.address2, a.city, a.state, a.zip, a.country]
+    .map((v) => (typeof v === 'string' ? v.trim() : ''))
+    .filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : null;
+}
+
+/**
+ * Everything that happens once, when an order is first known to be paid:
+ * take the stock, check low-stock thresholds, and email the admins.
+ */
+async function onFirstPaid(
+  db: SupabaseClient,
+  invoiceId: string,
+  ledger: StealthHealthLedgerRow,
+  stored: Record<string, any>,
+): Promise<void> {
+  // Stock — idempotent in the database via invoices.stock_adjusted.
+  let productIds: string[] = [];
+  try {
+    const { error } = await db.rpc('adjust_stock_for_invoice', {
+      p_invoice_id: invoiceId,
+      p_actor_email: 'stealth-health',
+    });
+    if (error) console.error('[stealth-health] stock decrement failed:', error);
+    const { data: lines } = await db
+      .from('invoice_line_items')
+      .select('product_id')
+      .eq('invoice_id', invoiceId);
+    productIds = ((lines ?? []) as any[]).map((l) => l.product_id).filter(Boolean);
+    if (productIds.length > 0) {
+      const { checkLowStockForProducts } = await import('@/lib/admin/low-stock');
+      await checkLowStockForProducts(db, productIds);
+    }
+  } catch (err) {
+    console.error('[stealth-health] stock step threw:', err);
+  }
+
+  // Admin alert.
+  try {
+    const [{ data: inv }, { data: lines }] = await Promise.all([
+      db
+        .from('invoices')
+        .select('invoice_number, subtotal, shipping_cost, total, customer_name, customer_email')
+        .eq('id', invoiceId)
+        .maybeSingle(),
+      db
+        .from('invoice_line_items')
+        .select('description, qty, line_total')
+        .eq('invoice_id', invoiceId),
+    ]);
+    const { getAdminAlertEmails } = await import('@/lib/admin/alert-recipients');
+    const { sendStealthHealthOrderAlert } = await import('@/lib/email');
+    const to = await getAdminAlertEmails(db);
+    await sendStealthHealthOrderAlert({
+      to,
+      invoiceId,
+      invoiceNumber: (inv?.invoice_number as string | null) ?? null,
+      customerName: (inv?.customer_name as string | null) ?? ledger.customer_name ?? null,
+      customerEmail: (inv?.customer_email as string | null) ?? ledger.customer_email ?? null,
+      items: ((lines ?? []) as any[]).map((l) => ({
+        description: String(l.description ?? ''),
+        qty: Number(l.qty) || 0,
+        lineTotal: Number(l.line_total) || 0,
+      })),
+      subtotal: Number(inv?.subtotal) || 0,
+      shipping: Number(inv?.shipping_cost) || 0,
+      shippingCourier: trimOrNull(stored.shipping_courier),
+      total: Number(inv?.total) || 0,
+      discountCode: trimOrNull(stored.discount_code),
+      shipTo: formatShipTo(stored.shipping_address),
+    });
+  } catch (err) {
+    console.error('[stealth-health] admin order alert failed:', err);
+  }
+
+  // Klaviyo "Placed Order" + "Ordered Product". Once, on first payment; keyed
+  // on the invoice id so Klaviyo drops any duplicate. Never throws.
+  try {
+    const [{ data: inv }, { data: lines }] = await Promise.all([
+      db
+        .from('invoices')
+        .select('invoice_number, subtotal, shipping_cost, total, currency, customer_name, customer_email')
+        .eq('id', invoiceId)
+        .maybeSingle(),
+      db
+        .from('invoice_line_items')
+        .select('*')
+        .eq('invoice_id', invoiceId),
+    ]);
+    const email = (inv?.customer_email as string | null) ?? ledger.customer_email ?? null;
+    if (email) {
+      const { first, last } = splitName(
+        (inv?.customer_name as string | null) ?? ledger.customer_name ?? null,
+      );
+      await trackPlacedOrder(db, {
+        orderId: invoiceId,
+        orderNumber: (inv?.invoice_number as string | null) ?? null,
+        email,
+        firstName: first,
+        lastName: last,
+        customerId: ledger.customer_id ?? null,
+        items: ((lines ?? []) as any[]).map((l) => ({
+          productId: l.product_id ?? null,
+          name: String(l.description ?? 'Item'),
+          quantity: Number(l.qty) || 1,
+          price: Number(l.unit_price) || 0,
+          variant: l.price_type === 'vial' ? 'Single vial' : 'Box',
+        })),
+        subtotal: Number(inv?.subtotal) || 0,
+        shipping: Number(inv?.shipping_cost) || 0,
+        discountCode: trimOrNull(stored.discount_code),
+        total: Number(inv?.total) || 0,
+        currency: String(inv?.currency ?? 'CAD'),
+        source: 'stealth_health',
+      });
+    }
+  } catch (err) {
+    console.error('[stealth-health] klaviyo placed order failed:', err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 3. Lapsed
+// ---------------------------------------------------------------------------
+
+/** Move unpaid hand-off invoices to `expired`. Paid ones are never touched. */
+export async function expireStealthHealthInvoices(
+  db: SupabaseClient,
+  invoiceIds: (string | null | undefined)[],
+): Promise<void> {
+  const ids = [...new Set(invoiceIds.filter(Boolean) as string[])];
+  if (ids.length === 0) return;
+  try {
+    const { error } = await db
+      .from('invoices')
+      .update({ status: 'expired' })
+      .in('id', ids)
+      .eq('status', 'pending_payment');
+    if (error) console.error('[stealth-health] invoice expiry failed:', error);
+  } catch (err) {
+    console.error('[stealth-health] invoice expiry threw:', err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shared side effects
+// ---------------------------------------------------------------------------
+
+/**
+ * Book the Easyship shipment for a paid order.
  *
  * A buyer who chose a courier on our checkout has already paid for that exact
- * service, so booking it is the rest of a transaction they completed — not a
- * discretionary automation. That is why it passes `force`: it goes ahead
- * whether or not the site-wide auto-create toggle is on, and books
- * `courierId` rather than re-picking by the site preference. A flat-fee
- * hand-off picked no service, so it defers to that toggle exactly as before.
- *
- * The shipment is a DRAFT — `createEasyshipShipment` sends `buy_label: false`,
- * so nothing is charged. Buying the label stays governed by
+ * service, so booking it passes `force` and `courierId`. A flat-fee order
+ * picked no service, so it defers to the site-wide auto-create toggle. The
+ * shipment is a DRAFT; buying the label stays governed by
  * `easyship_auto_buy_label`.
  *
- * Never throws, and safe to call again: `autoCreateShipmentForInvoice` skips an
- * invoice that already carries a shipment, and records its own skip/failure
- * reasons against the invoice.
- *
- * Imported lazily on purpose. The Easyship client behind it builds a Supabase
- * client at module scope, so a static import would make merely loading this
- * module require the server's environment — enough to break importing the
- * pure helpers here (`puramassPriceType`) anywhere that env isn't set.
+ * Imported lazily: the Easyship client builds a Supabase client at module
+ * scope, which would make merely importing this module need server env.
  */
 async function bookShipment(
   db: SupabaseClient,
@@ -163,174 +611,20 @@ async function bookShipment(
       ...(courierId ? { courierIdOverride: courierId } : {}),
     });
   } catch (err) {
-    // autoCreateShipmentForInvoice swallows its own errors; this is belt and
-    // braces so a shipment problem can never fail a payment webhook.
-    console.error('[puramass] shipment booking failed:', err);
-  }
-}
-
-export async function materializeStealthHealthFulfillment(
-  db: SupabaseClient,
-  ledger: StealthHealthLedgerRow,
-  paidItems: StealthHealthPaidItem[] | null | undefined,
-): Promise<{ created: boolean; invoiceId?: string }> {
-  // Already materialised — skip straight to crediting, which has its own
-  // idempotency and must still run in case an earlier pass failed to record it.
-  if (ledger.invoice_id) {
-    await creditAffiliate(db, ledger, ledger.invoice_id);
-    // Same reasoning as the affiliate credit: retried on every pass so a
-    // shipment that failed to book once is picked up by the next webhook or
-    // poll. Booking is a no-op once the invoice already carries one.
-    await bookShipment(db, ledger.invoice_id, trimOrNull(ledger.shipping_courier_id));
-    return { created: false, invoiceId: ledger.invoice_id };
-  }
-
-  try {
-    // Prefer the actually-paid items (they carry name + unit price); fall back
-    // to the ledger's sku/quantity lines (no price).
-    const source: StealthHealthPaidItem[] =
-      Array.isArray(paidItems) && paidItems.length > 0
-        ? paidItems
-        : (ledger.items ?? []).map((i) => ({ sku: i.sku, quantity: i.quantity }));
-
-    const lines = source.map((it) => {
-      const qty = Math.max(1, Math.round(Number(it.quantity ?? 1)) || 1);
-      const unitPrice =
-        typeof it.unit_price_cents === 'number' ? it.unit_price_cents / 100 : 0;
-      return {
-        description: (it.name || it.sku || 'Stealth Health item').toString(),
-        qty,
-        unit_price: unitPrice,
-        line_total: +(qty * unitPrice).toFixed(2),
-        discount_pct: 0,
-        price_type: puramassPriceType(it),
-        qty_fulfilled: 0,
-        qty_backordered: 0,
-      };
-    });
-
-    // Invoice total: the Stealth Health subtotal when known, else the line sum.
-    const lineSum = lines.reduce((s, l) => s + l.line_total, 0);
-    const subtotal =
-      typeof ledger.subtotal_cents === 'number'
-        ? +(ledger.subtotal_cents / 100).toFixed(2)
-        : +lineSum.toFixed(2);
-
-    // Shipping the buyer paid, so the total in their account reflects
-    // goods + shipping. Falls back to the flat USD fee on a hand-off that
-    // predates our own courier picker.
-    const { shipping, currency } = resolveFulfillmentShipping(ledger);
-    const total = +(subtotal + shipping).toFixed(2);
-
-    // The service the buyer paid for, carried onto the invoice so the admin
-    // sees the right courier and any shipment booked off this invoice — by the
-    // call below or by hand later — uses it instead of re-picking.
-    const courierId = trimOrNull(ledger.shipping_courier_id);
-
-    const invoiceRow: Record<string, unknown> = {
-        source: 'stealth_health',
-        customer_id: ledger.customer_id ?? null,
-        customer_email: ledger.customer_email ?? null,
-        customer_name: ledger.customer_name ?? null,
-        fulfillment_type: 'shipment',
-        fulfillment_status: 'pending',
-        // Paid on the Stealth Health hosted page — counts as a paid sale here.
-        status: 'paid',
-        currency,
-        subtotal,
-        tax_total: 0,
-        shipping_cost: shipping,
-        total,
-        is_backorder: false,
-        non_payable: false,
-        notes: STEALTH_HEALTH_NOTE,
-    };
-
-    // `easyship_courier_id` arrives with easyship-invoice-shipment-migration.sql.
-    // Naming it before that migration has run would fail the whole insert, and a
-    // paid order must be recorded whether or not a shipment can be booked — so
-    // it is added optimistically and dropped on the retry.
-    let { data: invoice, error: invErr } = await db
-      .from('invoices')
-      .insert(courierId ? { ...invoiceRow, easyship_courier_id: courierId } : invoiceRow)
-      .select('id')
-      .single();
-    if (invErr && courierId && isMissingColumnError(invErr)) {
-      ({ data: invoice, error: invErr } = await db
-        .from('invoices')
-        .insert(invoiceRow)
-        .select('id')
-        .single());
-    }
-
-    if (invErr || !invoice) {
-      console.error('[puramass] fulfillment invoice insert failed:', invErr);
-      return { created: false };
-    }
-
-    if (lines.length > 0) {
-      const { error: liErr } = await db
-        .from('invoice_line_items')
-        .insert(lines.map((l) => ({ invoice_id: invoice.id, ...l })));
-      if (liErr) {
-        console.error('[puramass] fulfillment line items insert failed:', liErr);
-      }
-    }
-
-    // Link back + dedupe. Conditional on invoice_id still being null so a
-    // concurrent caller can't double-link (best-effort).
-    await db
-      .from('puramass_orders')
-      .update({ invoice_id: invoice.id })
-      .eq('id', ledger.id)
-      .is('invoice_id', null);
-
-    await creditAffiliate(db, ledger, invoice.id);
-    await bookShipment(db, invoice.id, courierId);
-
-    // Klaviyo "Placed Order" + "Ordered Product". Only on the pass that
-    // creates the invoice — it is keyed on the invoice id, so even a retry
-    // that slipped through would be deduped by Klaviyo. Never throws.
-    if (ledger.customer_email) {
-      const { first, last } = splitName(ledger.customer_name);
-      await trackPlacedOrder(db, {
-        orderId: invoice.id,
-        email: ledger.customer_email,
-        firstName: first,
-        lastName: last,
-        customerId: ledger.customer_id ?? null,
-        items: source.map((it, idx) => ({
-          sku: it.sku ?? null,
-          name: (it.name || it.sku || 'Item').toString(),
-          quantity: lines[idx]?.qty ?? 1,
-          price: lines[idx]?.unit_price ?? 0,
-          variant: lines[idx]?.price_type === 'vial' ? 'Single vial' : 'Box',
-        })),
-        subtotal,
-        shipping,
-        total,
-        currency,
-        source: 'stealth_health',
-      });
-    }
-
-    return { created: true, invoiceId: invoice.id };
-  } catch (err) {
-    console.error('[puramass] materializeStealthHealthFulfillment threw:', err);
-    return { created: false };
+    console.error('[stealth-health] shipment booking failed:', err);
   }
 }
 
 /**
- * Credit the affiliate for this sale. Separated so both the freshly-created and
- * already-materialised paths run it, and kept best-effort: an uncredited
- * commission is a bookkeeping problem, while a thrown error here would break a
- * webhook ACK and make Stealth Health retry a payment we have already recorded.
+ * Credit the affiliate for this sale. Best-effort: an uncredited commission is
+ * a bookkeeping problem, while a thrown error would break a webhook ACK.
+ * Guarded against double credit by a unique index on `commissions.invoice_id`.
  */
 async function creditAffiliate(
   db: SupabaseClient,
   ledger: StealthHealthLedgerRow,
   invoiceId: string,
+  discountCodeId: string | null,
 ): Promise<void> {
   try {
     await recordAffiliateCommission(db, {
@@ -338,29 +632,9 @@ async function creditAffiliate(
       subtotalCents: ledger.subtotal_cents ?? null,
       customerId: ledger.customer_id ?? null,
       referralCode: ledger.referral_code ?? null,
-      discountCodeId: await readDiscountCodeId(db, ledger.id),
+      discountCodeId,
     });
   } catch (err) {
-    console.error('[puramass] affiliate commission failed:', err);
-  }
-}
-
-/**
- * The discount code this hand-off used, if any. Read here rather than threaded
- * through every caller's select: the webhook, poller and admin refresh each
- * shed columns for unmigrated databases, and a missing column here simply
- * means no code — the commission then falls back to referral attribution.
- */
-async function readDiscountCodeId(db: SupabaseClient, ledgerId: string): Promise<string | null> {
-  try {
-    const { data, error } = await db
-      .from('puramass_orders')
-      .select('discount_code_id')
-      .eq('id', ledgerId)
-      .maybeSingle();
-    if (error) return null;
-    return (data?.discount_code_id as string | null) ?? null;
-  } catch {
-    return null;
+    console.error('[stealth-health] affiliate commission failed:', err);
   }
 }

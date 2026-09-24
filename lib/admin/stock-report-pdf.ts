@@ -54,9 +54,9 @@ export async function renderStockReportPdf(
         margins: { top: MARGIN, bottom: MARGIN, left: MARGIN, right: MARGIN },
         bufferPages: true,
         info: {
-          Title: 'PuraMass Stock Report',
-          Author: 'PuraMass',
-          Creator: 'PuraMass Admin',
+          Title: 'Stealth Health Stock Report',
+          Author: 'Stealth Health',
+          Creator: 'Stealth Health Admin',
         },
       });
 
@@ -84,7 +84,7 @@ export async function renderStockReportPdf(
 
 function drawTitle(doc: any, left: number, width: number, generatedAt: Date): void {
   const top = doc.y;
-  doc.font('Helvetica-Bold').fontSize(26).fillColor(INK).text('PURAMASS', left, top);
+  doc.font('Helvetica-Bold').fontSize(26).fillColor(INK).text('STEALTH HEALTH', left, top);
   const afterWordmark = doc.y;
 
   doc.font('Helvetica-Bold').fontSize(11).fillColor(ACCENT)
@@ -302,7 +302,7 @@ function paginateFooters(doc: any): void {
       doc.save().lineWidth(0.5).strokeColor(RULE)
         .moveTo(left, y - 8).lineTo(left + width, y - 8).stroke().restore();
       doc.font('Helvetica').fontSize(8.5).fillColor(FAINT)
-        .text('PURAMASS · Stock Report', left, y, { width, align: 'left', lineBreak: false });
+        .text('STEALTH HEALTH · Stock Report', left, y, { width, align: 'left', lineBreak: false });
       doc.font('Helvetica').fontSize(8.5).fillColor(FAINT)
         .text(`Page ${i + 1} of ${range.count}`, left, y, { width, align: 'right', lineBreak: false });
     });
