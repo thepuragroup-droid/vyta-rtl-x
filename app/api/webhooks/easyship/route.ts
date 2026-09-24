@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { advanceOrderForward } from '@/lib/warehouse/types';
+import { trackOrderStatus, trackOrderStatusById } from '@/lib/klaviyo/events';
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -196,7 +197,7 @@ export async function POST(req: NextRequest) {
 
     const { data: invoice, error: invErr } = await db
       .from('invoices')
-      .select('id')
+      .select('*')
       .eq('easyship_shipment_id', easyshipId)
       .maybeSingle();
     // A database that hasn't run easyship-invoice-shipment-migration.sql has
@@ -220,6 +221,24 @@ export async function POST(req: NextRequest) {
         );
       }
     }
+    // Klaviyo "Fulfilled Order" / "Delivered Order" — only on the update that
+    // moves the shipment into that state, not on every later checkpoint.
+    const invoiceStage = mapToOrderStatus(trackingStatus);
+    if (invoiceStage && mapToOrderStatus(invoice.tracking_status) !== invoiceStage) {
+      await trackOrderStatus(db, {
+        id: invoice.id,
+        status: invoiceStage,
+        email: invoice.customer_email,
+        name: invoice.customer_name,
+        orderNumber: invoice.invoice_number ?? null,
+        total: invoice.total != null ? Number(invoice.total) : null,
+        currency: invoice.currency ?? 'CAD',
+        trackingNumber: trackingNumber ?? invoice.tracking_number ?? null,
+        trackingUrl: trackingUrl ?? invoice.tracking_url ?? null,
+        carrier: carrier ?? invoice.carrier ?? null,
+      });
+    }
+
     return NextResponse.json({ matched: true, anchor: 'invoice' });
   }
 
@@ -263,6 +282,9 @@ export async function POST(req: NextRequest) {
       );
     }
   }
+
+  // Klaviyo "Fulfilled Order" / "Delivered Order" (best-effort, never throws).
+  if (nextStatus) await trackOrderStatusById(db, order.id, nextStatus);
 
   return NextResponse.json({ matched: true, advanced: nextStatus });
 }

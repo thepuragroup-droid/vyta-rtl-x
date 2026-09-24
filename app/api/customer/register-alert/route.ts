@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getAdminAlertEmails } from '@/lib/admin/alert-recipients';
 import { sendRegistrationAlert } from '@/lib/email';
+import { syncNewCustomer } from '@/lib/klaviyo/events';
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const { data: customer } = await db
     .from('customers')
-    .select('id, first_name, last_name, email, contact_consent, created_at, registration_alert_sent_at')
+    .select('id, first_name, last_name, email, phone, contact_consent, created_at, registration_alert_sent_at')
     .eq('id', customerId)
     .maybeSingle();
 
@@ -48,6 +49,18 @@ export async function POST(req: NextRequest) {
   if (!createdMs || Date.now() - createdMs > 10 * 60 * 1000) {
     return NextResponse.json({ ok: false }, { status: 200 });
   }
+
+  // Push the new account to Klaviyo — profile, "Created Account", and the
+  // newsletter list when they ticked the consent box. Independent of the admin
+  // alert toggle below; deduped on the customer id, never throws.
+  await syncNewCustomer(db, {
+    customerId,
+    email: customer.email,
+    firstName: customer.first_name,
+    lastName: customer.last_name,
+    phone: customer.phone ?? null,
+    contactConsent: Boolean(customer.contact_consent),
+  });
 
   // Respect the admin toggle.
   const { data: settings } = await db

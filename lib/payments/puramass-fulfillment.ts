@@ -27,6 +27,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { recordAffiliateCommission } from '@/lib/affiliate/commission';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
+import { splitName, trackPlacedOrder } from '@/lib/klaviyo/events';
 
 export interface StealthHealthLedgerRow {
   id: string;
@@ -512,6 +513,51 @@ async function onFirstPaid(
     });
   } catch (err) {
     console.error('[stealth-health] admin order alert failed:', err);
+  }
+
+  // Klaviyo "Placed Order" + "Ordered Product". Once, on first payment; keyed
+  // on the invoice id so Klaviyo drops any duplicate. Never throws.
+  try {
+    const [{ data: inv }, { data: lines }] = await Promise.all([
+      db
+        .from('invoices')
+        .select('invoice_number, subtotal, shipping_cost, total, currency, customer_name, customer_email')
+        .eq('id', invoiceId)
+        .maybeSingle(),
+      db
+        .from('invoice_line_items')
+        .select('*')
+        .eq('invoice_id', invoiceId),
+    ]);
+    const email = (inv?.customer_email as string | null) ?? ledger.customer_email ?? null;
+    if (email) {
+      const { first, last } = splitName(
+        (inv?.customer_name as string | null) ?? ledger.customer_name ?? null,
+      );
+      await trackPlacedOrder(db, {
+        orderId: invoiceId,
+        orderNumber: (inv?.invoice_number as string | null) ?? null,
+        email,
+        firstName: first,
+        lastName: last,
+        customerId: ledger.customer_id ?? null,
+        items: ((lines ?? []) as any[]).map((l) => ({
+          productId: l.product_id ?? null,
+          name: String(l.description ?? 'Item'),
+          quantity: Number(l.qty) || 1,
+          price: Number(l.unit_price) || 0,
+          variant: l.price_type === 'vial' ? 'Single vial' : 'Box',
+        })),
+        subtotal: Number(inv?.subtotal) || 0,
+        shipping: Number(inv?.shipping_cost) || 0,
+        discountCode: trimOrNull(stored.discount_code),
+        total: Number(inv?.total) || 0,
+        currency: String(inv?.currency ?? 'CAD'),
+        source: 'stealth_health',
+      });
+    }
+  } catch (err) {
+    console.error('[stealth-health] klaviyo placed order failed:', err);
   }
 }
 

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
@@ -34,6 +34,7 @@ import {
 import { validateShippingAddress } from '@/lib/payments/puramass-address';
 import { isShippableCountry } from '@/lib/shipping/regions';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
+import { trackStartedCheckout } from '@/lib/klaviyo/events';
 import { createPendingStealthHealthInvoice } from '@/lib/payments/puramass-fulfillment';
 import {
   distributeAdDiscount,
@@ -822,6 +823,42 @@ export async function POST(req: NextRequest) {
   // payment when it lands, and mark them as having reached a checkout.
   void linkVisitorIdentity(db, visitor.anonymousId, { email, customerId });
   void stampVisitorMilestone(db, visitor.anonymousId, 'checkout_at');
+
+  // Klaviyo "Started Checkout" — drives the abandoned-checkout flow. The
+  // payment link is the resume URL; Klaviyo drops the flow for anyone who
+  // goes on to trigger "Placed Order". After the response, so the redirect
+  // never waits on it.
+  const nameBySku = new Map<string, string>();
+  for (const line of normalized) {
+    const product = byId.get(line.id);
+    const sku = (line.mapping === 'vial' ? product?.puramass_sku_vial : product?.puramass_sku)?.trim();
+    if (sku && product?.name) {
+      nameBySku.set(
+        `${sku}::${line.packSize}`,
+        line.mapping === 'vial' ? `${product.name} (single vial)` : `${product.name} (pack of ${line.packSize})`,
+      );
+    }
+  }
+  const klaviyoItems = [...linesBySku.entries()].map(([key, line]) => ({
+    sku: line.sku,
+    name: nameBySku.get(key) ?? line.sku,
+    quantity: line.quantity,
+    price: (discountedBySku.get(key) ?? line.unitPriceCents) / 100,
+  }));
+  after(() =>
+    trackStartedCheckout(db, {
+      checkoutId: partnerReference,
+      email,
+      firstName: firstName ?? null,
+      lastName: lastName ?? null,
+      customerId,
+      items: klaviyoItems,
+      value:
+        klaviyoItems.reduce((sum, i) => sum + i.price * i.quantity, 0) + shippingRate.total_charge,
+      currency: PURAMASS_CURRENCY,
+      checkoutUrl: order.payment_link ?? null,
+    }),
+  );
 
   // 13. Redirect target.
   return NextResponse.json({

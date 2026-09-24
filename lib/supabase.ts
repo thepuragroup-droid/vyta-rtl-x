@@ -357,6 +357,15 @@ export interface SiteSettings {
   // Processing fee folded into the live shipping rate (never shown separately).
   shipping_handling_fee_type: 'flat' | 'pct';
   shipping_handling_fee_value: number;
+  // Klaviyo (the private key itself is never returned)
+  klaviyo_enabled: boolean;
+  klaviyo_private_key_set: boolean;
+  klaviyo_private_key_source: 'db' | 'env' | null;
+  klaviyo_public_key: string;
+  klaviyo_list_id: string;
+  klaviyo_onsite_enabled: boolean;
+  klaviyo_server_events_enabled: boolean;
+  klaviyo_sync_signups: boolean;
   // Registration alerts
   registration_alert_enabled: boolean;
   abandoned_registration_enabled: boolean;

@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createInvoiceForOrder } from '@/lib/admin/order-invoice-server';
 import { logAuditServer } from '@/lib/admin/audit';
 import { adjustStockForConfirmedOrder, restoreStockForCancelledOrder } from '@/lib/order-stock';
+import { trackOrderStatusById } from '@/lib/klaviyo/events';
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -265,6 +266,12 @@ export async function PATCH(
 
   if (updateErr) {
     return NextResponse.json({ error: updateErr.message }, { status: 500 });
+  }
+
+  // Klaviyo lifecycle event for the new status (confirmed / shipped /
+  // delivered / cancelled / refunded). Best-effort, never throws.
+  if (newStatus && newStatus !== order.status) {
+    await trackOrderStatusById(db, params.id, newStatus);
   }
 
   return NextResponse.json({ success: true });
