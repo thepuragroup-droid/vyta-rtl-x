@@ -52,7 +52,6 @@ import FreeShippingProgress from '@/components/FreeShippingProgress';
 import LimitedTimeOffer from '@/components/cart/LimitedTimeOffer';
 import FrequentlyBoughtTogether from '@/components/cart/FrequentlyBoughtTogether';
 import YouMayAlsoLike from '@/components/cart/YouMayAlsoLike';
-import ReferralCodeField from '@/components/cart/ReferralCodeField';
 import { useCartRecommendations } from '@/components/cart/recommendations';
 import { usePromos } from '@/contexts/PromosContext';
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
@@ -395,8 +394,6 @@ export default function CartPage() {
                       <span>Proceed to Secure Checkout</span>
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                     </Link>
-
-                    <ReferralCodeField className="mt-3" />
 
                     {/* Why buy here — the same four claims the rest of the site
                         makes, restated where the decision is being made. */}

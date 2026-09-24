@@ -319,6 +319,9 @@ export async function POST(req: NextRequest) {
   }
   const firstName = String(body?.customer?.firstName ?? '').trim() || undefined;
   const lastName = String(body?.customer?.lastName ?? '').trim() || undefined;
+  if (!firstName || !lastName) {
+    return NextResponse.json({ error: 'Enter your first and last name.' }, { status: 400 });
+  }
   const referralCode = String(body?.referralCode ?? '').trim() || null;
   const discountCodeInput = String(body?.discountCode ?? '').trim() || null;
 
