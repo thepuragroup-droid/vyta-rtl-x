@@ -570,7 +570,18 @@ export default function PuramassCheckoutContent({
   // A live picker means a delivery method has to be chosen before paying;
   // otherwise there is only one shipping price and nothing to pick.
   const deliveryChosen = !shippingRatesEnabled || !ratesLive || !!selectedRate;
-  const canSubmit = emailValid && (!shippingRatesEnabled || addressReady) && deliveryChosen;
+  const namesValid = firstName.trim() !== "" && lastName.trim() !== "";
+  // With live rates on, the flat fee is only a fallback: until a quote has
+  // come back (and, if live, a courier is picked) there is no shipping price
+  // to show, so the summary says what's still needed instead of a number.
+  const shippingPending =
+    shippingRatesEnabled && (!addressReady || ratesLoading || (ratesLive && !selectedRate));
+  const canSubmit =
+    emailValid &&
+    namesValid &&
+    (!shippingRatesEnabled || addressReady) &&
+    !ratesLoading &&
+    deliveryChosen;
 
   const setShip = (patch: Partial<ShippingForm>) => {
     setShipping((f) => ({ ...f, ...patch }));
@@ -949,26 +960,28 @@ export default function PuramassCheckoutContent({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
-                        First name
+                        First name <span className="text-teal-dark">*</span>
                       </label>
                       <input
                         type="text"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Optional"
+                        placeholder="First name"
+                        required
                         autoComplete="given-name"
                         className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent transition"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-ink-muted uppercase tracking-wider mb-1.5">
-                        Last name
+                        Last name <span className="text-teal-dark">*</span>
                       </label>
                       <input
                         type="text"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Optional"
+                        placeholder="Last name"
+                        required
                         autoComplete="family-name"
                         className="w-full px-4 py-2.5 bg-surface rounded-lg border border-line text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-transparent transition"
                       />
@@ -1434,8 +1447,15 @@ export default function PuramassCheckoutContent({
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-ink-muted">Shipping</span>
                       <span className="text-sm text-ink tabular-nums">
-                        {shippingRatesEnabled && ratesLive && !selectedRate ? (
-                          <span className="text-ink-muted">Choose above</span>
+                        {shippingRatesEnabled && !addressReady ? (
+                          <span className="text-ink-muted">Enter address above</span>
+                        ) : shippingRatesEnabled && ratesLoading ? (
+                          <span className="inline-flex items-center gap-1.5 text-ink-muted">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            Calculating…
+                          </span>
+                        ) : shippingRatesEnabled && ratesLive && !selectedRate ? (
+                          <span className="text-ink-muted">Choose a courier above</span>
                         ) : freeShipping ? (
                           <span className="font-semibold text-emerald-700">Free</span>
                         ) : (
@@ -1446,7 +1466,7 @@ export default function PuramassCheckoutContent({
                     <div className="flex items-center justify-between pt-2 border-t border-line">
                       <span className="text-sm font-medium text-ink">Total</span>
                       <span className="text-lg font-bold text-ink tabular-nums">
-                        ${(discountedSubtotal + (deliveryChosen ? shippingCost : 0)).toFixed(2)}
+                        ${(discountedSubtotal + (shippingPending ? 0 : shippingCost)).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -1520,11 +1540,15 @@ export default function PuramassCheckoutContent({
                   <p className="mt-3 text-center text-xs text-ink-muted">
                     {!emailValid
                       ? "Enter a valid email to continue."
-                      : shippingRatesEnabled && !addressReady
-                        ? "Enter your shipping address to continue."
-                        : !deliveryChosen
-                          ? "Choose a delivery method to continue."
-                          : "You'll be redirected to complete payment securely, in CAD."}
+                      : !namesValid
+                        ? "Enter your first and last name to continue."
+                        : shippingRatesEnabled && !addressReady
+                          ? "Enter your shipping address to continue."
+                          : ratesLoading
+                            ? "Calculating shipping rates…"
+                            : !deliveryChosen
+                              ? "Choose a courier to continue."
+                              : "You'll be redirected to complete payment securely, in CAD."}
                   </p>
 
                   {/* What happens on the partner's page, so the extra step
