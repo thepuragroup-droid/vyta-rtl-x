@@ -30,10 +30,10 @@ than a second one beside it.
 3. **Send history** — how many times a cart has been chased, when, with which
    code and what offer; and a **Recovered** badge once a chased cart is paid.
 
-**No promo code is issued here.** Codes are generated on app.puramass.com and
+**No promo code is issued here.** Codes are generated on app.vytabio.com and
 pasted into the composer, exactly as on the customer desk. The discount type and
 amount only decide how the offer is *worded* and what the email's estimated
-total says — PuraMass applies the real discount when the buyer enters the code
+total says — Stealth Health applies the real discount when the buyer enters the code
 on its checkout page, which is why the email labels the figure "Estimated
 total".
 

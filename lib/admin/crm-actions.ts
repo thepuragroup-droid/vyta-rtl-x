@@ -315,7 +315,7 @@ export interface OutreachExtras {
  * Send one outreach / promo email and record it.
  *
  * The promo code is presented, never issued: codes are generated on the
- * Stealth Health platform (app.puramass.com) and pasted into the composer, so
+ * Stealth Health platform (app.vytabio.com) and pasted into the composer, so
  * nothing here validates or reserves one.
  *
  * The send is logged either way — a failed send stays visible in the history

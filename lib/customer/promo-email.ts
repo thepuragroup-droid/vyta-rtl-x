@@ -7,7 +7,7 @@
  * different code than the send is a preview you can't trust.
  *
  * PROMO CODES ARE NOT ISSUED HERE. They're created on the Stealth Health
- * platform (app.puramass.com); this builder only ever *presents* a code the
+ * platform (app.vytabio.com); this builder only ever *presents* a code the
  * admin has already generated there. See PROMO_SOURCE_NOTE.
  *
  * Three optional blocks ride on top of the plain message, all of them off
@@ -23,7 +23,7 @@
 
 /** Shown above the promo fields in the composer, so nobody goes looking for a generator. */
 export const PROMO_SOURCE_NOTE =
-  'Promo codes are generated in app.puramass.com (the Stealth Health platform). ' +
+  'Promo codes are generated in app.vytabio.com (the Stealth Health platform). ' +
   'Create the code there first, then paste it below to include it in this email.';
 
 export type PromoTemplateKey =
@@ -352,7 +352,7 @@ export interface PromoEmailInput {
   subject: string;
   /** Plain text, as typed in the composer. Blank lines become paragraphs. */
   body: string;
-  /** Generated on app.puramass.com — presented here, never issued here. */
+  /** Generated on app.vytabio.com — presented here, never issued here. */
   promoCode?: string | null;
   /** What the code gets them ("15% off any order over $200"). */
   promoDetails?: string | null;

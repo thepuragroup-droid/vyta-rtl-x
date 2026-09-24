@@ -251,9 +251,9 @@ export default function RecoverCheckoutDialog({ order, onClose, onSend }: Props)
             : null
         }
         promoNote={
-          'Promo codes are generated in app.puramass.com (the Stealth Health platform). ' +
+          'Promo codes are generated in app.vytabio.com (the Stealth Health platform). ' +
           'Create the code there first, then paste it below — the type and amount you pick ' +
-          'only decide how the offer is worded; PuraMass applies the real discount when the ' +
+          'only decide how the offer is worded; Stealth Health applies the real discount when the ' +
           'customer enters the code at checkout.'
         }
         sendLabel="Send recovery email"
