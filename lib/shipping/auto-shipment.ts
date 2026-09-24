@@ -12,10 +12,13 @@ import {
   type InvoiceRowForDestination,
 } from '@/lib/shipping/invoice-destination';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
+import {
+  COURIER_PREFERENCES,
+  pickCourier,
+  type CourierPreference,
+} from '@/lib/shipping/courier-pick';
 
-export type CourierPreference = 'cheapest' | 'ups' | 'fedex';
-
-const COURIER_PREFERENCES: readonly CourierPreference[] = ['cheapest', 'ups', 'fedex'];
+export type { CourierPreference };
 
 /**
  * Narrow an untrusted client value to a CourierPreference. Anything else
@@ -75,7 +78,7 @@ export async function getAutoShipmentSettings(
     return {
       autoCreate: !!data?.easyship_auto_create_shipment,
       courierPreference:
-        (data?.easyship_auto_courier_preference as CourierPreference) ||
+        normalizeCourierPreference(data?.easyship_auto_courier_preference) ??
         'cheapest',
       autoBuyLabel: !!data?.easyship_auto_buy_label,
     };
@@ -195,7 +198,8 @@ export interface AutoShipmentOptions {
    * Courier preference for this shipment only, overriding the site-wide
    * `easyship_auto_courier_preference`. Used when the admin picked a carrier
    * (UPS / FedEx / cheapest) without a specific live rate — the cheapest
-   * matching service from the fresh quote wins.
+   * matching service from the fresh quote wins — and by checkout orders that
+   * shipped on the flat / free rate, which book the fastest service.
    */
   courierPreference?: CourierPreference;
   /** Purchase Easyship parcel insurance (default false). */
@@ -613,17 +617,6 @@ export async function autoCreateShipmentForInvoice(
   } catch (e: any) {
     await recordAttempt(db, anchor, 'create', 'failed', e?.message ?? 'unknown error');
   }
-}
-
-function pickCourier(rates: any[], pref: CourierPreference) {
-  if (pref === 'cheapest') {
-    return rates.sort((a, b) => a.total_charge - b.total_charge)[0] ?? null;
-  }
-  const re = new RegExp(`\\b${pref}\\b`, 'i');
-  const match = rates
-    .filter((r) => re.test(r.courier_name || ''))
-    .sort((a, b) => a.total_charge - b.total_charge);
-  return match[0] ?? rates.sort((a, b) => a.total_charge - b.total_charge)[0] ?? null;
 }
 
 // ---------- Auto-buy label on invoice paid ----------
