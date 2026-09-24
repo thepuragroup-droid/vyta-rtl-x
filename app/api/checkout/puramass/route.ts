@@ -5,6 +5,7 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import {
   isPuramassConfigured,
   createPuramassOrder,
+  buildPuramassOrderBody,
   PuramassApiError,
   PURAMASS_CURRENCY,
   type PuramassOrderLine,
@@ -605,15 +606,19 @@ export async function POST(req: NextRequest) {
   const partnerReference = `amc_${crypto.randomUUID()}`;
 
   // 11. Create the hosted order.
+  const orderArgs = {
+    items,
+    customer: { email, first_name: firstName, last_name: lastName },
+    partnerReference,
+    currency: PURAMASS_CURRENCY,
+    shippingTotalCents,
+  };
+  // TEMP: log the exact POST /partner/store/orders body for debugging.
+  const debugRequestBody = buildPuramassOrderBody(orderArgs);
+  console.log('[puramass] TEMP order request body:', JSON.stringify(debugRequestBody));
   let order;
   try {
-    order = await createPuramassOrder({
-      items,
-      customer: { email, first_name: firstName, last_name: lastName },
-      partnerReference,
-      currency: PURAMASS_CURRENCY,
-      shippingTotalCents,
-    });
+    order = await createPuramassOrder(orderArgs);
   } catch (err) {
     if (err instanceof PuramassApiError) {
       // Surface 4xx messages (client can act on them); collapse the rest to 502
@@ -756,5 +761,7 @@ export async function POST(req: NextRequest) {
     cart_offer_percent: discount && earnedOffer ? cartOfferSettings.percent : 0,
     discount_percent: discount ? discount.percent : 0,
     ad_discount: discount ? discount.discountCents / 100 : 0,
+    // TEMP: echoed so the checkout page can log it instead of redirecting.
+    debug_request_body: debugRequestBody,
   });
 }
