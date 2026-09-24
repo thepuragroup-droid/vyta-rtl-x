@@ -590,6 +590,15 @@ export default function PuramassCheckoutContent({
           }),
         });
         const json = await res.json().catch(() => ({}));
+        // TEMP DEBUG: surface why live rates fell back. Remove once diagnosed.
+        if (!res.ok || !json.live) {
+          console.error("[checkout] shipping rates fallback", {
+            status: res.status,
+            error: json.error,
+            note: json.note,
+            debug: json.debug,
+          });
+        }
         if (cancelled) return;
         if (!res.ok) {
           setRates([]);
@@ -606,7 +615,8 @@ export default function PuramassCheckoutContent({
         setCourierId((current) =>
           current && next.some((r) => r.courier_id === current) ? current : null,
         );
-      } catch {
+      } catch (err) {
+        console.error("[checkout] shipping rates request failed", err); // TEMP DEBUG
         if (!cancelled) {
           setRates([]);
           setRatesLive(false);
