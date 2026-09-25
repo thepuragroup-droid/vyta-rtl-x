@@ -129,13 +129,6 @@ export default function Navigation() {
                 Products
               </Link>
 
-              <Link
-                href="/lab-results"
-                className={desktopLinkCls}
-              >
-                Lab Results
-              </Link>
-
               {/* Company Dropdown */}
               <div
                 className="relative z-[60]"
@@ -465,13 +458,6 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
               >
                 Products
-              </Link>
-              <Link
-                href="/lab-results"
-                className="block px-4 py-3 text-ink-muted hover:text-ink hover:bg-surface rounded-xl transition-colors text-sm font-medium"
-                onClick={() => setIsOpen(false)}
-              >
-                Lab Results
               </Link>
 
               {/* Company Section */}
