@@ -19,7 +19,6 @@ import {
   ChevronDown,
   Users,
   Beaker,
-  Microscope,
   BookOpen,
   LayoutDashboard,
   Warehouse,
@@ -185,19 +184,6 @@ export default function Navigation() {
                               <p className="text-xs text-ink-muted">Research &amp; guides</p>
                             </div>
                           </Link>
-                          <div className="flex items-center gap-3 px-3 py-3 rounded-xl cursor-not-allowed opacity-50">
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                              <Microscope className="w-5 h-5 text-slate-400" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-slate-400">
-                                Certifications
-                              </p>
-                              <p className="text-xs text-slate-400">
-                                Coming Soon
-                              </p>
-                            </div>
-                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -481,13 +467,6 @@ export default function Navigation() {
                   <BookOpen className="w-4 h-4 text-teal-dark" />
                   <span className="text-sm font-medium">Articles</span>
                 </Link>
-                <div className="flex items-center gap-3 px-4 py-3 text-ink-light rounded-xl cursor-not-allowed opacity-50">
-                  <Microscope className="w-4 h-4 text-ink-light" />
-                  <span className="text-sm font-medium">Certifications</span>
-                  <span className="text-[10px] text-ink-muted ml-auto">
-                    Coming Soon
-                  </span>
-                </div>
               </div>
 
               <Link
