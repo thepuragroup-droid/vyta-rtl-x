@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CHANNELS, isPaidChannel, type Channel } from '@/lib/analytics/attribution';
+import { earningsGroupOf } from '@/lib/analytics/order-source';
 import {
   isPaidAdsScoped,
   scopeToPaidAds,
@@ -450,14 +451,12 @@ function buildEarnings(
   unattributed: { paid_orders: number; order_revenue: number; hosted_revenue: number },
 ): EarningsGroup[] {
   const GROUPS: Array<{ key: EarningsGroupKey; label: string; match: (c: ChannelRow) => boolean }> = [
-    { key: 'paid', label: 'Paid ads', match: (c) => c.paid },
-    { key: 'affiliate', label: 'Affiliate', match: (c) => c.channel === 'affiliate' },
-    {
-      key: 'organic',
-      label: 'Organic & referral',
-      match: (c) => !c.paid && c.channel !== 'affiliate' && c.channel !== 'direct',
-    },
-    { key: 'direct', label: 'Direct', match: (c) => c.channel === 'direct' },
+    // One rule, shared with the order drill-down (lib/analytics/order-source.ts),
+    // so the orders listed under a bucket are exactly the ones counted in it.
+    { key: 'paid', label: 'Paid ads', match: (c) => earningsGroupOf(c.channel) === 'paid' },
+    { key: 'affiliate', label: 'Affiliate', match: (c) => earningsGroupOf(c.channel) === 'affiliate' },
+    { key: 'organic', label: 'Organic & referral', match: (c) => earningsGroupOf(c.channel) === 'organic' },
+    { key: 'direct', label: 'Direct', match: (c) => earningsGroupOf(c.channel) === 'direct' },
   ];
 
   const groups = GROUPS.map((g) => {

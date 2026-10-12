@@ -2,14 +2,17 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, Wallet, ArrowRight } from 'lucide-react';
-import { formatMoney } from '@/lib/currency';
+import { Loader2, Wallet, ArrowRight, ChevronDown, ExternalLink, Lightbulb } from 'lucide-react';
+import { formatMoney, normalizeCurrency } from '@/lib/currency';
 import {
   getAttributionSummary,
+  getEarningsGroupOrders,
   channelLabel,
   EARNINGS_TINTS,
   type AttributionSummary,
   type EarningsGroup,
+  type SourceOrderRow,
+  type SourceOrdersResponse,
 } from '@/lib/admin/attribution';
 import InfoTip from '@/components/admin/InfoTip';
 import {
@@ -137,10 +140,11 @@ export default function EarningsByChannel({
           </div>
         </div>
 
-        {/* Per-group figures */}
+        {/* Per-group figures. In the full view each row opens the orders
+            behind it, so a percentage can be checked order by order. */}
         <div className="border-t border-line divide-y divide-line">
           {groups.map((g) => (
-            <GroupRow key={g.key} group={g} compact={variant === 'compact'} />
+            <GroupRow key={g.key} group={g} compact={variant === 'compact'} from={from} to={to} />
           ))}
         </div>
 
@@ -222,42 +226,198 @@ function Header({ hasRange, compact }: { hasRange: boolean; compact?: boolean })
   );
 }
 
-function GroupRow({ group, compact }: { group: EarningsGroup; compact?: boolean }) {
+function GroupRow({
+  group,
+  compact,
+  from,
+  to,
+}: {
+  group: EarningsGroup;
+  compact?: boolean;
+  from?: string;
+  to?: string;
+}) {
   const tint = EARNINGS_TINTS[group.key];
+  const [open, setOpen] = useState(false);
+  const canOpen = !compact && group.paid_orders > 0;
+
   return (
-    <div className="px-5 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-      <div className="flex items-center gap-2 min-w-[9rem]">
-        <span className={`w-2 h-2 rounded-full ${tint.dot}`} aria-hidden />
-        <span className="text-sm font-semibold text-ink">{group.label}</span>
-        <InfoTip label={`What counts as ${group.label}`}>
-          {EARNINGS_GROUP_TIPS[group.key]}
-        </InfoTip>
+    <div>
+      <div className="px-5 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <div className="flex items-center gap-2 min-w-[9rem]">
+          <span className={`w-2 h-2 rounded-full ${tint.dot}`} aria-hidden />
+          <span className="text-sm font-semibold text-ink">{group.label}</span>
+          <InfoTip label={`What counts as ${group.label}`}>
+            {EARNINGS_GROUP_TIPS[group.key]}
+          </InfoTip>
+        </div>
+
+        <span className="text-xs text-ink-muted tabular-nums w-20">
+          {fmtInt(group.paid_orders)} order{group.paid_orders === 1 ? '' : 's'}
+        </span>
+
+        <span className="text-sm tabular-nums text-ink">
+          {group.order_revenue > 0 ? fmtCAD(group.order_revenue) : <span className="text-ink-light">—</span>}
+          {!compact && group.aov_cad > 0 && (
+            <span className="text-[11px] text-ink-muted ml-1">({fmtCAD(group.aov_cad)} avg)</span>
+          )}
+        </span>
+
+        <span className="text-sm tabular-nums text-ink">
+          {group.hosted_revenue > 0 ? fmtUSD(group.hosted_revenue) : <span className="text-ink-light">—</span>}
+          {!compact && group.aov_usd > 0 && (
+            <span className="text-[11px] text-ink-muted ml-1">({fmtUSD(group.aov_usd)} avg)</span>
+          )}
+        </span>
+
+        {/* Which channels rolled up here — the drill-down the group hides. */}
+        {!compact && group.channels.length > 0 && (
+          <span className="text-[11px] text-ink-muted truncate max-w-[16rem]" title={group.channels.map(channelLabel).join(', ')}>
+            {group.channels.map(channelLabel).join(' · ')}
+          </span>
+        )}
+
+        {canOpen && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-teal-dark hover:text-teal-dark/80"
+          >
+            {open ? 'Hide orders' : 'Which orders?'}
+            <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden />
+          </button>
+        )}
       </div>
 
-      <span className="text-xs text-ink-muted tabular-nums w-20">
-        {fmtInt(group.paid_orders)} order{group.paid_orders === 1 ? '' : 's'}
-      </span>
+      {open && <GroupOrders group={group} from={from} to={to} />}
+    </div>
+  );
+}
 
-      <span className="text-sm tabular-nums text-ink">
-        {group.order_revenue > 0 ? fmtCAD(group.order_revenue) : <span className="text-ink-light">—</span>}
-        {!compact && group.aov_cad > 0 && (
-          <span className="text-[11px] text-ink-muted ml-1">({fmtCAD(group.aov_cad)} avg)</span>
-        )}
-      </span>
+/**
+ * The orders behind one bucket, each with the evidence that put it there.
+ * Fetched only when opened — most visits never look.
+ */
+function GroupOrders({ group, from, to }: { group: EarningsGroup; from?: string; to?: string }) {
+  const [data, setData] = useState<SourceOrdersResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
-      <span className="text-sm tabular-nums text-ink">
-        {group.hosted_revenue > 0 ? fmtUSD(group.hosted_revenue) : <span className="text-ink-light">—</span>}
-        {!compact && group.aov_usd > 0 && (
-          <span className="text-[11px] text-ink-muted ml-1">({fmtUSD(group.aov_usd)} avg)</span>
-        )}
-      </span>
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getEarningsGroupOrders(group.key, { from: from || undefined, to: to || undefined })
+      .then((result) => {
+        if (!cancelled) setData(result);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [group.key, from, to]);
 
-      {/* Which channels rolled up here — the drill-down the group hides. */}
-      {!compact && group.channels.length > 0 && (
-        <span className="text-[11px] text-ink-muted ml-auto truncate max-w-[16rem]" title={group.channels.map(channelLabel).join(', ')}>
-          {group.channels.map(channelLabel).join(' · ')}
-        </span>
+  if (loading) {
+    return (
+      <div className="px-5 pb-4 flex items-center gap-2 text-xs text-ink-muted">
+        <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden /> Loading orders…
+      </div>
+    );
+  }
+
+  if (!data || !data.available) {
+    return <p className="px-5 pb-4 text-xs text-ink-muted">Couldn&apos;t load the orders for this bucket.</p>;
+  }
+
+  if (data.orders.length === 0) {
+    return <p className="px-5 pb-4 text-xs text-ink-muted">No paid orders in this bucket for the range.</p>;
+  }
+
+  return (
+    <div className="px-5 pb-4">
+      {group.key === 'unattributed' && (
+        <p className="mb-2 text-xs text-ink-muted leading-relaxed">
+          These orders have no channel recorded, so they stay in Unattributed.{' '}
+          {data.hinted > 0 ? (
+            <>
+              <span className="font-medium text-ink">{fmtInt(data.hinted)}</span> of them carry a clue
+              to where they likely came from — shown in amber below.
+            </>
+          ) : (
+            'None of them carries a clue to where they came from.'
+          )}
+        </p>
+      )}
+
+      <ul className="rounded-lg border border-line divide-y divide-line bg-surface/40 max-h-[28rem] overflow-y-auto">
+        {data.orders.map((o) => (
+          <OrderSourceItem key={`${o.kind}:${o.id}`} order={o} />
+        ))}
+      </ul>
+
+      {data.truncated && (
+        <p className="mt-2 text-[11px] text-ink-muted">
+          Showing the most recent {fmtInt(data.orders.length)} of {fmtInt(data.total)} orders. Narrow the
+          date range to see the rest.
+        </p>
       )}
     </div>
+  );
+}
+
+function OrderSourceItem({ order }: { order: SourceOrderRow }) {
+  const amount = formatMoney(order.amount, normalizeCurrency(order.currency));
+  return (
+    <li className="px-3 py-2.5">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+        <Link
+          href={order.href}
+          className="inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-teal-dark"
+        >
+          {order.reference}
+          <ExternalLink className="w-3 h-3 text-ink-muted" aria-hidden />
+        </Link>
+        <span className="text-[11px] uppercase tracking-wide text-ink-muted">
+          {order.kind === 'hosted' ? 'Hosted' : 'Store'}
+        </span>
+        <span className="text-xs text-ink-muted tabular-nums">{order.created_at.slice(0, 10)}</span>
+        {order.email && <span className="text-xs text-ink-muted truncate max-w-[14rem]">{order.email}</span>}
+        <span className="ml-auto text-sm tabular-nums text-ink">{amount}</span>
+      </div>
+
+      <p className="mt-1 text-xs text-ink leading-relaxed">
+        {order.channel && (
+          <span className="font-semibold">
+            {channelLabel(order.channel)}
+            {order.campaign ? ` · ${order.campaign}` : ''} —{' '}
+          </span>
+        )}
+        {order.reason}
+      </p>
+
+      {order.evidence.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {order.evidence.map((e) => (
+            <span
+              key={`${e.label}:${e.value}`}
+              className="inline-flex items-center gap-1 rounded bg-white border border-line px-1.5 py-0.5 text-[11px]"
+            >
+              <span className="text-ink-muted">{e.label}</span>
+              <span className="font-mono text-ink break-all">{e.value}</span>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {order.hints.map((h) => (
+        <p key={`${h.channel}:${h.reason}`} className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700">
+          <Lightbulb className="w-3.5 h-3.5 mt-px shrink-0" aria-hidden />
+          <span>
+            Likely <span className="font-semibold">{channelLabel(h.channel)}</span> — {h.reason}
+          </span>
+        </p>
+      ))}
+    </li>
   );
 }

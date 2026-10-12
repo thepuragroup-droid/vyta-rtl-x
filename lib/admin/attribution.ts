@@ -116,3 +116,55 @@ export const EARNINGS_TINTS: Record<EarningsGroupKey, { bar: string; text: strin
   direct:       { bar: 'bg-ink/60',      text: 'text-ink',         dot: 'bg-ink/60' },
   unattributed: { bar: 'bg-line',        text: 'text-ink-muted',   dot: 'bg-line' },
 };
+
+/** One order behind a bucket of the earnings split. Mirrors the orders route. */
+export interface SourceOrderRow {
+  id: string;
+  kind: 'store' | 'hosted';
+  reference: string;
+  email: string | null;
+  amount: number;
+  currency: string;
+  created_at: string;
+  href: string;
+  group: EarningsGroupKey;
+  channel: string | null;
+  campaign: string | null;
+  reason: string;
+  evidence: Array<{ label: string; value: string }>;
+  hints: Array<{ channel: string; reason: string }>;
+}
+
+export interface SourceOrdersResponse {
+  group: EarningsGroupKey;
+  range: { from: string | null; to: string | null };
+  available: boolean;
+  orders: SourceOrderRow[];
+  total: number;
+  truncated: boolean;
+  hinted: number;
+}
+
+/** The orders behind one bucket of the split, each with why it is there. */
+export async function getEarningsGroupOrders(
+  group: EarningsGroupKey,
+  range?: AnalyticsRange,
+): Promise<SourceOrdersResponse | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token ?? null;
+
+  const params = new URLSearchParams({ group });
+  if (range?.from) params.set('from', range.from);
+  if (range?.to) params.set('to', range.to);
+  appendAdminViewParam(params);
+
+  try {
+    return await apiFetch<SourceOrdersResponse>(
+      `/api/admin/analytics/attribution/orders?${params.toString()}`,
+      { cache: 'no-store', headers: token ? { Authorization: `Bearer ${token}` } : {} },
+    );
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}

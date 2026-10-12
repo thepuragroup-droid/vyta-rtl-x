@@ -145,6 +145,26 @@ range, so the split reads as a whole rather than a sample. When the unattributed
 share is 20% or more the full view says so in as many words, because until it
 falls the split is not yet trustworthy.
 
+**Which orders are in each bucket**: in the full view every group row has a
+*Which orders?* toggle. It lists the paid orders behind that percentage (from
+`GET /api/admin/analytics/attribution/orders?group=…`), each with a one-line
+reason and the evidence that decided it — the click ID (`gclid`, `fbclid`, …),
+`utm_source` / `utm_medium` / campaign, referral code, referring site and
+landing path from the order's first touch. The bucket rule is shared with the
+summary (`earningsGroupOf` in `lib/analytics/order-source.ts`), so the list
+always matches the count above it.
+
+For **Unattributed** orders the reason says whether the order predates the first
+attributed order (attribution wasn't collecting yet) or came after it (cookie
+blocked, consent declined, another device). It also shows amber *Likely …*
+hints from three places: a `referral_code` on the order (→ affiliate), the
+channel the buyer's customer account was won by, and a tracked visitor with the
+buyer's email. Hints are for reading only. They never move an order out of
+Unattributed, so the split still counts only what was recorded.
+
+The `analytics` role may open only the Paid ads bucket, and buyer emails are
+withheld from it.
+
 **Admin → Analytics → Acquisition** also shows the funnel per channel —
 visitors, sign-ups, checkouts, purchasers, conversion — plus a campaign
 drill-down from `utm_campaign`.
