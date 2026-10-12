@@ -566,12 +566,82 @@ export interface EasyshipShipmentSummary {
   destination_name: string | null;
   created_at: string | null;
   status: string | null;
+  // The rest is what an operator needs to tell two parcels apart when picking
+  // one by hand (the per-invoice shipment override). All best-effort: the list
+  // endpoint returns whatever the shipment carries, and a draft has no label.
+  /** Service, e.g. "UPS Express Saver". */
+  service_name?: string | null;
+  /** What the selected rate / label costs on the Easyship account. */
+  total_charge?: number | null;
+  currency?: string | null;
+  label_state?: EasyshipShipmentDetails['label_state'];
+  tracking_url?: string | null;
+  destination_email?: string | null;
+  destination_company?: string | null;
+  destination_city?: string | null;
+  destination_state?: string | null;
+  destination_postal_code?: string | null;
+  destination_country?: string | null;
+  /** Our order / invoice number, when the shipment was created with one. */
+  platform_order_number?: string | null;
+  /** Units across every parcel's items. */
+  item_count?: number | null;
+  /** Total actual weight in kg. */
+  weight_kg?: number | null;
+}
+
+/** Flatten one shipment from the list endpoint. Pure, so it can be unit-tested. */
+export function summarizeEasyshipShipment(shipment: any): EasyshipShipmentSummary {
+  const s = shipment ?? {};
+  const n = normalizeEasyshipShipment(s);
+  const dest = s.destination_address ?? {};
+  const parcels: any[] = Array.isArray(s.parcels) ? s.parcels : [];
+
+  let itemCount: number | null = null;
+  let weight: number | null = null;
+  for (const p of parcels) {
+    for (const it of Array.isArray(p?.items) ? p.items : []) {
+      const q = num(it?.quantity);
+      if (q != null) itemCount = (itemCount ?? 0) + q;
+    }
+    const w = num(p?.total_actual_weight) ?? num(p?.actual_weight);
+    if (w != null) weight = (weight ?? 0) + w;
+  }
+  if (weight == null) weight = num(s.total_actual_weight);
+
+  return {
+    easyship_shipment_id: n.easyship_shipment_id,
+    tracking_number: n.tracking_number,
+    label_url: n.label_url,
+    courier_name: str(s.courier_name) ?? str(s.selected_courier?.name) ?? n.carrier,
+    destination_name:
+      str(dest.contact_name) ??
+      ([dest.first_name, dest.last_name].filter(Boolean).join(' ').trim() || null),
+    created_at: str(s.created_at),
+    status: str(s.status) ?? str(s.shipment_state) ?? str(s.label_state),
+    service_name: n.service_name,
+    total_charge: n.total_charge,
+    currency: n.currency,
+    label_state: n.label_state,
+    tracking_url: n.tracking_url,
+    destination_email: str(dest.contact_email) ?? str(dest.email),
+    destination_company: str(dest.company_name),
+    destination_city: str(dest.city),
+    destination_state: str(dest.state),
+    destination_postal_code: str(dest.postal_code),
+    destination_country: str(dest.country_alpha2) ?? str(dest.country),
+    platform_order_number:
+      str(s.order_data?.platform_order_number) ?? str(s.platform_order_number),
+    item_count: itemCount,
+    weight_kg: weight,
+  };
 }
 
 /**
  * List shipments created on or after `sinceIso` (a date or full ISO string).
- * Powers the admin Easyship-sync dialog: fetch a day's shipments and match
- * them to invoices by normalized customer name.
+ * Powers the admin Easyship-sync dialog (fetch a day's shipments and match
+ * them to invoices by normalized customer name) and the per-invoice shipment
+ * override picker.
  *
  * Uses the 2024-09 GET /shipments endpoint. Easyship paginates via
  * `next_page`; we walk it (bounded) so a busy day still returns every match.
@@ -596,23 +666,7 @@ export async function listEasyshipShipments(
     }
     const json: any = await res.json();
     for (const s of json.shipments ?? []) {
-      const dest = s.destination_address ?? {};
-      out.push({
-        easyship_shipment_id: s.easyship_shipment_id ?? s.id ?? '',
-        tracking_number: s.tracking_number ?? null,
-        label_url:
-          s.label_url ??
-          s.shipping_documents?.label_url ??
-          s.label?.url ??
-          null,
-        courier_name: s.courier_name ?? s.selected_courier?.name ?? null,
-        destination_name:
-          dest.contact_name ??
-          ([dest.first_name, dest.last_name].filter(Boolean).join(' ').trim() ||
-            null),
-        created_at: s.created_at ?? null,
-        status: s.status ?? s.label_state ?? null,
-      });
+      out.push(summarizeEasyshipShipment(s));
     }
     // Pagination shapes vary between EasyShip API versions — accept the two
     // common ones and stop the moment we don't see a next page.
