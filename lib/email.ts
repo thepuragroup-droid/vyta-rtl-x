@@ -12,6 +12,7 @@ import {
   type AdminOrderPaidEmailData,
 } from '@/lib/order-confirmation-email';
 import {
+  affiliateCommissionAdminCopySubject,
   affiliateCommissionSubject,
   renderAffiliateCommissionHtml,
   renderAffiliateCommissionText,
@@ -1064,14 +1065,17 @@ export async function sendAdminOrderPaidAlert(
  * Tell an affiliate a paid order earned them a commission ("You earned a new
  * commission"). Sent once per commission by `notifyAffiliateOfCommission`
  * (lib/affiliate/commission-email.ts); the template is
- * lib/affiliate-commission-email.ts. Never throws; `subject` is returned on
- * every branch so the caller can log it.
+ * lib/affiliate-commission-email.ts. With `adminCopy` it's the admins' copy:
+ * the same email to the admin list, under a subject naming the affiliate.
+ * Never throws; `subject` is returned on every branch so the caller can log it.
  */
 export async function sendAffiliateCommissionEmail(
-  to: string,
+  to: string | string[],
   data: AffiliateCommissionEmailData,
+  opts: { adminCopy?: boolean } = {},
 ): Promise<{ success: boolean; id?: string; error?: string; subject: string }> {
-  const subject = affiliateCommissionSubject(data);
+  const subject = opts.adminCopy ? affiliateCommissionAdminCopySubject(data) : affiliateCommissionSubject(data);
+  if (Array.isArray(to) && to.length === 0) return { success: false, error: "no admin recipients", subject };
   try {
     const { data: result, error } = await getResend().emails.send({
       from: fromEmail,

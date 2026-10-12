@@ -2,6 +2,8 @@
  * The affiliate's "You earned a new commission" email — sent automatically,
  * once, when a paid order credits them (lib/affiliate/commission-email.ts
  * `notifyAffiliateOfCommission`, called where the commission is booked).
+ * The admin notification list gets a copy of the same email under its own
+ * subject (`affiliateCommissionAdminCopySubject`).
  *
  * Built in the shipped email's frame (`renderVytaEmailShell`: cover photo,
  * white panel) with its card, row and button helpers, under the same rules:
@@ -43,6 +45,15 @@ const INTRO = 'A customer just placed an order using your affiliate link or code
 
 export function affiliateCommissionSubject(data: AffiliateCommissionEmailData): string {
   return `You earned a ${money(data.commission)} commission on order ${data.orderNumber}`;
+}
+
+/**
+ * Subject of the admins' copy (same body): says whose commission it is, so it
+ * doesn't read as "you earned" in an admin's inbox.
+ */
+export function affiliateCommissionAdminCopySubject(data: AffiliateCommissionEmailData): string {
+  const who = data.affiliateName || 'An affiliate';
+  return `[Admin copy] ${who} earned a ${money(data.commission)} commission on order ${data.orderNumber}`;
 }
 
 function detailsCard(site: string, data: AffiliateCommissionEmailData): string {

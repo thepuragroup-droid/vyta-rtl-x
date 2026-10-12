@@ -6,6 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  affiliateCommissionAdminCopySubject,
   affiliateCommissionSubject,
   renderAffiliateCommissionHtml,
   renderAffiliateCommissionText,
@@ -74,4 +75,15 @@ test('plain-text version carries the same facts', () => {
   assert.match(text, /Referral code: ALWASSERBERGER/);
   assert.match(text, /next payout/);
   assert.match(text, /\/affiliate\/dashboard/);
+});
+
+test('admin copy subject names the affiliate', () => {
+  assert.equal(
+    affiliateCommissionAdminCopySubject(data),
+    '[Admin copy] Al Wasserberger earned a $18.48 commission on order LPGUSA-1218',
+  );
+  assert.equal(
+    affiliateCommissionAdminCopySubject({ ...data, affiliateName: '' }),
+    '[Admin copy] An affiliate earned a $18.48 commission on order LPGUSA-1218',
+  );
 });
