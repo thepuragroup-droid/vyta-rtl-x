@@ -14,7 +14,7 @@ import { apiFetch } from '@/lib/api-fetch';
 import type { Product } from '@/lib/supabase';
 import { rankBySearch } from '@/lib/search';
 import {
-  DEFAULT_USD_RATE, productUsdPrice, formatMoney, formatPackSizes,
+  DEFAULT_USD_RATE, productUsdPrice, formatMoney, formatPackSizes, hasCustomPackSizes,
   normalizePackOptions, normalizePackSizes, packSizesFor, vialPriceFor, vialsPerBoxOf,
   type PriceCurrency,
 } from '@/lib/pricing';
@@ -888,6 +888,7 @@ export default function ProductsManagementPage() {
           badge: stored?.badge ?? '',
           price: stored?.price != null ? String(stored.price) : '',
           compare_at: stored?.compare_at != null ? String(stored.compare_at) : '',
+          enabled: stored?.enabled ?? true,
         };
       }),
     });
@@ -1555,22 +1556,35 @@ export default function ProductsManagementPage() {
                 <div className="text-sm font-medium text-ink">{product.name}</div>
                 {product.slug && <div className="text-xs text-ink-muted">{product.slug}</div>}
                 {/* Pack options at a glance — teal when an admin chose them,
-                    muted when the row is on the default single-vial + case. */}
-                <div
-                  className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium tabular-nums ${
-                    normalizePackSizes(product.pack_sizes).length > 0
-                      ? 'bg-teal/10 text-teal-dark'
-                      : 'bg-surface-2 text-ink-muted'
-                  }`}
-                  title={
-                    normalizePackSizes(product.pack_sizes).length > 0
-                      ? 'Custom pack options'
-                      : 'Default: single vial + one full case'
-                  }
-                >
-                  <Boxes className="w-3 h-3" />
-                  {formatPackSizes(packSizesFor(product))}
-                </div>
+                    muted when the row is on the default single-vial + case.
+                    Packs switched off in the product form are counted after
+                    the sizes on sale. */}
+                {(() => {
+                  const custom = hasCustomPackSizes(product);
+                  const hidden = normalizePackOptions(product.pack_options)
+                    .filter((option) => !option.enabled)
+                    .map((option) => option.size);
+                  return (
+                    <div
+                      className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium tabular-nums ${
+                        custom ? 'bg-teal/10 text-teal-dark' : 'bg-surface-2 text-ink-muted'
+                      }`}
+                      title={
+                        hidden.length > 0
+                          ? `Custom pack options · switched off: ${formatPackSizes(hidden)}`
+                          : custom
+                            ? 'Custom pack options'
+                            : 'Default: single vial + one full case'
+                      }
+                    >
+                      <Boxes className="w-3 h-3" />
+                      {formatPackSizes(packSizesFor(product))}
+                      {hidden.length > 0 && (
+                        <span className="text-ink-muted">· {hidden.length} off</span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </td>

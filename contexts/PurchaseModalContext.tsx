@@ -329,7 +329,9 @@ function PurchaseModal({
               </span>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2">
+            // pt-2 leaves room for a pack's tag, which sits proud of the
+            // card's top edge (same as the product page's picker).
+            <div className="grid grid-cols-2 gap-2 pt-2">
               {packs.map((option) => {
                 const cap = capFor(option.size);
                 return (
@@ -339,6 +341,7 @@ function PurchaseModal({
                     disabled={cap < 1}
                     onClick={() => selectPack(option.size)}
                     label={option.label}
+                    tag={option.badge}
                     badge={option.savings > 0 ? `Save $${option.savings.toFixed(2)}` : null}
                     sublabel={
                       cap < 1 ? (
@@ -451,13 +454,16 @@ function PurchaseModal({
 
 /** One selectable pack-size card. The active card inverts to ink and carries a
  *  small check badge so the current choice reads at a glance; a discounted
- *  pack also carries its saving, which is the reason to pick it. */
+ *  pack also carries its saving, which is the reason to pick it. `tag` is the
+ *  admin's merchandising chip ("Most Popular"), pinned to the top edge exactly
+ *  as on the product page. */
 function PackCard({
   active,
   disabled,
   onClick,
   label,
   sublabel,
+  tag,
   badge,
 }: {
   active: boolean;
@@ -465,6 +471,7 @@ function PackCard({
   onClick: () => void;
   label: string;
   sublabel: React.ReactNode;
+  tag?: string | null;
   badge?: string | null;
 }) {
   return (
@@ -479,6 +486,11 @@ function PackCard({
           : 'border-line bg-surface text-ink hover:border-ink/40 hover:bg-white'
       }`}
     >
+      {tag && !disabled && (
+        <span className="absolute -top-2 left-2 right-2 truncate rounded-full bg-teal-dark px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wide text-white shadow-sm">
+          {tag}
+        </span>
+      )}
       {active && (
         <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-white">
           <Check className="h-3 w-3 text-ink" />

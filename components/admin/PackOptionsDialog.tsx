@@ -8,6 +8,7 @@ import {
   MAX_PACK_OPTIONS,
   PACK_SIZE_OPTIONS,
   formatPackSizes,
+  hasCustomPackSizes,
   normalizePackSizes,
   packPriceFor,
   packSizesFor,
@@ -69,7 +70,7 @@ export default function PackOptionsDialog({
     const q = query.trim().toLowerCase();
     return products.filter((p) => {
       if (category && p.category !== category) return false;
-      const custom = normalizePackSizes(p.pack_sizes).length > 0;
+      const custom = hasCustomPackSizes(p);
       if (status === 'custom' && !custom) return false;
       if (status === 'default' && custom) return false;
       if (!q) return true;
@@ -249,7 +250,7 @@ export default function PackOptionsDialog({
                   {visible.map((p) => {
                     const on = selected.has(p.id);
                     const current = packSizesFor(p);
-                    const custom = normalizePackSizes(p.pack_sizes).length > 0;
+                    const custom = hasCustomPackSizes(p);
                     return (
                       <li key={p.id}>
                         <label
@@ -359,9 +360,9 @@ export default function PackOptionsDialog({
 
             <p className="mb-4 text-[11px] leading-relaxed text-ink-muted">
               Clearing the options puts a product back on its default pair — a single vial plus one
-              full case of its vials-per-case. A pack that survives an edit here keeps any per-pack
-              price it was given; one that is removed loses it. Per-pack prices, labels and
-              compare-at figures are set on the product itself.
+              full case of its vials-per-case. A pack that survives an edit here keeps its per-pack
+              price, label, tag and on/off setting; one that is removed loses them. Those are all set
+              on the product itself.
             </p>
 
             {error && (

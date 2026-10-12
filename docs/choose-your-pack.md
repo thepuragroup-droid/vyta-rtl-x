@@ -18,7 +18,9 @@
 > `app/checkout/PuramassCheckoutContent.tsx` · `app/api/checkout/puramass/route.ts` ·
 > `lib/pricing/resolve.ts` · `lib/products/products-server.ts` · `lib/permissions.ts` ·
 > `lib/admin/product-history.ts` · `app/products/ProductsClient.tsx` · `components/Products.tsx` ·
-> `app/(customer)/account/orders/[id]/page.tsx` · `tailwind.config.ts` ·
+> `app/(customer)/account/orders/[id]/page.tsx` · `lib/order-confirmation-data.ts` ·
+> `lib/order-confirmation-email.ts` · `lib/fulfillment-email.ts` ·
+> `lib/payments/puramass-fulfillment.ts` · `tailwind.config.ts` ·
 > migrations `pack-options-content-migration.sql`, `pack-option-pricing-migration.sql`,
 > `pack-option-badge-migration.sql`, `case-price-remove-pack-discount-migration.sql`.
 >
@@ -37,6 +39,10 @@
 6. [Edge cases & states](#6-edge-cases--states)
 7. [Open questions, gotchas & unverified items](#7-open-questions-gotchas--unverified-items)
 
+Quick links: [Turning a pack on/off](#36a-turning-a-pack-on-or-off) ·
+[Tags: Most Popular, Best Value](#36b-pack-tags-most-popular-best-value) ·
+[Emails](#312-emails-price-and-amount-per-pack)
+
 ---
 
 ## 1. Overview
@@ -46,8 +52,9 @@ product detail page (PDP), in the buy column under the specs and COA button,
 the **"Choose your pack"** grid shows one button per pack. Each button shows the
 pack's label, its price, an optional struck-through "was" price, the price per
 vial, an optional green **Save $X (Y%)** pill and an optional merchandising
-**tag** pinned to its top edge ("Most Popular", "Best Value"). Choosing a pack
-does five things:
+**tag** pinned to its top edge ("Most Popular", "Best Value"). An admin can
+switch any pack **off** to stop selling it without losing its settings.
+Choosing a pack does five things:
 
 - updates the large headline price,
 - switches the hero image to the box photo (for packs larger than 1),
@@ -59,7 +66,7 @@ does five things:
 
 | Surface | What it edits | Scope |
 |---|---|---|
-| **Product form → "Pack options & pricing"** (`PackPricingEditor`) | Sizes **plus** per-pack label, tag, price and compare-at | One product |
+| **Product form → "Pack options & pricing"** (`PackPricingEditor`) | Sizes **plus** per-pack on/off, label, tag, price and compare-at | One product |
 | **"Pack options" toolbar button → dialog** (`PackOptionsDialog`) | Sizes only | Many products in one request |
 | **Cells view → "Pack options" column / "Set pack options" menu** (`CellEditGrid`) | Sizes only | Many rows, staged then saved |
 
@@ -69,9 +76,13 @@ storefront works out the strike-through and the saving on its own.
 
 **Downstream**, the chosen pack becomes a cart line keyed by
 `productId::p{packSize}`. It is shown as "Pack of N" or "Single vial" in the
-cart and checkout. The server **re-prices** it when the order is placed
-(`POST /api/checkout/puramass`) and sends it to the fulfilment partner (Stealth
+cart and checkout, at the catalog's **current** pack price (the cart re-prices
+itself when it loads and when checkout opens). The server **re-prices** it again
+when the order is placed (`POST /api/checkout/puramass`), refuses a pack the
+product no longer offers, and sends it to the fulfilment partner (Stealth
 Health / PuraMass) as one case-SKU unit per pack, at that pack's own price.
+The invoice written at that point is what the **confirmation and shipped
+emails** are built from, so they show each pack at the price and amount charged.
 
 ---
 
@@ -123,7 +134,7 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS pack_options jsonb;
 | `badge` | string \| null | Trimmed, max **24** chars (`MAX_PACK_BADGE_LENGTH`). Free text. Presets: `"Most Popular"`, `"Best Value"` | No tag chip |
 | `price` | number \| null | ≥ 0, rounded to 2 dp. Negative or non-numeric values count as unset | `vial price × size` |
 | `compare_at` | number \| null | ≥ 0, rounded to 2 dp. Also accepts the `compareAt` spelling on input | Undiscounted `vial price × size` **if** `price` is below it, otherwise none |
-| `enabled` | boolean | Anything other than literal `false` is `true` | `true` |
+| `enabled` | boolean | Anything other than literal `false` is `true`. Set by the **On** switch in the product form. A document where every row is `false` is refused by the admin API | `true` |
 
 ### 2.2 Related `products` columns the feature reads
 
@@ -145,6 +156,11 @@ pack_options (enabled rows)  →  pack_sizes  →  default pair [1, vials_per_bo
 ```
 
 Nothing is backfilled, so a product nobody has touched still sells as "single vial + one full case".
+
+A configured `pack_options` decides on its own **even if every row in it is
+switched off**: it never falls back to `pack_sizes`, which would put the
+switched-off packs back on sale at vial × size. (The admin UI and API both stop
+the last pack being switched off, so this only matters for hand-edited data.)
 
 ### 2.4 Schema usage map
 
@@ -182,11 +198,13 @@ Nothing is backfilled, so a product nobody has touched still sells as "single vi
 | `packOptionsFor(p)` | `→ ResolvedPackOption[]` | **What the storefront renders.** Filters to `enabled` and fills every blank (algorithm below) |
 | `packOptionFor(p, size)` | `→ ResolvedPackOption \| null` | One resolved pack |
 | `packSizesFor(p)` | `→ number[]` | Enabled sizes using the precedence rule in §2.3 |
+| `isPackOffered(p, size)` | `→ boolean` | `packSizesFor(p).includes(size)`. **Used by checkout** to refuse a pack that was switched off or removed |
+| `hasEnabledPack(raw)` | `→ boolean` | At least one row of a `pack_options` document is on. Used by the admin API to refuse an all-off write |
 | `packPriceFor(p, size)` | `→ number` | Fixed `pack_options[].price` for that size, otherwise `round2(vialPrice × size)`. **Used by checkout to charge** |
 | `packsInStock(stockVials, size)` | `→ number` | `floor(max(0, stock) ÷ size)` |
 | `packLabel(size)` | `→ string` | `"Single vial"` / `"Pack of N"` |
 | `packShortLabel(size)` | `→ string` | `"1 vial"` / `"N-pack"` |
-| `reconcilePackOptions(stored, sizes)` | `→ StoredPackOption[] \| null` | After a sizes-only edit: sizes that remain **keep** their price, label, tag and compare-at. New sizes come in blank, removed sizes are dropped. Returns `null` if the product had no `pack_options` |
+| `reconcilePackOptions(stored, sizes)` | `→ StoredPackOption[] \| null` | After a sizes-only edit: sizes that remain **keep** their price, label, tag, compare-at and on/off. New sizes come in blank (and on), removed sizes are dropped. If no surviving pack is on, all of them are switched back on. Returns `null` if the product had no `pack_options` |
 | `largestPackFor(p)` | `→ {size, price, compareAt} \| null` | Largest enabled pack > 1, used on catalog cards |
 | `parsePackSizesInput(text)` / `formatPackSizes(sizes)` | | Grid text format: accepts `1, 3, 5, 10`, `1/3/5/10`, `1 3 5 10` or `1\|3\|5\|10` |
 | `samePackSizes(a, b)` | `→ boolean` | `NULL` and `[]` count as equal |
@@ -258,10 +276,10 @@ label         = row.label ?? packLabel(size)
 ### 3.4 Admin per-product editor: `components/admin/PackPricingEditor.tsx`
 
 - **Type:** Client Component. A controlled editor with no state of its own.
-- **Purpose:** for one product, choose which packs exist and set each pack's **Button label**, **Tag**, **Price** and **Compare at**, with a live "Customer sees" preview.
+- **Purpose:** for one product, choose which packs exist and set each pack's **On** switch, **Button label**, **Tag**, **Price** and **Compare at**, with a live "Customer sees" preview.
 - **Props:**
   - `sizes: number[]`: selected sizes. Empty means the default pair.
-  - `rows: PackOptionDraft[]`: `{ size, label, badge, price, compare_at }`, all strings.
+  - `rows: PackOptionDraft[]`: `{ size, label, badge, price, compare_at, enabled }`. The four text fields are strings; `enabled` is a boolean.
   - `vialPrice: number`: the product's vial price, computed live from the form's `price`, `vial_price` and `vials_per_box`.
   - `vialsPerBox: number`: used for the empty-state explainer.
   - `disabled?: boolean`.
@@ -269,7 +287,7 @@ label         = row.label ?? packLabel(size)
 - **Exports:**
   - `emptyPackRow(size)`.
   - `rowsForSizes(sizes, existing)`: re-uses typed rows, so turning a size off and back on keeps what was typed.
-  - **`packOptionsPayload(sizes, rows)`**: builds the `pack_options` body. It returns **`null` when nothing is overridden** (every label, tag, price and compare-at is blank), so an untouched editor stores `NULL` rather than a document that only repeats the defaults. Rows are always sent with `enabled: true`.
+  - **`packOptionsPayload(sizes, rows)`**: builds the `pack_options` body, carrying each row's `enabled`. It returns **`null` when nothing is overridden** (every label, tag, price and compare-at is blank **and** every pack is on), so an untouched editor stores `NULL` rather than a document that only repeats the defaults. A pack switched off counts as an override, because only `pack_options` can record it.
 - **Money parsing:** strips `$`, `,` and whitespace. Blank, negative or non-numeric input means "not set".
 - **Behavior:**
   - Size toggles show the union of `[1, 3, 5, 10]` and any custom sizes the product already has.
@@ -298,7 +316,7 @@ label         = row.label ?? packLabel(size)
   - `sizes`: starts at `[1, 3, 5, 10]`.
   - `customSize`, `saving`, `error`.
 - **Behavior:**
-  - Searches by name, SKU or category. Filters by category and by "Has custom options" / "On the default pack".
+  - Searches by name, SKU or category. Filters by category and by "Has custom options" / "On the default pack" (either pack column counts as custom).
   - "Select all N" / "Clear these" act on the visible rows. "Deselect all (n)" clears the whole selection.
   - "Other size…" input plus **Add** (Enter also works). It is validated as a whole number ≥ 1 within the 8-size cap.
   - **Preview** of the first selected product: one row per size priced with `packPriceFor`, and a footer reading `${vialPrice} per vial × pack size`.
@@ -322,24 +340,55 @@ label         = row.label ?? packLabel(size)
   - **Apply** stages those sizes on every selected row. **Reset to default** stages `null`.
   - It closes on an outside click or Escape.
 
+### 3.6a Turning a pack on or off
+
+The **On** column in the product form's "Pack options & pricing" table.
+
+| Aspect | Behavior |
+|---|---|
+| Where | Admin → Products → edit a product → "Pack options & pricing" → first column of each pack row. Admin role only. |
+| Off means | The pack keeps everything typed into its row (label, tag, price, compare-at) and stays in `pack_options` with `enabled: false`. It disappears from the product page picker, the purchase modal, checkout add-ons and the catalog card's "Pack of N" line, because all of them read `packOptionsFor`, which drops off rows. |
+| Back on | Flip the switch again: the pack returns with its saved settings. |
+| Last pack | The last pack that is on cannot be switched off. Its switch is disabled with the tooltip "At least one pack has to stay on". Removing the last "on" size with the size toggles above the table switches the remaining packs back on. The API also refuses an all-off document (400 "At least one pack has to stay on sale"). |
+| Remove vs off | The size toggles above the table (`1 vial`, `3-pack`, …) **remove** a pack and its settings. The **On** switch only hides it. |
+| Bulk tools | The bulk dialog and the cell grid edit sizes only. A pack that survives their edit keeps its on/off setting (`reconcilePackOptions`). |
+| Admin table | The product row's pack chip lists the sizes on sale, then `· N off` when some are switched off. Its tooltip names them. |
+| Already in a cart | A shopper who added the pack before it was switched off is stopped at checkout with a 409: "Some items in your cart are no longer sold in that pack size. Remove them and add the pack you want from the product page.", listing e.g. "BPC-157 10mg (pack of 3)". Nothing is charged. |
+
+**Switch styling:** `role="switch"`, `aria-checked`, `h-5 w-9 rounded-full`. On: `bg-teal-dark` (#1B5D83). Off: `bg-line` (#DCE7EB). White `h-4 w-4` knob with `shadow-sm`, moved with `translate-x-[18px]` (on) or `translate-x-0.5` (off). An off row gets a `bg-surface/60` background, a muted size label, and its "Customer sees" cell is dimmed (`opacity-60`) under an `EyeOff` "Hidden from storefront" line.
+
+### 3.6b Pack tags: Most Popular, Best Value
+
+| Aspect | Behavior |
+|---|---|
+| Stored as | `pack_options[].badge`: free text, trimmed, at most **24** characters. Blank or whitespace means no tag. |
+| Set in | Product form → "Pack options & pricing" → **Tag** column. A text box (`maxLength=24`, placeholder "No tag", `<datalist>` suggestions) plus two one-click preset pills: **Most Popular** and **Best Value** (`PACK_BADGE_PRESETS`). Clicking the active preset clears it. Any other wording is allowed, e.g. "Limited", "Starter kit". |
+| Bulk | Not editable in bulk. The bulk dialog and the grid keep the tags of the packs that survive their edit. |
+| Product page | A chip pinned across the top edge of the pack button: `absolute -top-2 left-2 right-2 truncate rounded-full bg-teal-dark px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wide text-white shadow-sm`. The grid has `pt-2` so the chip has room. |
+| Purchase modal | The same chip on its pack cards (quick-add from the catalog, and checkout add-ons). The modal's grid also has `pt-2`. |
+| Admin preview | The "Customer sees" column shows the same Vital Blue chip (`bg-teal-dark`). |
+| Hidden when | The pack is sold out ("Not enough stock") or switched off. |
+| Not shown | Cart, checkout summary, invoices and emails. These describe what was bought ("Pack of 3"), not the merchandising. |
+| Does not affect | Price, or which pack the page opens on. The product page always opens on the 3-pack if it can be bought (`DEFAULT_PACK_SIZE = 3`), whichever pack is tagged. |
+
 ### 3.7 Admin products page: `app/(admin)/admin/products/page.tsx`
 
 - **Form state:** `pack_sizes: number[]` and `pack_options: PackOptionDraft[]`.
-- **`openEditModal`:** if `pack_options` has rows, the selected sizes come from it. Otherwise they come from `pack_sizes`. The draft rows are seeded from stored values, so the boxes show the real prices instead of blanks.
+- **`openEditModal`:** if `pack_options` has rows, the selected sizes come from it (including switched-off ones). Otherwise they come from `pack_sizes`. The draft rows are seeded from stored values, including `enabled`, so the boxes show the real prices and switches instead of blanks.
 - **Save payload (full admin):**
   ```ts
   pack_sizes:   formData.pack_sizes.length > 0 ? formData.pack_sizes : null,
   pack_options: packOptionsPayload(formData.pack_sizes, formData.pack_options),
   ```
   The **descriptor-only payload** (role `analytics`) leaves out both pack fields.
-- **Table row chip:** under each product name there is a pill showing `formatPackSizes(packSizesFor(product))`. It is teal (`bg-teal/10 text-teal-dark`) when `pack_sizes` is set and muted (`bg-surface-2 text-ink-muted`) otherwise.
+- **Table row chip:** under each product name there is a pill showing `formatPackSizes(packSizesFor(product))` (the sizes on sale), followed by `· N off` when packs are switched off. It is teal (`bg-teal/10 text-teal-dark`) when either pack column is set (`hasCustomPackSizes`) and muted (`bg-surface-2 text-ink-muted`) otherwise.
 
 ### 3.8 Admin API routes
 
 | Route | Auth | Pack handling |
 |---|---|---|
-| `POST /api/admin/products` | `canEdit` (admin) | `normalizePackSizes` / `normalizePackOptions`. An empty result is stored as `NULL`. |
-| `PATCH /api/admin/products/[id]` | `canEditProductDescriptors` (admin or analytics). **Non-admins have every non-descriptor key stripped**, so analytics users cannot change packs. | `pack_sizes` must be an array or null, otherwise 400 `"Pack options must be a list of numbers"`. `pack_options` must be an array or null, otherwise 400 `"Pack pricing must be a list of pack rows"`. **If only `pack_sizes` is sent** (the grid), `pack_options = reconcilePackOptions(existing, sizes)`. |
+| `POST /api/admin/products` | `canEdit` (admin) | `normalizePackSizes` / `normalizePackOptions`. An empty result is stored as `NULL`. A `pack_options` with every pack off → 400 `"At least one pack has to stay on sale"`. |
+| `PATCH /api/admin/products/[id]` | `canEditProductDescriptors` (admin or analytics). **Non-admins have every non-descriptor key stripped**, so analytics users cannot change packs. | `pack_sizes` must be an array or null, otherwise 400 `"Pack options must be a list of numbers"`. `pack_options` must be an array or null, otherwise 400 `"Pack pricing must be a list of pack rows"`; every pack off → 400 `"At least one pack has to stay on sale"`. **If only `pack_sizes` is sent** (the grid), `pack_options = reconcilePackOptions(existing, sizes)`. |
 | `PATCH /api/admin/products/pack-sizes` | `canEdit` (admin) | Body `{ product_ids: string[] (≤ 500), pack_sizes: number[] \| null }`. Reads the current rows, reconciles `pack_options` per product, then groups products by identical result so the common case is one `UPDATE … IN (…)`. Records product history only for rows that changed, with `source: 'bulk_pack_options'`. Writes one audit row with `action: 'product.pack_options_bulk'` and `entity_id: "N product(s) → 1, 3, 5, 10"`. A missing column produces a friendly hint telling you which migration to run. Response: `{ success, updated, products }`. |
 
 ### 3.9 Cart: `contexts/CartContext.tsx`
@@ -352,7 +401,8 @@ label         = row.label ?? packLabel(size)
 - Line identity is **product + pack size**, so a 1-pack, a 3-pack and a 10-pack of one product are separate lines.
 - `addItem` adds one unit and refuses when `quantity + 1 > stock_quantity` (returns `false`).
 - The cart persists in `localStorage['northern_peptides_cart']`, syncs across tabs, and migrates legacy lines through `normalizeCartItem`. A legacy case line without `packSize` gets `vialsPerBox` as its pack size, and `unit` is always re-derived from `packSize`.
-- `totalPrice = Σ price × quantity`, using the **price captured when the item was added**.
+- `totalPrice = Σ price × quantity`.
+- **`refreshPrices()`** keeps line prices current. A cart can sit in `localStorage` for days, so whenever the cart loads or its set of products changes (and again when the checkout page opens), it reads `id, price, vial_price, vials_per_box, pack_sizes, pack_options` for the products in the cart (browser Supabase client) and sets each line's price to `packPriceFor(product, packSize)`. This is the same function the checkout server charges with, so the cart, the checkout summary, the invoice and the emails all show one figure. A failed read keeps the stored prices. Stock limits are not touched.
 
 ### 3.10 Checkout client: `app/checkout/PuramassCheckoutContent.tsx`
 
@@ -360,22 +410,25 @@ label         = row.label ?? packLabel(size)
   - Left: name, then a small grey line `"{strength} · "` followed by a pill (`Pack of N` / `Single vial`) and `× {qty}`.
   - Right: `${price × qty}`.
 - `totalVials = Σ quantity × packSize` feeds the shipping-weight quote and the bacteriostatic-water nudge.
+- **On arrival** it calls `refreshPrices()`, so the summary quotes current catalog pack prices.
 - **Submit payload:** `items: [{ id: productId, packSize, quantity: quantity × packSize /* TOTAL VIALS */ }]`. The client sends **no prices**.
+- **409 handling:** `unavailable` (a pack switched off or removed) and `unmapped` (no fulfilment SKU) both list the affected lines under the error, above the pay button.
 - **Checkout add-ons ("You'll also need" / "Also recommended"):**
-  - Each add-on row shows `from $X`, where X is the cheapest of `packOptionsFor(p)`, filtered to the forms the fulfilment partner has a SKU for.
+  - Each add-on row shows `from $X`, where X is the cheapest of `packOptionsFor(p)`, filtered to the forms the fulfilment partner has a SKU for. A product with no pack on sale that has a SKU behind it is not offered as an add-on.
   - The **+** button opens the shared **purchase modal** (`PurchaseModalContext`) with the product's `pack_sizes` and `pack_options`, `allowedUnits`, and `ignoreStock: true`.
 
 ### 3.11 Checkout server: `app/api/checkout/puramass/route.ts`
 
 1. **Parse lines:** `{ id, packSize, quantity }`. `quantity` is total vials. Invalid lines are skipped, and an empty result returns 400 `"Your cart is empty."`.
-2. **Load products:** `id, name, price, vial_price, vials_per_box, pack_options, puramass_sku, puramass_sku_vial`. If that select errors, the route retries without `pack_options` and the vial SKU.
+2. **Load products:** `id, name, price, vial_price, vials_per_box, pack_sizes, pack_options, puramass_sku, puramass_sku_vial`. If that select errors, the route retries without the pack columns and the vial SKU.
+   Then **check each pack is on sale:** `isPackOffered(product, packSize)`. Any line for a pack that was switched off or removed (or a size the product was never sold in) → 409 `{ error: 'Some items in your cart are no longer sold in that pack size. …', unavailable: ['Name (pack of N)' | 'Name (single vial)'] }`. Skipped on the fallback read, which has no pack columns.
 3. **Map to SKUs:**
    - `packSize > 1` → `box` mapping → `puramass_sku`, `units = clamp(round(vials ÷ packSize), 1..99)`.
    - `packSize = 1` → `vial` mapping → `puramass_sku_vial`, `units = clamp(vials, 1..99)`.
 4. **Price each line** (`priceCartLines`):
    - `resolvePriceMap` applies, in order: customer override → active pricelist → base `products.price`.
    - If the source is `base`: `unit = packPriceFor({ price, vial_price, vials_per_box, pack_options }, packSize)`. **Admin-set pack prices are honoured.**
-   - If the source is an **override or pricelist**: `vialPrice = round2(resolved.price ÷ vialsPerBox)` and `pack_options` is ignored (`null`), so `unit = vialPrice × packSize`.
+   - If the source is an **override or pricelist**: `vialPrice = round2(resolved.price ÷ vialsPerBox)` and `pack_options` is ignored (`null`), so `unit = vialPrice × packSize`. **Out of scope:** pack pricing is not used together with price lists or per-customer overrides, so this path is not part of this feature.
 5. **Merge lines** by `sku::packSize`. A 5-pack and a 10-pack share the case SKU but stay separate lines at different prices.
 6. **Missing SKU:** return 409 `{ error: 'Some items are not available for hosted checkout.', unmapped: ['Name (pack of N)' | 'Name (single vial)'] }`.
 7. **Discounts** (code, first-order ad discount, cart offer) are spread over `unit_price_cents`. The free-shipping threshold is measured at **list** price.
@@ -385,12 +438,65 @@ label         = row.label ?? packLabel(size)
    - The pending invoice gets lines with `description: "{name} — Pack of N" | "{name} — Single vial"`, `price_type: 'box' | 'vial'` and `vials_per_unit: packSize`.
    - Klaviyo "Started Checkout" items are named `"{name} (pack of N)"` or `"{name} (single vial)"`.
 
-### 3.12 Other surfaces that show packs
+### 3.12 Emails: price and amount per pack
+
+Every customer email about a hosted-checkout order is built from the **invoice
+lines written at hand-off**, which already carry the pack, the quantity and the
+price actually charged. No email recomputes a price.
+
+**Where the figures come from**
+
+| Field on the invoice line | Value written at hand-off (`/api/checkout/puramass`) |
+|---|---|
+| `description` | `"{product} — Pack of N"` or `"{product} — Single vial"` |
+| `qty` | Number of packs (one case-SKU unit per pack) |
+| `unit_price` | The pack's price **after** any discount, in CAD |
+| `price_type` / `vials_per_unit` | `'box'` / N for a pack, `'vial'` / 1 for a single vial |
+
+The ledger row (`puramass_orders.items`) keeps each line's `list_unit_price_cents`
+(the pack price before discount), `product_id` and `pack_size`. If the invoice
+could not be written at hand-off, the payment handler builds it from the ledger
+(`linesFromLedger` in `lib/payments/puramass-fulfillment.ts`) with the same
+description, quantity and price.
+
+**How the emails show them** (`stealthHealthOrderSummary` in `lib/order-confirmation-data.ts`):
+
+- Each line's name and pack are split back out of the description, so the email reads `BPC-157 10mg (Pack of 3)`.
+- If every line's list price is on the ledger (matched by product and pack size), lines are shown at **list price** and the difference becomes a **Discount** row labelled with the code or offer (e.g. "VYTA10"). Otherwise lines are shown at the price charged with no discount row.
+- Either way: the line amounts (`price × qty`) add up to the **Subtotal**, and **Subtotal − Discount + Shipping + Tax = Total**, which equals the invoice total the customer paid.
+
+| Email | File | Line format |
+|---|---|---|
+| Order confirmation (customer, on payment) | `lib/order-confirmation-email.ts` | Name, `Pack of N · strength`, Qty, unit price, line amount. Then the Subtotal / Discount / Shipping / Tax / Total summary |
+| Admin "order paid" alert | same template, via `lib/admin/stealth-health-paid-alert.ts` | Same lines and totals |
+| "Your order has shipped" (customer, sent by staff) | `lib/fulfillment-email.ts` | Name, `strength · Pack of N`, Qty, line amount |
+
+**Worked example** (covered by the test "every pack ordered shows in the email at
+the price and amount charged" in `lib/order-confirmation-email.test.ts`): $25
+vial; 3-pack fixed at $66; 10-pack fixed at $200; second product's 5-pack at
+vial × 5 = $200; code VYTA10 (10%); shipping $15.
+
+```
+BPC-157 10mg (Pack of 3) × 2 — $132.00
+BPC-157 10mg (Single vial) × 1 — $25.00
+BPC-157 10mg (Pack of 10) × 1 — $200.00
+TB-500 5mg (Pack of 5) × 1 — $200.00
+Subtotal: $557.00
+Discount (VYTA10): -$55.70
+Shipping: $15.00
+Total: $516.30 CAD      ← what was charged
+```
+
+Because the cart re-prices itself (§3.9), the checkout summary shows the same
+$557.00 subtotal the email does, even if a pack price changed after the item was
+added.
+
+### 3.13 Other surfaces that show packs
 
 | Surface | File | What it shows |
 |---|---|---|
 | Catalog cards | `app/products/ProductsClient.tsx`, `components/Products.tsx` | `$vial / vial` headline. Below it, `largestPackFor()` → `Pack of {size} · ${price} ~~${compareAt}~~ CAD` |
-| Purchase modal | `contexts/PurchaseModalContext.tsx` | Same `packOptionsFor` data. Title is "Pack size", or "Sold as" when only one pack is offered. 2-column `PackCard`s. Opens on the **smallest buyable** pack (not 3). Shows a savings pill but **no badge**. |
+| Purchase modal | `contexts/PurchaseModalContext.tsx` | Same `packOptionsFor` data (switched-off packs hidden). Title is "Pack size", or "Sold as" when only one pack is offered. 2-column `PackCard`s with the **tag chip** on top (§3.6b) and a savings pill. Opens on the **smallest buyable** pack (not 3). |
 | Cart page | `app/cart/page.tsx` | `{strength} \| Pack of N` / `Single vial` |
 | Customer order detail | `app/(customer)/account/orders/[id]/page.tsx` | Pill `Pack of N` / `Single vial` from `pack_size`. Falls back to `unit` + `vialsPerBox` for older orders. |
 | Confirmation email / invoice | `lib/order-confirmation-*.ts`, `lib/invoice-html.ts` | Parses `"— Pack of N"` / `"— Single vial"` out of the invoice description. Older `"— Case of N"` text is rewritten to `"— Pack of N"`. |
@@ -501,15 +607,16 @@ Only rendered when **`product.price !== 0` and `packs.length > 1`**.
   - Labels: `1 vial`, `N-pack`.
   - **Use default**: `px-3 py-2 rounded-lg border border-line bg-white text-xs font-medium text-ink-muted`.
 - **Empty state:** an `11px` muted note: *"No options set — the storefront offers the default pair: a single vial plus one full case of {vialsPerBox}, each priced at the vial price × its size."*
-- **Table:** wrapper `mt-3 overflow-hidden rounded-xl border border-line`. Header row `bg-surface text-[11px] uppercase tracking-wider text-ink-muted`. Columns: **Pack · Button label · Tag (w-40) · Price (w-28) · Compare at (w-28) · Customer sees**. Body rows are `bg-white align-top` with `divide-y divide-line/60`.
+- **Table:** wrapper `mt-3 overflow-hidden rounded-xl border border-line`. Header row `bg-surface text-[11px] uppercase tracking-wider text-ink-muted`. Columns: **On · Pack · Button label · Tag (w-40) · Price (w-28) · Compare at (w-28) · Customer sees**. Body rows are `align-top` with `divide-y divide-line/60`: `bg-white` when on, `bg-surface/60` when off (switch styling in §3.6a).
 - **Inputs:** `w-full px-2.5 py-1.5 bg-white border border-line rounded-lg text-ink text-sm tabular-nums focus:ring-2 focus:ring-teal/40`. Price inputs use `inputMode="decimal"`.
 - **Tag presets** under the input: `rounded-full border px-2 py-0.5 text-[10px] font-semibold`. On: teal. Off: `border-line bg-surface text-ink-muted`.
 - **"Customer sees" preview** (11 px, muted):
-  - the tag as a navy chip (`bg-ink text-white text-[10px] uppercase rounded-full`). **Note:** the storefront chip is `bg-teal-dark`, not navy.
+  - "Hidden from storefront" with an `EyeOff` icon when the pack is off,
+  - the tag as a Vital Blue chip (`bg-teal-dark text-white text-[10px] uppercase rounded-full`), the same colour as the storefront chip.
   - the bold price plus a struck compare-at,
   - `$X / vial`,
   - a savings pill `bg-emerald-50 text-emerald-700` with the lucide `Tag` icon.
-- **Footer help text** explains Tag, a blank Price ("follows the product price automatically") and how Compare at falls back.
+- **Footer help text** explains switching a pack off, Tag, a blank Price ("follows the product price automatically") and how Compare at falls back.
 
 ### 4.6 Admin: bulk dialog
 
@@ -535,12 +642,14 @@ Cell grid ──PATCH /api/admin/products/[id] {pack_sizes}─┘     (sizes-onl
                                                      ▼
 PDP: packOptionsFor(product) → picker → selectedPack → addItem × qty
                                                      ▼
-Cart (localStorage): line id productId::pN, price = selectedPack.price (snapshot)
+Cart (localStorage): line id productId::pN, price = packPriceFor(...) (re-read on load / at checkout)
                                                      ▼
 Checkout UI: "Pack of N × q  $price×q" ── POST {id, packSize, quantity: q×N} (no prices)
                                                      ▼
-Server: resolvePriceMap → packPriceFor(...) → SKU map (vial / case) → discounts
-     → Stealth Health order + ledger (pack_size) + pending invoice ("— Pack of N")
+Server: isPackOffered? (409 if switched off) → packPriceFor(...) → SKU map (vial / case) → discounts
+     → Stealth Health order + ledger (pack_size, list price) + pending invoice ("— Pack of N", charged price)
+                                                     ▼
+Emails (confirmation, admin alert, shipped): built from the invoice lines + ledger list prices
 ```
 
 ### 5.2 Rules (all verified in code)
@@ -549,16 +658,20 @@ Server: resolvePriceMap → packPriceFor(...) → SKU map (vial / case) → disc
 2. **Price:** a fixed pack price wins. Otherwise the price is `vial price × size`. The vial price is the explicit `vial_price` if it's > 0, otherwise `price ÷ vials_per_box`.
 3. **Automatic strike-through:** a pack priced below `vial × size` with no compare-at shows `vial × size` as compare-at. A compare-at that is ≤ the price is never shown.
 4. **Empty means default.** In both columns, `NULL` and empty mean "not opted in". The product form stores `pack_options = NULL` when no override is typed.
-5. **Sizes-only edits keep pricing.** The grid and the bulk dialog call `reconcilePackOptions`: surviving sizes keep their price, label, tag and compare-at; added sizes come in blank; removed sizes are dropped. This prevents the storefront, which reads `pack_options` first, from selling a size that was removed.
+5. **Sizes-only edits keep pricing.** The grid and the bulk dialog call `reconcilePackOptions`: surviving sizes keep their price, label, tag, compare-at and on/off; added sizes come in blank; removed sizes are dropped; if none left is on, all are switched back on. This prevents the storefront, which reads `pack_options` first, from selling a size that was removed.
 6. **Stock is counted in vials.** You can buy `floor(stock ÷ size)` packs of a given size. A pack with 0 available is disabled, shows "Not enough stock" and **hides its tag**.
 7. **Opening pack:** the 3-pack if it is buyable, otherwise the first buyable pack, otherwise the first pack. The PDP is the only place that prefers the 3-pack; the purchase modal opens on the smallest buyable pack.
 8. **Quantity** means the number of the selected pack. It resets to 1 whenever the pack or the product changes.
 9. **The picker is hidden** when there is only one pack. The headline still shows that pack's price, and Add to Cart still uses it.
 10. **Cart lines** are unique per product and pack size. `unit` is `'case'` for any pack > 1, and `stock_quantity` on the line is in packs.
-11. **The server never trusts client prices.** Checkout re-prices with `packPriceFor`. A **customer price override or active pricelist** replaces the per-vial price and **ignores `pack_options` prices**.
+11. **The server never trusts client prices.** Checkout re-prices with `packPriceFor`, and the cart quotes the same figure (`refreshPrices`). (Price lists and per-customer overrides are not used with pack pricing; out of scope.)
 12. **Fulfilment mapping:** size 1 → `puramass_sku_vial`, any size > 1 → `puramass_sku`. One unit per pack, at most 99 per line. A missing SKU returns a 409 that lists the affected lines.
 13. **Permissions:** only `admin` can change packs. `analytics` can edit product copy, but the server strips pack fields from its requests and the form hides the editor. Every change is written to product history ("Pack options" / "Pack pricing"). Bulk edits are also audit-logged.
 14. **Limits:** 8 packs per product, sizes 1–1000, labels up to 60 characters, tags up to 24 characters, 500 products per bulk request.
+15. **Only packs on sale can be bought.** Checkout refuses a line whose pack is switched off, removed, or was never offered (`isPackOffered`), with a 409 listing it.
+16. **On/off:** off packs keep their settings and are hidden everywhere the storefront sells. At least one pack stays on (UI and API).
+17. **Tags** are display-only, shown on the product page and the purchase modal, hidden when the pack is sold out or off.
+18. **Emails** show each pack at the price and quantity on the invoice written at hand-off, and their totals reconcile to the amount charged.
 
 ---
 
@@ -578,6 +691,9 @@ Server: resolvePriceMap → packPriceFor(...) → SKU map (vial / case) → disc
 | Live refresh fails | Server-rendered values are used without an error message; checkout re-checks |
 | Cart line already at its limit | `addItem` returns false → toast "Only {cap} in stock — that's all we have." |
 | Checkout: SKU missing for a pack form | 409, with `unmapped` labels such as "BPC-157 (pack of 3)" |
+| Checkout: pack switched off / removed after it was added to the cart | 409, with `unavailable` labels such as "BPC-157 10mg (pack of 3)"; nothing is charged |
+| Pack price changed after it was added to the cart | Cart and checkout re-price to the new figure on load; the charge and the emails use the same figure |
+| Admin tries to switch off the last pack on sale | Switch disabled ("At least one pack has to stay on"); API returns 400 if forced |
 | Admin: a pack-options column is missing from the DB | Bulk route returns "Pack options column is missing — run pack-options-content-migration.sql." or the `pack-option-pricing` equivalent |
 | Admin: bulk save with no products or no sizes | Inline errors: "Select at least one product." / "Pick at least one pack size, or reset the selection to the default." |
 | Admin: custom size invalid or over the cap | "A custom pack size has to be a whole number of vials." / "A product can offer at most 8 pack options." |
@@ -586,29 +702,32 @@ Server: resolvePriceMap → packPriceFor(...) → SKU map (vial / case) → disc
 
 ## 7. Open questions, gotchas & unverified items
 
-**Gotchas found in the code (verified):**
+**Decided:**
 
-1. **Custom labels and tags stop at the product page.** The cart, checkout, invoice, emails and order history always say `Pack of N` / `Single vial`, built from `packSize`. A pack labelled "Starter kit" on the PDP shows as "Pack of 3" from the cart onwards. Tags are never shown after the PDP, not even in the purchase modal.
-2. **Compare-at and savings are not shown in the cart or checkout.** Only `price × qty` is shown.
-3. **The cart keeps the price from when the item was added.** `CartItem.price` is the PDP price at the moment of adding and is stored in `localStorage`. I found **no client-side re-pricing** in the cart or checkout, so if an admin changes a pack price after a customer adds it, the checkout summary shows the old figure while the server charges the new one. Please confirm whether something outside the examined files refreshes cart prices.
-4. **Customers with price overrides or pricelists.** The PDP always shows catalog pack prices, including fixed `pack_options` prices. At checkout, a customer with an override or an active pricelist is charged `override vial × size`, and the fixed pack price is ignored. The two figures can differ.
-5. **Some admin views only look at `pack_sizes`:**
-   - the "custom" chip colour in the admin table,
-   - the bulk dialog's "Has custom options" / "On the default pack" filter,
-   - the cell grid's pack column (`packSizesFor({ pack_sizes })`).
+- **Price lists and per-customer overrides are out of scope.** Pack pricing is not used together with them. The checkout's override path (§3.11 step 4) is unchanged and is not part of this feature.
 
-   The product form writes both columns, so they normally agree. A row whose sizes exist only in `pack_options` would still show as "default" in these views.
-6. **No admin control for `enabled: false`.** The form always writes `enabled: true`. Disabled packs can only be created through a direct DB or API write.
-7. **`useLiveProduct` only refreshes some fields.** It re-reads `pack_options` but not `pack_sizes` or `vials_per_box`, so a change to those two takes up to 5 minutes (ISR) to appear on the PDP.
-8. **The admin preview tag colour differs from the storefront.** The admin preview chip is navy (`bg-ink`); the real PDP chip is Vital Blue (`bg-teal-dark`).
-9. **The grid's "Set pack options" menu offers only 1/3/5/10.** Custom sizes need the dialog, the product form, or typing them into a cell.
-10. **The default pack is hard-coded** (`DEFAULT_PACK_SIZE = 3` in `ProductDetailClient.tsx`). There is no admin setting for it, and tagging a pack "Most Popular" does not make it the default.
-11. **GA4 tracks the vial, not the pack.** `view_item` is always sent with `item_variant: 'Vial'` at the vial price, whichever pack is selected.
-12. **The `CAD` suffix is hard-coded** on the PDP headline. USD prices (`price_usd` / FX rate) are not used anywhere in the pack picker.
+**Fixed in this change:**
+
+- The cart and checkout no longer show a stale price: lines are re-priced from the catalog on load and when checkout opens, with the same function the server charges with.
+- A pack can be switched off and back on without losing its settings (§3.6a). Checkout refuses a switched-off or removed pack instead of charging for it at vial × size.
+- Tags now also show in the purchase modal, and the admin preview chip uses the storefront colour (§3.6b).
+- The admin table chip and the bulk dialog's "custom" filter count either pack column, not just `pack_sizes`.
+- A regression test checks that a mixed-pack, discounted order's email lines and totals match what was charged (§3.12).
+
+**Still true (by design or not yet changed):**
+
+1. **Custom button labels stop at the product page.** The cart, checkout, invoice, emails and order history always say `Pack of N` / `Single vial`. Tags are not shown there either (§3.6b).
+2. **Compare-at and per-pack savings are not shown in the cart or checkout**, only `price × qty`. A pack's fixed price is its list price, so a pack discount does not appear as a Discount row in the email; only codes and offers do.
+3. **The cell grid's pack column reads `pack_sizes` only.** It lists every configured size, including switched-off ones. On/off is only visible and editable in the product form.
+4. **`useLiveProduct` only refreshes some fields.** It re-reads `pack_options` (so on/off, prices and tags update on the next page view) but not `pack_sizes` or `vials_per_box`, which take up to 5 minutes (ISR).
+5. **The grid's "Set pack options" menu offers only 1/3/5/10.** Custom sizes need the dialog, the product form, or typing them into a cell.
+6. **The default pack is hard-coded** (`DEFAULT_PACK_SIZE = 3`). Tagging a pack does not make it the default.
+7. **GA4 tracks the vial, not the pack.** `view_item` is always sent with `item_variant: 'Vial'` at the vial price.
+8. **The `CAD` suffix is hard-coded** on the product page headline. USD prices are not used in the pack picker.
+9. **A switched-off pack already in a cart is only caught at checkout.** The cart page still lists it (at its saved price) until the shopper tries to pay.
 
 **Not verified / outside the examined files:**
 
-- How `PuraMass` / Stealth Health shows multi-pack lines on its hosted payment page. Only the `{ sku, quantity, unit_price_cents }` sent to it was examined.
-- How `ProductInfoTabs` and the cart drawer in `Navigation` (if there is one separate from `/cart`) render pack lines. Only `/cart`, the checkout summary and the account order page were checked.
-- Server-side stock enforcement at checkout. The PDP limits by stock, and comments say "checkout re-checks stock", but that code path was not traced.
-- Whether `pack_options` writes are ever made with `enabled: false` in production data. Checking needs a DB query, e.g. `SELECT name, pack_options FROM products WHERE pack_options @> '[{"enabled": false}]';`.
+- How PuraMass / Stealth Health shows multi-pack lines on its hosted payment page. Only the `{ sku, quantity, unit_price_cents }` sent to it was examined.
+- Server-side stock enforcement at checkout. The product page limits by stock, but that checkout code path was not traced.
+- Emails for orders that did not go through the hosted checkout (manual invoices, legacy storefront orders) build their lines from what the admin typed on the invoice, not from pack settings.

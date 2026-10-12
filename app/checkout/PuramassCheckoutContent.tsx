@@ -334,7 +334,11 @@ export default function PuramassCheckoutContent({
   /** Goods subtotal that unlocks it, CAD. */
   freeShippingThreshold: number;
 }) {
-  const { items, totalPrice } = useCart();
+  const { items, totalPrice, refreshPrices } = useCart();
+  // Quote the catalog's current pack prices, the ones the hand-off charges.
+  useEffect(() => {
+    refreshPrices();
+  }, [refreshPrices]);
   const { customer } = useCustomer();
   const { openPurchaseModal } = usePurchaseModal();
   // The discounts this buyer has earned: the paid-ads welcome discount, and
@@ -571,7 +575,10 @@ export default function PuramassCheckoutContent({
               stock_quantity: p.stock_quantity ?? 0,
               image_url: p.image_url ?? null,
               box_image_url: p.box_image_url ?? null,
-              allowedUnits,
+              // Empty when no pack the product is on sale in has a SKU behind
+              // it: there is nothing the hosted checkout could take, so the
+              // filter below drops the add-on.
+              allowedUnits: packs.length > 0 ? allowedUnits : [],
               fromPrice,
             };
           })
@@ -878,6 +885,10 @@ export default function PuramassCheckoutContent({
           } else {
             setError(`${json.error || "That discount code no longer applies."} Remove it or try another to continue.`);
           }
+        } else if (res.status === 409 && Array.isArray(json.unavailable)) {
+          // A pack in the cart was switched off or removed since it was added.
+          setUnmapped(json.unavailable);
+          setError(json.error || "Some items in your cart are no longer sold in that pack size.");
         } else if (res.status === 409 && Array.isArray(json.unmapped)) {
           setUnmapped(json.unmapped);
           setError("Some items aren't available for the secure hosted checkout.");

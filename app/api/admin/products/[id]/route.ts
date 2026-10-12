@@ -6,7 +6,7 @@ import { recordProductChanges } from '@/lib/admin/product-history';
 import { setProductStock } from '@/lib/admin/stock-ledger';
 import { checkLowStockForProducts } from '@/lib/admin/low-stock';
 import { parsePriceOverride, parseVialsPerBox } from '@/lib/admin/product-input';
-import { normalizePackOptions, normalizePackSizes, reconcilePackOptions } from '@/lib/pricing';
+import { hasEnabledPack, normalizePackOptions, normalizePackSizes, reconcilePackOptions } from '@/lib/pricing';
 import { sendBackInStockNotification } from '@/lib/email-smtp';
 
 const supabase = createClient(
@@ -250,6 +250,12 @@ export async function PATCH(
         );
       }
       const cleaned = normalizePackOptions(pack_options);
+      if (cleaned.length > 0 && !hasEnabledPack(cleaned)) {
+        return NextResponse.json(
+          { error: 'At least one pack has to stay on sale' },
+          { status: 400 },
+        );
+      }
       parsedPackOptions = cleaned.length > 0 ? cleaned : null;
     }
 

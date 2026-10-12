@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Tag } from 'lucide-react';
+import { EyeOff, Tag } from 'lucide-react';
 import {
   MAX_PACK_BADGE_LENGTH,
   MAX_PACK_OPTIONS,
@@ -16,8 +16,12 @@ import {
  * The single product's pack switchboard: which quantities it is sold in, and
  * what each of those packs is called and costs.
  *
- * One row per pack, with four boxes:
+ * One row per pack, with an On switch and four boxes:
  *
+ *   On          whether the pack is offered on the storefront. Off keeps the
+ *               pack and everything typed into its row, but the product page,
+ *               the purchase modal and the checkout stop selling it. The last
+ *               pack that is on cannot be switched off.
  *   Label       what the storefront button says. Blank → "Single vial" /
  *               "Pack of 3", so most products never need to touch it.
  *   Tag         the merchandising chip pinned to the pack's corner on the PDP
@@ -42,6 +46,8 @@ export interface PackOptionDraft {
   badge: string;
   price: string;
   compare_at: string;
+  /** Offered on the storefront. Off keeps the row's settings but hides it. */
+  enabled: boolean;
 }
 
 interface PackPricingEditorProps {
@@ -61,7 +67,7 @@ const boxClass =
 
 /** A blank row — every override unset, i.e. "price it the usual way". */
 export function emptyPackRow(size: number): PackOptionDraft {
-  return { size, label: '', badge: '', price: '', compare_at: '' };
+  return { size, label: '', badge: '', price: '', compare_at: '', enabled: true };
 }
 
 /** Parse a money box. '' (and anything unusable) means "not set". */
@@ -83,8 +89,9 @@ export function rowsForSizes(sizes: number[], existing: PackOptionDraft[]): Pack
 
 /**
  * The payload shape for `products.pack_options`, or null when nothing has been
- * overridden — an all-blank editor stores NULL rather than a document that
- * merely restates the derived defaults.
+ * overridden — an all-blank editor with every pack on stores NULL rather than
+ * a document that merely restates the derived defaults. A pack switched off
+ * counts as an override, since only this column can record it.
  */
 export function packOptionsPayload(
   sizes: number[],
@@ -95,7 +102,7 @@ export function packOptionsPayload(
   badge: string | null;
   price: number | null;
   compare_at: number | null;
-  enabled: true;
+  enabled: boolean;
 }> | null {
   const wanted = rowsForSizes(normalizePackSizes(sizes), rows);
   const payload = wanted.map((row) => ({
@@ -105,11 +112,15 @@ export function packOptionsPayload(
       row.badge.trim().length > 0 ? row.badge.trim().slice(0, MAX_PACK_BADGE_LENGTH) : null,
     price: money(row.price),
     compare_at: money(row.compare_at),
-    enabled: true as const,
+    enabled: row.enabled !== false,
   }));
   const overridden = payload.some(
     (row) =>
-      row.label !== null || row.badge !== null || row.price !== null || row.compare_at !== null,
+      row.label !== null ||
+      row.badge !== null ||
+      row.price !== null ||
+      row.compare_at !== null ||
+      !row.enabled,
   );
   return overridden ? payload : null;
 }
@@ -122,8 +133,16 @@ export default function PackPricingEditor({
   disabled = false,
   onChange,
 }: PackPricingEditorProps) {
-  const emit = (nextSizes: number[], nextRows: PackOptionDraft[]) =>
-    onChange({ sizes: nextSizes, rows: rowsForSizes(nextSizes, nextRows) });
+  const emit = (nextSizes: number[], nextRows: PackOptionDraft[]) => {
+    const kept = rowsForSizes(nextSizes, nextRows);
+    // Removing the last pack that was on would leave nothing on sale, so the
+    // packs that remain go back on.
+    const anyOn = kept.length === 0 || kept.some((row) => row.enabled !== false);
+    onChange({
+      sizes: nextSizes,
+      rows: anyOn ? kept : kept.map((row) => ({ ...row, enabled: true })),
+    });
+  };
 
   const toggleSize = (size: number) => {
     const next = sizes.includes(size)
@@ -136,6 +155,7 @@ export default function PackPricingEditor({
     emit(sizes, rows.map((row) => (row.size === size ? { ...row, ...patch } : row)));
 
   const ordered = rowsForSizes(normalizePackSizes(sizes), rows);
+  const enabledCount = ordered.filter((row) => row.enabled !== false).length;
 
   return (
     <div>
@@ -187,6 +207,7 @@ export default function PackPricingEditor({
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-surface text-left text-[11px] uppercase tracking-wider text-ink-muted">
+                  <th className="px-3 py-2 font-semibold">On</th>
                   <th className="px-3 py-2 font-semibold">Pack</th>
                   <th className="px-3 py-2 font-semibold">Button label</th>
                   <th className="px-3 py-2 font-semibold">Tag</th>
@@ -206,9 +227,39 @@ export default function PackPricingEditor({
                     ? round2(compareAt - price)
                     : 0;
                   const perVial = round2(price / Math.max(1, row.size));
+                  const on = row.enabled !== false;
+                  // The last pack on sale stays on: a product with every pack
+                  // off would have nothing to sell on its page.
+                  const lockedOn = on && enabledCount <= 1;
                   return (
-                    <tr key={row.size} className="bg-white align-top">
-                      <td className="px-3 py-2.5 font-semibold text-ink whitespace-nowrap">
+                    <tr key={row.size} className={`align-top ${on ? 'bg-white' : 'bg-surface/60'}`}>
+                      <td className="px-3 py-2.5">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={on}
+                          aria-label={`Offer the ${row.size === 1 ? 'single vial' : `${row.size}-pack`} on the storefront`}
+                          disabled={disabled || lockedOn}
+                          title={
+                            lockedOn
+                              ? 'At least one pack has to stay on'
+                              : on
+                                ? 'On sale. Click to hide this pack from the storefront'
+                                : 'Hidden. Click to put this pack back on sale'
+                          }
+                          onClick={() => setRow(row.size, { enabled: !on })}
+                          className={`relative mt-1 inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed ${
+                            lockedOn ? '' : 'disabled:opacity-50'
+                          } ${on ? 'bg-teal-dark' : 'bg-line'}`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                              on ? 'translate-x-[18px]' : 'translate-x-0.5'
+                            }`}
+                          />
+                        </button>
+                      </td>
+                      <td className={`px-3 py-2.5 font-semibold whitespace-nowrap ${on ? 'text-ink' : 'text-ink-muted'}`}>
                         {row.size === 1 ? '1 vial' : `${row.size} vials`}
                       </td>
                       <td className="px-3 py-2.5">
@@ -277,9 +328,15 @@ export default function PackPricingEditor({
                           className={boxClass}
                         />
                       </td>
-                      <td className="px-3 py-2.5 text-[11px] leading-relaxed text-ink-muted tabular-nums">
+                      <td className={`px-3 py-2.5 text-[11px] leading-relaxed text-ink-muted tabular-nums ${on ? '' : 'opacity-60'}`}>
+                        {!on && (
+                          <span className="mb-1 flex items-center gap-1 font-semibold text-ink-muted">
+                            <EyeOff className="h-3 w-3" />
+                            Hidden from storefront
+                          </span>
+                        )}
                         {row.badge.trim().length > 0 && (
-                          <span className="mb-1 inline-block rounded-full bg-ink px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                          <span className="mb-1 inline-block rounded-full bg-teal-dark px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                             {row.badge.trim()}
                           </span>
                         )}
@@ -311,7 +368,8 @@ export default function PackPricingEditor({
             ))}
           </datalist>
           <p className="mt-2 text-[11px] leading-relaxed text-ink-muted">
-            A <strong>Tag</strong> pins a chip to that pack&apos;s corner on the product page —
+            Switch a pack <strong>off</strong> to stop selling it without losing its settings; at
+            least one pack stays on. A <strong>Tag</strong> pins a chip to that pack&apos;s corner on the product page —
             use it to point customers at the pack you want them to buy. Leave <strong>Price</strong> blank to keep a pack at the vial price × its size
             (${vialPrice.toFixed(2)} each), so it follows the product price automatically. Type a
             lower price to discount the pack — the undiscounted figure becomes the struck-through

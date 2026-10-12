@@ -17,6 +17,7 @@ import {
   trackViewCart,
 } from '@/lib/analytics/ecommerce';
 import { cartItemToAnalytics } from '@/lib/analytics/cart';
+import { packPriceFor } from '@/lib/pricing';
 
 /**
  * How a line is sold. Kept as a two-value type for everything downstream that
@@ -111,6 +112,10 @@ interface CartContextType {
   flyToCart: (source: HTMLElement | DOMRect | null, opts?: FlyToCartOptions) => void;
   /** Increments on every successful add — Navigation watches this to bump. */
   bumpKey: number;
+  /** Re-reads the catalog and brings every line's price in line with what the
+   *  checkout will charge. Runs on its own when the cart loads or its products
+   *  change; the checkout page also calls it on arrival. */
+  refreshPrices: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -229,6 +234,45 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return added;
   }, []);
 
+  // A line's price is the pack price on the day it was added, and the cart
+  // lives in localStorage, so it can be days old by checkout. The hand-off
+  // re-prices every line from the catalog (`packPriceFor`), and the invoice
+  // and emails carry that figure, so quote the same one here or the checkout
+  // summary and the confirmation email would disagree.
+  const productKey = [...new Set(items.map((item) => item.productId))].sort().join(',');
+  const refreshPrices = useCallback(() => {
+    if (!productKey) return;
+    import('@/lib/supabase')
+      .then(({ supabase }) =>
+        supabase
+          .from('products')
+          .select('id, price, vial_price, vials_per_box, pack_sizes, pack_options')
+          .in('id', productKey.split(',')),
+      )
+      .then(({ data, error }) => {
+        // A failed read keeps the stored prices; the server re-prices anyway.
+        if (error || !data) return;
+        const byId = new Map(data.map((p: any) => [String(p.id), p]));
+        setItems((current) => {
+          let changed = false;
+          const next = current.map((item) => {
+            const product = byId.get(item.productId);
+            if (!product) return item;
+            const price = packPriceFor(product, item.packSize);
+            if (!(price > 0) || Math.abs(price - item.price) < 0.005) return item;
+            changed = true;
+            return { ...item, price };
+          });
+          return changed ? next : current;
+        });
+      })
+      .catch(() => {});
+  }, [productKey]);
+
+  useEffect(() => {
+    if (isHydrated) refreshPrices();
+  }, [isHydrated, refreshPrices]);
+
   const removeItem = (id: string) => {
     // Read the line before dropping it — GA4 wants the removed quantity/price,
     // and the state updater must stay pure.
@@ -297,6 +341,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setIsOpen,
         flyToCart,
         bumpKey,
+        refreshPrices,
       }}
     >
       {children}
