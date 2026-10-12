@@ -8,8 +8,14 @@
  * true` for an invoice, so this goes out once per order with no claim of its
  * own. Admin backfills of old missed commissions don't call it.
  *
+ * The admin notification list (`getAdminAlertEmails`, Admin → Settings) gets a
+ * copy of the same email, sent separately so it goes out even when the
+ * affiliate has no deliverable address or their send fails. An admin who is
+ * also the affiliate isn't sent it twice.
+ *
  * Every attempt is logged to `fulfillment_email_log` (kind
- * 'affiliate_commission'). A failed send is logged, not retried.
+ * 'affiliate_commission', and 'affiliate_commission_admin_copy' for the
+ * admins' copy). A failed send is logged, not retried.
  *
  * Never throws: a payment webhook must not fail because an email didn't send.
  */
@@ -18,6 +24,7 @@ import { SITE_URL } from '@/lib/config';
 import { deliverableEmail } from '@/lib/order-confirmation-data';
 
 const LOG_KIND = 'affiliate_commission';
+const ADMIN_COPY_LOG_KIND = 'affiliate_commission_admin_copy';
 
 export interface CommissionNotice {
   affiliateId: string;
@@ -30,6 +37,7 @@ export interface CommissionNotice {
   code: string | null;
 }
 
+/** Whether the affiliate's own email went out; the admins' copy is logged on its own. */
 export type CommissionNoticeOutcome =
   | { sent: true }
   | { sent: false; reason: 'no_affiliate' | 'no_email' | 'send_failed' | 'error' };
@@ -41,6 +49,7 @@ function trimOrNull(v: unknown): string | null {
 async function logAttempt(
   db: SupabaseClient,
   row: { invoice_id: string; to_email: string; subject: string; success: boolean; error: string | null; message_id: string | null },
+  kind: string = LOG_KIND,
 ): Promise<void> {
   try {
     const { error } = await db.from('fulfillment_email_log').insert({
@@ -48,7 +57,7 @@ async function logAttempt(
       order_id: null,
       sent_by: null,
       sent_by_email: null,
-      kind: LOG_KIND,
+      kind,
     });
     if (error) console.error('[affiliate-email] logging the send failed:', error);
   } catch (err) {
@@ -61,7 +70,8 @@ export async function notifyAffiliateOfCommission(
   notice: CommissionNotice,
 ): Promise<CommissionNoticeOutcome> {
   try {
-    const [{ data: affiliate }, { data: invoice }] = await Promise.all([
+    const { getAdminAlertEmails } = await import('@/lib/admin/alert-recipients');
+    const [{ data: affiliate }, { data: invoice }, adminEmails] = await Promise.all([
       db
         .from('affiliates')
         .select('email, first_name, last_name')
@@ -72,24 +82,46 @@ export async function notifyAffiliateOfCommission(
         .select('invoice_number')
         .eq('id', notice.invoiceId)
         .maybeSingle(),
+      getAdminAlertEmails(db),
     ]);
     if (!affiliate) return { sent: false, reason: 'no_affiliate' };
     const to = deliverableEmail(affiliate.email);
-    if (!to) {
-      console.warn(`[affiliate-email] affiliate ${notice.affiliateId} has no deliverable email — commission email not sent`);
-      return { sent: false, reason: 'no_email' };
-    }
 
     const { sendAffiliateCommissionEmail } = await import('@/lib/email');
-    const res = await sendAffiliateCommissionEmail(to, {
+    const data = {
       affiliateName: [trimOrNull(affiliate.first_name), trimOrNull(affiliate.last_name)].filter(Boolean).join(' '),
       orderNumber: trimOrNull(invoice?.invoice_number) ?? notice.invoiceId,
       orderTotal: notice.orderTotal,
       commission: notice.amount,
       referralCode: trimOrNull(notice.code),
       dashboardUrl: `${SITE_URL}/affiliate/dashboard`,
-    });
+    };
 
+    const adminTo = adminEmails.filter((e) => !to || e.trim().toLowerCase() !== to.toLowerCase());
+    if (adminTo.length > 0) {
+      const copy = await sendAffiliateCommissionEmail(adminTo, data, { adminCopy: true });
+      await logAttempt(
+        db,
+        {
+          invoice_id: notice.invoiceId,
+          to_email: adminTo.join(', '),
+          subject: copy.subject,
+          success: copy.success,
+          error: copy.success ? null : copy.error ?? 'Failed to send email',
+          message_id: copy.id ?? null,
+        },
+        ADMIN_COPY_LOG_KIND,
+      );
+      if (!copy.success) {
+        console.error(`[affiliate-email] admin copy of the commission email for invoice ${notice.invoiceId} not sent: ${copy.error}`);
+      }
+    }
+
+    if (!to) {
+      console.warn(`[affiliate-email] affiliate ${notice.affiliateId} has no deliverable email — commission email not sent`);
+      return { sent: false, reason: 'no_email' };
+    }
+    const res = await sendAffiliateCommissionEmail(to, data);
     await logAttempt(db, {
       invoice_id: notice.invoiceId,
       to_email: to,
