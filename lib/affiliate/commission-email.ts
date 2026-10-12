@@ -17,6 +17,11 @@
  * 'affiliate_commission', and 'affiliate_commission_admin_copy' for the
  * admins' copy). A failed send is logged, not retried.
  *
+ * Admins can also send both again by hand from the invoice page
+ * (`sendCommissionEmailManually`), for a commission that's already booked —
+ * e.g. one booked by hand or by a backfill, which send nothing. Manual sends
+ * are logged with the admin who sent them.
+ *
  * Never throws: a payment webhook must not fail because an email didn't send.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -37,10 +42,19 @@ export interface CommissionNotice {
   code: string | null;
 }
 
-/** Whether the affiliate's own email went out; the admins' copy is logged on its own. */
+/** What happened to the admins' copy. */
+export type AdminCopyOutcome = 'sent' | 'send_failed' | 'no_recipients';
+
+/** `sent`/`reason` are about the affiliate's own email; `adminCopy` about the admins'. */
 export type CommissionNoticeOutcome =
-  | { sent: true }
-  | { sent: false; reason: 'no_affiliate' | 'no_email' | 'send_failed' | 'error' };
+  | { sent: true; adminCopy: AdminCopyOutcome }
+  | { sent: false; reason: 'no_affiliate' | 'no_email' | 'send_failed' | 'error'; adminCopy?: AdminCopyOutcome };
+
+/** The admin who sent it by hand; null on the automatic send. */
+interface SentBy {
+  id: string | null;
+  email: string | null;
+}
 
 function trimOrNull(v: unknown): string | null {
   return typeof v === 'string' && v.trim() ? v.trim() : null;
@@ -49,14 +63,15 @@ function trimOrNull(v: unknown): string | null {
 async function logAttempt(
   db: SupabaseClient,
   row: { invoice_id: string; to_email: string; subject: string; success: boolean; error: string | null; message_id: string | null },
-  kind: string = LOG_KIND,
+  kind: string,
+  sentBy: SentBy | null,
 ): Promise<void> {
   try {
     const { error } = await db.from('fulfillment_email_log').insert({
       ...row,
       order_id: null,
-      sent_by: null,
-      sent_by_email: null,
+      sent_by: sentBy?.id ?? null,
+      sent_by_email: sentBy?.email ?? null,
       kind,
     });
     if (error) console.error('[affiliate-email] logging the send failed:', error);
@@ -68,6 +83,7 @@ async function logAttempt(
 export async function notifyAffiliateOfCommission(
   db: SupabaseClient,
   notice: CommissionNotice,
+  sentBy: SentBy | null = null,
 ): Promise<CommissionNoticeOutcome> {
   try {
     const { getAdminAlertEmails } = await import('@/lib/admin/alert-recipients');
@@ -98,6 +114,7 @@ export async function notifyAffiliateOfCommission(
     };
 
     const adminTo = adminEmails.filter((e) => !to || e.trim().toLowerCase() !== to.toLowerCase());
+    let adminCopy: AdminCopyOutcome = 'no_recipients';
     if (adminTo.length > 0) {
       const copy = await sendAffiliateCommissionEmail(adminTo, data, { adminCopy: true });
       await logAttempt(
@@ -111,7 +128,9 @@ export async function notifyAffiliateOfCommission(
           message_id: copy.id ?? null,
         },
         ADMIN_COPY_LOG_KIND,
+        sentBy,
       );
+      adminCopy = copy.success ? 'sent' : 'send_failed';
       if (!copy.success) {
         console.error(`[affiliate-email] admin copy of the commission email for invoice ${notice.invoiceId} not sent: ${copy.error}`);
       }
@@ -119,20 +138,79 @@ export async function notifyAffiliateOfCommission(
 
     if (!to) {
       console.warn(`[affiliate-email] affiliate ${notice.affiliateId} has no deliverable email — commission email not sent`);
-      return { sent: false, reason: 'no_email' };
+      return { sent: false, reason: 'no_email', adminCopy };
     }
     const res = await sendAffiliateCommissionEmail(to, data);
-    await logAttempt(db, {
-      invoice_id: notice.invoiceId,
-      to_email: to,
-      subject: res.subject,
-      success: res.success,
-      error: res.success ? null : res.error ?? 'Failed to send email',
-      message_id: res.id ?? null,
-    });
-    return res.success ? { sent: true } : { sent: false, reason: 'send_failed' };
+    await logAttempt(
+      db,
+      {
+        invoice_id: notice.invoiceId,
+        to_email: to,
+        subject: res.subject,
+        success: res.success,
+        error: res.success ? null : res.error ?? 'Failed to send email',
+        message_id: res.id ?? null,
+      },
+      LOG_KIND,
+      sentBy,
+    );
+    return res.success ? { sent: true, adminCopy } : { sent: false, reason: 'send_failed', adminCopy };
   } catch (err) {
     console.error(`[affiliate-email] commission email for invoice ${notice.invoiceId} failed:`, err);
     return { sent: false, reason: 'error' };
+  }
+}
+
+export type ManualCommissionEmailOutcome =
+  | { ok: true; notice: CommissionNoticeOutcome }
+  | { ok: false; reason: 'no_commission' | 'cancelled' | 'error' };
+
+/**
+ * Send the commission email (affiliate + admins' copy) for an invoice whose
+ * commission is already booked, from the invoice page. Built from the
+ * `commissions` row, so it says exactly what was booked. Not for a cancelled
+ * commission — the email promises it goes into the next payout.
+ */
+export async function sendCommissionEmailManually(
+  db: SupabaseClient,
+  invoiceId: string,
+  sentBy: SentBy,
+): Promise<ManualCommissionEmailOutcome> {
+  try {
+    const { data: commission, error } = await db
+      .from('commissions')
+      .select('affiliate_id, amount, order_total, status, discount_code_id, referral_code_id')
+      .eq('invoice_id', invoiceId)
+      .maybeSingle();
+    if (error) {
+      console.error(`[affiliate-email] reading the commission for invoice ${invoiceId} failed:`, error);
+      return { ok: false, reason: 'error' };
+    }
+    if (!commission?.affiliate_id) return { ok: false, reason: 'no_commission' };
+    if (commission.status === 'cancelled') return { ok: false, reason: 'cancelled' };
+
+    // The code the sale came in on: the discount code that earned it, else
+    // the affiliate's referral code.
+    const codeRow = commission.discount_code_id
+      ? (await db.from('discount_codes').select('code').eq('id', commission.discount_code_id).maybeSingle()).data
+      : commission.referral_code_id
+        ? (await db.from('referral_codes').select('code').eq('id', commission.referral_code_id).maybeSingle()).data
+        : null;
+
+    const notice = await notifyAffiliateOfCommission(
+      db,
+      {
+        affiliateId: commission.affiliate_id,
+        invoiceId,
+        amount: Number(commission.amount) || 0,
+        orderTotal: Number(commission.order_total) || 0,
+        code: trimOrNull(codeRow?.code),
+      },
+      sentBy,
+    );
+    return { ok: true, notice };
+  } catch (err) {
+    console.error(`[affiliate-email] manual commission email for invoice ${invoiceId} failed:`, err);
+    return { ok: false, reason: 'error' };
   }
 }

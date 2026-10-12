@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ArrowLeft, FileText, CreditCard, Check, DollarSign,
   Edit2, Loader2, X, Download, Eye, Briefcase, Pencil, Send, Trash2,
-  Truck, RefreshCw, Package, Beaker, Store, Tag, Handshake,
+  Truck, RefreshCw, Package, Beaker, Store, Tag, Handshake, Mail,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ import { canEdit, canDelete } from '@/lib/permissions';
 import {
   getInvoice, updateInvoice, recordPayment,
   getInvoiceTracking, deleteInvoice, emailInvoice, getInvoicePuramass,
-  getInvoiceBreakdown, bookInvoiceCommission, type InvoiceTrackingSnapshot,
+  getInvoiceBreakdown, bookInvoiceCommission, sendInvoiceCommissionEmail, type InvoiceTrackingSnapshot,
 } from '@/lib/admin/invoices';
 import {
   InvoiceSourceBadge,
@@ -104,6 +104,7 @@ export default function InvoiceDetailPage() {
   // as the Stealth Health block.
   const [breakdown, setBreakdown] = useState<InvoiceBreakdown | null>(null);
   const [bookingCommission, setBookingCommission] = useState(false);
+  const [emailingCommission, setEmailingCommission] = useState(false);
 
   // Send email modal
   const [showEmail, setShowEmail] = useState(false);
@@ -273,6 +274,28 @@ export default function InvoiceDetailPage() {
       flash(e?.message || 'Could not book the commission');
     } finally {
       setBookingCommission(false);
+    }
+  }
+
+  // "You earned a new commission" to the affiliate, and its copy to the admins.
+  async function emailCommission() {
+    if (!confirm('Email this commission to the affiliate and send the admins a copy?')) return;
+    setEmailingCommission(true);
+    try {
+      const { affiliate: toAffiliate, admins } = await sendInvoiceCommissionEmail(id);
+      const part = (who: string, d: string) =>
+        d === 'sent'
+          ? `${who}: sent`
+          : d === 'no_email'
+            ? `${who}: no email on file`
+            : d === 'no_recipients'
+              ? `${who}: no recipients set`
+              : `${who}: failed`;
+      flash(`Commission email — ${part('affiliate', toAffiliate)}, ${part('admins', admins)}`);
+    } catch (e: any) {
+      flash(e?.message || 'Could not send the commission email');
+    } finally {
+      setEmailingCommission(false);
     }
   }
 
@@ -1010,6 +1033,21 @@ export default function InvoiceDetailPage() {
                           </span>
                         </span>
                       </div>
+                      {editable && affiliate.commission.status !== 'cancelled' && (
+                        <button
+                          type="button"
+                          onClick={emailCommission}
+                          disabled={emailingCommission}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 hover:text-purple-800 disabled:opacity-50"
+                        >
+                          {emailingCommission ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Mail className="w-3.5 h-3.5" />
+                          )}
+                          Email affiliate &amp; admins
+                        </button>
+                      )}
                     </>
                   ) : (
                     <>
