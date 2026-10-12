@@ -698,6 +698,21 @@ export async function bookInvoiceCommission(id: string): Promise<{ commissionId:
   );
 }
 
+export type CommissionEmailDelivery = 'sent' | 'send_failed' | 'no_email' | 'no_recipients';
+
+/**
+ * Send the commission email for this invoice's booked commission to the
+ * affiliate and its copy to the admin list. Throws with the server's reason.
+ */
+export async function sendInvoiceCommissionEmail(
+  id: string,
+): Promise<{ affiliate: CommissionEmailDelivery; admins: CommissionEmailDelivery }> {
+  return apiFetch<{ affiliate: CommissionEmailDelivery; admins: CommissionEmailDelivery }>(
+    `/api/admin/invoices/${id}/commission/email`,
+    { method: 'POST' },
+  );
+}
+
 export async function getInvoicePuramass(
   id: string,
 ): Promise<PuramassInvoiceContext | null> {
