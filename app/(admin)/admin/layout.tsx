@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, createContext, useContext } from 'react';
-import { LayoutDashboard, Users, DollarSign, UserCircle, ArrowLeft, Mail, Lock, LogIn, AlertCircle, Info, ShoppingBag, FileText, ClipboardList, ScrollText, Briefcase, TrendingUp, Tag, Tags, Megaphone, Bell, Settings, PackageX, Warehouse, FlaskConical, Menu, X, ChevronsLeft, ChevronsRight, BookOpen, Handshake, Eye, Target, Sparkles, Radio, FileEdit, Newspaper, Layers, MessageSquareQuote, Ticket, Globe, History } from 'lucide-react';
+import { LayoutDashboard, Users, DollarSign, UserCircle, ArrowLeft, Mail, Lock, LogIn, AlertCircle, Info, ShoppingBag, FileText, ClipboardList, ScrollText, Briefcase, TrendingUp, Tag, Tags, Megaphone, Bell, Settings, PackageX, Warehouse, FlaskConical, Menu, X, ChevronsLeft, ChevronsRight, BookOpen, Handshake, Eye, Target, Sparkles, Radio, FileEdit, Newspaper, Layers, MessageSquareQuote, Ticket, Globe, History, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -66,6 +66,7 @@ const navGroups = [
       { href: '/admin/invoices', label: 'Invoices', icon: FileText },
       { href: '/admin/backorders', label: 'Backorders', icon: PackageX },
       { href: '/admin/stealth-health', label: 'Stealth Health', icon: Handshake },
+      { href: '/admin/stealth-health/payouts', label: 'Stealth Health Payouts', icon: Wallet },
       { href: '/admin/customers', label: 'Customers', icon: Users },
       { href: '/admin/pricing', label: 'Pricing', icon: Tag },
     ],
@@ -391,10 +392,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   // Admin authenticated - show dashboard
-  const isActive = (href: string) => {
-    if (href === '/admin') return pathname === '/admin';
-    return pathname.startsWith(href);
-  };
+  // Only the most specific matching item is active, so /admin/stealth-health/payouts
+  // lights up "Stealth Health Payouts" and not "Stealth Health" as well.
+  const matchesPath = (href: string) =>
+    href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+  const activeHref = navGroups
+    .flatMap((group) => group.items.map((item) => item.href))
+    .filter(matchesPath)
+    .sort((a, b) => b.length - a.length)[0];
+  const isActive = (href: string) => href === activeHref;
 
   const roleLabel = effectiveRole === 'admin' ? 'Admin' : getRoleName(effectiveRole);
 

@@ -32,6 +32,7 @@ import ReconcileTab from './_components/ReconcileTab';
 import PayoutsTab from './_components/PayoutsTab';
 import TermsTab from './_components/TermsTab';
 import OrdersTab from './_components/orders/OrdersTab';
+import StealthHealthTabs from './_components/StealthHealthTabs';
 
 type Tab = 'overview' | 'reconcile' | 'invoices' | 'payouts' | 'orders' | 'terms';
 
@@ -39,7 +40,9 @@ const TABS: Array<{ key: Tab; label: string; icon: React.ElementType }> = [
   { key: 'overview', label: 'Overview', icon: TrendingUp },
   { key: 'reconcile', label: 'Reconcile', icon: Scale },
   { key: 'invoices', label: 'Invoices', icon: FileText },
-  { key: 'payouts', label: 'Payouts', icon: Wallet },
+  // Money Stealth Health has sent us against settlement invoices. Not the
+  // payout-request workflow, which is its own page (/admin/stealth-health/payouts).
+  { key: 'payouts', label: 'Remittances', icon: Wallet },
   { key: 'orders', label: 'Orders', icon: CreditCard },
   { key: 'terms', label: 'Terms', icon: Settings2 },
 ];
@@ -120,6 +123,7 @@ export default function StealthHealthPage() {
             Stealth Health collects payment on its hosted checkout and we ship the goods, so every
             paid hand-off is money they hold for us. {summary.terms_summary}
           </p>
+          <div className="mt-3"><StealthHealthTabs active="settlement" /></div>
         </div>
         <button onClick={load} disabled={refreshing}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-line rounded-lg text-sm text-ink hover:bg-surface disabled:opacity-50 self-start sm:self-auto">

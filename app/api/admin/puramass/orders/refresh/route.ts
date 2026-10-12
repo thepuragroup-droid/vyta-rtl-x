@@ -9,6 +9,7 @@ import {
   PuramassApiError,
 } from '@/lib/payments/puramass';
 import { materializeStealthHealthFulfillment } from '@/lib/payments/puramass-fulfillment';
+import { storePortalSnapshot } from '@/lib/payments/puramass-poll';
 import { isMissingColumnError, stripUnmigratedFields } from '@/lib/payments/puramass-columns';
 
 const db = createClient(
@@ -67,6 +68,8 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ error: 'Could not reach Stealth Health.' }, { status: 502 });
   }
+
+  await storePortalSnapshot(db, { transaction_id: transactionId }, status.raw);
 
   // Read the row first so the address/contact patch can diff against what is
   // already stored — a payload that omits those blocks must not clear them.

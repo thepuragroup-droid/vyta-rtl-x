@@ -106,6 +106,8 @@ export interface PuramassOrderStatus {
   /** Null when Stealth Health has not (yet) reported an address for this order. */
   shipping: PuramassShippingAddress | null;
   customer: PuramassContact;
+  /** The order body exactly as Stealth Health returned it (kept as a snapshot). */
+  raw?: Record<string, unknown> | null;
 }
 
 /**
@@ -543,6 +545,7 @@ export async function fetchPuramassOrderStatus(
     refunds: Array.isArray(order.refunds) ? order.refunds : [],
     shipping: normalizePuramassShipping(order.shipping ?? order.shipping_address),
     customer: normalizePuramassContact(order.customer),
+    raw: order && typeof order === 'object' ? order : null,
   };
 }
 
