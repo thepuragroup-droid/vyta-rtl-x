@@ -23,8 +23,9 @@
  */
 import React, { useState } from 'react';
 import {
-  Truck, Loader2, RefreshCw, Search, Download, Check, X, Tag,
+  Truck, Loader2, RefreshCw, Search, Download, Check, X, Tag, Link2,
 } from 'lucide-react';
+import EasyshipShipmentPicker from '@/components/admin/EasyshipShipmentPicker';
 import {
   shippingReadiness,
   createInvoiceShipment,
@@ -90,6 +91,12 @@ interface Props {
   onChanged: () => void | Promise<void>;
   /** Surface a message on the page's toast strip. */
   flash: (msg: string) => void;
+  /** Shown in the shipment picker's header. */
+  invoiceNumber?: string | null;
+  /** Flags the picker's shipments addressed to this customer. */
+  customerName?: string | null;
+  /** The shipment was replaced by hand — the rest of the page may be stale. */
+  onShipmentReplaced?: () => void;
 }
 
 export default function InvoiceEasyshipPanel({
@@ -102,6 +109,9 @@ export default function InvoiceEasyshipPanel({
   onRefresh,
   onChanged,
   flash,
+  invoiceNumber,
+  customerName,
+  onShipmentReplaced,
 }: Props) {
   // ---- Setup state (only meaningful before a shipment exists) ----
   const [readiness, setReadiness] = useState<ShippingReadinessResult | null>(null);
@@ -116,6 +126,7 @@ export default function InvoiceEasyshipPanel({
   const [creating, setCreating] = useState(false);
   const [buyingLabel, setBuyingLabel] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   if (!tracking) return null;
   const isPickup = fulfillmentType === 'pickup';
@@ -549,6 +560,38 @@ export default function InvoiceEasyshipPanel({
       {!hasShipment && !isPickup && !editable && (
         <p className="text-sm text-ink-muted">Not shipped yet.</p>
       )}
+
+      {/* ---- Point the invoice at a different Easyship shipment ---- */}
+      {!isPickup && editable && !setupOpen && (
+        <button
+          onClick={() => setPickerOpen(true)}
+          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 text-xs text-ink-muted hover:text-ink hover:bg-surface"
+          title="Pick the right shipment from your Easyship account"
+        >
+          <Link2 className="w-3.5 h-3.5" />
+          {hasShipment ? 'Override shipment…' : 'Link existing Easyship shipment…'}
+        </button>
+      )}
+
+      <EasyshipShipmentPicker
+        open={pickerOpen}
+        invoiceId={invoiceId}
+        invoiceNumber={invoiceNumber}
+        customerName={customerName}
+        onClose={() => setPickerOpen(false)}
+        onLinked={async (res) => {
+          setPickerOpen(false);
+          const email =
+            res.email === 'sent' ? ' — shipped email sent to the customer' : '';
+          flash(
+            res.previous_shipment_id && res.previous_shipment_id !== res.easyship_shipment_id
+              ? `Shipment replaced with ${res.easyship_shipment_id}${email}`
+              : `Shipment ${res.easyship_shipment_id} linked${email}`,
+          );
+          await onChanged();
+          onShipmentReplaced?.();
+        }}
+      />
     </div>
   );
 }

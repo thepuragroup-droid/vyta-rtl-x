@@ -73,6 +73,9 @@ export default function InvoiceDetailPage() {
     amount_due: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  // Bumped when the shipment is replaced from the Easyship panel, so the order
+  // panel (which loads its order once) re-reads it.
+  const [orderPanelVersion, setOrderPanelVersion] = useState(0);
 
   // Payment modal
   const [showPayment, setShowPayment] = useState(false);
@@ -912,6 +915,12 @@ export default function InvoiceDetailPage() {
               setTracking(snap);
             }}
             flash={flash}
+            invoiceNumber={invoice.invoice_number}
+            customerName={invoice.customer_name ?? puramass?.customer_name ?? null}
+            onShipmentReplaced={() => {
+              load();
+              setOrderPanelVersion((v) => v + 1);
+            }}
           />
 
           {/* Discount & affiliate — what came off and who earns on the sale. */}
@@ -1113,6 +1122,7 @@ export default function InvoiceDetailPage() {
           order emails, refund), shown for any invoice with a linked order. */}
       {invoice.order_id && (
         <OrderManagementPanel
+          key={`order-panel-${orderPanelVersion}`}
           orderId={invoice.order_id}
           editable={editable}
           onOrderChange={handleOrderChange}

@@ -8,6 +8,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   addBusinessDays,
+  clearedShipmentPatch,
   coreShipmentPatch,
   estimatedDeliveryWindow,
   extendedShipmentPatch,
@@ -94,4 +95,16 @@ test('delivery window from the transit estimate', () => {
     deliveryTo: '2026-10-09',
   });
   assert.equal(estimatedDeliveryWindow('2026-10-07', 0, null), null);
+});
+
+test('an override clears every column a sync can write', () => {
+  const { core, extended } = clearedShipmentPatch();
+  const full = record({ label_generated_at: '2026-10-08T12:00:00Z', tracking_status: 'in_transit' });
+  for (const col of Object.keys(coreShipmentPatch(full))) {
+    assert.ok(col in core, `core clear misses ${col}`);
+  }
+  for (const col of Object.keys(extendedShipmentPatch(full))) {
+    assert.ok(col in extended, `extended clear misses ${col}`);
+  }
+  assert.ok(Object.values({ ...core, ...extended }).every((v) => v === null));
 });

@@ -879,6 +879,92 @@ export async function linkEasyshipShipment(entry: {
   });
 }
 
+// ---- PER-INVOICE SHIPMENT OVERRIDE ----
+
+/** One Easyship shipment, with what an operator needs to recognise it. */
+export interface EasyshipShipmentOption extends EasyshipSyncUnmatched {
+  label_url: string | null;
+  service_name?: string | null;
+  total_charge?: number | null;
+  currency?: string | null;
+  label_state?: 'not_created' | 'pending' | 'generated' | 'failed';
+  tracking_url?: string | null;
+  destination_email?: string | null;
+  destination_company?: string | null;
+  destination_city?: string | null;
+  destination_state?: string | null;
+  destination_postal_code?: string | null;
+  destination_country?: string | null;
+  platform_order_number?: string | null;
+  item_count?: number | null;
+  weight_kg?: number | null;
+}
+
+export interface InvoiceShipmentCandidates {
+  /** Which row holds this invoice's shipment. */
+  anchor: 'order' | 'invoice';
+  current_shipment_id: string | null;
+  since: string;
+  lookbackDays: number;
+  fetched: number;
+  easyshipError: string | null;
+  /** Newest first. */
+  shipments: EasyshipShipmentOption[];
+  /** shipment id → the OTHER order or invoice it is already attached to. */
+  linked: Record<string, EasyshipShipmentOwner>;
+}
+
+/** Every Easyship shipment created in the last `days` days, for the override picker. */
+export async function listInvoiceShipmentCandidates(
+  invoiceId: string,
+  days = 30,
+): Promise<InvoiceShipmentCandidates> {
+  const token = await getToken();
+  return apiFetch<InvoiceShipmentCandidates>(
+    `/api/admin/invoices/${invoiceId}/easyship-shipment?days=${encodeURIComponent(String(days))}`,
+    {
+      headers: authHeaders(token),
+      // Walking Easyship pagination over a wide window is slow.
+      timeoutMs: 60_000,
+    },
+  );
+}
+
+export interface InvoiceShipmentOverrideResult {
+  ok: boolean;
+  anchor: 'order' | 'invoice';
+  previous_shipment_id: string | null;
+  easyship_shipment_id: string;
+  label_state: string | null;
+  /** What happened to the automatic shipped email. */
+  email: 'sent' | 'already_sent' | 'not_ready' | 'skipped' | 'failed' | 'no_invoice';
+}
+
+/**
+ * Replace the invoice's shipment record with the picked Easyship shipment.
+ * `allowShared` confirms linking a shipment another order already carries.
+ */
+export async function overrideInvoiceShipment(
+  invoiceId: string,
+  easyshipShipmentId: string,
+  opts: { allowShared?: boolean } = {},
+): Promise<InvoiceShipmentOverrideResult> {
+  const token = await getToken();
+  return apiFetch<InvoiceShipmentOverrideResult>(
+    `/api/admin/invoices/${invoiceId}/easyship-shipment`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({
+        easyship_shipment_id: easyshipShipmentId,
+        allow_shared: opts.allowShared === true,
+      }),
+      // Reads the shipment from Easyship and may send the shipped email.
+      timeoutMs: 45_000,
+    },
+  );
+}
+
 export interface EasyshipSyncApplyResult {
   applied: number;
   failed: Array<{ invoice_id: string; error: string }>;

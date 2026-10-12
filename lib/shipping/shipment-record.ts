@@ -68,6 +68,42 @@ export function extendedShipmentPatch(
   return patch;
 }
 
+/**
+ * Blank the stored shipment before another one replaces it (the per-invoice
+ * shipment override). The patches above only ever write values Easyship
+ * returned, so without this a replacement that has no label yet would keep the
+ * old parcel's label, tracking number and cost. Split the same way as the
+ * write: `core` is safe on every shipment-carrying row, `extended` holds the
+ * columns later migrations added and may be missing.
+ */
+export function clearedShipmentPatch(): {
+  core: Record<string, null>;
+  extended: Record<string, null>;
+} {
+  return {
+    core: {
+      easyship_shipment_id: null,
+      easyship_courier_id: null,
+      tracking_number: null,
+      tracking_url: null,
+      tracking_status: null,
+      carrier: null,
+      label_url: null,
+      label_state: null,
+    },
+    extended: {
+      tracking_checkpoints: null,
+      shipping_service: null,
+      shipping_label_cost: null,
+      shipping_label_currency: null,
+      est_delivery_min_days: null,
+      est_delivery_max_days: null,
+      label_generated_at: null,
+      easyship_synced_at: null,
+    },
+  };
+}
+
 /** Shift a "YYYY-MM-DD" day forward by `days` working days (Mon–Fri). */
 export function addBusinessDays(day: string, days: number): string {
   const d = new Date(`${day}T00:00:00Z`);
