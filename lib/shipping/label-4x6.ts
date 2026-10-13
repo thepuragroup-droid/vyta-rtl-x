@@ -6,13 +6,12 @@
 // file as-is shrinks the label and leaves the rest of the sheet blank.
 //
 // Every label is turned into a PDF of 4x6 pages (288 x 432 pt), the same
-// shape as Easyship's own 4x6 documents, and that PDF is what gets printed:
+// shape as Easyship's own 4x6 documents, and "Print label" opens that PDF in
+// a new tab to print from the browser's PDF viewer:
 //   • a page that is already 4x6 is kept exactly as Easyship made it;
 //   • any other page is trimmed to the label printed on it (the white area
 //     around it is dropped), turned upright if it lies sideways, and drawn
 //     at 300 dpi to fill a 4x6 page.
-
-import { printPdfBlob } from '@/lib/print-pdf';
 
 const SHEET_W_IN = 4;
 const SHEET_H_IN = 6;
@@ -250,15 +249,45 @@ export async function combineLabelPdfs(pdfs: Blob[]): Promise<Blob> {
 }
 
 /**
- * Print one label file as a 4x6 PDF. If the file can't be redrawn (an
- * unreadable PDF, an old browser) it is printed as-is rather than not at all.
+ * The label as a 4x6 PDF. If the file can't be redrawn (an unreadable PDF, an
+ * old browser) the original file comes back rather than nothing.
  */
-export async function printShippingLabel(blob: Blob): Promise<void> {
-  let pdf = blob;
+export async function toLabelPdf(blob: Blob): Promise<Blob> {
   try {
-    pdf = await labelPdf4x6(blob);
+    return await labelPdf4x6(blob);
   } catch (e) {
-    console.warn('Could not fit the label to 4x6; printing the file as-is', e);
+    console.warn('Could not fit the label to 4x6; using the file as-is', e);
+    return blob;
   }
-  printPdfBlob(pdf);
+}
+
+/**
+ * "Print label": open a new tab for the label's 4x6 PDF, which is printed
+ * from the browser's PDF viewer like Easyship's own 4x6 file.
+ *
+ * Call it synchronously inside the click, before any await, so popup
+ * blockers allow the tab; then `show` the PDF in it, or `close` it when
+ * there is nothing to show.
+ */
+export function openLabelTab() {
+  const tab = window.open('', '_blank');
+  try {
+    if (tab) {
+      tab.document.title = 'Shipping label';
+      tab.document.body.textContent = 'Loading label…';
+    }
+  } catch {
+    /* not scriptable — the tab just stays blank until the label loads */
+  }
+  return {
+    show(pdf: Blob) {
+      const url = URL.createObjectURL(pdf);
+      if (tab && !tab.closed) tab.location.href = url;
+      else window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    },
+    close() {
+      tab?.close();
+    },
+  };
 }

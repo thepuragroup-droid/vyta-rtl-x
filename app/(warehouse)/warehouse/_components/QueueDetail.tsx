@@ -41,7 +41,7 @@ import {
 } from '@/lib/warehouse/types';
 import FulfillmentEmailModal from '@/components/FulfillmentEmailModal';
 import { buyInvoiceLabel } from '@/lib/admin/invoices';
-import { openInvoiceLabel, printInvoiceLabel } from '@/lib/shipping/label-print';
+import { printInvoiceLabel } from '@/lib/shipping/label-print';
 import { useViewer } from '../layout';
 
 interface Props {
@@ -123,18 +123,6 @@ export default function QueueDetail({ item, onMutate }: Props) {
     setLabelMsg(null);
     try {
       await printInvoiceLabel(item.id);
-    } catch (e: any) {
-      setLabelMsg({ tone: 'error', text: e.message || 'Could not load the label' });
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const openLabel = async () => {
-    setBusy('label-open');
-    setLabelMsg(null);
-    try {
-      await openInvoiceLabel(item.id);
     } catch (e: any) {
       setLabelMsg({ tone: 'error', text: e.message || 'Could not load the label' });
     } finally {
@@ -410,30 +398,20 @@ export default function QueueDetail({ item, onMutate }: Props) {
             it is what packing staff reach for. */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
           {isShipment && item.has_label && (
-            <>
-              <button
-                type="button"
-                onClick={printLabel}
-                disabled={busy === 'label-print'}
-                className="inline-flex items-center gap-1.5 rounded-md bg-teal-dark text-white text-sm font-medium px-3 py-1.5 hover:bg-teal-dark/90 disabled:opacity-60"
-              >
-                {busy === 'label-print' ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Printer className="w-4 h-4" />
-                )}
-                Print label
-              </button>
-              <button
-                type="button"
-                onClick={openLabel}
-                disabled={busy === 'label-open'}
-                title="Open the label in a new tab to save or reprint"
-                className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-teal-dark px-3 py-1.5 hover:border-teal disabled:opacity-60"
-              >
-                <Download className="w-4 h-4" /> Label PDF
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={printLabel}
+              disabled={busy === 'label-print'}
+              title="Open the 4x6 label in a new tab to print"
+              className="inline-flex items-center gap-1.5 rounded-md bg-teal-dark text-white text-sm font-medium px-3 py-1.5 hover:bg-teal-dark/90 disabled:opacity-60"
+            >
+              {busy === 'label-print' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Printer className="w-4 h-4" />
+              )}
+              Print label
+            </button>
           )}
           {isShipment && !item.has_label && labelPending && !orderCancelled && (
             <span
