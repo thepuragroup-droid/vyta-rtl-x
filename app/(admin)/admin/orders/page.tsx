@@ -15,7 +15,7 @@ import {
 import { getOrCreateInvoiceForOrder } from '@/lib/admin/invoices';
 import { useUserRole } from '../layout';
 import { canEdit, canDelete } from '@/lib/permissions';
-import { printShippingLabel } from '@/lib/shipping/label-4x6';
+import { openLabelTab, toLabelPdf } from '@/lib/shipping/label-4x6';
 import { APP_TIME_ZONE, addDays, appDayKey, formatAppDate, todayInAppTz } from '@/lib/datetime';
 import BulkShipmentDialog, { type SkippedOrder } from './_components/BulkShipmentDialog';
 
@@ -175,28 +175,30 @@ export default function AdminOrders() {
     }
   };
 
-  // Print an already-purchased label (no new tab).
+  // Print an already-purchased label: opens it as a 4x6 PDF in a new tab.
   const handlePrintLabel = async (orderId: string) => {
+    const tab = openLabelTab();
     startRow(orderId, 'Printing label…');
     try {
-      const blob = await fetchLabelBlob(orderId);
-      await printShippingLabel(blob);
+      tab.show(await toLabelPdf(await fetchLabelBlob(orderId)));
       endRow(orderId);
     } catch (e: any) {
+      tab.close();
       endRow(orderId, e?.message || 'Failed to load label');
     }
   };
 
-  // Buy the label, then immediately print it (no new tab).
+  // Buy the label, then open it as a 4x6 PDF in a new tab to print.
   const handleBuyAndPrint = async (orderId: string) => {
+    const tab = openLabelTab();
     startRow(orderId, 'Buying label…');
     try {
       await buyOrderLabel(orderId);
       await refreshOrders();
-      const blob = await fetchLabelBlob(orderId);
-      await printShippingLabel(blob);
+      tab.show(await toLabelPdf(await fetchLabelBlob(orderId)));
       endRow(orderId);
     } catch (e: any) {
+      tab.close();
       endRow(orderId, e?.message || 'Failed to buy label');
     }
   };

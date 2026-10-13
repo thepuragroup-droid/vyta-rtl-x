@@ -23,10 +23,10 @@
  */
 import React, { useState } from 'react';
 import {
-  Truck, Loader2, RefreshCw, Search, Download, Check, X, Tag, Link2, Printer,
+  Truck, Loader2, RefreshCw, Search, Check, X, Tag, Link2, Printer,
   Repeat, AlertTriangle,
 } from 'lucide-react';
-import { openInvoiceLabel, printInvoiceLabel } from '@/lib/shipping/label-print';
+import { printInvoiceLabel } from '@/lib/shipping/label-print';
 import EasyshipShipmentPicker from '@/components/admin/EasyshipShipmentPicker';
 import {
   shippingReadiness,
@@ -128,7 +128,7 @@ export default function InvoiceEasyshipPanel({
   const [buyLabel, setBuyLabel] = useState(false);
   const [creating, setCreating] = useState(false);
   const [buyingLabel, setBuyingLabel] = useState(false);
-  const [labelBusy, setLabelBusy] = useState<'print' | 'open' | null>(null);
+  const [labelBusy, setLabelBusy] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
   // Easyship refused to cancel the current label; holds its reason until the
   // admin replaces it anyway or backs out.
@@ -295,15 +295,14 @@ export default function InvoiceEasyshipPanel({
     }
   }
 
-  async function labelAction(kind: 'print' | 'open') {
-    setLabelBusy(kind);
+  async function printLabel() {
+    setLabelBusy(true);
     try {
-      if (kind === 'print') await printInvoiceLabel(invoiceId);
-      else await openInvoiceLabel(invoiceId);
+      await printInvoiceLabel(invoiceId);
     } catch (e: any) {
       flash(e?.message ?? 'Could not load the label');
     } finally {
-      setLabelBusy(null);
+      setLabelBusy(false);
     }
   }
 
@@ -346,29 +345,17 @@ export default function InvoiceEasyshipPanel({
             )}
           </div>
           {t?.label_url ? (
-            <div className="flex gap-2">
-              <button
-                onClick={() => labelAction('print')}
-                disabled={labelBusy !== null}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-md bg-teal-dark px-2.5 py-1.5 text-xs font-medium text-white hover:bg-teal-dark/90 disabled:opacity-50"
-              >
-                {labelBusy === 'print'
-                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  : <Printer className="w-3.5 h-3.5" />}
-                Print label
-              </button>
-              <button
-                onClick={() => labelAction('open')}
-                disabled={labelBusy !== null}
-                title="Open the label in a new tab to save or reprint"
-                className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-xs text-teal-dark hover:border-teal disabled:opacity-50"
-              >
-                {labelBusy === 'open'
-                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  : <Download className="w-3.5 h-3.5" />}
-                PDF
-              </button>
-            </div>
+            <button
+              onClick={printLabel}
+              disabled={labelBusy}
+              title="Open the 4x6 label in a new tab to print"
+              className="w-full inline-flex items-center justify-center gap-1.5 rounded-md bg-teal-dark px-2.5 py-1.5 text-xs font-medium text-white hover:bg-teal-dark/90 disabled:opacity-50"
+            >
+              {labelBusy
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Printer className="w-3.5 h-3.5" />}
+              Print label
+            </button>
           ) : (
             <div className="space-y-1.5">
               <p className="text-[11px] text-ink-muted">
