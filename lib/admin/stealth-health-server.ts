@@ -15,7 +15,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { UserRole } from '@/lib/permissions';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
 import {
-  normalizeTerms,
+  liveTerms,
   computeOrderSettlement,
   isSettleable,
   deriveInvoiceStatus,
@@ -103,11 +103,11 @@ export async function loadTerms(): Promise<{ terms: SettlementTerms; migrated: b
     .limit(1)
     .maybeSingle();
   if (error) {
-    if (isMissingSchema(error)) return { terms: normalizeTerms(null), migrated: false };
+    if (isMissingSchema(error)) return { terms: liveTerms(null), migrated: false };
     console.error('[stealth-health] settings read failed:', error);
-    return { terms: normalizeTerms(null), migrated: true };
+    return { terms: liveTerms(null), migrated: true };
   }
-  return { terms: normalizeTerms(data), migrated: true };
+  return { terms: liveTerms(data), migrated: true };
 }
 
 /** Columns the settlement reads want off the hand-off ledger. */

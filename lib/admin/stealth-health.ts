@@ -50,9 +50,13 @@ export interface SettlementTerms {
   commission_pct: number;
   /** Flat fee they retain per paid order, in cents. */
   flat_fee_cents: number;
-  /** The flat shipment fee booked on every Stealth Health sale, in cents. */
+  /**
+   * Legacy: the flat shipment fee Stealth Health used to add to every sale, in
+   * cents. Their checkout no longer charges it, so live terms always carry 0
+   * (see `liveTerms`); it only survives to re-derive invoices raised before.
+   */
   shipping_fee_cents: number;
-  /** True when that shipment fee is remitted to us rather than kept by them. */
+  /** Legacy: true when that shipment fee was remitted to us. */
   shipping_remitted: boolean;
   /** Days from issue to due date on a new settlement invoice. */
   payment_terms_days: number;
@@ -66,8 +70,8 @@ export const DEFAULT_TERMS: SettlementTerms = {
   partner_address: null,
   commission_pct: 0,
   flat_fee_cents: 0,
-  shipping_fee_cents: 3500,
-  shipping_remitted: true,
+  shipping_fee_cents: 0,
+  shipping_remitted: false,
   payment_terms_days: 14,
   currency: 'USD',
   notes: null,
@@ -273,6 +277,17 @@ export function normalizeTerms(row: Record<string, any> | null | undefined): Set
 }
 
 /**
+ * The terms that apply to anything not yet invoiced. Stealth Health no longer
+ * adds a $35 shipment fee at checkout, so there is nothing to remit and the
+ * legacy shipping columns on the settings row are ignored. Invoices raised
+ * while the fee existed keep it: they are re-derived from their own snapshot
+ * through `normalizeTerms`, not from these.
+ */
+export function liveTerms(row: Record<string, any> | null | undefined): SettlementTerms {
+  return { ...normalizeTerms(row), shipping_fee_cents: 0, shipping_remitted: false };
+}
+
+/**
  * Plain-English one-liner for the terms, shown on the dashboard and printed on
  * the settlement invoice so the arithmetic is never a mystery.
  */
@@ -285,10 +300,8 @@ export function describeTerms(terms: SettlementTerms): string {
   const kept = parts.length > 0
     ? `${terms.partner_name} retains ${parts.join(' + ')}`
     : `${terms.partner_name} retains nothing`;
-  const shipping = terms.shipping_remitted
-    ? `the ${toAmount(terms.shipping_fee_cents).toFixed(2)} ${terms.currency} shipment fee is remitted to us`
-    : `the ${toAmount(terms.shipping_fee_cents).toFixed(2)} ${terms.currency} shipment fee stays with them`;
-  return `${kept}; ${shipping}.`;
+  if (!terms.shipping_remitted || terms.shipping_fee_cents <= 0) return `${kept}.`;
+  return `${kept}; the ${toAmount(terms.shipping_fee_cents).toFixed(2)} ${terms.currency} shipment fee is remitted to us.`;
 }
 
 /** Due date for a new invoice, given the issue date and the terms. */

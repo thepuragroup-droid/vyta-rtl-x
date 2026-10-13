@@ -25,7 +25,6 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
   // Money is edited as decimal strings and only converted on save, so typing
   // "35." or "0.5" doesn't get rounded out from under the cursor.
   const [flatFee, setFlatFee] = useState('0');
-  const [shippingFee, setShippingFee] = useState('0');
 
   useEffect(() => {
     getSettlementTerms().then((r) => {
@@ -33,7 +32,6 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
         setTerms(r.terms);
         setSummary(r.summary);
         setFlatFee(String(toAmount(r.terms.flat_fee_cents)));
-        setShippingFee(String(toAmount(r.terms.shipping_fee_cents)));
       }
       setLoading(false);
     });
@@ -51,8 +49,6 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
         partner_address: terms.partner_address,
         commission_pct: terms.commission_pct,
         flat_fee_cents: toCents(flatFee),
-        shipping_fee_cents: toCents(shippingFee),
-        shipping_remitted: terms.shipping_remitted,
         payment_terms_days: terms.payment_terms_days,
         currency: terms.currency,
         notes: terms.notes,
@@ -80,8 +76,7 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
   // before it is saved.
   const exampleGross = 20000;
   const exampleFee = Math.round((exampleGross * terms.commission_pct) / 100) + toCents(flatFee);
-  const exampleShipping = terms.shipping_remitted ? toCents(shippingFee) : 0;
-  const exampleDue = Math.max(0, exampleGross + exampleShipping - exampleFee);
+  const exampleDue = Math.max(0, exampleGross - exampleFee);
   const fmt = (c: number) => formatMoney(toAmount(c), terms.currency);
 
   return (
@@ -136,29 +131,6 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
             </div>
           </div>
 
-          <div className="border-t border-line pt-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-3">Shipment fee</p>
-            <div className="grid sm:grid-cols-2 gap-4 items-end">
-              <Field label={`Flat shipment fee (${terms.currency})`}
-                hint="The fee booked on every Stealth Health sale.">
-                <input type="number" min="0" step="0.01" value={shippingFee} inputMode="decimal"
-                  onChange={(e) => setShippingFee(e.target.value)}
-                  className="w-full px-3 py-2 border border-line rounded-lg text-sm tabular-nums" />
-              </Field>
-              <label className="flex items-start gap-2 pb-2 cursor-pointer">
-                <input type="checkbox" checked={terms.shipping_remitted}
-                  onChange={(e) => set('shipping_remitted', e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-line text-teal-dark" />
-                <span className="text-sm text-ink leading-snug">
-                  Remitted to us
-                  <span className="block text-[11px] text-ink-muted">
-                    Uncheck if Stealth Health keeps it to cover the parcel.
-                  </span>
-                </span>
-              </label>
-            </div>
-          </div>
-
           <div className="border-t border-line pt-5 grid sm:grid-cols-2 gap-4">
             <Field label="Payment terms (days)" hint="Sets the due date on a new invoice.">
               <input type="number" min="0" step="1" value={terms.payment_terms_days}
@@ -196,7 +168,6 @@ export default function TermsTab({ isAdmin, onSaved }: { isAdmin: boolean; onSav
         <div className="bg-white rounded-xl border border-line p-5">
           <h3 className="text-sm font-semibold text-ink mb-3">On a {fmt(exampleGross)} order</h3>
           <Row label="Buyer pays Stealth Health" value={fmt(exampleGross)} />
-          {exampleShipping > 0 && <Row label="Shipment fee remitted" value={`+ ${fmt(exampleShipping)}`} />}
           {exampleFee > 0 && <Row label="They retain" value={`− ${fmt(exampleFee)}`} />}
           <div className="flex items-baseline justify-between gap-3 pt-2.5 mt-1.5 border-t border-line">
             <span className="text-sm font-semibold text-ink">They owe us</span>

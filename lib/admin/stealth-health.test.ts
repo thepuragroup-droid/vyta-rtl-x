@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import {
   DEFAULT_TERMS,
   computeOrderSettlement,
+  liveTerms,
   sumSettlements,
   deriveInvoiceStatus,
   isSettleable,
@@ -29,6 +30,10 @@ const terms = (over: Partial<SettlementTerms> = {}): SettlementTerms => ({
   ...over,
 });
 
+// The legacy $35-per-order shipment fee, for the invoices raised while
+// Stealth Health still charged it.
+const legacyShipping = { shipping_fee_cents: 3500, shipping_remitted: true };
+
 const order = (over: Record<string, any> = {}) => ({
   id: 'o1',
   status: 'paid',
@@ -41,20 +46,34 @@ const order = (over: Record<string, any> = {}) => ({
   ...over,
 });
 
-test('default terms: they remit everything collected plus the shipment fee', () => {
+test('default terms: they remit everything collected, no shipment fee', () => {
   const s = computeOrderSettlement(order(), terms());
   assert.equal(s.gross_cents, 20000);
   assert.equal(s.net_cents, 20000);
-  assert.equal(s.shipping_cents, 3500);
+  assert.equal(s.shipping_cents, 0);
   assert.equal(s.fee_cents, 0);
-  assert.equal(s.due_cents, 23500);
+  assert.equal(s.due_cents, 20000);
   assert.equal(s.units, 2);
   assert.equal(s.currency, 'USD');
   assert.equal(s.day, '2026-08-10');
 });
 
+test('legacy shipment fee is still added when an old invoice snapshot carries it', () => {
+  const s = computeOrderSettlement(order(), terms(legacyShipping));
+  assert.equal(s.shipping_cents, 3500);
+  assert.equal(s.due_cents, 23500);
+});
+
+test('live terms ignore a legacy shipment fee left on the settings row', () => {
+  const t = liveTerms({ commission_pct: 10, ...legacyShipping });
+  assert.equal(t.commission_pct, 10);
+  assert.equal(t.shipping_fee_cents, 0);
+  assert.equal(t.shipping_remitted, false);
+  assert.equal(computeOrderSettlement(order(), t).due_cents, 20000 - 2000);
+});
+
 test('commission is taken off net goods, not off the shipment fee', () => {
-  const s = computeOrderSettlement(order(), terms({ commission_pct: 15 }));
+  const s = computeOrderSettlement(order(), terms({ commission_pct: 15, ...legacyShipping }));
   assert.equal(s.fee_cents, 3000);          // 15% of 20000
   assert.equal(s.due_cents, 20000 + 3500 - 3000);
 });
@@ -65,7 +84,7 @@ test('flat per-order fee stacks on top of the commission', () => {
     terms({ commission_pct: 10, flat_fee_cents: 250 }),
   );
   assert.equal(s.fee_cents, 2000 + 250);
-  assert.equal(s.due_cents, 20000 + 3500 - 2250);
+  assert.equal(s.due_cents, 20000 - 2250);
 });
 
 test('refunds come off before the commission is computed', () => {
@@ -75,11 +94,11 @@ test('refunds come off before the commission is computed', () => {
   );
   assert.equal(s.net_cents, 15000);
   assert.equal(s.fee_cents, 3000);          // 20% of the NET, not the gross
-  assert.equal(s.due_cents, 15000 + 3500 - 3000);
+  assert.equal(s.due_cents, 15000 - 3000);
 });
 
 test('a fully refunded sale owes us nothing, shipment fee included', () => {
-  const s = computeOrderSettlement(order({ refunded_total_cents: 20000 }), terms());
+  const s = computeOrderSettlement(order({ refunded_total_cents: 20000 }), terms(legacyShipping));
   assert.equal(s.net_cents, 0);
   assert.equal(s.shipping_cents, 0);
   assert.equal(s.due_cents, 0);
@@ -132,7 +151,7 @@ test('totals are the sum of the per-order figures', () => {
   assert.equal(totals.gross_cents, 30000);
   assert.equal(totals.units, 4);
   assert.equal(totals.due_cents, rows[0].due_cents + rows[1].due_cents);
-  assert.equal(totals.due_cents, (20000 + 3500 - 2000) + (10000 + 3500 - 1000));
+  assert.equal(totals.due_cents, (20000 - 2000) + (10000 - 1000));
 });
 
 test('only paid, non-excluded hand-offs are settleable', () => {
@@ -171,7 +190,8 @@ test('terms normalise from a partial / junk DB row', () => {
 test('terms description states both sides of the deal', () => {
   assert.match(describeTerms(terms({ commission_pct: 12 })), /retains 12% commission/);
   assert.match(describeTerms(terms()), /retains nothing/);
-  assert.match(describeTerms(terms({ shipping_remitted: false })), /stays with them/);
+  assert.doesNotMatch(describeTerms(terms()), /shipment fee/);
+  assert.match(describeTerms(terms(legacyShipping)), /shipment fee is remitted to us/);
 });
 
 test('due date adds the payment terms in whole days', () => {

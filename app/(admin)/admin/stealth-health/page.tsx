@@ -263,7 +263,9 @@ function OverviewTab({ summary, from, to, setFrom, setTo, hasRange, onGoToInvoic
               <h3 className="text-sm font-semibold text-ink mb-3">How the money splits</h3>
               <MoneyRow label="Goods the buyers paid for" cents={e.gross_cents} currency={cur} />
               <MoneyRow label="Refunded on the Stealth Health side" cents={e.refunds_cents} currency={cur} sign="−" />
-              <MoneyRow label="Shipment fees remitted to us" cents={e.shipping_cents} currency={cur} sign="+" />
+              {e.shipping_cents > 0 && (
+                <MoneyRow label="Shipment fees remitted to us" cents={e.shipping_cents} currency={cur} sign="+" />
+              )}
               <MoneyRow label="Retained by Stealth Health" cents={e.fee_cents} currency={cur} sign="−" />
               <MoneyRow label={`Earned ${hasRange ? 'in range' : 'all-time'}`} cents={e.due_cents} currency={cur} strong />
               <p className="text-[11px] text-ink-muted mt-3 pt-3 border-t border-line leading-relaxed">
