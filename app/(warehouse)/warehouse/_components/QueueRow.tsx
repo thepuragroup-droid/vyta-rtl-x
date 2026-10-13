@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Truck, MapPin, Camera, CheckCircle2, Tag } from 'lucide-react';
+import { Truck, MapPin, Camera, CheckCircle2, Tag, Printer, Loader2 } from 'lucide-react';
 import type { QueueItem } from '@/lib/warehouse/types';
 import { statusLabel, timeAgo } from '@/lib/warehouse/types';
 
@@ -15,6 +15,9 @@ interface QueueRowProps {
   selectable?: boolean;
   selected?: boolean;
   onToggleSelect?: () => void;
+  // One-click shipping-label print, shown when the row has a bought label.
+  onPrintLabel?: () => void;
+  printing?: boolean;
 }
 
 const STATUS_TONE: Record<string, string> = {
@@ -32,6 +35,8 @@ export default function QueueRow({
   selectable = false,
   selected = false,
   onToggleSelect,
+  onPrintLabel,
+  printing = false,
 }: QueueRowProps) {
   const Type = item.fulfillment_type === 'pickup' ? MapPin : Truck;
 
@@ -44,6 +49,8 @@ export default function QueueRow({
       : { text: 'No label', tone: 'bg-gray-500/10 text-ink-muted' };
 
   const cancelled = item.order?.status === 'cancelled';
+  const canPrint =
+    !!onPrintLabel && item.fulfillment_type === 'shipment' && item.has_label && !cancelled;
 
   return (
     <div
@@ -154,6 +161,27 @@ export default function QueueRow({
           )}
         </div>
       </button>
+      {canPrint && (
+        <div className="flex items-center pr-3">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrintLabel?.();
+            }}
+            disabled={printing}
+            title={`Print shipping label for ${item.invoice_number}`}
+            aria-label={`Print shipping label for ${item.invoice_number}`}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-line text-teal-dark hover:border-teal hover:bg-teal/5 disabled:opacity-60"
+          >
+            {printing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Printer className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

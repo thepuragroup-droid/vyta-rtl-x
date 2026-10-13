@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       `*,
        packed_by_customer:customers!invoices_packed_by_fkey(first_name, last_name, email),
        fulfilled_by_customer:customers!invoices_fulfilled_by_fkey(first_name, last_name, email),
-       order:orders(id, order_number, status, tracking_number, carrier, label_state, label_url, shipping_address),
+       order:orders(id, order_number, status, tracking_number, carrier, easyship_shipment_id, label_state, label_url, shipping_address),
        invoice_line_items(id, description, qty, qty_fulfilled, qty_backordered, unit_price, line_total)`,
     )
     // Drafts are included so freshly generated invoices reach the warehouse,

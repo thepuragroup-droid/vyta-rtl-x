@@ -27,6 +27,8 @@ export interface QueueOrderJoin {
   status: string;
   tracking_number: string | null;
   carrier: string | null;
+  /** The order's Easyship shipment — set once one exists, label bought or not. */
+  easyship_shipment_id?: string | null;
   label_state: LabelState | null;
   label_url: string | null;
   shipping_address: Record<string, unknown> | null;

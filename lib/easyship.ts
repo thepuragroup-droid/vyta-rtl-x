@@ -818,6 +818,32 @@ export async function buyEasyshipLabel(
   return info;
 }
 
+/**
+ * Cancel a shipment in Easyship. For a bought label this is what refunds it to
+ * the wallet; Easyship only allows it before the parcel is in transit, and
+ * says why not in the error body otherwise.
+ */
+export async function cancelEasyshipShipment(
+  easyshipShipmentId: string,
+  apiKey?: string,
+): Promise<void> {
+  const res = await fetch(`${EASYSHIP_BASE}/shipments/${easyshipShipmentId}/cancel`, {
+    method: 'POST',
+    headers: headers(apiKey),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    let message = text;
+    try {
+      const j = JSON.parse(text);
+      message = j?.error?.message ?? j?.message ?? text;
+    } catch {
+      /* plain-text body */
+    }
+    throw new Error(`Easyship cancel error ${res.status}: ${message}`);
+  }
+}
+
 export async function fetchEasyshipDocument(
   url: string,
   apiKey?: string,

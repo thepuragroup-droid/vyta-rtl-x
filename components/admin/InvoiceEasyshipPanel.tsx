@@ -10,7 +10,7 @@
  *    handover method and insurance, and create it (optionally buying the label
  *    in the same step);
  *  - once it exists: carrier, tracking and — the thing the warehouse actually
- *    needs — the label, with its state and a download link.
+ *    needs — the label, with its state and print / download buttons.
  *
  * This used to be the invoice form's job, which meant editing an invoice and
  * ticking a checkbox to ship it. That is the wrong shape for a Stealth Health /
@@ -23,13 +23,16 @@
  */
 import React, { useState } from 'react';
 import {
-  Truck, Loader2, RefreshCw, Search, Download, Check, X, Tag, Link2,
+  Truck, Loader2, RefreshCw, Search, Download, Check, X, Tag, Link2, Printer,
+  Repeat, AlertTriangle,
 } from 'lucide-react';
+import { openInvoiceLabel, printInvoiceLabel } from '@/lib/shipping/label-print';
 import EasyshipShipmentPicker from '@/components/admin/EasyshipShipmentPicker';
 import {
   shippingReadiness,
   createInvoiceShipment,
   buyInvoiceLabel,
+  redoInvoiceShipment,
   type InvoiceTrackingSnapshot,
   type ShippingReadinessResult,
   type ShippingReadinessRate,
@@ -125,7 +128,11 @@ export default function InvoiceEasyshipPanel({
   const [buyLabel, setBuyLabel] = useState(false);
   const [creating, setCreating] = useState(false);
   const [buyingLabel, setBuyingLabel] = useState(false);
+  const [labelBusy, setLabelBusy] = useState<'print' | 'open' | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
+  // Easyship refused to cancel the current label; holds its reason until the
+  // admin replaces it anyway or backs out.
+  const [cancelBlocked, setCancelBlocked] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
   if (!tracking) return null;
@@ -183,6 +190,11 @@ export default function InvoiceEasyshipPanel({
       if (res.shipment?.easyship_shipment_id) {
         flash(buyLabel ? 'Shipment created and label bought' : 'Shipment created');
         setSetupOpen(false);
+        if (buyLabel && res.shipment.label_state === 'generated') {
+          await printInvoiceLabel(invoiceId).catch((e) =>
+            flash(e?.message ?? 'Label bought, but it could not be loaded to print'),
+          );
+        }
       } else {
         flash(
           res.shipment?.auto_shipment_error
@@ -199,22 +211,99 @@ export default function InvoiceEasyshipPanel({
     }
   }
 
+  // Buy the label, then print it straight away when the PDF is ready.
+  // Rebook on the courier picked in the form: cancel the current shipment
+  // (refunding its label), then create the new one.
+  async function redoShipment(replaceAnyway = false) {
+    setCreating(true);
+    try {
+      const res = await redoInvoiceShipment(invoiceId, {
+        courier_service_id: selectedRateId,
+        courier_preference: selectedRateId ? null : courierPreference,
+        insured,
+        handover,
+        buy_label: buyLabel,
+        replace_anyway: replaceAnyway,
+      });
+      if (res.cancel_failed) {
+        setCancelBlocked(res.error ?? 'Easyship would not cancel the current label.');
+        return;
+      }
+      setCancelBlocked(null);
+      const created = !!res.shipment?.easyship_shipment_id;
+      if (!created) {
+        flash(
+          res.shipment?.auto_shipment_error
+            ? `Old shipment cancelled, but the new one failed: ${res.shipment.auto_shipment_error}`
+            : 'Old shipment cancelled, but the new one could not be created — create it again below.',
+        );
+      } else {
+        const parts = [
+          `Rebooked with ${res.shipment?.carrier ?? 'the new courier'}`,
+          res.previous_cancelled === false ? 'old label NOT refunded — cancel it in Easyship' : null,
+          res.shipped_email_was_sent ? 'the customer has the old tracking — resend the shipped email' : null,
+        ].filter(Boolean);
+        flash(parts.join(' · '));
+        setSetupOpen(false);
+        if (buyLabel && res.shipment?.label_state === 'generated') {
+          await printInvoiceLabel(invoiceId).catch((e) =>
+            flash(e?.message ?? 'Label bought, but it could not be loaded to print'),
+          );
+        }
+      }
+      await onChanged();
+      onShipmentReplaced?.();
+    } catch (e: any) {
+      flash(e?.message ?? 'Failed to redo the shipment');
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  function openSetup() {
+    setSetupOpen(true);
+    setCancelBlocked(null);
+    if (!readiness) runReadiness();
+  }
+
+  function closeSetup() {
+    setSetupOpen(false);
+    setCancelBlocked(null);
+  }
+
   async function purchaseLabel() {
     setBuyingLabel(true);
     try {
       const res = await buyInvoiceLabel(invoiceId);
-      flash(
-        res.label?.state === 'generated'
-          ? 'Label bought'
-          : res.label?.state === 'pending'
+      if (res.label?.state === 'generated') {
+        flash('Label bought — opening the print dialog');
+        await printInvoiceLabel(invoiceId).catch((e) =>
+          flash(e?.message ?? 'Label bought, but it could not be loaded to print'),
+        );
+      } else {
+        flash(
+          res.label?.state === 'pending'
             ? 'Label bought — Easyship is still generating the PDF'
             : (res.error ?? 'Label purchase failed'),
-      );
+        );
+      }
       await onChanged();
     } catch (e: any) {
       flash(e?.message ?? 'Label purchase failed');
     } finally {
       setBuyingLabel(false);
+    }
+  }
+
+  async function labelAction(kind: 'print' | 'open') {
+    setLabelBusy(kind);
+    try {
+      if (kind === 'print') await printInvoiceLabel(invoiceId);
+      else await openInvoiceLabel(invoiceId);
+    } catch (e: any) {
+      flash(e?.message ?? 'Could not load the label');
+    } finally {
+      setLabelBusy(null);
     }
   }
 
@@ -257,14 +346,29 @@ export default function InvoiceEasyshipPanel({
             )}
           </div>
           {t?.label_url ? (
-            <a
-              href={t.label_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border border-teal px-2.5 py-1.5 text-xs text-teal-dark hover:bg-teal/5"
-            >
-              <Download className="w-3.5 h-3.5" /> Download label
-            </a>
+            <div className="flex gap-2">
+              <button
+                onClick={() => labelAction('print')}
+                disabled={labelBusy !== null}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-md bg-teal-dark px-2.5 py-1.5 text-xs font-medium text-white hover:bg-teal-dark/90 disabled:opacity-50"
+              >
+                {labelBusy === 'print'
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Printer className="w-3.5 h-3.5" />}
+                Print label
+              </button>
+              <button
+                onClick={() => labelAction('open')}
+                disabled={labelBusy !== null}
+                title="Open the label in a new tab to save or reprint"
+                className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-xs text-teal-dark hover:border-teal disabled:opacity-50"
+              >
+                {labelBusy === 'open'
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Download className="w-3.5 h-3.5" />}
+                PDF
+              </button>
+            </div>
           ) : (
             <div className="space-y-1.5">
               <p className="text-[11px] text-ink-muted">
@@ -280,8 +384,8 @@ export default function InvoiceEasyshipPanel({
                 >
                   {buyingLabel
                     ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <Tag className="w-3.5 h-3.5" />}
-                  Buy label now
+                    : <Printer className="w-3.5 h-3.5" />}
+                  Buy &amp; print label
                 </button>
               )}
             </div>
@@ -400,160 +504,203 @@ export default function InvoiceEasyshipPanel({
         </div>
       )}
 
-      {/* ---- Set up a shipment, in place ---- */}
-      {!hasShipment && !isPickup && editable && (
+      {/* ---- Set up a shipment in place — or redo one on a new courier ---- */}
+      {!hasShipment && !isPickup && editable && !setupOpen && (
         <div className="mt-1">
-          {!setupOpen ? (
-            <button
-              onClick={() => { setSetupOpen(true); if (!readiness) runReadiness(); }}
-              className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-teal px-3 py-2 text-sm text-teal-dark hover:bg-teal/5"
-            >
-              <Truck className="w-4 h-4" /> Create Easyship shipment
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-                  New shipment
-                </p>
-                <button
-                  onClick={runReadiness}
-                  disabled={readinessLoading}
-                  className="text-xs text-ink-muted hover:text-ink disabled:opacity-50 inline-flex items-center gap-1"
-                >
-                  {readinessLoading
-                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <Search className="w-3.5 h-3.5" />}
-                  Check rates
-                </button>
-              </div>
+          <button
+            onClick={openSetup}
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-teal px-3 py-2 text-sm text-teal-dark hover:bg-teal/5"
+          >
+            <Truck className="w-4 h-4" /> Create Easyship shipment
+          </button>
+        </div>
+      )}
+      {!isPickup && editable && setupOpen && (
+        <div className={hasShipment ? 'mt-4 pt-4 border-t border-line' : 'mt-1'}>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+                {hasShipment ? 'Redo with a new courier' : 'New shipment'}
+              </p>
+              <button
+                onClick={runReadiness}
+                disabled={readinessLoading}
+                className="text-xs text-ink-muted hover:text-ink disabled:opacity-50 inline-flex items-center gap-1"
+              >
+                {readinessLoading
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Search className="w-3.5 h-3.5" />}
+                Check rates
+              </button>
+            </div>
 
-              {readinessLoading && !readiness && (
-                <p className="text-xs text-ink-muted">Checking origin, destination and live rates…</p>
-              )}
-
-              {readiness && (
-                <ul className="space-y-1">
-                  {readiness.checks.map((c) => (
-                    <li key={c.key} className="flex items-start gap-2 text-xs">
-                      {c.ok ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <X className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className={c.ok ? 'text-ink' : 'text-red-700'}>
-                        {c.label}
-                        {c.detail && !c.ok && (
-                          <span className="block text-[11px] text-ink-muted mt-0.5">{c.detail}</span>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {readiness?.destination && readiness.destination_source && (
-                <p className="text-[11px] text-ink-muted">
-                  Shipping to{' '}
-                  <span className="text-ink">
-                    {[
-                      readiness.destination.city,
-                      readiness.destination.state,
-                      readiness.destination.postal_code,
-                      readiness.destination.country,
-                    ].filter(Boolean).join(', ')}
-                  </span>{' '}
-                  — {DESTINATION_SOURCE_LABEL[readiness.destination_source]}.
-                </p>
-              )}
-
-              {/* Courier: a quoted service, or a carrier the server re-quotes
-                  for at creation when no rates were fetched. */}
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
-                  Courier
-                </label>
-                <select
-                  value={rateOptionValue}
-                  onChange={(e) => selectCourierOption(e.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-xs text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
-                >
-                  <option value="pref:best_value">Best value — cheapest UPS / Canada Post within 2 days</option>
-                  <option value="pref:ups">UPS — best-value UPS service</option>
-                  <option value="pref:canada_post">Canada Post — best-value Canada Post service</option>
-                  {readiness && readiness.rates.length > 0 && (
-                    <optgroup label="Quoted services">
-                      {readiness.rates.map((r: ShippingReadinessRate) => (
-                        <option key={r.courier_id} value={`rate:${r.courier_id}`}>
-                          {r.courier_name} · {r.service_name} — ${r.total_charge.toFixed(2)}
-                        </option>
-                      ))}
-                    </optgroup>
+            {hasShipment && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-900 space-y-1">
+                <p>
+                  {t?.label_state === 'generated' || t?.label_state === 'pending' ? (
+                    <>
+                      The current {t?.carrier ? <span className="font-semibold">{t.carrier}</span> : ''} label
+                      {t?.record?.label_cost != null && (
+                        <> (${t.record.label_cost.toFixed(2)} {t.record.label_currency ?? ''})</>
+                      )}{' '}
+                      is cancelled in Easyship and refunded to the wallet — only possible
+                      before the parcel is in transit.
+                    </>
+                  ) : (
+                    <>The current draft shipment is cancelled in Easyship and a new one is booked.</>
                   )}
-                </select>
-                {readiness?.ratesNote && (
-                  <p className="mt-1 text-[11px] text-amber-600">{readiness.ratesNote}</p>
+                </p>
+                {t?.record?.shipped_emailed_at && (
+                  <p>The customer already has the old tracking number — resend the shipped email afterwards.</p>
                 )}
               </div>
+            )}
 
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
-                  Handover
-                </label>
-                <div className="grid grid-cols-3 gap-1.5">
+            {readinessLoading && !readiness && (
+              <p className="text-xs text-ink-muted">Checking origin, destination and live rates…</p>
+            )}
+
+            {readiness && (
+              <ul className="space-y-1">
+                {readiness.checks.map((c) => (
+                  <li key={c.key} className="flex items-start gap-2 text-xs">
+                    {c.ok ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <X className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                    )}
+                    <span className={c.ok ? 'text-ink' : 'text-red-700'}>
+                      {c.label}
+                      {c.detail && !c.ok && (
+                        <span className="block text-[11px] text-ink-muted mt-0.5">{c.detail}</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {readiness?.destination && readiness.destination_source && (
+              <p className="text-[11px] text-ink-muted">
+                Shipping to{' '}
+                <span className="text-ink">
                   {[
-                    { v: 'dropoff', l: 'Drop off' },
-                    { v: 'collection', l: 'Collection' },
-                    { v: 'free_collection', l: 'Free pickup' },
-                  ].map((h) => (
-                    <button
-                      key={h.v}
-                      type="button"
-                      onClick={() => setHandover(h.v as any)}
-                      className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                        handover === h.v
-                          ? 'bg-ink text-white border-ink'
-                          : 'bg-surface text-ink-muted border-line hover:text-ink'
-                      }`}
-                    >
-                      {h.l}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    readiness.destination.city,
+                    readiness.destination.state,
+                    readiness.destination.postal_code,
+                    readiness.destination.country,
+                  ].filter(Boolean).join(', ')}
+                </span>{' '}
+                — {DESTINATION_SOURCE_LABEL[readiness.destination_source]}.
+              </p>
+            )}
 
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <input type="checkbox" checked={insured} onChange={(e) => setInsured(e.target.checked)} />
-                <span className="text-ink">Insure this shipment</span>
+            {/* Courier: a quoted service, or a carrier the server re-quotes
+                for at creation when no rates were fetched. */}
+            <div>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+                Courier
               </label>
+              <select
+                value={rateOptionValue}
+                onChange={(e) => selectCourierOption(e.target.value)}
+                className="w-full px-3 py-2 bg-surface border border-line rounded-lg text-xs text-ink focus:outline-none focus:ring-2 focus:ring-teal/40"
+              >
+                <option value="pref:best_value">Best value — cheapest UPS / Canada Post within 2 days</option>
+                <option value="pref:ups">UPS — best-value UPS service</option>
+                <option value="pref:canada_post">Canada Post — best-value Canada Post service</option>
+                {readiness && readiness.rates.length > 0 && (
+                  <optgroup label="Quoted services">
+                    {readiness.rates.map((r: ShippingReadinessRate) => (
+                      <option key={r.courier_id} value={`rate:${r.courier_id}`}>
+                        {r.courier_name} · {r.service_name} — ${r.total_charge.toFixed(2)}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+              {readiness?.ratesNote && (
+                <p className="mt-1 text-[11px] text-amber-600">{readiness.ratesNote}</p>
+              )}
+            </div>
 
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <input type="checkbox" checked={buyLabel} onChange={(e) => setBuyLabel(e.target.checked)} />
-                <span className="text-ink">Buy label now</span>
-                <span className="text-[10px] text-amber-600">Charges Easyship wallet</span>
+            <div>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+                Handover
               </label>
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={createShipment}
-                  disabled={creating}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-ink px-3 py-2 text-sm text-white hover:bg-ink/90 disabled:opacity-50"
-                >
-                  {creating
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Truck className="w-4 h-4" />}
-                  Create shipment
-                </button>
-                <button
-                  onClick={() => setSetupOpen(false)}
-                  disabled={creating}
-                  className="rounded-lg border border-line px-3 py-2 text-sm text-ink-muted hover:text-ink disabled:opacity-50"
-                >
-                  Cancel
-                </button>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { v: 'dropoff', l: 'Drop off' },
+                  { v: 'collection', l: 'Collection' },
+                  { v: 'free_collection', l: 'Free pickup' },
+                ].map((h) => (
+                  <button
+                    key={h.v}
+                    type="button"
+                    onClick={() => setHandover(h.v as any)}
+                    className={`px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                      handover === h.v
+                        ? 'bg-ink text-white border-ink'
+                        : 'bg-surface text-ink-muted border-line hover:text-ink'
+                    }`}
+                  >
+                    {h.l}
+                  </button>
+                ))}
               </div>
             </div>
-          )}
+
+            <label className="flex items-center gap-2 text-xs cursor-pointer">
+              <input type="checkbox" checked={insured} onChange={(e) => setInsured(e.target.checked)} />
+              <span className="text-ink">Insure this shipment</span>
+            </label>
+
+            <label className="flex items-center gap-2 text-xs cursor-pointer">
+              <input type="checkbox" checked={buyLabel} onChange={(e) => setBuyLabel(e.target.checked)} />
+              <span className="text-ink">Buy &amp; print label now</span>
+              <span className="text-[10px] text-amber-600">Charges Easyship wallet</span>
+            </label>
+
+            {cancelBlocked && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-800 space-y-2">
+                <p className="flex items-start gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 mt-px shrink-0" />
+                  <span>{cancelBlocked}</span>
+                </p>
+                <button
+                  onClick={() => {
+                    if (window.confirm('Book the new shipment anyway? The old label stays charged until it is cancelled in Easyship.')) {
+                      redoShipment(true);
+                    }
+                  }}
+                  disabled={creating}
+                  className="inline-flex items-center gap-1 rounded-md border border-red-300 bg-white px-2 py-1 text-[11px] font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                >
+                  Replace anyway — old label not refunded
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => (hasShipment ? redoShipment() : createShipment())}
+                disabled={creating}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-ink px-3 py-2 text-sm text-white hover:bg-ink/90 disabled:opacity-50"
+              >
+                {creating
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : hasShipment ? <Repeat className="w-4 h-4" /> : <Truck className="w-4 h-4" />}
+                {hasShipment ? 'Cancel old & rebook' : 'Create shipment'}
+              </button>
+              <button
+                onClick={closeSetup}
+                disabled={creating}
+                className="rounded-lg border border-line px-3 py-2 text-sm text-ink-muted hover:text-ink disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -561,16 +708,27 @@ export default function InvoiceEasyshipPanel({
         <p className="text-sm text-ink-muted">Not shipped yet.</p>
       )}
 
-      {/* ---- Point the invoice at a different Easyship shipment ---- */}
+      {/* ---- Redo on a new courier, or point at a different Easyship shipment ---- */}
       {!isPickup && editable && !setupOpen && (
-        <button
-          onClick={() => setPickerOpen(true)}
-          className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 text-xs text-ink-muted hover:text-ink hover:bg-surface"
-          title="Pick the right shipment from your Easyship account"
-        >
-          <Link2 className="w-3.5 h-3.5" />
-          {hasShipment ? 'Override shipment…' : 'Link existing Easyship shipment…'}
-        </button>
+        <div className={`mt-3 grid gap-2 ${hasShipment ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {hasShipment && (
+            <button
+              onClick={openSetup}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 text-xs text-ink-muted hover:text-ink hover:bg-surface"
+              title="Cancel this shipment (refunding its label) and rebook it with a different courier"
+            >
+              <Repeat className="w-3.5 h-3.5" /> Change courier…
+            </button>
+          )}
+          <button
+            onClick={() => setPickerOpen(true)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 text-xs text-ink-muted hover:text-ink hover:bg-surface"
+            title="Pick the right shipment from your Easyship account"
+          >
+            <Link2 className="w-3.5 h-3.5" />
+            {hasShipment ? 'Override shipment…' : 'Link existing Easyship shipment…'}
+          </button>
+        </div>
       )}
 
       <EasyshipShipmentPicker

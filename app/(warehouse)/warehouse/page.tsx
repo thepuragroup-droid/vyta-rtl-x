@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Filter, RefreshCw, Trash2, RotateCcw, X } from 'lucide-react';
+import { Filter, RefreshCw, Trash2, RotateCcw, X, Printer } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { getQueue, setRemovedFromQueue, type QueueFilters } from '@/lib/warehouse/api';
+import { printInvoiceLabel, printInvoiceLabels } from '@/lib/shipping/label-print';
 import type {
   QueueItem,
   QueueSummary,
@@ -54,6 +55,9 @@ export default function WarehousePage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkError, setBulkError] = useState<string | null>(null);
+  // Label printing: the row printing on its own, or the whole selection.
+  const [printingId, setPrintingId] = useState<string | null>(null);
+  const [bulkPrinting, setBulkPrinting] = useState(false);
 
   const filters = useMemo<QueueFilters>(() => {
     const out: QueueFilters = {};
@@ -211,6 +215,52 @@ export default function WarehousePage() {
     [selectedInView, refresh],
   );
 
+  // Selected shipments that have a bought label — what "Print labels" prints.
+  const printableInView = useMemo(
+    () =>
+      selectedInView.filter(
+        (it) =>
+          it.fulfillment_type === 'shipment' &&
+          it.has_label &&
+          it.order?.status !== 'cancelled',
+      ),
+    [selectedInView],
+  );
+
+  const printRowLabel = useCallback(async (it: QueueItem) => {
+    setPrintingId(it.id);
+    setBulkError(null);
+    try {
+      await printInvoiceLabel(it.id);
+    } catch (e: any) {
+      setBulkError(`${it.invoice_number}: ${e?.message || 'could not load the label'}`);
+    } finally {
+      setPrintingId(null);
+    }
+  }, []);
+
+  // Every selected label merged into one PDF, so it is a single print job.
+  const bulkPrintLabels = useCallback(async () => {
+    if (printableInView.length === 0) return;
+    setBulkPrinting(true);
+    setBulkError(null);
+    try {
+      const { failed } = await printInvoiceLabels(printableInView.map((it) => it.id));
+      if (failed.length > 0) {
+        const names = failed
+          .map((f) => printableInView.find((it) => it.id === f.invoiceId)?.invoice_number ?? f.invoiceId)
+          .join(', ');
+        setBulkError(
+          `${failed.length} of ${printableInView.length} label${printableInView.length === 1 ? '' : 's'} could not be loaded: ${names}`,
+        );
+      }
+    } catch (e: any) {
+      setBulkError(e?.message || 'Could not print the labels');
+    } finally {
+      setBulkPrinting(false);
+    }
+  }, [printableInView]);
+
   return (
     <div className="space-y-6">
       <SummaryCards summary={summary} />
@@ -309,6 +359,24 @@ export default function WarehousePage() {
               <span className="text-xs text-ink">
                 {selectedInView.length} order{selectedInView.length === 1 ? '' : 's'} selected
               </span>
+              {tab !== 'removed' && (
+                <button
+                  type="button"
+                  onClick={bulkPrintLabels}
+                  disabled={bulkPrinting || printableInView.length === 0}
+                  title={
+                    printableInView.length === 0
+                      ? 'None of the selected orders has a shipping label yet'
+                      : 'Print every selected label in one job'
+                  }
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-md bg-teal-dark text-sm font-medium text-white px-3 py-1.5 hover:bg-teal-dark/90 disabled:opacity-50"
+                >
+                  <Printer className="w-4 h-4" />
+                  {bulkPrinting
+                    ? 'Preparing…'
+                    : `Print labels (${printableInView.length})`}
+                </button>
+              )}
               {tab === 'removed' ? (
                 <button
                   type="button"
@@ -324,7 +392,7 @@ export default function WarehousePage() {
                   type="button"
                   onClick={() => bulkSetRemoved(true)}
                   disabled={bulkBusy}
-                  className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white text-sm text-red-600 px-3 py-1.5 hover:bg-red-50 disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white text-sm text-red-600 px-3 py-1.5 hover:bg-red-50 disabled:opacity-60"
                 >
                   <Trash2 className="w-4 h-4" />
                   {bulkBusy ? 'Removing…' : 'Remove from queue'}
@@ -362,6 +430,8 @@ export default function WarehousePage() {
                 selectable
                 selected={selectedIds.has(it.id)}
                 onToggleSelect={() => toggleSelect(it.id)}
+                onPrintLabel={() => printRowLabel(it)}
+                printing={printingId === it.id}
               />
             ))
           )}

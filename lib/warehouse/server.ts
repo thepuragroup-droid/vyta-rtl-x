@@ -830,6 +830,7 @@ export async function buildQueueRow(row: any): Promise<QueueItem> {
           status: row.order.status,
           tracking_number: row.order.tracking_number,
           carrier: row.order.carrier,
+          easyship_shipment_id: row.order.easyship_shipment_id ?? null,
           label_state: row.order.label_state,
           label_url: row.order.label_url,
           shipping_address: row.order.shipping_address,

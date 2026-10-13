@@ -10,8 +10,10 @@ import {
   FileText,
   ImageUp,
   Info,
+  Loader2,
   MapPin,
   Package,
+  Printer,
   Send,
   Store,
   Tag,
@@ -38,6 +40,8 @@ import {
   stepsFor,
 } from '@/lib/warehouse/types';
 import FulfillmentEmailModal from '@/components/FulfillmentEmailModal';
+import { buyInvoiceLabel } from '@/lib/admin/invoices';
+import { openInvoiceLabel, printInvoiceLabel } from '@/lib/shipping/label-print';
 import { useViewer } from '../layout';
 
 interface Props {
@@ -65,6 +69,8 @@ export default function QueueDetail({ item, onMutate }: Props) {
   const viewer = useViewer();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Outcome of a label action, shown right under the label buttons.
+  const [labelMsg, setLabelMsg] = useState<{ tone: 'error' | 'info'; text: string } | null>(null);
   const [checklist, setChecklist] = useState<string[]>(item.handling_checklist);
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -74,6 +80,10 @@ export default function QueueDetail({ item, onMutate }: Props) {
   useEffect(() => {
     setChecklist(item.handling_checklist);
   }, [item.id, item.handling_checklist]);
+
+  useEffect(() => {
+    setLabelMsg(null);
+  }, [item.id]);
 
   const steps = useMemo(() => stepsFor(item.fulfillment_type), [item.fulfillment_type]);
   const idx = currentStepIndex(item.fulfillment_type, item.fulfillment_status);
@@ -90,16 +100,71 @@ export default function QueueDetail({ item, onMutate }: Props) {
   const isShipment = item.fulfillment_type === 'shipment';
   // Shipment fields, from whichever anchor carries them.
   const labelState = item.order?.label_state ?? item.shipment?.label_state ?? null;
-  const labelUrl = item.order?.label_url ?? item.shipment?.label_url ?? null;
   const carrier = item.order?.carrier ?? item.shipment?.carrier ?? null;
   const trackingNumber =
     item.order?.tracking_number ?? item.shipment?.tracking_number ?? null;
   const labelFailed = labelState === 'failed';
+  const labelPending = labelState === 'pending';
+  const hasShipment = !!(
+    item.order?.easyship_shipment_id ?? item.shipment?.easyship_shipment_id
+  );
   // A Stealth Health row has no order, and used to be unshippable here for
   // that reason alone. It can now anchor its own shipment, so the only bar is
   // that this is an uncancelled shipment invoice without a label yet.
-  const needsLabel = isShipment && !orderCancelled && !item.has_label;
+  const canShip = isShipment && !orderCancelled && !item.has_label;
+  // No shipment to buy a label against (or the last one failed): create it.
+  const needsShipment = canShip && (!hasShipment || labelFailed);
+  // A draft shipment whose label was never bought: buy it and print it.
+  const needsLabelBought = canShip && hasShipment && !labelFailed && !labelPending;
   const isAdmin = viewer.role === 'admin';
+
+  const printLabel = async () => {
+    setBusy('label-print');
+    setLabelMsg(null);
+    try {
+      await printInvoiceLabel(item.id);
+    } catch (e: any) {
+      setLabelMsg({ tone: 'error', text: e.message || 'Could not load the label' });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const openLabel = async () => {
+    setBusy('label-open');
+    setLabelMsg(null);
+    try {
+      await openInvoiceLabel(item.id);
+    } catch (e: any) {
+      setLabelMsg({ tone: 'error', text: e.message || 'Could not load the label' });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // Charges the Easyship wallet, so admin-only (the route enforces it too).
+  const buyAndPrintLabel = async () => {
+    setBusy('label-buy');
+    setLabelMsg(null);
+    try {
+      const res = await buyInvoiceLabel(item.id);
+      if (res.label?.state === 'generated') {
+        await printInvoiceLabel(item.id);
+      } else {
+        setLabelMsg({
+          tone: res.error ? 'error' : 'info',
+          text:
+            res.error ??
+            'Label bought — the courier is still generating it. Print it once it shows as ready.',
+        });
+      }
+      onMutate();
+    } catch (e: any) {
+      setLabelMsg({ tone: 'error', text: e.message || 'Failed to buy the label' });
+    } finally {
+      setBusy(null);
+    }
+  };
 
   // Manually (re)create the EasyShip shipment. Goes through the invoice
   // endpoint, which routes itself: an order-bound invoice still ships off its
@@ -341,21 +406,93 @@ export default function QueueDetail({ item, onMutate }: Props) {
           </span>
         </div>
         {/* Action pills sit on their own wrapping row below the name so nothing
-            gets squished on a narrow warehouse panel. */}
+            gets squished on a narrow warehouse panel. The shipping label leads:
+            it is what packing staff reach for. */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <a
-            href={labelUrl ?? undefined}
-            target="_blank"
-            rel="noreferrer"
-            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm ${
-              item.has_label
-                ? 'border-line text-teal-dark hover:border-teal'
-                : 'border-line text-ink-muted pointer-events-none opacity-70'
-            }`}
-          >
-            <Download className="w-4 h-4" />
-            {item.has_label ? 'Download label' : 'No label'}
-          </a>
+          {isShipment && item.has_label && (
+            <>
+              <button
+                type="button"
+                onClick={printLabel}
+                disabled={busy === 'label-print'}
+                className="inline-flex items-center gap-1.5 rounded-md bg-teal-dark text-white text-sm font-medium px-3 py-1.5 hover:bg-teal-dark/90 disabled:opacity-60"
+              >
+                {busy === 'label-print' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Printer className="w-4 h-4" />
+                )}
+                Print label
+              </button>
+              <button
+                type="button"
+                onClick={openLabel}
+                disabled={busy === 'label-open'}
+                title="Open the label in a new tab to save or reprint"
+                className="inline-flex items-center gap-1.5 rounded-md border border-line text-sm text-teal-dark px-3 py-1.5 hover:border-teal disabled:opacity-60"
+              >
+                <Download className="w-4 h-4" /> Label PDF
+              </button>
+            </>
+          )}
+          {isShipment && !item.has_label && labelPending && !orderCancelled && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 text-amber-700 text-xs px-3 py-1.5"
+              title="The courier is still generating the label. Refresh the queue in a moment."
+            >
+              <Loader2 className="w-4 h-4 animate-spin" /> Label generating…
+            </span>
+          )}
+          {needsLabelBought &&
+            (isAdmin ? (
+              <button
+                type="button"
+                onClick={buyAndPrintLabel}
+                disabled={busy === 'label-buy'}
+                title="Buys the label on the shipment's courier (charges the Easyship wallet), then prints it"
+                className="inline-flex items-center gap-1.5 rounded-md bg-teal-dark text-white text-sm font-medium px-3 py-1.5 hover:bg-teal-dark/90 disabled:opacity-60"
+              >
+                {busy === 'label-buy' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Printer className="w-4 h-4" />
+                )}
+                {busy === 'label-buy' ? 'Buying label…' : 'Buy & print label'}
+              </button>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 text-amber-700 text-xs px-3 py-1.5"
+                title="The shipment exists but its label hasn't been bought. Buying charges the Easyship wallet, so an admin has to do it."
+              >
+                <Tag className="w-4 h-4" />
+                Label not bought — needs an admin
+              </span>
+            ))}
+          {needsShipment &&
+            (isAdmin ? (
+              <button
+                type="button"
+                onClick={createShipment}
+                disabled={busy === 'shipment'}
+                className="inline-flex items-center gap-1.5 rounded-md border border-teal text-sm text-teal-dark px-3 py-1.5 hover:bg-teal/5 disabled:opacity-60"
+              >
+                <Truck className="w-4 h-4" />
+                {busy === 'shipment'
+                  ? 'Creating…'
+                  : labelFailed
+                    ? 'Retry shipment'
+                    : 'Create shipment'}
+              </button>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 text-amber-700 text-xs px-3 py-1.5"
+                title="The shipping label was not created for this order. An admin needs to create the shipment from the admin invoice or orders screen."
+              >
+                <Truck className="w-4 h-4" />
+                No label — needs admin to create shipment
+              </span>
+            ))}
+          <span className="hidden sm:block w-px h-5 bg-line mx-0.5" aria-hidden />
           <button
             type="button"
             onClick={() => openInvoice(false)}
@@ -372,31 +509,14 @@ export default function QueueDetail({ item, onMutate }: Props) {
           >
             <Download className="w-4 h-4" /> Download
           </button>
-          {needsLabel &&
-            (isAdmin ? (
-              <button
-                type="button"
-                onClick={createShipment}
-                disabled={busy === 'shipment'}
-                className="inline-flex items-center gap-1.5 rounded-md border border-teal text-sm text-teal-dark px-3 py-1.5 hover:bg-teal/5 disabled:opacity-60"
-              >
-                <Truck className="w-4 h-4" />
-                {busy === 'shipment'
-                  ? 'Creating…'
-                  : labelFailed
-                    ? 'Retry shipment'
-                    : 'Create shipment / buy label'}
-              </button>
-            ) : (
-              <span
-                className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 text-amber-700 text-xs px-3 py-1.5"
-                title="The shipping label was not created for this order. An admin needs to create the shipment from the admin invoice or orders screen."
-              >
-                <Truck className="w-4 h-4" />
-                No label — needs admin to create shipment
-              </span>
-            ))}
         </div>
+        {labelMsg && (
+          <p
+            className={`text-xs ${labelMsg.tone === 'error' ? 'text-red-600' : 'text-amber-700'}`}
+          >
+            {labelMsg.text}
+          </p>
+        )}
         {orderCancelled && (
           <div className="rounded-md border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-sm">
             This {item.order ? 'order' : 'invoice'} was cancelled. Fulfillment
