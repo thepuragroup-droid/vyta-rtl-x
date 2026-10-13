@@ -6,7 +6,8 @@
 // file as a Blob first, then prints or opens it.
 
 import { supabase } from '@/lib/supabase';
-import { labelSheets, printSheets, printShippingLabel } from '@/lib/shipping/label-4x6';
+import { printPdfBlob } from '@/lib/print-pdf';
+import { combineLabelPdfs, labelPdf4x6, printShippingLabel } from '@/lib/shipping/label-4x6';
 
 async function authHeader(): Promise<Record<string, string>> {
   try {
@@ -37,12 +38,22 @@ export async function printInvoiceLabel(invoiceId: string): Promise<void> {
   await printShippingLabel(await fetchInvoiceLabelBlob(invoiceId));
 }
 
-/** Open the label in a new tab, to save or reprint later. */
+/**
+ * Open the label in a new tab as a 4x6 PDF, to save or reprint later. If the
+ * file can't be redrawn, the original Easyship file opens instead.
+ */
 export async function openInvoiceLabel(invoiceId: string): Promise<void> {
   // Open the tab synchronously, inside the click, so popup blockers allow it.
   const tab = window.open('', '_blank');
   try {
-    const url = URL.createObjectURL(await fetchInvoiceLabelBlob(invoiceId));
+    const original = await fetchInvoiceLabelBlob(invoiceId);
+    let file = original;
+    try {
+      file = await labelPdf4x6(original);
+    } catch (e) {
+      console.warn('Could not fit the label to 4x6; opening the file as-is', e);
+    }
+    const url = URL.createObjectURL(file);
     if (tab) tab.location.href = url;
     else window.open(url, '_blank');
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -58,9 +69,9 @@ export interface BulkLabelResult {
 }
 
 /**
- * Print several labels as ONE job of 4x6 pages: fetch each, redraw every page
- * as a 4x6 sheet and open one print dialog. Labels that fail to load or
- * can't be read are skipped and reported.
+ * Print several labels as ONE job of 4x6 pages: fetch each, turn it into a
+ * 4x6 PDF, combine them and open one print dialog. Labels that fail to load
+ * or can't be read are skipped and reported.
  */
 export async function printInvoiceLabels(invoiceIds: string[]): Promise<BulkLabelResult> {
   const settled = await Promise.allSettled(invoiceIds.map((id) => fetchInvoiceLabelBlob(id)));
@@ -72,16 +83,14 @@ export async function printInvoiceLabels(invoiceIds: string[]): Promise<BulkLabe
   });
   if (blobs.length === 0) return { printed: 0, failed };
 
-  const sheets: string[] = [];
-  let printed = 0;
+  const pdfs: Blob[] = [];
   for (const { invoiceId, blob } of blobs) {
     try {
-      sheets.push(...(await labelSheets(blob)));
-      printed++;
+      pdfs.push(await labelPdf4x6(blob));
     } catch (e: any) {
       failed.push({ invoiceId, error: e?.message ?? 'Unreadable label file' });
     }
   }
-  if (sheets.length > 0) printSheets(sheets);
-  return { printed, failed };
+  if (pdfs.length > 0) printPdfBlob(await combineLabelPdfs(pdfs));
+  return { printed: pdfs.length, failed };
 }

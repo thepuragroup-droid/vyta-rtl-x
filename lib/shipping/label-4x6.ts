@@ -5,13 +5,12 @@
 // come as an A4/Letter page with the 4x6 label in one corner, so printing the
 // file as-is shrinks the label and leaves the rest of the sheet blank.
 //
-// Each label page is drawn onto a 4x6 sheet at 300 dpi:
-//   • a page that is already 4x6 is used whole, at its exact size;
+// Every label is turned into a PDF of 4x6 pages (288 x 432 pt), the same
+// shape as Easyship's own 4x6 documents, and that PDF is what gets printed:
+//   • a page that is already 4x6 is kept exactly as Easyship made it;
 //   • any other page is trimmed to the label printed on it (the white area
-//     around it is dropped), turned upright if it lies sideways, and scaled
-//     to fill the sheet.
-// The sheets print from an HTML page whose @page size is 4in x 6in with no
-// margins, so the print dialog picks a 4x6 paper size instead of Letter.
+//     around it is dropped), turned upright if it lies sideways, and drawn
+//     at 300 dpi to fill a 4x6 page.
 
 import { printPdfBlob } from '@/lib/print-pdf';
 
@@ -119,32 +118,36 @@ function toSheet(source: HTMLCanvasElement | ImageBitmap): HTMLCanvasElement {
   return canvas;
 }
 
+/** An upright 4x6 page (as displayed, i.e. after the page's own rotation). */
 function isNativeSize(widthPt: number, heightPt: number): boolean {
   const near = (a: number, b: number) => Math.abs(a - b) <= NATIVE_TOLERANCE_PT;
-  const [short, long] = widthPt < heightPt ? [widthPt, heightPt] : [heightPt, widthPt];
-  return near(short, SHEET_W_IN * 72) && near(long, SHEET_H_IN * 72);
+  return near(widthPt, SHEET_W_IN * 72) && near(heightPt, SHEET_H_IN * 72);
 }
 
-async function pdfSheets(bytes: ArrayBuffer): Promise<HTMLCanvasElement[]> {
+/** A label page for the 4x6 PDF: a source page kept as-is, or a redrawn sheet. */
+type Sheet = { kind: 'page'; index: number } | { kind: 'canvas'; canvas: HTMLCanvasElement };
+
+async function pdfSheets(bytes: ArrayBuffer): Promise<Sheet[]> {
   const pdfjs = await loadPdfJs();
   const doc = await pdfjs.getDocument({ data: new Uint8Array(bytes), isEvalSupported: false }).promise;
   try {
-    const sheets: HTMLCanvasElement[] = [];
+    const sheets: Sheet[] = [];
     for (let n = 1; n <= doc.numPages; n++) {
       const page = await doc.getPage(n);
       const base = page.getViewport({ scale: 1 }); // 1 unit = 1 pt
+      if (isNativeSize(base.width, base.height)) {
+        sheets.push({ kind: 'page', index: n - 1 });
+        continue;
+      }
 
       // Where the label sits on the page, in points.
-      let region: Box = { x: 0, y: 0, w: base.width, h: base.height };
-      if (!isNativeSize(base.width, base.height)) {
-        const scan = page.getViewport({ scale: SCAN_DPI / 72 });
-        const { canvas, ctx } = makeCanvas(scan.width, scan.height);
-        await page.render({ canvasContext: ctx, viewport: scan }).promise;
-        const found = inkBounds(ctx, canvas.width, canvas.height);
-        if (!found) continue; // blank page
-        const k = 72 / SCAN_DPI;
-        region = { x: found.x * k, y: found.y * k, w: found.w * k, h: found.h * k };
-      }
+      const scan = page.getViewport({ scale: SCAN_DPI / 72 });
+      const probe = makeCanvas(scan.width, scan.height);
+      await page.render({ canvasContext: probe.ctx, viewport: scan }).promise;
+      const found = inkBounds(probe.ctx, probe.canvas.width, probe.canvas.height);
+      if (!found) continue; // blank page
+      const k = 72 / SCAN_DPI;
+      const region: Box = { x: found.x * k, y: found.y * k, w: found.w * k, h: found.h * k };
 
       // Render just that region, at the resolution it will fill the sheet at.
       const longPx = Math.max(SHEET_W_PX, SHEET_H_PX);
@@ -160,7 +163,7 @@ async function pdfSheets(bytes: ArrayBuffer): Promise<HTMLCanvasElement[]> {
         viewport: view,
         transform: [1, 0, 0, 1, -region.x * scale, -region.y * scale],
       }).promise;
-      sheets.push(toSheet(canvas));
+      sheets.push({ kind: 'canvas', canvas: toSheet(canvas) });
       page.cleanup();
     }
     return sheets;
@@ -188,80 +191,74 @@ async function imageSheet(blob: Blob): Promise<HTMLCanvasElement> {
   }
 }
 
-/** One label file (PDF or image) as 4x6 sheet images, a sheet per page. */
-export async function labelSheets(blob: Blob): Promise<string[]> {
-  const canvases = blob.type.startsWith('image/')
-    ? [await imageSheet(blob)]
-    : await pdfSheets(await blob.arrayBuffer());
-  if (canvases.length === 0) throw new Error('The label file has no printable pages');
-  return Promise.all(
-    canvases.map(
-      (c) =>
-        new Promise<string>((resolve, reject) =>
-          c.toBlob((b) => (b ? resolve(URL.createObjectURL(b)) : reject(new Error('Could not draw the label'))), 'image/png'),
-        ),
+function pngBytes(canvas: HTMLCanvasElement): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(
+      (b) => (b ? resolve(b.arrayBuffer()) : reject(new Error('Could not draw the label'))),
+      'image/png',
     ),
   );
 }
 
-/**
- * Print sheet images (from `labelSheets`) as one job of 4x6 pages, from an
- * off-screen frame so the page doesn't change. Takes ownership of the URLs.
- */
-export function printSheets(sheetUrls: string[]): void {
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('aria-hidden', 'true');
-  Object.assign(iframe.style, {
-    position: 'fixed',
-    left: '-10000px',
-    top: '0',
-    width: `${SHEET_W_IN}in`,
-    height: `${SHEET_H_IN}in`,
-    border: '0',
-  });
-  iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><title>Shipping label</title><style>
-@page { size: ${SHEET_W_IN}in ${SHEET_H_IN}in; margin: 0; }
-html, body { margin: 0; padding: 0; background: #fff; }
-img { display: block; width: ${SHEET_W_IN}in; height: ${SHEET_H_IN}in; break-after: page; }
-img:last-child { break-after: auto; }
-</style></head><body>${sheetUrls.map((u) => `<img src="${u}" alt="">`).join('')}</body></html>`;
+const pdfBlob = (bytes: Uint8Array) => new Blob([bytes as BlobPart], { type: 'application/pdf' });
 
-  let cleaned = false;
-  const cleanup = () => {
-    if (cleaned) return;
-    cleaned = true;
-    sheetUrls.forEach((u) => URL.revokeObjectURL(u));
-    iframe.remove();
-  };
-  iframe.onload = async () => {
-    const win = iframe.contentWindow;
-    if (!win) return cleanup();
-    try {
-      await Promise.all([...win.document.images].map((img) => img.decode().catch(() => {})));
-      win.addEventListener('afterprint', () => setTimeout(cleanup, 1000));
-      win.focus();
-      win.print();
-    } catch {
-      /* print blocked — the fallback timer below still cleans up */
+/**
+ * One label file (PDF or image) as a PDF of exact 4x6 pages, a page per
+ * label page. A PDF that is already all 4x6 comes back untouched.
+ */
+export async function labelPdf4x6(blob: Blob): Promise<Blob> {
+  const isImage = blob.type.startsWith('image/');
+  const bytes = await blob.arrayBuffer();
+  // pdf.js may take over the buffer it's given, so it reads a copy.
+  const sheets: Sheet[] = isImage
+    ? [{ kind: 'canvas', canvas: await imageSheet(blob) }]
+    : await pdfSheets(bytes.slice(0));
+  if (sheets.length === 0) throw new Error('The label file has no printable pages');
+  if (!isImage && sheets.every((s) => s.kind === 'page')) {
+    return new Blob([bytes], { type: 'application/pdf' });
+  }
+
+  const { PDFDocument } = await import('pdf-lib');
+  const out = await PDFDocument.create();
+  const source = sheets.some((s) => s.kind === 'page')
+    ? await PDFDocument.load(bytes, { ignoreEncryption: true })
+    : null;
+  for (const sheet of sheets) {
+    if (sheet.kind === 'page') {
+      const [page] = await out.copyPages(source!, [sheet.index]);
+      out.addPage(page);
+    } else {
+      const png = await out.embedPng(await pngBytes(sheet.canvas));
+      const page = out.addPage([SHEET_W_IN * 72, SHEET_H_IN * 72]);
+      page.drawImage(png, { x: 0, y: 0, width: SHEET_W_IN * 72, height: SHEET_H_IN * 72 });
     }
-  };
-  document.body.appendChild(iframe);
-  // In case afterprint never fires.
-  setTimeout(cleanup, 10 * 60_000);
+  }
+  return pdfBlob(await out.save());
+}
+
+/** Several 4x6 label PDFs (from `labelPdf4x6`) as one PDF, in order. */
+export async function combineLabelPdfs(pdfs: Blob[]): Promise<Blob> {
+  if (pdfs.length === 1) return pdfs[0];
+  const { PDFDocument } = await import('pdf-lib');
+  const out = await PDFDocument.create();
+  for (const pdf of pdfs) {
+    const src = await PDFDocument.load(await pdf.arrayBuffer(), { ignoreEncryption: true });
+    const pages = await out.copyPages(src, src.getPageIndices());
+    pages.forEach((p) => out.addPage(p));
+  }
+  return pdfBlob(await out.save());
 }
 
 /**
- * Print one label file on 4x6 pages. If the file can't be redrawn (an
+ * Print one label file as a 4x6 PDF. If the file can't be redrawn (an
  * unreadable PDF, an old browser) it is printed as-is rather than not at all.
  */
 export async function printShippingLabel(blob: Blob): Promise<void> {
-  let sheets: string[];
+  let pdf = blob;
   try {
-    sheets = await labelSheets(blob);
+    pdf = await labelPdf4x6(blob);
   } catch (e) {
     console.warn('Could not fit the label to 4x6; printing the file as-is', e);
-    printPdfBlob(blob);
-    return;
   }
-  printSheets(sheets);
+  printPdfBlob(pdf);
 }
