@@ -5,6 +5,7 @@ import {
   ArrowLeft, FileText, CreditCard, Check, DollarSign,
   Edit2, Loader2, X, Download, Eye, Briefcase, Pencil, Send, Trash2,
   Truck, RefreshCw, Package, Beaker, Store, Tag, Handshake, Mail,
+  Printer, StickyNote, ClipboardList,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -38,6 +39,7 @@ import FulfillmentEmailCard from '@/components/admin/FulfillmentEmailCard';
 import AdminPaidAlertEmailCard from '@/components/admin/AdminPaidAlertEmailCard';
 import { formatAppDate } from '@/lib/datetime';
 import type { InvoiceBreakdown } from '@/lib/admin/invoice-breakdown';
+import { printInvoiceLabel } from '@/lib/shipping/label-print';
 
 const statusColors: Record<InvoiceStatus, string> = {
   draft: 'bg-gray-500/10 text-gray-600 border-gray-300',
@@ -49,6 +51,75 @@ const statusColors: Record<InvoiceStatus, string> = {
   pending_payment: 'bg-amber-500/10 text-amber-700 border-amber-200',
   expired: 'bg-gray-200 text-gray-600 border-gray-300',
 };
+
+type RailTabKey = 'shipping' | 'emails' | 'sales' | 'details';
+const RAIL_TAB_STORAGE_KEY = 'admin.invoice.railTab';
+
+interface RailTab {
+  key: RailTabKey;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  /** Shown as a dot on the tab: something in it is waiting on someone. */
+  attention?: string | null;
+}
+
+/** Segmented tab bar for the invoice page's right rail. */
+function RailTabs({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: RailTab[];
+  active: RailTabKey;
+  onChange: (key: RailTabKey) => void;
+}) {
+  // Arrow keys move between tabs, as a tablist should.
+  function onKeyDown(e: React.KeyboardEvent, index: number) {
+    const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const next = tabs[(index + step + tabs.length) % tabs.length];
+    onChange(next.key);
+    document.getElementById(`rail-tab-${next.key}`)?.focus();
+  }
+
+  return (
+    <div
+      role="tablist"
+      aria-label="Invoice details"
+      className="grid gap-1 rounded-xl border border-line bg-surface p-1 lg:sticky lg:top-6 z-10"
+      style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+    >
+      {tabs.map((t, i) => {
+        const on = t.key === active;
+        const Icon = t.icon;
+        return (
+          <button
+            key={t.key}
+            id={`rail-tab-${t.key}`}
+            role="tab"
+            type="button"
+            aria-selected={on}
+            aria-controls={`rail-panel-${t.key}`}
+            tabIndex={on ? 0 : -1}
+            onClick={() => onChange(t.key)}
+            onKeyDown={(e) => onKeyDown(e, i)}
+            title={t.attention ?? undefined}
+            className={`relative inline-flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal/40 ${
+              on ? 'bg-white text-ink shadow-sm' : 'text-ink-muted hover:text-ink'
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{t.label}</span>
+            {t.attention && (
+              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -113,6 +184,26 @@ export default function InvoiceDetailPage() {
 
   // Delete confirmation
   const [deleting, setDeleting] = useState(false);
+
+  const [printingLabel, setPrintingLabel] = useState(false);
+
+  // Right-rail tab, remembered across invoices so whoever works shipping (or
+  // emails, or commissions) lands where they left off.
+  const [railTabPref, setRailTabPref] = useState<RailTabKey>('shipping');
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(RAIL_TAB_STORAGE_KEY);
+      if (saved === 'shipping' || saved === 'emails' || saved === 'sales' || saved === 'details') {
+        setRailTabPref(saved);
+      }
+    } catch {
+      /* storage blocked — default tab */
+    }
+  }, []);
+  const selectRailTab = useCallback((key: RailTabKey) => {
+    setRailTabPref(key);
+    try { window.localStorage.setItem(RAIL_TAB_STORAGE_KEY, key); } catch { /* ignore */ }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -299,6 +390,17 @@ export default function InvoiceDetailPage() {
     }
   }
 
+  async function handlePrintLabel() {
+    setPrintingLabel(true);
+    try {
+      await printInvoiceLabel(id);
+    } catch (e: any) {
+      flash(e?.message ?? 'Could not load the label');
+    } finally {
+      setPrintingLabel(false);
+    }
+  }
+
   async function openPdf(autoPrint: boolean) {
     const { data: { session } } = await supabase.auth.getSession();
     const qs = autoPrint ? '?download=1' : '';
@@ -367,10 +469,48 @@ export default function InvoiceDetailPage() {
   const showDiscountCard =
     !!breakdown && (breakdown.discountParts.length > 0 || !!breakdown.referralCode || !!affiliate);
 
+  // ---- Right rail ----
+  const fulfillmentType: string = (invoice as any).fulfillment_type ?? 'shipment';
+  const isShipment = fulfillmentType !== 'pickup';
+  const labelState = tracking?.tracking?.label_state ?? null;
+  const labelReady = isShipment && labelState === 'generated' && !!tracking?.tracking?.label_url;
+  const showShippedEmail = invoice.status !== 'cancelled' && isShipment;
+  const hasEmailsTab = showShippedEmail || !invoice.order_id;
+  const hasSalesTab = showDiscountCard || !!invoice.sales_person_name;
+  const railTabs: RailTab[] = [
+    {
+      key: 'shipping',
+      label: isShipment ? 'Shipping' : 'Pickup',
+      icon: isShipment ? Truck : Store,
+      // Paid and waiting on a label is the one state that needs someone now.
+      attention:
+        isShipment && invoice.status === 'paid' && tracking && labelState !== 'generated'
+          ? tracking.hasShipment
+            ? 'Paid — label not bought yet'
+            : 'Paid — no shipment yet'
+          : null,
+    },
+    ...(hasEmailsTab
+      ? [{
+          key: 'emails' as const,
+          label: 'Emails',
+          icon: Mail,
+          attention:
+            showShippedEmail && labelState === 'generated' && !(invoice as any).shipped_emailed_at
+              ? 'Label is ready — the shipped email hasn’t been sent'
+              : null,
+        }]
+      : []),
+    ...(hasSalesTab ? [{ key: 'sales' as const, label: 'Sales', icon: Handshake }] : []),
+    { key: 'details', label: 'Details', icon: ClipboardList },
+  ];
+  // A remembered tab this invoice doesn't have (no sales data, say) falls back.
+  const railTab: RailTabKey = railTabs.some((t) => t.key === railTabPref) ? railTabPref : 'shipping';
+
   return (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-4">
           <Link href="/admin/invoices" className="text-ink-muted hover:text-ink transition-colors">
             <ArrowLeft className="w-5 h-5" />
@@ -390,21 +530,36 @@ export default function InvoiceDetailPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => openPdf(false)}
-            className="px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink-muted hover:text-ink transition-colors flex items-center gap-2"
-            title="View invoice as PDF"
-          >
-            <Eye className="w-4 h-4" /> View PDF
-          </button>
-          <button
-            onClick={() => openPdf(true)}
-            className="px-3 py-2 bg-white border border-line rounded-lg text-sm text-ink-muted hover:text-ink transition-colors flex items-center gap-2"
-            title="Open print dialog — choose 'Save as PDF' to download"
-          >
-            <Download className="w-4 h-4" /> Download PDF
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Invoice PDF — view and download joined as one control. */}
+          <div className="inline-flex rounded-lg border border-line bg-white divide-x divide-line overflow-hidden">
+            <button
+              onClick={() => openPdf(false)}
+              className="px-3 py-2 text-sm text-ink-muted hover:text-ink hover:bg-surface transition-colors flex items-center gap-2"
+              title="View invoice as PDF"
+            >
+              <Eye className="w-4 h-4" /> Invoice PDF
+            </button>
+            <button
+              onClick={() => openPdf(true)}
+              className="px-2.5 py-2 text-ink-muted hover:text-ink hover:bg-surface transition-colors flex items-center"
+              title="Open print dialog — choose 'Save as PDF' to download"
+              aria-label="Download invoice PDF"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
+          {labelReady && (
+            <button
+              onClick={handlePrintLabel}
+              disabled={printingLabel}
+              className="px-3 py-2 bg-white border border-teal/40 rounded-lg text-sm font-medium text-teal-dark hover:bg-teal/5 transition-colors flex items-center gap-2 disabled:opacity-50"
+              title="Print the shipping label"
+            >
+              {printingLabel ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+              Print label
+            </button>
+          )}
           {editable && (
             <Link
               href={`/admin/invoices/${id}/edit`}
@@ -820,338 +975,309 @@ export default function InvoiceDetailPage() {
           )}
         </div>
 
-        {/* Right: Details */}
+        {/* Right rail. Grouped into tabs so the details stop piling up: the
+            summary strip above already carries status and customer, notes stay
+            pinned, and everything else sits under Shipping / Emails / Sales /
+            Details. Panels stay mounted (just hidden) so a half-filled shipment
+            form or an open email history survives a tab switch. */}
         <div className="space-y-4">
-          {/* Status */}
-          <div className="bg-white rounded-xl border border-line p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-ink text-sm">Status</h2>
-              {editable && !editingStatus && (
-                <button onClick={() => setEditingStatus(true)} className="text-xs text-ink-muted hover:text-ink">
-                  <Edit2 className="w-3.5 h-3.5" />
-                </button>
-              )}
+          {/* Notes are usually packing or payment instructions — never hide them. */}
+          {invoice.notes && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+              <h2 className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
+                <StickyNote className="w-3.5 h-3.5" /> Notes
+              </h2>
+              <p className="text-sm text-amber-950/80 whitespace-pre-wrap">{invoice.notes}</p>
             </div>
-            {editingStatus ? (
-              <div className="flex gap-2">
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as InvoiceStatus)}
-                  className="flex-1 px-3 py-2 bg-surface border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal/40"
-                >
-                  {(['draft', 'sent', 'paid', 'partial', 'overdue'] as InvoiceStatus[]).map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                <button onClick={handleStatusChange} className="px-3 py-2 bg-ink text-white rounded-lg text-sm">
-                  <Check className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={() => setEditingStatus(false)} className="px-3 py-2 border border-line rounded-lg text-sm text-ink-muted">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              <span className={`inline-flex px-3 py-1 rounded-lg text-sm font-medium border ${statusColors[invoice.status]}`}>
-                {invoice.status}
-              </span>
-            )}
-          </div>
-
-          {/* Customer */}
-          <div className="bg-white rounded-xl border border-line p-5">
-            <h2 className="font-semibold text-ink mb-3 text-sm">Customer</h2>
-            {(invoice.customer_name ?? puramass?.customer_name) ? (
-              <div className="space-y-1 text-sm">
-                <p className="font-medium text-ink">{invoice.customer_name ?? puramass?.customer_name}</p>
-                {(invoice.customer_email ?? puramass?.customer_email) && (
-                  <p className="text-ink-muted">{invoice.customer_email ?? puramass?.customer_email}</p>
-                )}
-                {(invoice.customer_phone ?? puramass?.customer_phone) && (
-                  <p className="text-ink-muted">{invoice.customer_phone ?? puramass?.customer_phone}</p>
-                )}
-                {puramass && (
-                  <p className="pt-2 text-[11px] text-ink-muted">
-                    Entered by the buyer on the Stealth Health checkout page — not editable here.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-ink-muted">Guest / Offline customer</p>
-            )}
-          </div>
-
-          {/* Stealth Health hand-off — the partner's own record of this sale, and the
-              ship-to it captured. Read-only here: Stealth Health Orders is where it
-              gets re-synced or the customer gets asked for a missing address. */}
-          {puramass && <PuramassShipToPanel puramass={puramass} />}
-          {puramass && <PuramassOrderPanel puramass={puramass} />}
-
-          {/* Paid-order emails for a Stealth Health hand-off or a manual
-              invoice: the customer's confirmation and the team's "order paid"
-              notification. Stealth Health sends both on payment; a manual
-              invoice only ever sends them from these buttons. An invoice with
-              an order shows the confirmation in the order panel instead. */}
-          {!invoice.order_id && (
-            <>
-              <OrderConfirmationEmailCard
-                key={`confirmation-${invoice.status}`}
-                target={{ invoiceId: invoice.id }}
-                canSend={editable}
-              />
-              <AdminPaidAlertEmailCard
-                key={`admin-alert-${invoice.status}`}
-                invoiceId={invoice.id}
-                canSend={editable}
-              />
-            </>
           )}
 
-          {/* The customer's "Your Order Has Shipped!" email — one email,
-              sent by hand once the order is packed and shipped. Shipments
-              only; a pickup has nothing to track. */}
-          {invoice.status !== 'cancelled' && (invoice as any).fulfillment_type !== 'pickup' && (
-            <FulfillmentEmailCard
-              invoiceId={invoice.id}
+          <RailTabs tabs={railTabs} active={railTab} onChange={selectRailTab} />
+
+          <div role="tabpanel" id="rail-panel-shipping" aria-labelledby="rail-tab-shipping" hidden={railTab !== 'shipping'} className="space-y-4">
+            {/* Stealth Health hand-off — the ship-to it captured. Read-only here:
+                Stealth Health Orders is where the customer gets asked for a missing address. */}
+            {puramass && <PuramassShipToPanel puramass={puramass} />}
+
+            {/* Easyship — set up, follow and print the shipment for this
+                invoice without leaving the page. Anchored on the invoice's order
+                when it has one, on the invoice itself when it doesn't. */}
+            <InvoiceEasyshipPanel
+              invoiceId={id}
+              tracking={tracking}
+              items={line_items.map((li) => ({ qty: Number(li.qty) || 0 }))}
+              fulfillmentType={(invoice as any).fulfillment_type ?? 'shipment'}
+              editable={editable}
+              refreshing={refreshingTracking}
+              onRefresh={refreshTracking}
+              onChanged={async () => {
+                const snap = await getInvoiceTracking(id);
+                setTracking(snap);
+              }}
+              flash={flash}
               invoiceNumber={invoice.invoice_number}
-              shippedEmailedAt={(invoice as any).shipped_emailed_at ?? null}
-              canSend={editable}
-              onSent={async () => {
-                const result = await getInvoice(id);
-                if (result) setData(result);
+              customerName={invoice.customer_name ?? puramass?.customer_name ?? null}
+              onShipmentReplaced={() => {
+                load();
+                setOrderPanelVersion((v) => v + 1);
               }}
             />
-          )}
+          </div>
 
-          {/* Easyship — set up, follow and print the shipment for this
-              invoice without leaving the page. Anchored on the invoice's order
-              when it has one, on the invoice itself when it doesn't. */}
-          <InvoiceEasyshipPanel
-            invoiceId={id}
-            tracking={tracking}
-            items={line_items.map((li) => ({ qty: Number(li.qty) || 0 }))}
-            fulfillmentType={(invoice as any).fulfillment_type ?? 'shipment'}
-            editable={editable}
-            refreshing={refreshingTracking}
-            onRefresh={refreshTracking}
-            onChanged={async () => {
-              const snap = await getInvoiceTracking(id);
-              setTracking(snap);
-            }}
-            flash={flash}
-            invoiceNumber={invoice.invoice_number}
-            customerName={invoice.customer_name ?? puramass?.customer_name ?? null}
-            onShipmentReplaced={() => {
-              load();
-              setOrderPanelVersion((v) => v + 1);
-            }}
-          />
-
-          {/* Discount & affiliate — what came off and who earns on the sale. */}
-          {showDiscountCard && (
-            <div className="bg-white rounded-xl border border-line p-5">
-              <h2 className="font-semibold text-ink mb-3 text-sm flex items-center gap-2">
-                <Tag className="w-4 h-4 text-emerald-600" /> Discount &amp; Affiliate
-              </h2>
-              <div className="space-y-2 text-sm">
-                {breakdown!.discountParts.map((p) => (
-                  <div key={p.kind} className="flex justify-between gap-3">
-                    <span className="text-ink-muted">{p.label}</span>
-                    <span className="font-medium text-ink text-right">{p.detail}</span>
-                  </div>
-                ))}
-                {breakdown!.referralCode && (
-                  <div className="flex justify-between gap-3">
-                    <span className="text-ink-muted">Referral link</span>
-                    <span className="font-mono text-ink">{breakdown!.referralCode}</span>
-                  </div>
-                )}
-                {showDiscount && (
-                  <div className="flex justify-between gap-3 pt-2 border-t border-line/60">
-                    <span className="text-ink-muted">Customer saved</span>
-                    <span className="font-semibold tabular-nums text-emerald-600">
-                      {goodsMoney(breakdown!.discount)}
-                      <span className="ml-1 text-xs font-normal text-ink-muted">
-                        ({Math.round((breakdown!.discount / breakdown!.subtotalBeforeDiscount) * 1000) / 10}%)
-                      </span>
-                    </span>
-                  </div>
-                )}
-                {!breakdown!.discountParts.length && !showDiscount && !breakdown!.referralCode && (
-                  <p className="text-ink-muted">No discount applied.</p>
-                )}
-              </div>
-
-              {affiliate && (
-                <div className="mt-4 pt-4 border-t border-line space-y-2 text-sm">
-                  <p className="text-xs font-semibold text-ink-muted uppercase tracking-wide flex items-center gap-1.5">
-                    <Handshake className="w-3.5 h-3.5 text-purple-600" /> Affiliate
-                  </p>
-                  <Link
-                    href={`/admin/affiliates/${affiliate.affiliateId}`}
-                    className="block font-medium text-ink hover:text-teal-dark transition-colors"
-                  >
-                    {affiliate.name || affiliate.email || 'View affiliate'}
-                  </Link>
-                  {affiliate.name && affiliate.email && (
-                    <p className="text-ink-muted -mt-1">{affiliate.email}</p>
-                  )}
-                  {affiliate.via && (
-                    <div className="flex justify-between gap-3">
-                      <span className="text-ink-muted">Credited via</span>
-                      <span className="text-ink text-right">
-                        {affiliate.via === 'discount_code'
-                          ? 'Discount code'
-                          : affiliate.via === 'referral_code'
-                            ? 'Referral link'
-                            : 'Assigned customer'}
-                        {affiliate.code && <span className="ml-1 font-mono">{affiliate.code}</span>}
-                      </span>
-                    </div>
-                  )}
-                  {affiliate.commission ? (
-                    <>
-                      <div className="flex justify-between gap-3">
-                        <span className="text-ink-muted">Rate</span>
-                        <span className="text-ink tabular-nums">
-                          {affiliate.commission.rate}% of {goodsMoney(affiliate.commission.base)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between gap-3 pt-2 border-t border-line/60">
-                        <span className="text-ink-muted">Affiliate cut</span>
-                        <span className="font-semibold tabular-nums text-purple-700">
-                          {goodsMoney(affiliate.commission.amount)}
-                          <span
-                            className={`ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
-                              affiliate.commission.status === 'paid'
-                                ? 'bg-emerald-500/10 text-emerald-700'
-                                : affiliate.commission.status === 'cancelled'
-                                  ? 'bg-red-500/10 text-red-600'
-                                  : 'bg-amber-500/10 text-amber-700'
-                            }`}
-                          >
-                            {affiliate.commission.status}
-                          </span>
-                        </span>
-                      </div>
-                      {editable && affiliate.commission.status !== 'cancelled' && (
-                        <button
-                          type="button"
-                          onClick={emailCommission}
-                          disabled={emailingCommission}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 hover:text-purple-800 disabled:opacity-50"
-                        >
-                          {emailingCommission ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Mail className="w-3.5 h-3.5" />
-                          )}
-                          Email affiliate &amp; admins
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xs text-ink-muted">
-                        No commission recorded{invoice.status === 'paid' ? '' : ' — it is booked when the invoice is paid'}.
-                      </p>
-                      {editable && invoice.status === 'paid' && isPuramassInvoice(invoice) && (
-                        <button
-                          type="button"
-                          onClick={bookCommission}
-                          disabled={bookingCommission}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 hover:text-purple-800 disabled:opacity-50"
-                        >
-                          {bookingCommission ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <DollarSign className="w-3.5 h-3.5" />
-                          )}
-                          Book commission
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
+          {hasEmailsTab && (
+            <div role="tabpanel" id="rail-panel-emails" aria-labelledby="rail-tab-emails" hidden={railTab !== 'emails'} className="space-y-4">
+              {/* The customer's "Your Order Has Shipped!" email — one email,
+                  sent by hand once the order is packed and shipped. Shipments
+                  only; a pickup has nothing to track. */}
+              {showShippedEmail && (
+                <FulfillmentEmailCard
+                  invoiceId={invoice.id}
+                  invoiceNumber={invoice.invoice_number}
+                  shippedEmailedAt={(invoice as any).shipped_emailed_at ?? null}
+                  canSend={editable}
+                  onSent={async () => {
+                    const result = await getInvoice(id);
+                    if (result) setData(result);
+                  }}
+                />
               )}
-            </div>
-          )}
 
-          {/* Sales Person */}
-          {invoice.sales_person_name && (
-            <div className="bg-white rounded-xl border border-line p-5">
-              <h2 className="font-semibold text-ink mb-3 text-sm flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-purple-600" /> Sales Person
-              </h2>
-              <div className="space-y-1 text-sm">
-                <p className="font-medium text-ink">{invoice.sales_person_name}</p>
-                {invoice.sales_person_email && (
-                  <p className="text-ink-muted">{invoice.sales_person_email}</p>
-                )}
-                <div className="flex justify-between mt-3 pt-3 border-t border-line/60">
-                  <span className="text-xs text-ink-muted">Commission</span>
-                  <span className="text-sm font-semibold tabular-nums text-purple-700">
-                    {money(Number(invoice.sales_person_commission_amount ?? 0))}
-                    {' '}<span className="text-xs text-ink-muted">({invoice.sales_person_commission_rate}%)</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Dates */}
-          <div className="bg-white rounded-xl border border-line p-5 space-y-3">
-            <div>
-              <p className="text-xs text-ink-muted mb-1">Source</p>
-              <p className="text-sm text-ink">
-                {isPuramassInvoice(invoice) ? 'Stealth Health hosted checkout' : 'Created in this admin'}
-              </p>
-              {isPuramassInvoice(invoice) && !puramass && !puramassLoading && (
-                <p className="mt-1 text-[11px] text-amber-600">
-                  No matching Stealth Health hand-off found — the ledger row may have
-                  been removed. Check Stealth Health Orders.
+              {/* Paid-order emails for a Stealth Health hand-off or a manual
+                  invoice: the customer's confirmation and the team's "order paid"
+                  notification. Stealth Health sends both on payment; a manual
+                  invoice only ever sends them from these buttons. An invoice with
+                  an order shows the confirmation in the order panel instead. */}
+              {!invoice.order_id && (
+                <>
+                  <OrderConfirmationEmailCard
+                    key={`confirmation-${invoice.status}`}
+                    target={{ invoiceId: invoice.id }}
+                    canSend={editable}
+                  />
+                  <AdminPaidAlertEmailCard
+                    key={`admin-alert-${invoice.status}`}
+                    invoiceId={invoice.id}
+                    canSend={editable}
+                  />
+                </>
+              )}
+              {/* An invoice with an order keeps the order's own emails (confirmation,
+                  status updates) in the order panel below the page. */}
+              {invoice.order_id && (
+                <p className="px-1 text-[11px] text-ink-muted">
+                  The order confirmation and status emails live in the order panel below.
                 </p>
               )}
             </div>
-            <div>
-              <p className="text-xs text-ink-muted mb-1">Issue Date</p>
-              <p className="text-sm text-ink">{formatAppDate(invoice.issue_date, {})}</p>
+          )}
+
+          {hasSalesTab && (
+            <div role="tabpanel" id="rail-panel-sales" aria-labelledby="rail-tab-sales" hidden={railTab !== 'sales'} className="space-y-4">
+              {/* Discount & affiliate — what came off and who earns on the sale. */}
+              {showDiscountCard && (
+                <div className="bg-white rounded-xl border border-line p-5">
+                  <h2 className="font-semibold text-ink mb-3 text-sm flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-emerald-600" /> Discount &amp; Affiliate
+                  </h2>
+                  <div className="space-y-2 text-sm">
+                    {breakdown!.discountParts.map((p) => (
+                      <div key={p.kind} className="flex justify-between gap-3">
+                        <span className="text-ink-muted">{p.label}</span>
+                        <span className="font-medium text-ink text-right">{p.detail}</span>
+                      </div>
+                    ))}
+                    {breakdown!.referralCode && (
+                      <div className="flex justify-between gap-3">
+                        <span className="text-ink-muted">Referral link</span>
+                        <span className="font-mono text-ink">{breakdown!.referralCode}</span>
+                      </div>
+                    )}
+                    {showDiscount && (
+                      <div className="flex justify-between gap-3 pt-2 border-t border-line/60">
+                        <span className="text-ink-muted">Customer saved</span>
+                        <span className="font-semibold tabular-nums text-emerald-600">
+                          {goodsMoney(breakdown!.discount)}
+                          <span className="ml-1 text-xs font-normal text-ink-muted">
+                            ({Math.round((breakdown!.discount / breakdown!.subtotalBeforeDiscount) * 1000) / 10}%)
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                    {!breakdown!.discountParts.length && !showDiscount && !breakdown!.referralCode && (
+                      <p className="text-ink-muted">No discount applied.</p>
+                    )}
+                  </div>
+
+                  {affiliate && (
+                    <div className="mt-4 pt-4 border-t border-line space-y-2 text-sm">
+                      <p className="text-xs font-semibold text-ink-muted uppercase tracking-wide flex items-center gap-1.5">
+                        <Handshake className="w-3.5 h-3.5 text-purple-600" /> Affiliate
+                      </p>
+                      <Link
+                        href={`/admin/affiliates/${affiliate.affiliateId}`}
+                        className="block font-medium text-ink hover:text-teal-dark transition-colors"
+                      >
+                        {affiliate.name || affiliate.email || 'View affiliate'}
+                      </Link>
+                      {affiliate.name && affiliate.email && (
+                        <p className="text-ink-muted -mt-1">{affiliate.email}</p>
+                      )}
+                      {affiliate.via && (
+                        <div className="flex justify-between gap-3">
+                          <span className="text-ink-muted">Credited via</span>
+                          <span className="text-ink text-right">
+                            {affiliate.via === 'discount_code'
+                              ? 'Discount code'
+                              : affiliate.via === 'referral_code'
+                                ? 'Referral link'
+                                : 'Assigned customer'}
+                            {affiliate.code && <span className="ml-1 font-mono">{affiliate.code}</span>}
+                          </span>
+                        </div>
+                      )}
+                      {affiliate.commission ? (
+                        <>
+                          <div className="flex justify-between gap-3">
+                            <span className="text-ink-muted">Rate</span>
+                            <span className="text-ink tabular-nums">
+                              {affiliate.commission.rate}% of {goodsMoney(affiliate.commission.base)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-3 pt-2 border-t border-line/60">
+                            <span className="text-ink-muted">Affiliate cut</span>
+                            <span className="font-semibold tabular-nums text-purple-700">
+                              {goodsMoney(affiliate.commission.amount)}
+                              <span
+                                className={`ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                                  affiliate.commission.status === 'paid'
+                                    ? 'bg-emerald-500/10 text-emerald-700'
+                                    : affiliate.commission.status === 'cancelled'
+                                      ? 'bg-red-500/10 text-red-600'
+                                      : 'bg-amber-500/10 text-amber-700'
+                                }`}
+                              >
+                                {affiliate.commission.status}
+                              </span>
+                            </span>
+                          </div>
+                          {editable && affiliate.commission.status !== 'cancelled' && (
+                            <button
+                              type="button"
+                              onClick={emailCommission}
+                              disabled={emailingCommission}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 hover:text-purple-800 disabled:opacity-50"
+                            >
+                              {emailingCommission ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Mail className="w-3.5 h-3.5" />
+                              )}
+                              Email affiliate &amp; admins
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs text-ink-muted">
+                            No commission recorded{invoice.status === 'paid' ? '' : ' — it is booked when the invoice is paid'}.
+                          </p>
+                          {editable && invoice.status === 'paid' && isPuramassInvoice(invoice) && (
+                            <button
+                              type="button"
+                              onClick={bookCommission}
+                              disabled={bookingCommission}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 hover:text-purple-800 disabled:opacity-50"
+                            >
+                              {bookingCommission ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <DollarSign className="w-3.5 h-3.5" />
+                              )}
+                              Book commission
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sales Person */}
+              {invoice.sales_person_name && (
+                <div className="bg-white rounded-xl border border-line p-5">
+                  <h2 className="font-semibold text-ink mb-3 text-sm flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-purple-600" /> Sales Person
+                  </h2>
+                  <div className="space-y-1 text-sm">
+                    <p className="font-medium text-ink">{invoice.sales_person_name}</p>
+                    {invoice.sales_person_email && (
+                      <p className="text-ink-muted">{invoice.sales_person_email}</p>
+                    )}
+                    <div className="flex justify-between mt-3 pt-3 border-t border-line/60">
+                      <span className="text-xs text-ink-muted">Commission</span>
+                      <span className="text-sm font-semibold tabular-nums text-purple-700">
+                        {money(Number(invoice.sales_person_commission_amount ?? 0))}
+                        {' '}<span className="text-xs text-ink-muted">({invoice.sales_person_commission_rate}%)</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div>
-              <p className="text-xs text-ink-muted mb-1">Due Date</p>
-              <p className={`text-sm font-medium ${
-                invoice.status === 'overdue' ? 'text-red-500' : 'text-ink'
-              }`}>
-                {formatAppDate(invoice.due_date, {})}
-              </p>
+          )}
+
+          <div role="tabpanel" id="rail-panel-details" aria-labelledby="rail-tab-details" hidden={railTab !== 'details'} className="space-y-4">
+            {/* Dates */}
+            <div className="bg-white rounded-xl border border-line p-5 space-y-3">
+              <div>
+                <p className="text-xs text-ink-muted mb-1">Source</p>
+                <p className="text-sm text-ink">
+                  {isPuramassInvoice(invoice) ? 'Stealth Health hosted checkout' : 'Created in this admin'}
+                </p>
+                {isPuramassInvoice(invoice) && !puramass && !puramassLoading && (
+                  <p className="mt-1 text-[11px] text-amber-600">
+                    No matching Stealth Health hand-off found — the ledger row may have
+                    been removed. Check Stealth Health Orders.
+                  </p>
+                )}
+              </div>
+              <div>
+                <p className="text-xs text-ink-muted mb-1">Issue Date</p>
+                <p className="text-sm text-ink">{formatAppDate(invoice.issue_date, {})}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ink-muted mb-1">Due Date</p>
+                <p className={`text-sm font-medium ${
+                  invoice.status === 'overdue' ? 'text-red-500' : 'text-ink'
+                }`}>
+                  {formatAppDate(invoice.due_date, {})}
+                </p>
+              </div>
             </div>
+
+            {/* Stealth Health's own record of this sale. Stealth Health Orders is
+                where it gets re-synced. */}
+            {puramass && <PuramassOrderPanel puramass={puramass} />}
+
+            {/* Delete invoice — admin-only, single-invoice DELETE leaves the
+                linked order intact. */}
+            {deletable && (
+              <div className="bg-white rounded-xl border border-red-200 p-5">
+                <h2 className="font-semibold text-red-700 mb-2 text-sm">Danger zone</h2>
+                <p className="text-xs text-ink-muted mb-3">
+                  Delete this invoice permanently. The linked order is untouched.
+                </p>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors"
+                >
+                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Delete invoice
+                </button>
+              </div>
+            )}
           </div>
-
-          {/* Notes */}
-          {invoice.notes && (
-            <div className="bg-white rounded-xl border border-line p-5">
-              <h2 className="font-semibold text-ink mb-2 text-sm">Notes</h2>
-              <p className="text-sm text-ink-muted whitespace-pre-wrap">{invoice.notes}</p>
-            </div>
-          )}
-
-          {/* Delete invoice — admin-only, single-invoice DELETE leaves the
-              linked order intact. */}
-          {deletable && (
-            <div className="bg-white rounded-xl border border-red-200 p-5">
-              <h2 className="font-semibold text-red-700 mb-2 text-sm">Danger zone</h2>
-              <p className="text-xs text-ink-muted mb-3">
-                Delete this invoice permanently. The linked order is untouched.
-              </p>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors"
-              >
-                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                Delete invoice
-              </button>
-            </div>
-          )}
         </div>
       </div>
 

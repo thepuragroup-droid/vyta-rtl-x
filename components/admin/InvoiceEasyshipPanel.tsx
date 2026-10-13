@@ -10,7 +10,7 @@
  *    handover method and insurance, and create it (optionally buying the label
  *    in the same step);
  *  - once it exists: carrier, tracking and — the thing the warehouse actually
- *    needs — the label, with its state and a download link.
+ *    needs — the label, with its state and print / download buttons.
  *
  * This used to be the invoice form's job, which meant editing an invoice and
  * ticking a checkbox to ship it. That is the wrong shape for a Stealth Health /
@@ -23,8 +23,9 @@
  */
 import React, { useState } from 'react';
 import {
-  Truck, Loader2, RefreshCw, Search, Download, Check, X, Tag, Link2,
+  Truck, Loader2, RefreshCw, Search, Download, Check, X, Tag, Link2, Printer,
 } from 'lucide-react';
+import { openInvoiceLabel, printInvoiceLabel } from '@/lib/shipping/label-print';
 import EasyshipShipmentPicker from '@/components/admin/EasyshipShipmentPicker';
 import {
   shippingReadiness,
@@ -125,6 +126,7 @@ export default function InvoiceEasyshipPanel({
   const [buyLabel, setBuyLabel] = useState(false);
   const [creating, setCreating] = useState(false);
   const [buyingLabel, setBuyingLabel] = useState(false);
+  const [labelBusy, setLabelBusy] = useState<'print' | 'open' | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -183,6 +185,11 @@ export default function InvoiceEasyshipPanel({
       if (res.shipment?.easyship_shipment_id) {
         flash(buyLabel ? 'Shipment created and label bought' : 'Shipment created');
         setSetupOpen(false);
+        if (buyLabel && res.shipment.label_state === 'generated') {
+          await printInvoiceLabel(invoiceId).catch((e) =>
+            flash(e?.message ?? 'Label bought, but it could not be loaded to print'),
+          );
+        }
       } else {
         flash(
           res.shipment?.auto_shipment_error
@@ -199,22 +206,40 @@ export default function InvoiceEasyshipPanel({
     }
   }
 
+  // Buy the label, then print it straight away when the PDF is ready.
   async function purchaseLabel() {
     setBuyingLabel(true);
     try {
       const res = await buyInvoiceLabel(invoiceId);
-      flash(
-        res.label?.state === 'generated'
-          ? 'Label bought'
-          : res.label?.state === 'pending'
+      if (res.label?.state === 'generated') {
+        flash('Label bought — opening the print dialog');
+        await printInvoiceLabel(invoiceId).catch((e) =>
+          flash(e?.message ?? 'Label bought, but it could not be loaded to print'),
+        );
+      } else {
+        flash(
+          res.label?.state === 'pending'
             ? 'Label bought — Easyship is still generating the PDF'
             : (res.error ?? 'Label purchase failed'),
-      );
+        );
+      }
       await onChanged();
     } catch (e: any) {
       flash(e?.message ?? 'Label purchase failed');
     } finally {
       setBuyingLabel(false);
+    }
+  }
+
+  async function labelAction(kind: 'print' | 'open') {
+    setLabelBusy(kind);
+    try {
+      if (kind === 'print') await printInvoiceLabel(invoiceId);
+      else await openInvoiceLabel(invoiceId);
+    } catch (e: any) {
+      flash(e?.message ?? 'Could not load the label');
+    } finally {
+      setLabelBusy(null);
     }
   }
 
@@ -257,14 +282,29 @@ export default function InvoiceEasyshipPanel({
             )}
           </div>
           {t?.label_url ? (
-            <a
-              href={t.label_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border border-teal px-2.5 py-1.5 text-xs text-teal-dark hover:bg-teal/5"
-            >
-              <Download className="w-3.5 h-3.5" /> Download label
-            </a>
+            <div className="flex gap-2">
+              <button
+                onClick={() => labelAction('print')}
+                disabled={labelBusy !== null}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-md bg-teal-dark px-2.5 py-1.5 text-xs font-medium text-white hover:bg-teal-dark/90 disabled:opacity-50"
+              >
+                {labelBusy === 'print'
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Printer className="w-3.5 h-3.5" />}
+                Print label
+              </button>
+              <button
+                onClick={() => labelAction('open')}
+                disabled={labelBusy !== null}
+                title="Open the label in a new tab to save or reprint"
+                className="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-xs text-teal-dark hover:border-teal disabled:opacity-50"
+              >
+                {labelBusy === 'open'
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Download className="w-3.5 h-3.5" />}
+                PDF
+              </button>
+            </div>
           ) : (
             <div className="space-y-1.5">
               <p className="text-[11px] text-ink-muted">
@@ -280,8 +320,8 @@ export default function InvoiceEasyshipPanel({
                 >
                   {buyingLabel
                     ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <Tag className="w-3.5 h-3.5" />}
-                  Buy label now
+                    : <Printer className="w-3.5 h-3.5" />}
+                  Buy &amp; print label
                 </button>
               )}
             </div>
@@ -529,7 +569,7 @@ export default function InvoiceEasyshipPanel({
 
               <label className="flex items-center gap-2 text-xs cursor-pointer">
                 <input type="checkbox" checked={buyLabel} onChange={(e) => setBuyLabel(e.target.checked)} />
-                <span className="text-ink">Buy label now</span>
+                <span className="text-ink">Buy &amp; print label now</span>
                 <span className="text-[10px] text-amber-600">Charges Easyship wallet</span>
               </label>
 
