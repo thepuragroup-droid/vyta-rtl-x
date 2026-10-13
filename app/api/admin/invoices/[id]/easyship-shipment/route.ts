@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getInvoiceCaller, callerCanWrite } from '@/lib/admin/invoice-access';
 import { logAuditServer } from '@/lib/admin/audit';
-import { isMissingColumnError } from '@/lib/payments/puramass-columns';
 import {
   getEasyshipShipmentDetails,
   getShippingConfig,
@@ -11,7 +10,10 @@ import {
   type EasyshipShipmentSummary,
 } from '@/lib/easyship';
 import { onShipmentLabelGenerated } from '@/lib/shipping/label-generated';
-import { clearedShipmentPatch } from '@/lib/shipping/shipment-record';
+import {
+  clearShipmentRecord,
+  resolveInvoiceShipmentAnchor,
+} from '@/lib/shipping/shipment-anchor';
 import type { ShipmentAnchor } from '@/lib/shipping/auto-shipment';
 
 /**
@@ -49,51 +51,6 @@ interface ShipmentOwner {
   id: string;
   /** Order number / invoice number — whatever an operator would recognise. */
   label: string | null;
-}
-
-interface ResolvedAnchor {
-  anchor: ShipmentAnchor;
-  /** Every invoice carrying a copy of the anchor's record. */
-  invoiceIds: string[];
-  easyship_shipment_id: string | null;
-}
-
-/** Order when the invoice has one (and it still exists), the invoice otherwise. */
-async function resolveAnchor(invoiceId: string): Promise<ResolvedAnchor | null> {
-  const { data: inv } = await db
-    .from('invoices')
-    .select('id, order_id')
-    .eq('id', invoiceId)
-    .maybeSingle();
-  if (!inv) return null;
-
-  if (inv.order_id) {
-    const { data: order } = await db
-      .from('orders')
-      .select('id, easyship_shipment_id')
-      .eq('id', inv.order_id)
-      .maybeSingle();
-    if (order) {
-      const { data: invs } = await db.from('invoices').select('id').eq('order_id', order.id);
-      const ids = new Set<string>([inv.id, ...(invs ?? []).map((i: any) => i.id)]);
-      return {
-        anchor: { kind: 'order', id: order.id },
-        invoiceIds: Array.from(ids),
-        easyship_shipment_id: order.easyship_shipment_id ?? null,
-      };
-    }
-  }
-
-  const { data: self, error } = await db
-    .from('invoices')
-    .select('easyship_shipment_id')
-    .eq('id', inv.id)
-    .maybeSingle();
-  return {
-    anchor: { kind: 'invoice', id: inv.id },
-    invoiceIds: [inv.id],
-    easyship_shipment_id: error ? null : ((self as any)?.easyship_shipment_id ?? null),
-  };
 }
 
 /** shipment id → the order or invoice it is attached to (orders win). */
@@ -141,7 +98,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
-  const resolved = await resolveAnchor(params.id);
+  const resolved = await resolveInvoiceShipmentAnchor(db, params.id);
   if (!resolved) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
 
   const rawDays = Number(req.nextUrl.searchParams.get('days') ?? DEFAULT_LOOKBACK_DAYS);
@@ -183,23 +140,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   });
 }
 
-/** Write a patch, dropping columns this database doesn't have one at a time. */
-async function updateTolerant(
-  table: 'orders' | 'invoices',
-  ids: string[],
-  patch: Record<string, unknown>,
-): Promise<string | null> {
-  if (ids.length === 0 || Object.keys(patch).length === 0) return null;
-  const { error } = await db.from(table).update(patch).in('id', ids);
-  if (!error) return null;
-  if (!isMissingColumnError(error)) return error.message;
-  for (const [col, value] of Object.entries(patch)) {
-    const res = await db.from(table).update({ [col]: value }).in('id', ids);
-    if (res.error && !isMissingColumnError(res.error)) return res.error.message;
-  }
-  return null;
-}
-
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const caller = await getInvoiceCaller(db, req);
   if (!caller.ok || !callerCanWrite(caller.role)) {
@@ -217,9 +157,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'easyship_shipment_id is required' }, { status: 400 });
   }
 
-  const resolved = await resolveAnchor(params.id);
+  const resolved = await resolveInvoiceShipmentAnchor(db, params.id);
   if (!resolved) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
-  const { anchor, invoiceIds } = resolved;
+  const { anchor } = resolved;
   const table = anchor.kind === 'order' ? 'orders' : 'invoices';
 
   // Read the shipment first: a typo'd or deleted id must never blank the
@@ -252,19 +192,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const previous = resolved.easyship_shipment_id;
 
   // 1. Blank the old record on the anchor and every invoice mirroring it.
-  const cleared = clearedShipmentPatch();
-  const targets: Array<['orders' | 'invoices', string[]]> = [[table, [anchor.id]]];
-  if (anchor.kind === 'order') targets.push(['invoices', invoiceIds]);
-  for (const [t, ids] of targets) {
-    const err = await updateTolerant(t, ids, cleared.core);
-    if (err) {
-      // The core block on `invoices` only exists after
-      // easyship-invoice-shipment-migration.sql; for an order anchor the
-      // mirror is optional, for an invoice anchor it is the record itself.
-      if (t === table) return NextResponse.json({ error: err }, { status: 500 });
-    }
-    await updateTolerant(t, ids, cleared.extended);
-  }
+  const clearErr = await clearShipmentRecord(db, resolved);
+  if (clearErr) return NextResponse.json({ error: clearErr }, { status: 500 });
 
   // 2. Link the picked shipment and pull its full record onto the anchor and
   //    the invoice(s). When its label already exists and the customer was

@@ -518,6 +518,55 @@ export async function createInvoiceShipment(
   );
 }
 
+export interface InvoiceRedoShipmentResult extends InvoiceShipmentResult {
+  previous_shipment_id?: string | null;
+  /** False when Easyship wouldn't cancel the old shipment (replace_anyway). */
+  previous_cancelled?: boolean;
+  previous_cancel_error?: string | null;
+  /** The customer already got a shipped email carrying the old tracking. */
+  shipped_email_was_sent?: boolean;
+  /** 409: the bought label couldn't be cancelled; resend with replace_anyway. */
+  cancel_failed?: boolean;
+}
+
+/**
+ * Rebook an invoice's shipment on a different courier: cancel the current one
+ * in Easyship (refunding a bought label), then create a new one. Resolves with
+ * `cancel_failed` instead of throwing when the old label couldn't be
+ * cancelled, so the caller can ask before replacing it anyway.
+ */
+export async function redoInvoiceShipment(
+  id: string,
+  opts: {
+    courier_service_id?: string | null;
+    courier_preference?: CourierPreference | null;
+    insured?: boolean;
+    handover?: 'dropoff' | 'collection' | 'free_collection' | null;
+    buy_label?: boolean;
+    replace_anyway?: boolean;
+  },
+): Promise<InvoiceRedoShipmentResult> {
+  const token = await getToken();
+  const controller = new AbortController();
+  // Cancel + create + (optionally) waiting on the label PDF.
+  const timer = setTimeout(() => controller.abort(), 75_000);
+  try {
+    const res = await fetch(`/api/admin/invoices/${id}/redo-shipment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify(opts),
+      signal: controller.signal,
+    });
+    let body: InvoiceRedoShipmentResult = {};
+    try { body = await res.json(); } catch {}
+    if (res.status === 409 && body.cancel_failed) return body;
+    if (!res.ok) throw new Error(body.error ?? `Request failed: ${res.status}`);
+    return body;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export interface InvoiceLabelResult {
   anchor?: 'order' | 'invoice';
   label?: {
