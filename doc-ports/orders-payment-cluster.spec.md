@@ -1,5 +1,7 @@
 # Cart → Order → Payment — Build Spec
 
+> **Superseded for cart and checkout by [`cart-checkout/`](./cart-checkout/README.md).** This spec describes the legacy e-mail/crypto `orders` flow; the live checkout is the hosted Stealth Health (Puramass) flow documented there.
+
 > Definitive spec for rebuilding this feature cluster in a Next.js + Supabase codebase.
 > Generated from: the `orders` live DDL + `migration-orders[-clean].sql` /
 > `orders-customer-fk-set-null-migration.sql` / `stock-decrement-migration.sql`; helpers
