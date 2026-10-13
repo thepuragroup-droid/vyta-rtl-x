@@ -15,6 +15,10 @@ import { EASYSHIP_WEBHOOK_URL } from '@/lib/shipping/easyship-webhook';
 const EASYSHIP_BASE =
   process.env.EASYSHIP_API_URL || 'https://public-api.easyship.com/2024-09';
 
+// Page size Easyship generates shipping labels on: '4x6' for thermal label
+// stock (the default), or 'A4' / 'A5' via EASYSHIP_LABEL_SIZE.
+const LABEL_PAGE_SIZE = process.env.EASYSHIP_LABEL_SIZE || '4x6';
+
 function headers(apiKey?: string) {
   const token = apiKey || process.env.EASYSHIP_API_KEY;
   if (!token) throw new Error('EASYSHIP_API_KEY is not set');
@@ -407,6 +411,12 @@ export async function createEasyshipShipment(
         // Draft only — never buy/charge a label at creation.
         buy_label: false,
         buy_label_synchronous: false,
+        // Without this Easyship lays the label out on an A4/Letter page, so it
+        // prints small with a page of white space around it. The page size is
+        // fixed when the shipment is created, so it has to be asked for here.
+        // `format` is left to the account default so label URLs keep coming
+        // back the way the label lookup reads them.
+        printing_options: { label: LABEL_PAGE_SIZE },
       },
       // 2024-09 ParcelCreate does NOT accept item fields directly on the
       // parcel — they live on parcels[].items[], with the parcel carrying box
