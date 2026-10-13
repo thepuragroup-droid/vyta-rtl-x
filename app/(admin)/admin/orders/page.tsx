@@ -15,7 +15,7 @@ import {
 import { getOrCreateInvoiceForOrder } from '@/lib/admin/invoices';
 import { useUserRole } from '../layout';
 import { canEdit, canDelete } from '@/lib/permissions';
-import { printPdfBlob } from '@/lib/print-pdf';
+import { printShippingLabel } from '@/lib/shipping/label-4x6';
 import { APP_TIME_ZONE, addDays, appDayKey, formatAppDate, todayInAppTz } from '@/lib/datetime';
 import BulkShipmentDialog, { type SkippedOrder } from './_components/BulkShipmentDialog';
 
@@ -180,7 +180,7 @@ export default function AdminOrders() {
     startRow(orderId, 'Printing label…');
     try {
       const blob = await fetchLabelBlob(orderId);
-      printPdfBlob(blob);
+      await printShippingLabel(blob);
       endRow(orderId);
     } catch (e: any) {
       endRow(orderId, e?.message || 'Failed to load label');
@@ -194,7 +194,7 @@ export default function AdminOrders() {
       await buyOrderLabel(orderId);
       await refreshOrders();
       const blob = await fetchLabelBlob(orderId);
-      printPdfBlob(blob);
+      await printShippingLabel(blob);
       endRow(orderId);
     } catch (e: any) {
       endRow(orderId, e?.message || 'Failed to buy label');

@@ -6,7 +6,7 @@
 // file as a Blob first, then prints or opens it.
 
 import { supabase } from '@/lib/supabase';
-import { printPdfBlob } from '@/lib/print-pdf';
+import { labelSheets, printSheets, printShippingLabel } from '@/lib/shipping/label-4x6';
 
 async function authHeader(): Promise<Record<string, string>> {
   try {
@@ -32,9 +32,9 @@ export async function fetchInvoiceLabelBlob(invoiceId: string): Promise<Blob> {
   return res.blob();
 }
 
-/** Open the print dialog on the invoice's label, without leaving the page. */
+/** Open the print dialog on the invoice's label (4x6), without leaving the page. */
 export async function printInvoiceLabel(invoiceId: string): Promise<void> {
-  printPdfBlob(await fetchInvoiceLabelBlob(invoiceId));
+  await printShippingLabel(await fetchInvoiceLabelBlob(invoiceId));
 }
 
 /** Open the label in a new tab, to save or reprint later. */
@@ -58,9 +58,9 @@ export interface BulkLabelResult {
 }
 
 /**
- * Print several labels as ONE job: fetch each, merge them into a single PDF
- * (a page per label, image labels placed on a page of their own size) and
- * open one print dialog. Labels that fail to load are skipped and reported.
+ * Print several labels as ONE job of 4x6 pages: fetch each, redraw every page
+ * as a 4x6 sheet and open one print dialog. Labels that fail to load or
+ * can't be read are skipped and reported.
  */
 export async function printInvoiceLabels(invoiceIds: string[]): Promise<BulkLabelResult> {
   const settled = await Promise.allSettled(invoiceIds.map((id) => fetchInvoiceLabelBlob(id)));
@@ -71,37 +71,17 @@ export async function printInvoiceLabels(invoiceIds: string[]): Promise<BulkLabe
     else failed.push({ invoiceId: invoiceIds[i], error: r.reason?.message ?? 'Failed to load label' });
   });
   if (blobs.length === 0) return { printed: 0, failed };
-  if (blobs.length === 1) {
-    printPdfBlob(blobs[0].blob);
-    return { printed: 1, failed };
-  }
 
-  // Loaded on demand — only the bulk path needs it.
-  const { PDFDocument } = await import('pdf-lib');
-  const merged = await PDFDocument.create();
+  const sheets: string[] = [];
   let printed = 0;
   for (const { invoiceId, blob } of blobs) {
     try {
-      const bytes = await blob.arrayBuffer();
-      if (blob.type.startsWith('image/')) {
-        const img = blob.type.includes('png')
-          ? await merged.embedPng(bytes)
-          : await merged.embedJpg(bytes);
-        const page = merged.addPage([img.width, img.height]);
-        page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
-      } else {
-        const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
-        const pages = await merged.copyPages(src, src.getPageIndices());
-        pages.forEach((p) => merged.addPage(p));
-      }
+      sheets.push(...(await labelSheets(blob)));
       printed++;
     } catch (e: any) {
       failed.push({ invoiceId, error: e?.message ?? 'Unreadable label file' });
     }
   }
-  if (printed > 0) {
-    const out = await merged.save();
-    printPdfBlob(new Blob([out as BlobPart], { type: 'application/pdf' }));
-  }
+  if (sheets.length > 0) printSheets(sheets);
   return { printed, failed };
 }
