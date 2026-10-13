@@ -213,7 +213,7 @@ export default function SettlementInvoicePage() {
                     <th className="text-left font-semibold px-4 py-2.5">Buyer</th>
                     <th className="text-right font-semibold px-4 py-2.5">Goods</th>
                     <th className="text-right font-semibold px-4 py-2.5">Refunds</th>
-                    <th className="text-right font-semibold px-4 py-2.5">Shipping</th>
+                    {invoice.shipping_cents > 0 && <th className="text-right font-semibold px-4 py-2.5">Shipping</th>}
                     <th className="text-right font-semibold px-4 py-2.5">Their cut</th>
                     <th className="text-right font-semibold px-4 py-2.5">Owed</th>
                   </tr>
@@ -233,9 +233,11 @@ export default function SettlementInvoicePage() {
                       <td className="px-4 py-2.5 text-right tabular-nums text-ink-muted">
                         {o.refunds_cents > 0 ? `− ${money(o.refunds_cents, cur)}` : '—'}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-ink-muted">
-                        {o.shipping_cents > 0 ? money(o.shipping_cents, cur) : '—'}
-                      </td>
+                      {invoice.shipping_cents > 0 && (
+                        <td className="px-4 py-2.5 text-right tabular-nums text-ink-muted">
+                          {o.shipping_cents > 0 ? money(o.shipping_cents, cur) : '—'}
+                        </td>
+                      )}
                       <td className="px-4 py-2.5 text-right tabular-nums text-ink-muted">
                         {o.fee_cents > 0 ? `− ${money(o.fee_cents, cur)}` : '—'}
                       </td>
@@ -256,7 +258,7 @@ export default function SettlementInvoicePage() {
             The figures above use the terms frozen on this invoice
             {invoice.commission_pct > 0 ? ` (${invoice.commission_pct}% commission)` : ' (no commission)'}
             {invoice.flat_fee_cents > 0 ? ` plus ${money(invoice.flat_fee_cents, cur)} per order` : ''}
-            {invoice.shipping_remitted ? ', shipment fees remitted' : ', shipment fees retained by them'}.
+            {invoice.shipping_cents > 0 ? ', shipment fees remitted' : ''}.
             Changing the terms later will not restate this invoice.
           </p>
         </div>
@@ -317,7 +319,7 @@ function PrintableInvoice({ invoice, orders, terms }: {
             <th className="text-left py-1.5 font-semibold">Reference</th>
             <th className="text-right py-1.5 font-semibold">Goods</th>
             <th className="text-right py-1.5 font-semibold">Refunds</th>
-            <th className="text-right py-1.5 font-semibold">Shipping</th>
+            {invoice.shipping_cents > 0 && <th className="text-right py-1.5 font-semibold">Shipping</th>}
             <th className="text-right py-1.5 font-semibold">Fees</th>
             <th className="text-right py-1.5 font-semibold">Owed</th>
           </tr>
@@ -329,7 +331,9 @@ function PrintableInvoice({ invoice, orders, terms }: {
               <td className="py-1 font-mono text-[10px]">{o.partner_reference ?? '—'}</td>
               <td className="py-1 text-right tabular-nums">{money(o.gross_cents, cur)}</td>
               <td className="py-1 text-right tabular-nums">{o.refunds_cents > 0 ? `−${money(o.refunds_cents, cur)}` : '—'}</td>
-              <td className="py-1 text-right tabular-nums">{o.shipping_cents > 0 ? money(o.shipping_cents, cur) : '—'}</td>
+              {invoice.shipping_cents > 0 && (
+                <td className="py-1 text-right tabular-nums">{o.shipping_cents > 0 ? money(o.shipping_cents, cur) : '—'}</td>
+              )}
               <td className="py-1 text-right tabular-nums">{o.fee_cents > 0 ? `−${money(o.fee_cents, cur)}` : '—'}</td>
               <td className="py-1 text-right tabular-nums font-semibold">{money(o.due_cents, cur)}</td>
             </tr>

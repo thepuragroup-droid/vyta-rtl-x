@@ -7,7 +7,7 @@ import {
   loadTerms,
   isMissingSchema,
 } from '@/lib/admin/stealth-health-server';
-import { normalizeTerms, describeTerms } from '@/lib/admin/stealth-health';
+import { liveTerms, describeTerms } from '@/lib/admin/stealth-health';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,7 +66,8 @@ export async function PUT(req: NextRequest) {
     updates.commission_pct = n;
   }
 
-  for (const key of ['flat_fee_cents', 'shipping_fee_cents', 'payment_terms_days'] as const) {
+  // No shipment fee: Stealth Health stopped adding one, so it isn't a term.
+  for (const key of ['flat_fee_cents', 'payment_terms_days'] as const) {
     if (key in body) {
       const n = Math.round(Number(body[key]));
       if (!Number.isFinite(n) || n < 0) {
@@ -76,7 +77,6 @@ export async function PUT(req: NextRequest) {
     }
   }
 
-  if ('shipping_remitted' in body) updates.shipping_remitted = Boolean(body.shipping_remitted);
   if ('currency' in body) updates.currency = body.currency === 'CAD' ? 'CAD' : 'USD';
 
   if (Object.keys(updates).length === 0) {
@@ -117,6 +117,6 @@ export async function PUT(req: NextRequest) {
     entity_id: data?.id ?? null,
   });
 
-  const terms = normalizeTerms(data);
+  const terms = liveTerms(data);
   return NextResponse.json({ terms, migrated: true, summary: describeTerms(terms) });
 }
