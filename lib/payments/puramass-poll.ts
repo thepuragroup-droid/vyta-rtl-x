@@ -23,6 +23,32 @@ import {
 } from '@/lib/payments/puramass';
 import { isMissingColumnError, stripUnmigratedFields } from '@/lib/payments/puramass-columns';
 
+/**
+ * Store the order body Stealth Health returned on a poll
+ * (stealth-health-portal-snapshot-migration.sql). Best-effort and on its own
+ * write, so a database without those columns never holds back the status,
+ * address or refund updates.
+ */
+export async function storePortalSnapshot(
+  db: SupabaseClient,
+  match: { id: string } | { transaction_id: string },
+  raw: Record<string, unknown> | null | undefined,
+): Promise<void> {
+  if (!raw || typeof raw !== 'object') return;
+  try {
+    const [column, value] = 'id' in match ? ['id', match.id] : ['transaction_id', match.transaction_id];
+    const { error } = await db
+      .from('puramass_orders')
+      .update({ portal_order: raw, portal_order_at: new Date().toISOString() })
+      .eq(column, value);
+    if (error && !isMissingColumnError(error)) {
+      console.warn('[puramass-poll] portal snapshot not stored:', error.message);
+    }
+  } catch {
+    /* best-effort */
+  }
+}
+
 /** Terminal local states — never moved off once reached. */
 export const PURAMASS_TERMINAL_STATUSES = ['paid', 'expired', 'cancelled'] as const;
 
@@ -77,8 +103,12 @@ export async function applyPuramassStatus(
     | 'expires_at'
     | 'refunded_total_cents'
     | 'refunds'
-  >,
+  > & { raw?: Record<string, unknown> | null },
 ): Promise<ApplyResult> {
+  // Keep what Stealth Health returned; the Payouts tab reads the customer and
+  // the amount charged from it.
+  await storePortalSnapshot(db, { id: order.id }, remote?.raw);
+
   // The shipping address Stealth Health captured on its hosted page. It can land (or
   // change) independently of the payment status, so it is applied on its own
   // whenever the status side is a no-op — including on terminal orders, which
