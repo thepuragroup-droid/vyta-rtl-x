@@ -27,6 +27,14 @@ const INK_THRESHOLD = 200;
 /** White kept around a trimmed label, as a fraction of its longer side. */
 const TRIM_PADDING = 0.01;
 
+/**
+ * pdf.js paces 'display' renders with requestAnimationFrame, which the browser
+ * pauses while the page is in the background — and it is, the moment "Print
+ * label" opens its tab — so the label never finished until staff switched
+ * back. 'print' renders run straight through.
+ */
+const RENDER_INTENT = 'print';
+
 type PdfJs = typeof import('pdfjs-dist');
 let pdfjsPromise: Promise<PdfJs> | null = null;
 
@@ -142,7 +150,7 @@ async function pdfSheets(bytes: ArrayBuffer): Promise<Sheet[]> {
       // Where the label sits on the page, in points.
       const scan = page.getViewport({ scale: SCAN_DPI / 72 });
       const probe = makeCanvas(scan.width, scan.height);
-      await page.render({ canvasContext: probe.ctx, viewport: scan }).promise;
+      await page.render({ canvasContext: probe.ctx, viewport: scan, intent: RENDER_INTENT }).promise;
       const found = inkBounds(probe.ctx, probe.canvas.width, probe.canvas.height);
       if (!found) continue; // blank page
       const k = 72 / SCAN_DPI;
@@ -160,6 +168,7 @@ async function pdfSheets(bytes: ArrayBuffer): Promise<Sheet[]> {
       await page.render({
         canvasContext: ctx,
         viewport: view,
+        intent: RENDER_INTENT,
         transform: [1, 0, 0, 1, -region.x * scale, -region.y * scale],
       }).promise;
       sheets.push({ kind: 'canvas', canvas: toSheet(canvas) });
