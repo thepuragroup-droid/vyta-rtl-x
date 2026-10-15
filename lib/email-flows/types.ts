@@ -142,7 +142,8 @@ export interface FlowStep {
   headline: string;
   subheadline: string;
   body: string;
-  highlights: string[];
+  /** Badges / benefit lines, each with the icon drawn beside it. */
+  highlights: Highlight[];
   cta_label: string;
   cta_url: string;
   hero_image_url: string;
@@ -172,6 +173,90 @@ export function stepsMissingCode(steps: Pick<FlowStep, 'flow' | 'step' | 'enable
 }
 
 export const MISSING_CODE_MESSAGE = 'Choose the discount code this email offers.';
+
+// ---------------------------------------------------------------------------
+// Icons — the badges and benefit lines, each with its own icon
+// ---------------------------------------------------------------------------
+
+/**
+ * The icon set the emails draw from, as 96px PNGs in public/images/email/icons
+ * (`<key>-navy.png` for light grounds, `<key>-white.png` for dark). Line icons
+ * from Lucide, plus the maple leaf. PNG rather than SVG: Gmail and Outlook
+ * don't render SVG in email.
+ */
+export const ICONS = {
+  'shield-check': 'Shield with check',
+  'maple-leaf': 'Maple leaf',
+  truck: 'Delivery truck',
+  'flask-conical': 'Lab flask',
+  'file-text': 'Document (COA)',
+  snowflake: 'Snowflake (cold chain)',
+  leaf: 'Leaf',
+  'hand-heart': 'Hand with heart',
+  'heart-pulse': 'Heart (recovery)',
+  sun: 'Sun (vitality)',
+  sprout: 'Sprout (growth)',
+  'circle-help': 'Question mark',
+  'credit-card': 'Credit card',
+  'badge-check': 'Badge with check',
+  headset: 'Support headset',
+  check: 'Check mark',
+} as const;
+export type IconKey = keyof typeof ICONS;
+
+export function isIconKey(v: unknown): v is IconKey {
+  return typeof v === 'string' && Object.prototype.hasOwnProperty.call(ICONS, v);
+}
+
+export interface Highlight {
+  label: string;
+  icon: IconKey;
+}
+
+/** First match wins — so "Shipping & delivery" is a truck, not a check. */
+const ICON_KEYWORDS: Array<[RegExp, IconKey]> = [
+  [/canad/i, 'maple-leaf'],
+  [/ship|deliver/i, 'truck'],
+  [/coa|certificate|batch/i, 'file-text'],
+  [/cold|chain|temperature/i, 'snowflake'],
+  [/lab|tested|testing|purity/i, 'shield-check'],
+  [/sourc/i, 'leaf'],
+  [/recover/i, 'heart-pulse'],
+  [/vital|energ/i, 'sun'],
+  [/feel|care|wellness/i, 'hand-heart'],
+  [/stronger|grow|tomorrow/i, 'sprout'],
+  [/question|information|faq/i, 'circle-help'],
+  [/pay|order/i, 'credit-card'],
+  [/support|help|contact/i, 'headset'],
+  [/quality|trust|premium|secure/i, 'shield-check'],
+];
+
+/** A sensible icon for a label typed without one. */
+export function iconForLabel(label: string): IconKey {
+  return ICON_KEYWORDS.find(([re]) => re.test(label))?.[1] ?? 'check';
+}
+
+/**
+ * Badges as stored or typed: `{ label, icon }` objects, or plain strings from
+ * an older row (their icon is chosen from the wording). Empty labels dropped,
+ * at most six kept.
+ */
+export function normalizeHighlights(raw: unknown): Highlight[] {
+  const list = Array.isArray(raw) ? raw : String(raw ?? '').split('\n');
+  return list
+    .map((h): Highlight | null => {
+      if (h && typeof h === 'object') {
+        const o = h as Record<string, unknown>;
+        const label = String(o.label ?? '').trim().slice(0, 60);
+        if (!label) return null;
+        return { label, icon: isIconKey(o.icon) ? o.icon : iconForLabel(label) };
+      }
+      const label = String(h ?? '').trim().slice(0, 60);
+      return label ? { label, icon: iconForLabel(label) } : null;
+    })
+    .filter((h): h is Highlight => h !== null)
+    .slice(0, 6);
+}
 
 // ---------------------------------------------------------------------------
 // Merge tags
@@ -287,10 +372,7 @@ export function shapeStepInput(
     if (!isSafeLink(url)) return { ok: false, error: `${label} must start with https://, / or be {{cart_url}} / {{checkout_url}}` };
   }
 
-  const highlights = (Array.isArray(raw.highlights) ? raw.highlights : String(raw.highlights ?? '').split('\n'))
-    .map((h) => str(h, 60))
-    .filter(Boolean)
-    .slice(0, 6);
+  const highlights = normalizeHighlights(raw.highlights);
 
   const code = normalizeCode(raw.promo_code);
   const enabled = raw.enabled !== false;

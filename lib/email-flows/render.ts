@@ -25,6 +25,8 @@ import {
   requiresCode,
   type CartLineView,
   type FlowSettings,
+  type Highlight,
+  type IconKey,
   type FlowStep,
   type StepLayout,
 } from './types';
@@ -52,6 +54,8 @@ export interface RenderContext {
   trackLink?: (url: string) => string;
   /** 1x1 open pixel. Absent in previews. */
   openPixelUrl?: string | null;
+  /** This email on the web — the header's "View in browser". Absent in previews. */
+  viewUrl?: string | null;
   unsubscribeUrl: string | null;
 }
 
@@ -132,7 +136,7 @@ export function mergeTags(
 export function mergeTagProblems(step: FlowStep): string[] {
   const fields = [step.subject, step.preheader, step.eyebrow, step.headline, step.subheadline, step.body,
     step.cta_label, step.cta_url, step.card_title, step.card_body, step.card_link_url, step.cart_title,
-    step.cart_body, step.fine_print, ...step.highlights].join('\n');
+    step.cart_body, step.fine_print, ...step.highlights.map((h) => h.label)].join('\n');
   const problems: string[] = [];
   if (!step.promo_code && step.enabled && requiresCode(step.flow, step.step)) {
     problems.push(`${MISSING_CODE_MESSAGE} Until you do, this email is on hold.`);
@@ -228,18 +232,20 @@ function image(k: Kit, url: string, alt: string, opts: { radius?: string } = {})
   return `<img src="${escapeHtml(src)}" width="600" alt="${escapeHtml(alt)}" style="display: block; width: 100%; max-width: 600px; height: auto; border: 0; ${opts.radius ? `border-radius: ${opts.radius};` : ''}" />`;
 }
 
-/** Badge row — up to four columns, each a check mark over a small-caps label. */
-function badges(k: Kit, items: string[], dark = false): string {
-  const list = items.map((i) => k.m(i)).filter(Boolean).slice(0, 4);
+const iconSrc = (k: Kit, icon: IconKey, dark: boolean) =>
+  `${k.ctx.siteUrl.replace(/\/$/, '')}/images/email/icons/${icon}-${dark ? 'white' : 'navy'}.png`;
+
+/** Badge row — up to four columns, each its own icon over a small-caps label. */
+function badges(k: Kit, items: Highlight[], dark = false): string {
+  const list = items.map((h) => ({ ...h, label: k.m(h.label) })).filter((h) => h.label).slice(0, 4);
   if (!list.length) return '';
-  const icon = `${k.ctx.siteUrl.replace(/\/$/, '')}/images/email/${dark ? 'shield-check-white.png' : 'check-teal.png'}`;
   const width = Math.floor(100 / list.length);
   const cells = list
     .map(
-      (label) => `
+      (h) => `
         <td width="${width}%" align="center" valign="top" style="padding: 0 6px;">
-          <img src="${escapeHtml(icon)}" width="22" height="22" alt="" style="display: block; margin: 0 auto 8px; border: 0;" />
-          <p style="font-family: ${T.font}; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.4; color: ${dark ? '#FFFFFF' : T.ink}; margin: 0;">${escapeHtml(label)}</p>
+          <img src="${escapeHtml(iconSrc(k, h.icon, dark))}" width="26" height="26" alt="" style="display: block; margin: 0 auto 8px; border: 0;" />
+          <p style="font-family: ${T.font}; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.4; color: ${dark ? '#FFFFFF' : T.ink}; margin: 0;">${escapeHtml(h.label)}</p>
         </td>`,
     )
     .join('');
@@ -249,21 +255,24 @@ function badges(k: Kit, items: string[], dark = false): string {
     </table>`;
 }
 
-/** Vertical benefit list — the education email's checklist. */
-function checklist(k: Kit, items: string[]): string {
-  const list = items.map((i) => k.m(i)).filter(Boolean);
+/** Vertical benefit list — each icon in a hairline circle, as in the designs. */
+function checklist(k: Kit, items: Highlight[]): string {
+  const list = items.map((h) => ({ ...h, label: k.m(h.label) })).filter((h) => h.label);
   if (!list.length) return '';
-  const icon = `${k.ctx.siteUrl.replace(/\/$/, '')}/images/email/check-teal.png`;
   return `
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 8px;">
       ${list
         .map(
-          (label) => `
+          (h) => `
         <tr>
-          <td valign="middle" style="padding: 7px 14px 7px 0;">
-            <img src="${escapeHtml(icon)}" width="22" height="22" alt="" style="display: block; border: 0;" />
+          <td valign="middle" style="padding: 6px 14px 6px 0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: separate;">
+              <tr><td align="center" valign="middle" width="38" height="38" style="width: 38px; height: 38px; border: 1px solid ${T.border}; border-radius: 19px; background: #FFFFFF;">
+                <img src="${escapeHtml(iconSrc(k, h.icon, false))}" width="20" height="20" alt="" style="display: block; margin: 0 auto; border: 0;" />
+              </td></tr>
+            </table>
           </td>
-          <td valign="middle" style="padding: 7px 0; font-family: ${T.font}; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: ${T.ink};">${escapeHtml(label)}</td>
+          <td valign="middle" style="padding: 6px 0; font-family: ${T.font}; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
         </tr>`,
         )
         .join('')}
@@ -316,12 +325,40 @@ const pad = (inner: string, p = '28px 32px') => (inner.trim() ? `<tr><td style="
 // Layouts — one per email in the series
 // ---------------------------------------------------------------------------
 
+/**
+ * The welcome hero, as designed: the title set over the photo, with "VYTA" in
+ * the brand wordmark rather than typed. A headline that doesn't end in "VYTA"
+ * is set as plain text. The photo is a background image — Gmail, Apple Mail
+ * and Outlook.com show it; Outlook for Windows shows the navy fallback, which
+ * the white title still reads against.
+ */
+function welcomeHero(k: Kit): string {
+  const s = k.step;
+  const headline = k.m(s.headline);
+  const sub = k.m(s.subheadline);
+  const src = k.img(s.hero_image_url);
+  const word = `${k.ctx.siteUrl.replace(/\/$/, '')}/images/email/vyta-word-white.png`;
+  const brand = /^(.*?)\s*VYTA\s*$/i.exec(headline);
+  const shadow = 'text-shadow: 0 1px 14px rgba(5,24,43,0.55);';
+  const title = brand
+    ? `${brand[1] ? `<p style="font-family: ${T.display}; font-size: 30px; font-weight: 600; line-height: 1.15; color: #FFFFFF; margin: 0 0 10px; ${shadow}">${escapeHtml(brand[1])}</p>` : ''}
+       <img src="${escapeHtml(word)}" width="210" alt="VYTA" style="display: block; width: 210px; height: auto; border: 0; font-family: ${T.display}; font-size: 40px; font-weight: 700; color: #FFFFFF;" />`
+    : `<h1 style="font-family: ${T.display}; font-size: 34px; font-weight: 700; line-height: 1.15; color: #FFFFFF; margin: 0; ${shadow}">${escapeHtml(headline)}</h1>`;
+  return `<tr><td ${src ? `background="${escapeHtml(src)}" ` : ''}bgcolor="${T.navy}" valign="bottom" style="background-color: ${T.navy};${src ? ` background-image: url('${escapeHtml(src)}'); background-size: cover; background-position: center;` : ''}">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr><td height="330" valign="bottom" style="height: 330px; padding: 0 32px 34px;">
+        ${title}
+        ${sub ? `<p style="font-family: ${T.font}; font-size: 16px; font-weight: 500; line-height: 1.5; color: #FFFFFF; margin: 14px 0 0; max-width: 300px; ${shadow}">${escapeHtml(sub)}</p>` : ''}
+      </td></tr>
+    </table>
+  </td></tr>`;
+}
+
 function welcomeLayout(k: Kit): string {
   const s = k.step;
   return [
-    `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
-    pad(headlineBlock(k, 'left', 32), '28px 32px 8px'),
-    pad(badges(k, s.highlights), '18px 20px'),
+    welcomeHero(k),
+    pad(badges(k, s.highlights), '24px 20px 14px'),
     pad(paragraphs(k.m(s.body)) + button(k, s.cta_label, s.cta_url), '10px 32px 24px'),
     pad(card(k, { showCode: true }), '0 20px 24px'),
   ].join('');
@@ -556,7 +593,11 @@ export function renderFlowEmail(step: FlowStep, ctx: RenderContext): RenderedEma
   const preheader = m(step.preheader).trim();
   const site = ctx.siteUrl.replace(/\/$/, '');
   const home = href('/') ?? site;
-  const logo = `${site}/images/vyta-logo.png`;
+  // The horizontal lockup from the designs: the V mark beside the wordmark.
+  const logo = `${site}/images/email/vyta-lockup.png`;
+  const viewLink = ctx.viewUrl
+    ? `<a href="${escapeHtml(ctx.viewUrl)}" style="font-family: ${T.font}; font-size: 10px; color: ${T.faint}; text-decoration: underline;">View in browser</a>`
+    : '';
   const content = LAYOUTS[FLOWS[step.flow].steps[step.step].layout](k);
 
   const footerLines = [
@@ -582,8 +623,16 @@ ${preheader ? `<div style="display: none; max-height: 0; overflow: hidden; mso-h
     <td align="center" style="padding: 28px 10px;">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 600px; border-collapse: separate; background: ${T.card}; border: 1px solid ${T.border}; border-radius: ${T.radius}; overflow: hidden;">
         <tr>
-          <td align="center" style="padding: 22px 24px 18px; border-bottom: 1px solid ${T.border};">
-            <a href="${escapeHtml(home)}" style="text-decoration: none;"><img src="${escapeHtml(logo)}" width="140" alt="VYTA Biosciences" style="display: block; width: 140px; height: auto; border: 0; font-family: ${T.display}; font-size: 22px; letter-spacing: 0.3em; color: ${T.ink};" /></a>
+          <td style="padding: 18px 20px 16px; border-bottom: 1px solid ${T.border};">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="25%">&nbsp;</td>
+                <td width="50%" align="center">
+                  <a href="${escapeHtml(home)}" style="text-decoration: none;"><img src="${escapeHtml(logo)}" width="166" alt="VYTA Biosciences" style="display: block; width: 166px; height: auto; margin: 0 auto; border: 0; font-family: ${T.display}; font-size: 20px; letter-spacing: 0.3em; color: ${T.ink};" /></a>
+                </td>
+                <td width="25%" align="right" valign="top">${viewLink}</td>
+              </tr>
+            </table>
           </td>
         </tr>
         ${content}
@@ -622,7 +671,7 @@ function renderText(step: FlowStep, ctx: RenderContext, m: (s: string) => string
   push(m(step.subheadline));
   lines.push('');
   push(m(step.body));
-  const hl = step.highlights.map(m).filter(Boolean);
+  const hl = step.highlights.map((h) => m(h.label)).filter(Boolean);
   if (hl.length) {
     lines.push('');
     hl.forEach((h) => lines.push(`- ${h}`));

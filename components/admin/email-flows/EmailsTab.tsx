@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, ImageUp, Loader2, RotateCcw, Save, Send } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ImageUp, Loader2, Plus, RotateCcw, Save, Send, X } from 'lucide-react';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
 import { adminFetch } from '@/components/admin/affiliates/api';
 import Link from 'next/link';
-import { FLOWS, requiresCode, type FlowKey, type FlowStep, type StepLayout } from '@/lib/email-flows/types';
+import { FLOWS, ICONS, iconForLabel, requiresCode, type FlowKey, type FlowStep, type Highlight, type IconKey, type StepLayout } from '@/lib/email-flows/types';
 import { defaultStep } from '@/lib/email-flows/defaults';
 import { apiBase, inputCls, labelCls, Panel, primaryBtn, secondaryBtn, stepTitle, whenLabel, type AdminStep } from './shared';
 
@@ -29,7 +29,7 @@ const LAYOUT_FIELDS: Record<StepLayout, Field[]> = {
 /** Label overrides where a cart layout uses a field differently. */
 const CART_LABELS: Partial<Record<StepLayout, Partial<Record<Field, { label: string; hint?: string }>>>> = {
   cart_reminder: { card_image_url: { label: 'Product image', hint: 'Shown at the bottom' } },
-  cart_questions: { highlights: { label: 'Topics we can help with', hint: 'One per line' } },
+  cart_questions: { highlights: { label: 'Topics we can help with', hint: 'Each with its icon' } },
   cart_last_chance: { eyebrow: { label: 'Red banner', hint: 'e.g. Final reminder' } },
 };
 
@@ -38,7 +38,7 @@ const LABELS: Partial<Record<Field, { label: string; hint?: string; multiline?: 
   headline: { label: 'Headline' },
   subheadline: { label: 'Subheadline' },
   body: { label: 'Body', hint: 'Blank line between paragraphs', multiline: true },
-  highlights: { label: 'Badges / benefits', hint: 'One per line (up to 4 shown as badges)', multiline: true },
+  highlights: { label: 'Badges / benefits', hint: 'Each with its icon; up to 4 show in a badge row' },
   cta_label: { label: 'Button text' },
   cta_url: { label: 'Button link', hint: '/products, https://…, {{cart_url}} or {{checkout_url}}' },
   hero_image_url: { label: 'Main image' },
@@ -51,6 +51,83 @@ const LABELS: Partial<Record<Field, { label: string; hint?: string; multiline?: 
 };
 
 const IMAGE_FIELDS: Field[] = ['hero_image_url', 'card_image_url'];
+
+/**
+ * Badges / benefit lines: each row is an icon (shown as it renders) and its
+ * label. A new row's icon follows its wording until someone picks one.
+ */
+function HighlightsEditor({ value, onChange, disabled }: {
+  value: Highlight[];
+  onChange: (v: Highlight[]) => void;
+  disabled: boolean;
+}) {
+  const update = (i: number, patch: Partial<Highlight>) => onChange(value.map((h, j) => (j === i ? { ...h, ...patch } : h)));
+  return (
+    <div className="space-y-2">
+      {value.map((h, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full border border-line bg-white">
+            <img src={`/images/email/icons/${h.icon}-navy.png`} alt="" className="h-5 w-5" />
+          </span>
+          <select
+            value={h.icon}
+            onChange={(e) => update(i, { icon: e.target.value as IconKey })}
+            disabled={disabled}
+            className={`${inputCls} w-44 flex-shrink-0`}
+            aria-label="Icon"
+          >
+            {(Object.keys(ICONS) as IconKey[]).map((k) => (
+              <option key={k} value={k}>{ICONS[k]}</option>
+            ))}
+          </select>
+          <input
+            value={h.label}
+            onChange={(e) => update(i, { label: e.target.value })}
+            disabled={disabled}
+            className={inputCls}
+            aria-label="Label"
+          />
+          {!disabled && (
+            <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="text-ink-muted hover:text-red-600" aria-label="Remove">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      ))}
+      {!disabled && value.length < 6 && (
+        <NewHighlight onAdd={(label) => onChange([...value, { label, icon: iconForLabel(label) }])} />
+      )}
+    </div>
+  );
+}
+
+function NewHighlight({ onAdd }: { onAdd: (label: string) => void }) {
+  const [label, setLabel] = useState('');
+  const add = () => {
+    if (!label.trim()) return;
+    onAdd(label.trim());
+    setLabel('');
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            add();
+          }
+        }}
+        className={inputCls}
+        placeholder="Add a badge, e.g. Lab tested"
+      />
+      <button type="button" onClick={add} className={secondaryBtn}>
+        <Plus className="h-4 w-4" /> Add
+      </button>
+    </div>
+  );
+}
 
 interface CodeOption {
   code: string;
@@ -389,12 +466,7 @@ export default function EmailsTab({ flow, steps, editable, initialStep, adminEma
                   {IMAGE_FIELDS.includes(field) ? (
                     <ImageField value={String(draft[field] ?? '')} onChange={(v) => set(field, v as never)} disabled={!editable} />
                   ) : field === 'highlights' ? (
-                    <textarea
-                      rows={4}
-                      value={draft.highlights.join('\n')}
-                      onChange={(e) => set('highlights', e.target.value.split('\n'))}
-                      className={inputCls}
-                    />
+                    <HighlightsEditor value={draft.highlights} onChange={(v) => set('highlights', v)} disabled={!editable} />
                   ) : meta.multiline ? (
                     <textarea rows={4} value={String(draft[field] ?? '')} onChange={(e) => set(field, e.target.value as never)} className={inputCls} />
                   ) : (
@@ -468,5 +540,5 @@ export default function EmailsTab({ flow, steps, editable, initialStep, adminEma
 
 function stripMeta(s: Partial<AdminStep>) {
   const { code: _c, problems: _p, updated_at: _u, updated_by_email: _e, ...rest } = s as AdminStep;
-  return { ...rest, highlights: (rest.highlights ?? []).map((h) => h.trim()).filter(Boolean) };
+  return { ...rest, highlights: (rest.highlights ?? []).map((h) => ({ ...h, label: h.label.trim() })).filter((h) => h.label) };
 }

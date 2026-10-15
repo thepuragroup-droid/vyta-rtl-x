@@ -12,7 +12,7 @@
  * it and goes straight to checkout, with the step's code applied).
  */
 import type { FlowKey, FlowSettings, FlowStep, StepNumber } from './types';
-import { FLOW_KEYS, isStepNumber } from './types';
+import { FLOW_KEYS, isStepNumber, normalizeHighlights } from './types';
 
 export const DEFAULT_SETTINGS: Record<FlowKey, FlowSettings> = {
   welcome: {
@@ -104,7 +104,7 @@ const WELCOME: FlowStep[] = [
     headline: 'Welcome to VYTA',
     subheadline: 'Your journey to better wellness starts here.',
     body: "Thanks for joining the VYTA community. You'll be the first to know about new products, exclusive offers, and wellness insights.",
-    highlights: ['Premium Quality', 'Canadian Owned', 'Third-Party Tested', 'Fast & Discreet Shipping'],
+    highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Shop Now',
     cta_url: '/products',
     hero_image_url: P.welcomeHero,
@@ -119,7 +119,7 @@ const WELCOME: FlowStep[] = [
     preheader: 'Explore the science, research, and possibilities behind peptide support.',
     headline: 'Modern Wellness Starts with Knowledge',
     subheadline: 'Explore the science, research, and possibilities behind peptide support.',
-    highlights: ['Supports Recovery', 'Promotes Vitality', 'Helps You Feel Your Best', 'Builds a Stronger Tomorrow'],
+    highlights: [{ label: 'Supports Recovery', icon: 'heart-pulse' }, { label: 'Promotes Vitality', icon: 'sun' }, { label: 'Helps You Feel Your Best', icon: 'hand-heart' }, { label: 'Builds a Stronger Tomorrow', icon: 'sprout' }],
     cta_label: 'Explore the Collection',
     cta_url: '/products',
     hero_image_url: P.educationHero,
@@ -137,7 +137,7 @@ const WELCOME: FlowStep[] = [
     headline: 'Quality You Can Trust',
     subheadline: 'Transparency. Testing. Peace of mind.',
     body: 'We partner with independent laboratories to ensure every batch meets strict quality standards. Because your wellness journey deserves nothing less.',
-    highlights: ['Third-Party Tested', 'Batch-Specific COA', 'Cold-Chain Handling', 'Premium Sourcing'],
+    highlights: [{ label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Batch-Specific COA', icon: 'file-text' }, { label: 'Cold-Chain Handling', icon: 'snowflake' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Our Testing Process',
     cta_url: '/lab-results',
     hero_image_url: P.trustHero,
@@ -154,7 +154,7 @@ const WELCOME: FlowStep[] = [
     headline: '{{discount}} OFF',
     subheadline: 'Your Order Today',
     body: 'Premium wellness. Trusted quality. Delivered to your door.',
-    highlights: ['Premium Quality', 'Canadian Owned', 'Fast & Discreet Shipping', 'Trusted Source'],
+    highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Shop Now',
     cta_url: '/products',
     hero_image_url: P.offerHero,
@@ -168,7 +168,7 @@ const WELCOME: FlowStep[] = [
     preheader: "Don't miss out on {{discount}} off — our exclusive offer for new subscribers.",
     headline: 'Still Thinking About It?',
     body: "Your wellness goals are within reach. Don't miss out on {{discount}} off — our exclusive offer for new subscribers.",
-    highlights: ['Premium Wellness', 'Discreet Shipping', 'Trusted Quality'],
+    highlights: [{ label: 'Premium Wellness', icon: 'shield-check' }, { label: 'Discreet Shipping', icon: 'truck' }, { label: 'Trusted Quality', icon: 'shield-check' }],
     cta_label: 'Claim {{discount}} Off',
     cta_url: '/products',
     hero_image_url: P.reminderHero,
@@ -186,7 +186,7 @@ const CART: FlowStep[] = [
     headline: 'Still thinking about it?',
     subheadline: 'Your cart is waiting.',
     body: 'Great choices! Your items are still in your cart. Complete your order to support your wellness goals.',
-    highlights: ['Canadian Owned', 'Premium Quality', 'Fast & Discreet Shipping'],
+    highlights: [{ label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Premium Quality', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
     hero_image_url: P.cartReminderHero,
@@ -202,7 +202,7 @@ const CART: FlowStep[] = [
     preheader: 'Research. Quality. Peace of mind. Your cart is still waiting.',
     headline: 'Invest in a Healthier You',
     subheadline: 'Research. Quality. Peace of Mind.',
-    highlights: ['Third-Party Tested', 'Batch-Specific COA', 'Premium Sourcing'],
+    highlights: [{ label: 'Third-Party Tested', icon: 'flask-conical' }, { label: 'Batch-Specific COA', icon: 'shield-check' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
     hero_image_url: P.cartEducateHero,
@@ -222,7 +222,7 @@ const CART: FlowStep[] = [
     headline: '{{discount}} OFF',
     subheadline: 'Your Cart Is Waiting',
     body: 'Complete your order today and enjoy {{discount}} off as a thank you for being part of the VYTA community.',
-    highlights: ['Premium Quality', 'Canadian Owned', 'Fast & Discreet Shipping', 'Trusted Source'],
+    highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
     hero_image_url: P.cartOfferHero,
@@ -238,7 +238,7 @@ const CART: FlowStep[] = [
     preheader: 'Product information, shipping, testing and ordering — answered.',
     headline: 'Have Questions?',
     subheadline: "We've Got You Covered.",
-    highlights: ['Product information', 'Shipping & delivery', 'Testing & quality', 'Ordering & payments'],
+    highlights: [{ label: 'Product information', icon: 'circle-help' }, { label: 'Shipping & delivery', icon: 'truck' }, { label: 'Testing & quality', icon: 'shield-check' }, { label: 'Ordering & payments', icon: 'credit-card' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
     hero_image_url: P.cartQuestionsHero,
@@ -259,7 +259,7 @@ const CART: FlowStep[] = [
     eyebrow: 'Final reminder',
     headline: 'Last Chance to Complete Your Order',
     body: 'Your cart will expire soon.',
-    highlights: ['Premium Quality', 'Canadian Owned', 'Fast & Discreet Shipping', 'Trusted Source'],
+    highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
     hero_image_url: P.cartLastChanceHero,
@@ -270,7 +270,7 @@ export const DEFAULT_STEPS: Record<FlowKey, FlowStep[]> = { welcome: WELCOME, ca
 
 export function defaultStep(flow: FlowKey, step: StepNumber): FlowStep {
   const found = DEFAULT_STEPS[flow].find((s) => s.step === step)!;
-  return { ...found, highlights: [...found.highlights] };
+  return { ...found, highlights: found.highlights.map((h) => ({ ...h })) };
 }
 
 /** A DB row (or partial) into a full step, with defaults for anything missing. */
@@ -280,7 +280,7 @@ export function shapeStepRow(flow: FlowKey, row: Partial<FlowStep> & { step: num
   const merged = { ...base, ...present, flow } as FlowStep;
   merged.promo_code = row.promo_code ?? null;
   merged.deadline_hours = row.deadline_hours == null ? ('deadline_hours' in row ? null : base.deadline_hours) : Number(row.deadline_hours);
-  merged.highlights = Array.isArray(row.highlights) ? row.highlights.map(String) : base.highlights;
+  merged.highlights = Array.isArray(row.highlights) ? normalizeHighlights(row.highlights) : base.highlights;
   merged.delay_hours = Number(merged.delay_hours) || 0;
   return merged;
 }

@@ -185,6 +185,26 @@ to `/api/cart/sync`, debounced, whenever they change.
 - **Opens are approximate** (Apple Mail preloads images). Clicks and purchases
   are the firm numbers.
 
+## Brand header and icons
+
+- **Header:** the horizontal lockup from the designs (the V mark beside the
+  VYTA BIOSCIENCES wordmark, `public/images/email/vyta-lockup.png`), with a
+  **View in browser** link. That link opens the email exactly as sent, from a
+  stored copy (`email_flow_sends.body_html`, served by
+  `/api/email-flows/view`, signed per send).
+- **Welcome email 1:** "Welcome to" is set over the hero photo with **VYTA**
+  in the white wordmark, as designed. An edited title that doesn't end in
+  "VYTA" is set as plain text. Outlook for Windows doesn't show background
+  photos; it shows the navy fallback, which the white title still reads
+  against.
+- **Icons:** every badge and benefit line carries its own icon, matching the
+  designs (shield, maple leaf, truck, flask, COA document, snowflake, leaf,
+  heart, sun, sprout, question mark, credit card…). List items sit in hairline
+  circles. Icons are 96px PNGs in `public/images/email/icons/`, navy for light
+  grounds and white for the dark band, because Gmail and Outlook don't render
+  SVG. In the editor each badge is a row: pick its icon, type its label. A new
+  badge's icon is suggested from its wording.
+
 ## Images
 
 The images are placeholders in `public/images/email/welcome/` and

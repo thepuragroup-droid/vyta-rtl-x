@@ -7,6 +7,7 @@
  *   unsubscribe  /api/email-flows/unsubscribe?t=<entryId>.<sig>
  *   open pixel   /api/email-flows/open?t=<sendId>.<sig>
  *   click        /api/email-flows/click?t=<sendId>&u=<url>&s=<sig>
+ *   web view     /api/email-flows/view?t=<sendId>.<sig>
  *
  * The click signature covers the destination as well as the send, so the
  * tracker can't be turned into an open redirect by editing `u`, and nobody can
@@ -46,13 +47,13 @@ export function verify(purpose: string, value: string, sig: string): boolean {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** `<id>.<sig>` → the id, or null when tampered with. */
-export function readIdToken(purpose: 'unsub' | 'open', token: string | null): string | null {
+export function readIdToken(purpose: 'unsub' | 'open' | 'view', token: string | null): string | null {
   const [id, sig] = String(token ?? '').split('.');
   if (!id || !UUID.test(id)) return null;
   return verify(purpose, id, sig ?? '') ? id : null;
 }
 
-export function idToken(purpose: 'unsub' | 'open', id: string): string {
+export function idToken(purpose: 'unsub' | 'open' | 'view', id: string): string {
   return `${id}.${sign(purpose, id)}`;
 }
 
@@ -62,6 +63,11 @@ export function unsubscribeUrl(siteUrl: string, entryId: string): string {
 
 export function openPixelUrl(siteUrl: string, sendId: string): string {
   return `${siteUrl.replace(/\/$/, '')}/api/email-flows/open?t=${idToken('open', sendId)}`;
+}
+
+/** "View in browser": the email exactly as it was sent, served from the stored copy. */
+export function viewUrl(siteUrl: string, sendId: string): string {
+  return `${siteUrl.replace(/\/$/, '')}/api/email-flows/view?t=${idToken('view', sendId)}`;
 }
 
 export function clickUrl(siteUrl: string, sendId: string, target: string): string {

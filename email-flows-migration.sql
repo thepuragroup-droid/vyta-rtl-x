@@ -200,6 +200,8 @@ CREATE TABLE IF NOT EXISTS email_flow_sends (
   offer_ends_at   TIMESTAMPTZ,
   message_id      TEXT,
   error           TEXT,
+  -- The email exactly as sent, for its "View in browser" link.
+  body_html       TEXT,
   sent_at         TIMESTAMPTZ,
   opened_at       TIMESTAMPTZ,
   open_count      INTEGER NOT NULL DEFAULT 0,
@@ -211,6 +213,8 @@ CREATE TABLE IF NOT EXISTS email_flow_sends (
   -- loses here, and nobody gets an email twice.
   UNIQUE (entry_id, step)
 );
+
+ALTER TABLE email_flow_sends ADD COLUMN IF NOT EXISTS body_html TEXT;
 
 ALTER TABLE email_flow_sends DROP CONSTRAINT IF EXISTS email_flow_sends_status_chk;
 ALTER TABLE email_flow_sends

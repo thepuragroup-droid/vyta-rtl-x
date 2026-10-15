@@ -49,7 +49,7 @@ import {
 import { DEFAULT_STEPS, defaultStep, shapeSettingsRow, shapeStepRow } from './defaults';
 import { decide, nextStep, timezoneFor, type SendRecord } from './schedule';
 import { renderFlowEmail, type RenderCart, type ResolvedOffer } from './render';
-import { clickUrl, openPixelUrl, unsubscribeUrl } from './tokens';
+import { clickUrl, openPixelUrl, unsubscribeUrl, viewUrl } from './tokens';
 import {
   CART_PRODUCT_COLUMNS,
   cartLineViews,
@@ -821,6 +821,7 @@ async function deliver(rc: RunContext, entry: EntryRecord, stepNo: StepNumber, s
     cart: entry.flow === 'cart' ? await renderCartFor(db, cart, offer?.code ?? null) : null,
     trackLink: (url) => clickUrl(SITE_URL, sendId, url),
     openPixelUrl: openPixelUrl(SITE_URL, sendId),
+    viewUrl: viewUrl(SITE_URL, sendId),
     unsubscribeUrl: unsub,
   });
 
@@ -845,6 +846,7 @@ async function deliver(rc: RunContext, entry: EntryRecord, stepNo: StepNumber, s
       offer_ends_at: offerEndsAt?.toISOString() ?? null,
       message_id: res.id ?? null,
       error: res.success ? null : (res.error ?? 'Send failed').slice(0, 500),
+      body_html: res.success ? email.html : null,
       sent_at: res.success ? stamp : null,
       updated_at: stamp,
     })

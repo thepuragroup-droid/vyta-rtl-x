@@ -22,7 +22,9 @@ import {
   type TimingInput,
 } from './schedule';
 import { absoluteUrl, mergeTagProblems, mergeTags, renderFlowEmail, withUtm, type RenderContext } from './render';
-import { delayLabel, isSafeLink, normalizeCode, requiresCode, shapeSettingsInput, shapeStepInput, stepsMissingCode } from './types';
+import { ICONS, delayLabel, iconForLabel, isSafeLink, normalizeCode, normalizeHighlights, requiresCode, shapeSettingsInput, shapeStepInput, stepsMissingCode } from './types';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { DEFAULT_STEPS, defaultStep as dflt, shapeStepRow as shapeRow } from './defaults';
 import { cartLineViews, cartSignature, linesFromCheckout, restoreCartLines, restoreUrls, sanitizeCartLines } from './carts';
 import { clickUrl, idToken, readClick, readIdToken } from './tokens';
@@ -270,7 +272,7 @@ test('shapeStepInput: needs a subject, safe links, normalises the code and highl
   assert.equal(ok.ok, true);
   if (ok.ok) {
     assert.equal(ok.value.promo_code, 'FIRSTORDER10');
-    assert.deepEqual(ok.value.highlights, ['A', 'B']);
+    assert.deepEqual(ok.value.highlights, [{ label: 'A', icon: 'check' }, { label: 'B', icon: 'check' }]);
   }
   assert.equal(shapeStepInput('welcome', 1, { ...defaultStep(1), subject: ' ' }).ok, false);
   assert.equal(shapeStepInput('welcome', 1, { ...defaultStep(1), cta_url: 'javascript:alert(1)' }).ok, false);
@@ -434,4 +436,67 @@ test('shapeStepInput: show_cart only sticks in the cart flow; deadline optional'
   assert.equal(c.ok && c.value.show_cart, true);
   assert.equal(c.ok && c.value.deadline_hours, null);
   assert.equal(shapeStepInput('cart', 3, { ...dflt('cart', 3), deadline_hours: 0 }).ok, false);
+});
+
+// ---------------------------------------------------------------------------
+// Brand header and icons — as in the designs
+// ---------------------------------------------------------------------------
+
+const PUBLIC = join(__dirname, '..', '..', 'public');
+
+test('every icon the editor offers exists in both colours', () => {
+  for (const key of Object.keys(ICONS)) {
+    for (const tone of ['navy', 'white']) {
+      assert.ok(existsSync(join(PUBLIC, 'images', 'email', 'icons', `${key}-${tone}.png`)), `${key}-${tone}.png`);
+    }
+  }
+  assert.ok(existsSync(join(PUBLIC, 'images', 'email', 'vyta-lockup.png')));
+  assert.ok(existsSync(join(PUBLIC, 'images', 'email', 'vyta-word-white.png')));
+});
+
+test('the default badges carry the icons from the designs', () => {
+  const icons = (flow: 'welcome' | 'cart', n: 1 | 2 | 3 | 4 | 5) => dflt(flow, n).highlights.map((h) => h.icon);
+  assert.deepEqual(icons('welcome', 1), ['shield-check', 'maple-leaf', 'shield-check', 'truck']);
+  assert.deepEqual(icons('welcome', 2), ['heart-pulse', 'sun', 'hand-heart', 'sprout']);
+  assert.deepEqual(icons('welcome', 3), ['shield-check', 'file-text', 'snowflake', 'leaf']);
+  assert.deepEqual(icons('cart', 1), ['maple-leaf', 'shield-check', 'truck']);
+  assert.deepEqual(icons('cart', 2), ['flask-conical', 'shield-check', 'leaf']);
+  assert.deepEqual(icons('cart', 4), ['circle-help', 'truck', 'shield-check', 'credit-card']);
+});
+
+test('badges render their own icon — navy on light, white on the dark band', () => {
+  const html = renderFlowEmail(defaultStep(1), ctx()).html;
+  assert.match(html, /icons\/maple-leaf-navy\.png/);
+  assert.match(html, /icons\/truck-navy\.png/);
+  const reminder = renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
+  assert.match(reminder, /icons\/truck-white\.png/);
+});
+
+test('normalizeHighlights: objects kept, plain strings get an icon from their wording', () => {
+  assert.deepEqual(normalizeHighlights([{ label: ' Canadian Owned ', icon: 'maple-leaf' }, 'Fast shipping', { label: 'x', icon: 'nope' }, '']), [
+    { label: 'Canadian Owned', icon: 'maple-leaf' },
+    { label: 'Fast shipping', icon: 'truck' },
+    { label: 'x', icon: 'check' },
+  ]);
+  assert.equal(iconForLabel('Batch-Specific COA'), 'file-text');
+  assert.equal(iconForLabel('Ordering & payments'), 'credit-card');
+  assert.equal(iconForLabel('Something else'), 'check');
+});
+
+test('header: the lockup, and "View in browser" only when there is a page to view', () => {
+  const withView = renderFlowEmail(defaultStep(2), ctx({ viewUrl: `${SITE}/api/email-flows/view?t=x` })).html;
+  assert.match(withView, /vyta-lockup\.png/);
+  assert.match(withView, /View in browser/);
+  assert.ok(!renderFlowEmail(defaultStep(2), ctx()).html.includes('View in browser'));
+});
+
+test('welcome title: "VYTA" is set in the wordmark over the hero photo', () => {
+  const html = renderFlowEmail(defaultStep(1), ctx()).html;
+  assert.match(html, /vyta-word-white\.png/);
+  assert.match(html, />Welcome to</);
+  assert.match(html, /background-image: url\('https:\/\/www\.vytabio\.com\/images\/email\/welcome\/welcome-hero\.png'\)/);
+  // An edited title that doesn't end in VYTA is just text.
+  const plain = renderFlowEmail({ ...defaultStep(1), headline: 'Hello there' }, ctx()).html;
+  assert.ok(!plain.includes('vyta-word-white'));
+  assert.match(plain, />Hello there</);
 });
