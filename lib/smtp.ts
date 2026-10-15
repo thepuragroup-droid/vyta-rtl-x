@@ -59,6 +59,8 @@ export interface SendMailOptions {
   from?: string;
   replyTo?: string;
   attachments?: Array<{ filename: string; content: Buffer }>;
+  /** Extra headers, e.g. List-Unsubscribe on marketing email. */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -81,6 +83,7 @@ export async function sendMail(
       ...(opts.html ? { html: opts.html } : {}),
       ...(opts.text ? { text: opts.text } : {}),
       ...(opts.attachments ? { attachments: opts.attachments } : {}),
+      ...(opts.headers ? { headers: opts.headers } : {}),
     });
     return { success: true, id: info.messageId };
   } catch (err: any) {
