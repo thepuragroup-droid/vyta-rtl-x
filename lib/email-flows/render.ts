@@ -88,6 +88,8 @@ const T = {
   border: '#DCE7EB',
   panel: '#F1F6F9',
   teal: '#438B9E',
+  /** The benefit icons' outlined circles: dark enough to read over a photo. */
+  ringLine: '#4A6275',
   tealLight: '#C4DFE3',
   urgent: '#C8102E',
   urgentSoft: '#FDECEE',
@@ -266,7 +268,7 @@ function badges(k: Kit, items: Highlight[], dark = false): string {
     </table>`;
 }
 
-/** Vertical benefit list — each icon in a hairline circle, as in the designs. */
+/** Vertical benefit list — each icon in an outlined circle (no fill), as in the designs. */
 function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: boolean } = {}): string {
   const list = items.map((h) => ({ ...h, label: k.m(h.label) })).filter((h) => h.label);
   if (!list.length) return '';
@@ -283,7 +285,7 @@ function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: b
         <tr>
           <td${cls('ef-check-icon')} valign="middle" width="${ring + (opts.large ? 20 : 14)}" style="width: ${ring}px; padding: ${opts.large ? '8px 20px 8px 0' : '6px 14px 6px 0'};">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: separate;">
-              <tr><td${cls('ef-check-ring')} align="center" valign="middle" width="${ring}" height="${ring}" style="width: ${ring}px; height: ${ring}px; border: 1px solid ${T.border}; border-radius: ${ring / 2}px; background: #FFFFFF;">
+              <tr><td${cls('ef-check-ring')} align="center" valign="middle" width="${ring}" height="${ring}" style="width: ${ring}px; height: ${ring}px; border: ${opts.large ? '1.5px' : '1px'} solid ${T.ringLine}; border-radius: ${ring / 2}px;">
                 <img${cls('ef-check-glyph')} src="${escapeHtml(iconSrc(k, h.icon, false))}" width="${glyph}" height="${glyph}" alt="" style="display: block; margin: 0 auto; border: 0;" />
               </td></tr>
             </table>

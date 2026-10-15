@@ -199,8 +199,8 @@ to `/api/cart/sync`, debounced, whenever they change.
   against.
 - **Icons:** every badge and benefit line carries its own icon, matching the
   designs (shield, maple leaf, truck, flask, COA document, snowflake, leaf,
-  heart, sun, sprout, question mark, credit card…). List items sit in hairline
-  circles. Icons are 96px PNGs in `public/images/email/icons/`, navy for light
+  heart, sun, sprout, question mark, credit card…). List items sit in
+  outlined circles with no fill, so a photo behind them shows through. Icons are 96px PNGs in `public/images/email/icons/`, navy for light
   grounds and white for the dark band, because Gmail and Outlook don't render
   SVG. In the editor each badge is a row: pick its icon, type its label. A new
   badge's icon is suggested from its wording.
