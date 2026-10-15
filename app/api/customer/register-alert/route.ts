@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getAdminAlertEmails } from '@/lib/admin/alert-recipients';
 import { sendRegistrationAlert } from '@/lib/email';
 import { syncNewCustomer } from '@/lib/klaviyo/events';
+import { enrollAndWelcome } from '@/lib/welcome-flow/engine';
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -61,6 +62,12 @@ export async function POST(req: NextRequest) {
     phone: customer.phone ?? null,
     contactConsent: Boolean(customer.contact_consent),
   });
+
+  // Welcome email flow: a consenting signup is enrolled and gets Email 1 right
+  // away. Runs after the response so signup never waits on SMTP; the flow's
+  // own cron enrolls anyone this misses. Checks consent and the on/off switch
+  // itself, never throws.
+  after(() => enrollAndWelcome(db, customerId));
 
   // Respect the admin toggle.
   const { data: settings } = await db

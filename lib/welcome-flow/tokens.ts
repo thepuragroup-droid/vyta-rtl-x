@@ -1,0 +1,79 @@
+/**
+ * Welcome flow — signed links.
+ *
+ * Three kinds of link leave in every email and come back to public routes, so
+ * each carries an HMAC that only this server can produce:
+ *
+ *   unsubscribe  /api/welcome-flow/unsubscribe?t=<subscriberId>.<sig>
+ *   open pixel   /api/welcome-flow/open?t=<sendId>.<sig>
+ *   click        /api/welcome-flow/click?t=<sendId>&u=<url>&s=<sig>
+ *
+ * The click signature covers the destination as well as the send, so the
+ * tracker can't be turned into an open redirect by editing `u`, and nobody can
+ * unsubscribe somebody else by guessing an id.
+ *
+ * Server-only (node:crypto).
+ */
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+/**
+ * WELCOME_FLOW_SECRET when set; otherwise CRON_SECRET, then the service-role
+ * key — both already server-only secrets on every deployment, so the links
+ * work the moment this ships. Rotating the secret invalidates links in emails
+ * already sent, which is why a dedicated one is preferred.
+ */
+function secret(): string {
+  const s =
+    process.env.WELCOME_FLOW_SECRET ||
+    process.env.CRON_SECRET ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    '';
+  if (!s) throw new Error('No signing secret: set WELCOME_FLOW_SECRET');
+  return s;
+}
+
+export function sign(purpose: string, value: string): string {
+  return createHmac('sha256', secret()).update(`${purpose}:${value}`).digest('base64url').slice(0, 32);
+}
+
+export function verify(purpose: string, value: string, sig: string): boolean {
+  if (!value || !sig) return false;
+  const expected = Buffer.from(sign(purpose, value));
+  const given = Buffer.from(String(sig));
+  return expected.length === given.length && timingSafeEqual(expected, given);
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** `<id>.<sig>` → the id, or null when tampered with. */
+export function readIdToken(purpose: 'unsub' | 'open', token: string | null): string | null {
+  const [id, sig] = String(token ?? '').split('.');
+  if (!id || !UUID.test(id)) return null;
+  return verify(purpose, id, sig ?? '') ? id : null;
+}
+
+export function idToken(purpose: 'unsub' | 'open', id: string): string {
+  return `${id}.${sign(purpose, id)}`;
+}
+
+export function unsubscribeUrl(siteUrl: string, subscriberId: string): string {
+  return `${siteUrl.replace(/\/$/, '')}/api/welcome-flow/unsubscribe?t=${idToken('unsub', subscriberId)}`;
+}
+
+export function openPixelUrl(siteUrl: string, sendId: string): string {
+  return `${siteUrl.replace(/\/$/, '')}/api/welcome-flow/open?t=${idToken('open', sendId)}`;
+}
+
+export function clickUrl(siteUrl: string, sendId: string, target: string): string {
+  const q = new URLSearchParams({ t: sendId, u: target, s: sign('click', `${sendId}|${target}`) });
+  return `${siteUrl.replace(/\/$/, '')}/api/welcome-flow/click?${q.toString()}`;
+}
+
+/** The verified destination of a click, or null. Only http(s) is ever returned. */
+export function readClick(params: URLSearchParams): { sendId: string; target: string } | null {
+  const sendId = params.get('t') ?? '';
+  const target = params.get('u') ?? '';
+  const sig = params.get('s') ?? '';
+  if (!UUID.test(sendId) || !/^https?:\/\//i.test(target)) return null;
+  return verify('click', `${sendId}|${target}`, sig) ? { sendId, target } : null;
+}
