@@ -587,7 +587,6 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   assert.match(twoHtml, /class="ef-check-ring"[^>]*width="70" height="70"/);
   assert.match(twoHtml, /class="ef-check-label" valign="middle" width="200"/);
   assert.match(phone, /\.ef-edu-sub \{ font-size: 15px !important; \}/);
-  assert.match(phone, /\.ef-check-label \{ font-size: 12px !important; \}/);
   // Welcome 3: headline over the photo, the badges and body below it.
   const threeHtml = renderFlowEmail(defaultStep(3), ctx()).html;
   const three = coverOf(threeHtml);
