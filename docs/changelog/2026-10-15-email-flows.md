@@ -207,9 +207,39 @@ to `/api/cart/sync`, debounced, whenever they change.
 
 ## Images
 
-The images are placeholders in `public/images/email/welcome/` and
-`public/images/email/cart/`, each labelled with the shot it stands in for and
-its size. Swap them by uploading in the editor, or by replacing the files.
+**Supplied photography** is in `public/images/email/covers/` (600px wide JPEGs):
+
+| Cover | Used in |
+|---|---|
+| `cover-1` (man by the lake) | Cart 1 |
+| `cover-2` (woman by the lake) | Welcome 2, Cart 2 |
+| `cover-3` (woman portrait) | Cart 4 |
+| `cover-4` (lab glove) | Cart 5 |
+| `cover-5` (two vials, mountains) | Welcome 5 |
+
+Each cover has its text set over the sky, as in the designs: the headline and
+subheadline. On the reminder emails (Welcome 5 and Cart 5) the countdown and
+button go over the sky too.
+
+**How the overlay works** (per email in the editor: *Set the headline over
+this image* and *Text: dark / white*):
+
+- The photo is the cell's background, sized to the image's own shape. The
+  ratio is read when an image is uploaded.
+- Classic Outlook gets the same photo through VML.
+- On phones a media query scales the height with the width, so a tall cover
+  isn't cropped.
+- If an email client shows no background images at all, the text sits on a
+  solid colour.
+
+The supplied files are about 330px wide. They are scaled up to fill the
+600px email, so they look slightly soft on high-resolution screens. Uploading
+versions at least 1200px wide in the editor will sharpen them.
+
+**Still placeholders** (in `public/images/email/welcome/` and
+`public/images/email/cart/`): Welcome 1 hero and card, Welcome 2 card,
+Welcome 3 hero and card, Welcome 4 product shot, Cart 2 and Cart 4 cards, and
+the Cart 3 product shot.
 
 ## Tests
 

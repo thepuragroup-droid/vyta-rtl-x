@@ -193,6 +193,8 @@ export function withUtm(url: string, siteUrl: string, step: number, flow: string
 interface Kit {
   ctx: RenderContext;
   step: FlowStep;
+  /** Set by coverHero: the cover's height ÷ width, for the phone-width rule in <head>. */
+  coverRatio?: number;
   m: (s: string) => string;
   href: (url: string) => string | null;
   img: (url: string) => string | null;
@@ -326,49 +328,115 @@ const pad = (inner: string, p = '28px 32px') => (inner.trim() ? `<tr><td style="
 // ---------------------------------------------------------------------------
 
 /**
- * The welcome hero, as designed: the title set over the photo, with "VYTA" in
- * the brand wordmark rather than typed. A headline that doesn't end in "VYTA"
- * is set as plain text. The photo is a background image — Gmail, Apple Mail
- * and Outlook.com show it; Outlook for Windows shows the navy fallback, which
- * the white title still reads against.
+ * Text over the main image — the covers in the designs.
+ *
+ * The photo is the cell's background image, sized to keep its own shape
+ * (`hero_image_ratio`), with the text set inside it:
+ *   - Gmail, Apple Mail, Outlook.com and new Outlook read the CSS background;
+ *   - classic Outlook for Windows gets the same photo through VML;
+ *   - anything that shows neither gets a solid fallback the text still reads on.
+ * On phones a media query (in <head>) scales the height with the width, so a
+ * tall cover isn't cropped down to a sliver.
  */
-function welcomeHero(k: Kit): string {
+function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; padding?: string } = {}): string {
   const s = k.step;
+  const src = k.img(s.hero_image_url);
+  const ratio = s.hero_image_ratio && s.hero_image_ratio > 0 ? s.hero_image_ratio : 0.6;
+  const h = Math.round(600 * ratio);
+  const fallback = s.hero_text_tone === 'light' ? T.navy : '#DCE9F1';
+  const valign = opts.valign ?? 'top';
+  k.coverRatio = ratio;
+  const bg = src
+    ? `background="${escapeHtml(src)}" style="background-color: ${fallback}; background-image: url('${escapeHtml(src)}'); background-size: cover; background-position: center top; background-repeat: no-repeat; height: ${h}px;"`
+    : `style="background-color: ${fallback}; height: ${h}px;"`;
+  return `<tr><td class="ef-cover" ${bg} bgcolor="${fallback}" height="${h}" valign="${valign}">
+    <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:${h}px;"><v:fill type="frame"${src ? ` src="${escapeHtml(src)}"` : ''} color="${fallback}" /><v:textbox inset="0,0,0,0"><![endif]-->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr><td valign="${valign}" style="padding: ${opts.padding ?? '36px 32px'};">${inner}</td></tr>
+    </table>
+    <!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
+  </td></tr>`;
+}
+
+/** Colours for text set over a photo, by the step's tone. */
+function overlayTone(k: Kit) {
+  const light = k.step.hero_text_tone === 'light';
+  return {
+    heading: light ? '#FFFFFF' : T.ink,
+    body: light ? '#FFFFFF' : '#1E3A50',
+    eyebrow: light ? T.tealLight : T.teal,
+    // A soft glow behind the letters keeps them legible over a busy sky.
+    shadow: light ? 'text-shadow: 0 1px 14px rgba(5,24,43,0.55);' : 'text-shadow: 0 0 16px rgba(255,255,255,0.9), 0 0 3px rgba(255,255,255,0.8);',
+    word: light ? 'vyta-word-white.png' : 'vyta-word-navy.png',
+  };
+}
+
+/** Eyebrow, headline and subheadline, coloured for the photo they sit on. */
+function overlayHeadline(k: Kit, align: 'left' | 'center' = 'left', size = 32): string {
+  const s = k.step;
+  const c = overlayTone(k);
+  const eyebrow = k.m(s.eyebrow);
   const headline = k.m(s.headline);
   const sub = k.m(s.subheadline);
-  const src = k.img(s.hero_image_url);
-  const word = `${k.ctx.siteUrl.replace(/\/$/, '')}/images/email/vyta-word-white.png`;
+  return `
+    ${eyebrow ? `<p style="font-family: ${T.font}; font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: ${c.eyebrow}; margin: 0 0 10px; text-align: ${align}; ${c.shadow}">${escapeHtml(eyebrow)}</p>` : ''}
+    ${headline ? `<h1 style="font-family: ${T.display}; font-size: ${size}px; font-weight: 700; line-height: 1.12; color: ${c.heading}; margin: 0 0 10px; text-align: ${align}; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
+    ${sub ? `<p style="font-family: ${T.font}; font-size: 16px; font-weight: 500; line-height: 1.5; color: ${c.body}; margin: 0; text-align: ${align}; ${c.shadow}">${escapeHtml(sub)}</p>` : ''}`;
+}
+
+/** Left-set overlay text keeps to the side of the photo the subject isn't on. */
+const narrow = (inner: string) =>
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="360" style="width: 360px; max-width: 100%;"><tr><td>${inner}</td></tr></table>`;
+
+/** Does this step set its text over the main image? */
+const overlaid = (k: Kit) => k.step.hero_overlay && !!k.img(k.step.hero_image_url);
+
+/**
+ * The welcome title, as designed: "Welcome to" with VYTA in the brand
+ * wordmark rather than typed. A headline that doesn't end in "VYTA" is set as
+ * plain text.
+ */
+function welcomeTitle(k: Kit): string {
+  const s = k.step;
+  const c = overlayTone(k);
+  const headline = k.m(s.headline);
+  const sub = k.m(s.subheadline);
+  const word = `${k.ctx.siteUrl.replace(/\/$/, '')}/images/email/${c.word}`;
   const brand = /^(.*?)\s*VYTA\s*$/i.exec(headline);
-  const shadow = 'text-shadow: 0 1px 14px rgba(5,24,43,0.55);';
   const title = brand
-    ? `${brand[1] ? `<p style="font-family: ${T.display}; font-size: 30px; font-weight: 600; line-height: 1.15; color: #FFFFFF; margin: 0 0 10px; ${shadow}">${escapeHtml(brand[1])}</p>` : ''}
-       <img src="${escapeHtml(word)}" width="210" alt="VYTA" style="display: block; width: 210px; height: auto; border: 0; font-family: ${T.display}; font-size: 40px; font-weight: 700; color: #FFFFFF;" />`
-    : `<h1 style="font-family: ${T.display}; font-size: 34px; font-weight: 700; line-height: 1.15; color: #FFFFFF; margin: 0; ${shadow}">${escapeHtml(headline)}</h1>`;
-  return `<tr><td ${src ? `background="${escapeHtml(src)}" ` : ''}bgcolor="${T.navy}" valign="bottom" style="background-color: ${T.navy};${src ? ` background-image: url('${escapeHtml(src)}'); background-size: cover; background-position: center;` : ''}">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr><td height="330" valign="bottom" style="height: 330px; padding: 0 32px 34px;">
-        ${title}
-        ${sub ? `<p style="font-family: ${T.font}; font-size: 16px; font-weight: 500; line-height: 1.5; color: #FFFFFF; margin: 14px 0 0; max-width: 300px; ${shadow}">${escapeHtml(sub)}</p>` : ''}
-      </td></tr>
-    </table>
-  </td></tr>`;
+    ? `${brand[1] ? `<p style="font-family: ${T.display}; font-size: 30px; font-weight: 600; line-height: 1.15; color: ${c.heading}; margin: 0 0 10px; ${c.shadow}">${escapeHtml(brand[1])}</p>` : ''}
+       <img src="${escapeHtml(word)}" width="210" alt="VYTA" style="display: block; width: 210px; height: auto; border: 0; font-family: ${T.display}; font-size: 40px; font-weight: 700; color: ${c.heading};" />`
+    : `<h1 style="font-family: ${T.display}; font-size: 34px; font-weight: 700; line-height: 1.15; color: ${c.heading}; margin: 0; ${c.shadow}">${escapeHtml(headline)}</h1>`;
+  return `${title}
+    ${sub ? `<p style="font-family: ${T.font}; font-size: 16px; font-weight: 500; line-height: 1.5; color: ${c.body}; margin: 14px 0 0; max-width: 300px; ${c.shadow}">${escapeHtml(sub)}</p>` : ''}`;
 }
 
 function welcomeLayout(k: Kit): string {
   const s = k.step;
   return [
-    welcomeHero(k),
+    overlaid(k)
+      ? coverHero(k, welcomeTitle(k), { valign: 'bottom', padding: '0 32px 34px' })
+      : pad(headlineBlock(k, 'left', 32), '28px 32px 8px'),
     pad(badges(k, s.highlights), '24px 20px 14px'),
     pad(paragraphs(k.m(s.body)) + button(k, s.cta_label, s.cta_url), '10px 32px 24px'),
     pad(card(k, { showCode: true }), '0 20px 24px'),
   ].join('');
 }
 
+/** Headline over the photo, or headline then photo — the step decides. */
+function heroWithHeadline(k: Kit, size = 30): string {
+  const s = k.step;
+  if (overlaid(k)) return coverHero(k, narrow(overlayHeadline(k, 'left', size + 2)));
+  return [
+    pad(headlineBlock(k, 'left', size), '32px 32px 18px'),
+    `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
+  ].join('');
+}
+
 function educationLayout(k: Kit): string {
   const s = k.step;
   return [
-    pad(headlineBlock(k), '32px 32px 18px'),
-    `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
+    heroWithHeadline(k),
     pad(checklist(k, s.highlights) + paragraphs(k.m(s.body)) + button(k, s.cta_label, s.cta_url), '24px 32px 24px'),
     pad(card(k, { imageLeft: true }), '0 20px 24px'),
   ].join('');
@@ -377,8 +445,7 @@ function educationLayout(k: Kit): string {
 function trustLayout(k: Kit): string {
   const s = k.step;
   return [
-    pad(headlineBlock(k), '32px 32px 18px'),
-    `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
+    heroWithHeadline(k),
     pad(badges(k, s.highlights), '22px 20px 10px'),
     pad(paragraphs(k.m(s.body)) + button(k, s.cta_label, s.cta_url), '14px 32px 24px'),
     pad(card(k, { imageLeft: true }), '0 20px 24px'),
@@ -421,7 +488,7 @@ function countdownBlock(k: Kit, label = 'Offer ends'): string {
   const left = countdown(k.ctx.now, ends);
   const box = (n: number, unit: string) => `
     <td align="center" style="padding: 0 5px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid ${T.border}; border-radius: 6px; border-collapse: separate;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid ${T.border}; border-radius: 6px; border-collapse: separate; background: #FFFFFF;">
         <tr><td align="center" style="width: 64px; padding: 10px 0 8px;">
           <p style="font-family: ${T.display}; font-size: 26px; font-weight: 700; color: ${T.ink}; margin: 0; line-height: 1;">${String(n).padStart(2, '0')}</p>
           <p style="font-family: ${T.font}; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: ${T.faint}; margin: 6px 0 0;">${unit}</p>
@@ -431,7 +498,7 @@ function countdownBlock(k: Kit, label = 'Offer ends'): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 6px auto 8px;">
          <tr>${box(left.days, 'Days')}${box(left.hours, 'Hours')}${box(left.minutes, 'Minutes')}</tr>
        </table>
-       <p style="font-family: ${T.font}; font-size: 12px; color: ${T.muted}; text-align: center; margin: 0 0 18px;">${escapeHtml(label)} ${escapeHtml(formatDeadline(ends, k.ctx.timezone))}</p>`;
+       <p style="font-family: ${T.font}; font-size: 12px; font-weight: 500; color: ${T.body}; text-align: center; margin: 0 0 18px; text-shadow: 0 0 10px rgba(255,255,255,0.9);">${escapeHtml(label)} ${escapeHtml(formatDeadline(ends, k.ctx.timezone))}</p>`;
 }
 
 const finePrint = (k: Kit, pad_ = '14px 32px 0') => {
@@ -441,9 +508,30 @@ const finePrint = (k: Kit, pad_ = '14px 32px 0') => {
 
 function reminderLayout(k: Kit): string {
   const s = k.step;
+  const codeLine = k.ctx.offer
+    ? `<p style="font-family: ${T.font}; font-size: 12px; color: ${T.body}; text-align: center; margin: 12px 0 0; text-shadow: 0 0 10px rgba(255,255,255,0.9);">Use code <strong style="color: ${T.ink}; letter-spacing: 0.06em;">${escapeHtml(k.ctx.offer.code)}</strong> at checkout.</p>`
+    : '';
+  if (overlaid(k)) {
+    // As designed: the question, the countdown and the button over the sky,
+    // the product below them.
+    const c = overlayTone(k);
+    return [
+      coverHero(
+        k,
+        overlayHeadline(k, 'center', 30) +
+          (s.body ? `<p style="font-family: ${T.font}; font-size: 15px; line-height: 1.6; color: ${c.body}; text-align: center; margin: 12px 0 18px; ${c.shadow}">${escapeHtml(k.m(s.body))}</p>` : '') +
+          countdownBlock(k) +
+          button(k, s.cta_label, s.cta_url) +
+          codeLine,
+        { padding: '40px 36px' },
+      ),
+      `<tr><td bgcolor="${T.navy}" style="background: ${T.navy}; padding: 22px 20px;">${badges(k, s.highlights, true)}</td></tr>`,
+      finePrint(k),
+    ].join('');
+  }
   return [
     pad(headlineBlock(k, 'center', 28) + paragraphs(k.m(s.body), T.body, 'center'), '34px 36px 10px'),
-    pad(countdownBlock(k) + button(k, s.cta_label, s.cta_url) + (k.ctx.offer ? `<p style="font-family: ${T.font}; font-size: 12px; color: ${T.muted}; text-align: center; margin: 12px 0 0;">Use code <strong style="color: ${T.ink}; letter-spacing: 0.06em;">${escapeHtml(k.ctx.offer.code)}</strong> at checkout.</p>` : ''), '4px 32px 26px'),
+    pad(countdownBlock(k) + button(k, s.cta_label, s.cta_url) + codeLine, '4px 32px 26px'),
     `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
     `<tr><td bgcolor="${T.navy}" style="background: ${T.navy}; padding: 22px 20px;">${badges(k, s.highlights, true)}</td></tr>`,
     finePrint(k),
@@ -508,9 +596,14 @@ function cartPanel(k: Kit, opts: { center?: boolean; urgent?: boolean } = {}): s
 function cartReminderLayout(k: Kit): string {
   const s = k.step;
   const product = k.img(s.card_image_url);
+  const intro = paragraphs(k.m(s.body)) + (s.show_cart ? '' : button(k, s.cta_label, s.cta_url));
   return [
-    `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
-    pad(headlineBlock(k, 'left', 32) + paragraphs(k.m(s.body)) + (s.show_cart ? '' : button(k, s.cta_label, s.cta_url)), '28px 32px 8px'),
+    ...(overlaid(k)
+      ? [coverHero(k, narrow(overlayHeadline(k, 'left', 34))), pad(intro, '26px 32px 4px')]
+      : [
+          `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
+          pad(headlineBlock(k, 'left', 32) + intro, '28px 32px 8px'),
+        ]),
     s.show_cart ? pad(cartPanel(k), '8px 20px 20px') : '',
     pad(badges(k, s.highlights), '6px 20px 22px'),
     product ? `<tr><td style="padding: 0;"><img src="${escapeHtml(product)}" width="600" alt="" style="display: block; width: 100%; max-width: 600px; height: auto; border: 0;" /></td></tr>` : '',
@@ -520,8 +613,7 @@ function cartReminderLayout(k: Kit): string {
 function cartEducateLayout(k: Kit): string {
   const s = k.step;
   return [
-    pad(headlineBlock(k), '32px 32px 18px'),
-    `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
+    heroWithHeadline(k),
     pad(checklist(k, s.highlights) + paragraphs(k.m(s.body)), '24px 32px 8px'),
     pad(s.show_cart ? cartPanel(k, { center: true }) : button(k, s.cta_label, s.cta_url), '4px 20px 20px'),
     pad(card(k, { imageLeft: true }), '0 20px 24px'),
@@ -531,8 +623,7 @@ function cartEducateLayout(k: Kit): string {
 function cartQuestionsLayout(k: Kit): string {
   const s = k.step;
   return [
-    pad(headlineBlock(k), '32px 32px 18px'),
-    `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
+    heroWithHeadline(k),
     pad(checklist(k, s.highlights) + paragraphs(k.m(s.body)), '24px 32px 8px'),
     pad(s.show_cart ? cartPanel(k, { center: true }) : button(k, s.cta_label, s.cta_url), '4px 20px 20px'),
     pad(card(k, { imageLeft: true }), '0 20px 24px'),
@@ -546,15 +637,30 @@ function cartLastChanceLayout(k: Kit): string {
     eyebrow
       ? `<tr><td align="center" bgcolor="${T.urgentSoft}" style="background: ${T.urgentSoft}; padding: 12px 24px; font-family: ${T.font}; font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: ${T.urgent};">${escapeHtml(eyebrow)}</td></tr>`
       : '',
-    pad(
-      `${s.headline ? `<h1 style="font-family: ${T.display}; font-size: 32px; font-weight: 700; line-height: 1.15; color: ${T.ink}; margin: 0 0 12px; text-align: center;">${escapeHtml(k.m(s.headline))}</h1>` : ''}` +
-        paragraphs(k.m(s.body), T.body, 'center') +
-        countdownBlock(k, 'Ends') +
-        (s.show_cart ? '' : button(k, s.cta_label, s.cta_url, { urgent: true })),
-      '30px 36px 10px',
-    ),
-    s.show_cart ? pad(cartPanel(k, { urgent: true }), '0 20px 22px') : '',
-    `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
+    ...(overlaid(k)
+      ? [
+          // As designed: the headline and countdown over the photo, the cart below.
+          coverHero(
+            k,
+            `${s.headline ? `<h1 style="font-family: ${T.display}; font-size: 32px; font-weight: 700; line-height: 1.12; color: ${overlayTone(k).heading}; margin: 0 0 12px; text-align: center; ${overlayTone(k).shadow}">${escapeHtml(k.m(s.headline))}</h1>` : ''}` +
+              (s.body ? `<p style="font-family: ${T.font}; font-size: 16px; line-height: 1.6; color: ${overlayTone(k).body}; text-align: center; margin: 0 0 16px; ${overlayTone(k).shadow}">${escapeHtml(k.m(s.body))}</p>` : '') +
+              countdownBlock(k, 'Ends') +
+              (s.show_cart ? '' : button(k, s.cta_label, s.cta_url, { urgent: true })),
+            { padding: '34px 36px' },
+          ),
+          s.show_cart ? pad(cartPanel(k, { urgent: true }), '22px 20px 22px') : '',
+        ]
+      : [
+          pad(
+            `${s.headline ? `<h1 style="font-family: ${T.display}; font-size: 32px; font-weight: 700; line-height: 1.15; color: ${T.ink}; margin: 0 0 12px; text-align: center;">${escapeHtml(k.m(s.headline))}</h1>` : ''}` +
+              paragraphs(k.m(s.body), T.body, 'center') +
+              countdownBlock(k, 'Ends') +
+              (s.show_cart ? '' : button(k, s.cta_label, s.cta_url, { urgent: true })),
+            '30px 36px 10px',
+          ),
+          s.show_cart ? pad(cartPanel(k, { urgent: true }), '0 20px 22px') : '',
+          `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
+        ]),
     pad(badges(k, s.highlights), '22px 20px 12px'),
     finePrint(k, '6px 32px 0'),
   ].join('');
@@ -609,12 +715,18 @@ export function renderFlowEmail(step: FlowStep, ctx: RenderContext): RenderedEma
   ].filter(Boolean);
 
   const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="x-apple-disable-message-reformatting" />
 <title>${escapeHtml(subject)}</title>
+${k.coverRatio ? `<style>
+  /* Phones: the cover keeps its shape instead of being cropped to a strip. */
+  @media only screen and (max-width: 620px) {
+    .ef-cover { height: calc((100vw - 22px) * ${k.coverRatio}) !important; }
+  }
+</style>` : ''}
 </head>
 <body style="margin: 0; padding: 0; background: ${T.paper};">
 ${preheader ? `<div style="display: none; max-height: 0; overflow: hidden; mso-hide: all; font-size: 1px; line-height: 1px; color: ${T.paper};">${escapeHtml(preheader)}${'&#847; &zwnj; &nbsp; '.repeat(20)}</div>` : ''}

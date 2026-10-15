@@ -49,21 +49,33 @@ export const DEFAULT_SETTINGS: Record<FlowKey, FlowSettings> = {
 export const PLACEHOLDER_IMAGES = {
   welcomeHero: '/images/email/welcome/welcome-hero.png',
   welcomeCard: '/images/email/welcome/welcome-card.png',
-  educationHero: '/images/email/welcome/education-hero.png',
   educationCard: '/images/email/welcome/education-card.png',
   trustHero: '/images/email/welcome/trust-hero.png',
   trustCard: '/images/email/welcome/trust-card.png',
   offerHero: '/images/email/welcome/offer-hero.png',
-  reminderHero: '/images/email/welcome/reminder-hero.png',
-  cartReminderHero: '/images/email/cart/reminder-hero.png',
-  cartReminderProduct: '/images/email/cart/reminder-product.png',
-  cartEducateHero: '/images/email/cart/educate-hero.png',
   cartEducateCard: '/images/email/cart/educate-card.png',
   cartOfferHero: '/images/email/cart/offer-hero.png',
-  cartQuestionsHero: '/images/email/cart/questions-hero.png',
   cartQuestionsCard: '/images/email/cart/questions-card.png',
-  cartLastChanceHero: '/images/email/cart/last-chance-hero.png',
 } as const;
+
+/**
+ * The supplied campaign photography — tall covers the headline is set over.
+ * `ratio` is height ÷ width, so the email keeps each one's shape.
+ */
+export const COVERS = {
+  manByLake: { url: '/images/email/covers/cover-1.jpg', ratio: 2.8517 },
+  womanByLake: { url: '/images/email/covers/cover-2.jpg', ratio: 2.8433 },
+  womanPortrait: { url: '/images/email/covers/cover-3.jpg', ratio: 2.8867 },
+  labVial: { url: '/images/email/covers/cover-4.jpg', ratio: 2.895 },
+  vialsOnRock: { url: '/images/email/covers/cover-5.jpg', ratio: 2.8867 },
+} as const;
+
+const cover = (c: { url: string; ratio: number }) => ({
+  hero_image_url: c.url,
+  hero_image_ratio: c.ratio,
+  hero_overlay: true,
+  hero_text_tone: 'dark' as const,
+});
 
 const blank = (flow: FlowKey, step: StepNumber): FlowStep => ({
   flow,
@@ -84,6 +96,9 @@ const blank = (flow: FlowKey, step: StepNumber): FlowStep => ({
   cta_label: '',
   cta_url: '',
   hero_image_url: '',
+  hero_overlay: false,
+  hero_text_tone: 'dark',
+  hero_image_ratio: null,
   card_title: '',
   card_body: '',
   card_link_label: '',
@@ -94,6 +109,7 @@ const blank = (flow: FlowKey, step: StepNumber): FlowStep => ({
 });
 
 const P = PLACEHOLDER_IMAGES;
+const C = COVERS;
 
 const WELCOME: FlowStep[] = [
   {
@@ -108,6 +124,9 @@ const WELCOME: FlowStep[] = [
     cta_label: 'Shop Now',
     cta_url: '/products',
     hero_image_url: P.welcomeHero,
+    hero_image_ratio: 0.6,
+    hero_overlay: true,
+    hero_text_tone: 'light',
     card_title: 'Enjoy {{discount}} Off Your First Order',
     card_body: 'Use code {{code}} at checkout.',
     card_image_url: P.welcomeCard,
@@ -122,7 +141,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Supports Recovery', icon: 'heart-pulse' }, { label: 'Promotes Vitality', icon: 'sun' }, { label: 'Helps You Feel Your Best', icon: 'hand-heart' }, { label: 'Builds a Stronger Tomorrow', icon: 'sprout' }],
     cta_label: 'Explore the Collection',
     cta_url: '/products',
-    hero_image_url: P.educationHero,
+    ...cover(C.womanByLake),
     card_title: 'We Show Our Work',
     card_body: 'Every batch is third-party tested for identity, purity and quality.',
     card_link_label: 'Learn More',
@@ -171,7 +190,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Wellness', icon: 'shield-check' }, { label: 'Discreet Shipping', icon: 'truck' }, { label: 'Trusted Quality', icon: 'shield-check' }],
     cta_label: 'Claim {{discount}} Off',
     cta_url: '/products',
-    hero_image_url: P.reminderHero,
+    ...cover(C.vialsOnRock),
   },
 ];
 
@@ -189,8 +208,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Premium Quality', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    hero_image_url: P.cartReminderHero,
-    card_image_url: P.cartReminderProduct,
+    ...cover(C.manByLake),
   },
   {
     ...blank('cart', 2),
@@ -205,7 +223,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Third-Party Tested', icon: 'flask-conical' }, { label: 'Batch-Specific COA', icon: 'shield-check' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    hero_image_url: P.cartEducateHero,
+    ...cover(C.womanByLake),
     card_title: 'We Show Our Work',
     card_body: 'Every batch is tested for identity, purity and quality so you can shop with confidence.',
     card_link_label: 'Learn More',
@@ -241,7 +259,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Product information', icon: 'circle-help' }, { label: 'Shipping & delivery', icon: 'truck' }, { label: 'Testing & quality', icon: 'shield-check' }, { label: 'Ordering & payments', icon: 'credit-card' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    hero_image_url: P.cartQuestionsHero,
+    ...cover(C.womanPortrait),
     card_title: 'Real People. Real Support.',
     card_body: 'Our team is here to help with any questions you may have.',
     card_link_label: 'Contact Us',
@@ -262,7 +280,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
-    hero_image_url: P.cartLastChanceHero,
+    ...cover(C.labVial),
   },
 ];
 
@@ -282,6 +300,9 @@ export function shapeStepRow(flow: FlowKey, row: Partial<FlowStep> & { step: num
   merged.deadline_hours = row.deadline_hours == null ? ('deadline_hours' in row ? null : base.deadline_hours) : Number(row.deadline_hours);
   merged.highlights = Array.isArray(row.highlights) ? normalizeHighlights(row.highlights) : base.highlights;
   merged.delay_hours = Number(merged.delay_hours) || 0;
+  merged.hero_overlay = row.hero_overlay ?? base.hero_overlay;
+  merged.hero_text_tone = row.hero_text_tone === 'light' ? 'light' : row.hero_text_tone === 'dark' ? 'dark' : base.hero_text_tone;
+  merged.hero_image_ratio = row.hero_image_ratio == null ? ('hero_image_ratio' in row ? null : base.hero_image_ratio) : Number(row.hero_image_ratio);
   return merged;
 }
 

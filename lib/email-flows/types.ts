@@ -147,6 +147,12 @@ export interface FlowStep {
   cta_label: string;
   cta_url: string;
   hero_image_url: string;
+  /** Set the headline (and, on the reminder layouts, the countdown) over the main image. */
+  hero_overlay: boolean;
+  /** Text colour over the image: 'dark' (navy) for light skies, 'light' (white) for dark photos. */
+  hero_text_tone: 'dark' | 'light';
+  /** The main image's height ÷ width, so the cell it fills keeps its shape. */
+  hero_image_ratio: number | null;
   card_title: string;
   card_body: string;
   card_link_label: string;
@@ -376,6 +382,8 @@ export function shapeStepInput(
 
   const code = normalizeCode(raw.promo_code);
   const enabled = raw.enabled !== false;
+  const ratioRaw = Number(raw.hero_image_ratio);
+  const heroRatio = Number.isFinite(ratioRaw) && ratioRaw >= 0.2 && ratioRaw <= 5 ? Math.round(ratioRaw * 10000) / 10000 : null;
   if (opts.requireCode !== false && enabled && requiresCode(flow, step) && !code) {
     return { ok: false, error: `${MISSING_CODE_MESSAGE} It's an offer email, so it needs one — pick it from Discount Codes, or switch this email off.` };
   }
@@ -401,6 +409,9 @@ export function shapeStepInput(
       cta_label: str(raw.cta_label, 60),
       cta_url: links[0][1],
       hero_image_url: links[2][1],
+      hero_overlay: raw.hero_overlay === true,
+      hero_text_tone: raw.hero_text_tone === 'light' ? 'light' : 'dark',
+      hero_image_ratio: heroRatio,
       card_title: str(raw.card_title, 120),
       card_body: str(raw.card_body, 600),
       card_link_label: str(raw.card_link_label, 60),

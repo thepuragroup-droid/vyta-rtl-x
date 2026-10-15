@@ -52,6 +52,11 @@ const LABELS: Partial<Record<Field, { label: string; hint?: string; multiline?: 
 
 const IMAGE_FIELDS: Field[] = ['hero_image_url', 'card_image_url'];
 
+/** Layouts that can set their headline over the main image. */
+const OVERLAY_LAYOUTS: StepLayout[] = [
+  'welcome', 'education', 'trust', 'reminder', 'cart_reminder', 'cart_educate', 'cart_questions', 'cart_last_chance',
+];
+
 /**
  * Badges / benefit lines: each row is an icon (shown as it renders) and its
  * label. A new row's icon follows its wording until someone picks one.
@@ -196,7 +201,13 @@ function CodePicker({ value, onChange, required, disabled }: {
   );
 }
 
-function ImageField({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled: boolean }) {
+function ImageField({ value, onChange, disabled, onRatio }: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled: boolean;
+  /** Reports the image's height ÷ width once it loads. */
+  onRatio?: (ratio: number) => void;
+}) {
   const toast = useToast();
   const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -226,7 +237,17 @@ function ImageField({ value, onChange, disabled }: { value: string; onChange: (v
   return (
     <div className="flex items-start gap-3">
       <div className="h-14 w-20 flex-shrink-0 overflow-hidden rounded-md border border-line bg-surface">
-        {value && <img src={value} alt="" className="h-full w-full object-cover" />}
+        {value && (
+          <img
+            src={value}
+            alt=""
+            className="h-full w-full object-cover"
+            onLoad={(e) => {
+              const im = e.currentTarget;
+              if (onRatio && im.naturalWidth > 0) onRatio(Math.round((im.naturalHeight / im.naturalWidth) * 10000) / 10000);
+            }}
+          />
+        )}
       </div>
       <div className="flex-1 space-y-1.5">
         <input value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} className={inputCls} placeholder="/images/… or https://…" />
@@ -463,7 +484,39 @@ export default function EmailsTab({ flow, steps, editable, initialStep, adminEma
                     {meta.label}
                     {meta.hint && <span className="font-normal text-ink-muted"> — {meta.hint}</span>}
                   </label>
-                  {IMAGE_FIELDS.includes(field) ? (
+                  {field === 'hero_image_url' ? (
+                    <div className="space-y-2">
+                      <ImageField
+                        value={draft.hero_image_url}
+                        onChange={(v) => set('hero_image_url', v)}
+                        disabled={!editable}
+                        onRatio={(r) => {
+                          if (r !== draft.hero_image_ratio) set('hero_image_ratio', r);
+                        }}
+                      />
+                      {OVERLAY_LAYOUTS.includes(layout) && (
+                        <div className="flex flex-wrap items-center gap-3 rounded-lg bg-surface px-3 py-2">
+                          <label className="flex items-center gap-2 text-xs text-ink">
+                            <input type="checkbox" checked={draft.hero_overlay} onChange={(e) => set('hero_overlay', e.target.checked)} />
+                            Set the headline over this image
+                          </label>
+                          {draft.hero_overlay && (
+                            <label className="flex items-center gap-2 text-xs text-ink">
+                              Text
+                              <select
+                                value={draft.hero_text_tone}
+                                onChange={(e) => set('hero_text_tone', e.target.value === 'light' ? 'light' : 'dark')}
+                                className="rounded-md border border-line bg-white px-2 py-1 text-xs"
+                              >
+                                <option value="dark">Dark (for light skies)</option>
+                                <option value="light">White (for dark photos)</option>
+                              </select>
+                            </label>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : IMAGE_FIELDS.includes(field) ? (
                     <ImageField value={String(draft[field] ?? '')} onChange={(v) => set(field, v as never)} disabled={!editable} />
                   ) : field === 'highlights' ? (
                     <HighlightsEditor value={draft.highlights} onChange={(v) => set('highlights', v)} disabled={!editable} />

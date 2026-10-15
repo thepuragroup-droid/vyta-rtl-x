@@ -500,3 +500,54 @@ test('welcome title: "VYTA" is set in the wordmark over the hero photo', () => {
   assert.ok(!plain.includes('vyta-word-white'));
   assert.match(plain, />Hello there</);
 });
+
+// ---------------------------------------------------------------------------
+// The supplied covers, with the text over them
+// ---------------------------------------------------------------------------
+
+test('each cover goes where it was asked for', () => {
+  const hero = (flow: 'welcome' | 'cart', n: 1 | 2 | 3 | 4 | 5) => dflt(flow, n).hero_image_url;
+  assert.equal(hero('welcome', 2), '/images/email/covers/cover-2.jpg');
+  assert.equal(hero('welcome', 5), '/images/email/covers/cover-5.jpg');
+  assert.equal(hero('cart', 1), '/images/email/covers/cover-1.jpg');
+  assert.equal(hero('cart', 2), '/images/email/covers/cover-2.jpg');
+  assert.equal(hero('cart', 4), '/images/email/covers/cover-3.jpg');
+  assert.equal(hero('cart', 5), '/images/email/covers/cover-4.jpg');
+  for (let n = 1; n <= 5; n++) assert.ok(existsSync(join(PUBLIC, 'images', 'email', 'covers', `cover-${n}.jpg`)));
+});
+
+test('a cover carries its text, keeps its shape, and works in Outlook and on phones', () => {
+  const html = renderFlowEmail(dflt('cart', 1), cartCtx()).html;
+  // The headline sits inside the cover cell, before anything else in the body.
+  const cover = html.slice(html.indexOf('class="ef-cover"'), html.indexOf('</v:rect>'));
+  assert.match(cover, /cover-1\.jpg/);
+  assert.match(cover, />Still thinking about it\?</);
+  assert.match(cover, />Your cart is waiting\.</);
+  assert.match(html, /height="1711"/, '600 × 2.8517');
+  assert.match(html, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/covers\/cover-1\.jpg"/);
+  assert.match(html, /\.ef-cover \{ height: calc\(\(100vw - 22px\) \* 2\.8517\) !important; \}/);
+});
+
+test('the reminders put the countdown and button over the cover', () => {
+  const html = renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
+  const cover = html.slice(html.indexOf('class="ef-cover"'), html.indexOf('</v:rect>'));
+  assert.match(cover, /Still Thinking About It\?/);
+  assert.match(cover, /Days/);
+  assert.match(cover, /Claim 20% Off/);
+});
+
+test('switching the overlay off falls back to headline-then-photo', () => {
+  const html = renderFlowEmail({ ...defaultStep(2), hero_overlay: false }, ctx()).html;
+  assert.ok(!html.includes('ef-cover'));
+  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/covers\/cover-2\.jpg"/);
+});
+
+test('shapeStepInput keeps the overlay settings and a sane ratio', () => {
+  const ok = shapeStepInput('welcome', 2, { ...defaultStep(2), hero_text_tone: 'light', hero_image_ratio: 2.5 });
+  assert.equal(ok.ok && ok.value.hero_overlay, true);
+  assert.equal(ok.ok && ok.value.hero_text_tone, 'light');
+  assert.equal(ok.ok && ok.value.hero_image_ratio, 2.5);
+  const odd = shapeStepInput('welcome', 2, { ...defaultStep(2), hero_text_tone: 'neon', hero_image_ratio: 99 });
+  assert.equal(odd.ok && odd.value.hero_text_tone, 'dark');
+  assert.equal(odd.ok && odd.value.hero_image_ratio, null);
+});

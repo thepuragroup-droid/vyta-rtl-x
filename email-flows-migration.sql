@@ -80,6 +80,11 @@ CREATE TABLE IF NOT EXISTS email_flow_steps (
   cta_label         TEXT NOT NULL DEFAULT '',
   cta_url           TEXT NOT NULL DEFAULT '',
   hero_image_url    TEXT NOT NULL DEFAULT '',
+  -- Headline set over the main image, in dark (navy) or light (white) text.
+  hero_overlay      BOOLEAN NOT NULL DEFAULT false,
+  hero_text_tone    TEXT NOT NULL DEFAULT 'dark' CHECK (hero_text_tone IN ('dark', 'light')),
+  -- The main image's height ÷ width, so the cell it fills keeps its shape.
+  hero_image_ratio  NUMERIC(6,4),
   card_title        TEXT NOT NULL DEFAULT '',
   card_body         TEXT NOT NULL DEFAULT '',
   card_link_label   TEXT NOT NULL DEFAULT '',
@@ -92,6 +97,11 @@ CREATE TABLE IF NOT EXISTS email_flow_steps (
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (flow, step)
 );
+
+ALTER TABLE email_flow_steps
+  ADD COLUMN IF NOT EXISTS hero_overlay     BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS hero_text_tone   TEXT NOT NULL DEFAULT 'dark',
+  ADD COLUMN IF NOT EXISTS hero_image_ratio NUMERIC(6,4);
 
 -- ------------------------------------------------------------
 -- 3. Saved carts — the storefront cart, mirrored server-side
