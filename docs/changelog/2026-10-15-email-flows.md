@@ -234,9 +234,11 @@ woman in the sun, shown top to bottom: it is scaled to the cover's height,
 so it sits narrower on the right. Its own sky is stretched into a soft haze
 on the left behind the copy. It is saved 1200 wide for sharp screens.
 The photo fades to white at its foot, into the email below. On desktop the
-Welcome 2 cover uses large type (46px headline, 21px line, 17px benefits in
-58px rings, a larger button). On phones the copy uses the full width of the photo,
-with slimmer side margins, so the headline fits on two lines. Phones
+Welcome 2 cover uses large type (46px headline, 21px line, a larger
+button). The benefits sit in a short 200px label column beside 70px icon
+rings. On phones the headline and line use the full width of the photo,
+with slimmer side margins, and the benefits keep a short 150px column
+beside 48px rings. Phones
 set it back to the smaller sizes so the photo still shows.
 
 Where the designs set the text over the photo (Welcome 1, 2, 3 and 5,

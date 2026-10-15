@@ -272,8 +272,10 @@ function badges(k: Kit, items: Highlight[], dark = false): string {
 function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: boolean } = {}): string {
   const list = items.map((h) => ({ ...h, label: k.m(h.label) })).filter((h) => h.label);
   if (!list.length) return '';
-  const ring = opts.large ? 58 : 38;
-  const glyph = opts.large ? 30 : 20;
+  const ring = opts.large ? 70 : 38;
+  const glyph = opts.large ? 38 : 20;
+  // The labels' own column: narrow on the cover, so they wrap short beside the icons.
+  const labelWidth = opts.large ? 200 : 0;
   const cls = (name: string) => (opts.large ? ` class="${name}"` : '');
   // A set width makes longer labels wrap onto two lines, as in the cover designs.
   const width = opts.width ? ` width="${opts.width}"` : '';
@@ -290,7 +292,7 @@ function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: b
               </td></tr>
             </table>
           </td>
-          <td${cls('ef-check-label')} valign="middle" style="padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; font-size: ${opts.large ? '17px' : '12px'}; font-weight: 700; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
+          <td${cls('ef-check-label')} valign="middle"${labelWidth ? ` width="${labelWidth}"` : ''} style="${labelWidth ? `width: ${labelWidth}px; ` : ''}padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; font-size: ${opts.large ? '17px' : '12px'}; font-weight: 700; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
         </tr>`,
         )
         .join('')}
@@ -515,11 +517,11 @@ function educationLayout(k: Kit): string {
       '.ef-edu-h1 { font-size: 28px !important; max-width: 100% !important; }',
       '.ef-edu-sub { font-size: 15px !important; }',
       '.ef-edu-subcol { width: 100% !important; }',
-      '.ef-check { width: 100% !important; }',
-      '.ef-check-icon { width: 38px !important; padding: 6px 14px 6px 0 !important; }',
-      '.ef-check-ring { width: 38px !important; height: 38px !important; border-radius: 19px !important; }',
-      '.ef-check-glyph { width: 20px !important; height: 20px !important; }',
-      '.ef-check-label { font-size: 12px !important; }',
+      '.ef-check { width: auto !important; }',
+      '.ef-check-icon { width: 48px !important; padding: 6px 14px 6px 0 !important; }',
+      '.ef-check-ring { width: 48px !important; height: 48px !important; border-radius: 24px !important; }',
+      '.ef-check-glyph { width: 26px !important; height: 26px !important; }',
+      '.ef-check-label { font-size: 12px !important; width: 150px !important; }',
     );
     const top = `
       ${headline ? `<h1 class="ef-edu-h1" style="font-family: ${T.display}; font-size: 46px; font-weight: 700; line-height: 1.1; color: ${c.heading}; margin: 0 0 18px; max-width: 536px; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
@@ -527,7 +529,7 @@ function educationLayout(k: Kit): string {
         <p class="ef-edu-sub" style="font-family: ${T.font}; font-size: 21px; line-height: 1.45; color: ${c.body}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>
       </td></tr></table>` : ''}
       <div style="height: 26px; line-height: 26px; font-size: 0;">&nbsp;</div>
-      ${checklist(k, s.highlights, { width: 320, large: true })}
+      ${checklist(k, s.highlights, { width: 290, large: true })}
       ${paragraphs(k.m(s.body), c.body)}`;
     return [
       coverHero(
