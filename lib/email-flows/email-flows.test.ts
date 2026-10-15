@@ -568,7 +568,7 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   }
   // The copy fills the photo so the button sits at its foot, centred and wide.
   const twoHtml = renderFlowEmail(defaultStep(2), ctx()).html;
-  assert.match(twoHtml, /class="ef-cover-fill" style="height: 766px;"/);
+  assert.match(twoHtml, /class="ef-cover-fill" style="height: 780px;"/);
   assert.match(twoHtml, /class="ef-btn-wide"/);
   assert.match(twoHtml, /\.ef-btn-wide \{ padding: 15px 30px !important; \}/, 'narrower on phones');
   // Welcome 3: headline over the photo, the badges and body below it.

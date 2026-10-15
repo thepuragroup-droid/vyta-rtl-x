@@ -215,7 +215,7 @@ stretched cover:
 |---|---|---|
 | `woman-lake-dark` (woman by the lake, left side darkened) | 0.80 | Welcome 1 hero, white title low on the left |
 | `offer-card` (pale mountains, vials at the right) | 0.39 | Welcome 1 offer panel, copy over the left |
-| `woman-portrait` (woman in profile, head to waist, on the right) | 1.28 | Welcome 2 hero: headline, line and benefits down the left, button centred at the foot |
+| `woman-portrait` (the supplied woman-in-the-sun photo, whole, on the right) | 1.30 | Welcome 2 hero: headline, line and benefits down the left, button centred at the foot |
 | `vials-rock` (two vials, mountains behind) | 1.22 | Welcome 3 hero, headline over the mountains |
 | `man-lake-sky` (man by the lake, sky above) | 1.50 | Welcome 5 hero, question, countdown and button over the sky |
 | `man-lake` (man by the lake) | 1.35 | Cart 1 hero, headline over the sky |
@@ -229,8 +229,10 @@ stretched cover:
 
 The welcome crops come from the full-height supplied covers. On
 `woman-portrait` and `vials-rock` the side the copy sits on is lightened
-slightly; on `woman-lake-dark` it is darkened for the white title. `woman-portrait` is widened with soft haze on the
-left, so she sits on the right, head to waist, clear of the copy.
+slightly; on `woman-lake-dark` it is darkened for the white title. `woman-portrait` is the supplied photo of the
+woman in the sun, shown top to bottom: it is scaled to the cover's height,
+so it sits narrower on the right. Its own sky is stretched into a soft haze
+on the left behind the copy. It is saved 1200 wide for sharp screens.
 
 Where the designs set the text over the photo (Welcome 1, 2, 3 and 5,
 Cart 1, Cart 2), it sits over the sky or the clear side of the photo. On
