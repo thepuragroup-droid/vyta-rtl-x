@@ -64,8 +64,8 @@ export const PHOTOS = {
   womanLakeDark: { url: '/images/email/photos/woman-lake-dark.jpg', ratio: 0.8 },
   /** The welcome offer panel: pale mountains behind the copy, the vials at the right. */
   offerCard: { url: '/images/email/photos/offer-card.jpg', ratio: 0.3933 },
-  /** Woman in profile on the right, the left kept clear (and lightened) for copy. */
-  womanPortrait: { url: '/images/email/photos/woman-portrait.jpg', ratio: 1.07 },
+  /** Woman in profile, head to waist, on the right; a soft haze on the left for the copy. */
+  womanPortrait: { url: '/images/email/photos/woman-portrait.jpg', ratio: 1.2767 },
   /** Two vials on the rock under the mountains, the upper left lightened for copy. */
   vialsRock: { url: '/images/email/photos/vials-rock.jpg', ratio: 1.2167 },
   vialsMountains: { url: '/images/email/photos/vials-mountains.jpg', ratio: 1.0367 },

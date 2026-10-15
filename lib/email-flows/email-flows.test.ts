@@ -552,7 +552,7 @@ test('an overlay hero carries its text, keeps its shape, and works in Outlook an
   assert.match(cover, />Your cart is waiting\.</);
   assert.match(html, /height="809"/, '600 × 1.3483');
   assert.match(html, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/man-lake\.jpg"/);
-  assert.match(html, /\.ef-cover \{ height: calc\(\(100vw - 22px\) \* 1\.3483\) !important; \}/);
+  assert.match(html, /\.ef-cover, \.ef-cover-fill \{ height: calc\(\(100vw - 22px\) \* 1\.3483\) !important; \}/);
   // The vial strip closes the email, as in the mockup.
   assert.match(html, /man-lake-vial\.jpg/);
 });
@@ -566,6 +566,11 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   for (const text of ['Modern Wellness Starts with Knowledge', 'Supports Recovery', 'Builds a Stronger Tomorrow', 'Explore the Collection']) {
     assert.ok(two.includes(text), text);
   }
+  // The copy fills the photo so the button sits at its foot, centred and wide.
+  const twoHtml = renderFlowEmail(defaultStep(2), ctx()).html;
+  assert.match(twoHtml, /class="ef-cover-fill" style="height: 766px;"/);
+  assert.match(twoHtml, /class="ef-btn-wide"/);
+  assert.match(twoHtml, /\.ef-btn-wide \{ padding: 15px 30px !important; \}/, 'narrower on phones');
   // Welcome 3: headline over the photo, the badges and body below it.
   const threeHtml = renderFlowEmail(defaultStep(3), ctx()).html;
   const three = coverOf(threeHtml);
