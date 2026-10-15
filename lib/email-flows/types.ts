@@ -278,7 +278,7 @@ export const LINK_TAGS = ['{{cart_url}}', '{{checkout_url}}'] as const;
 // Input shaping — the admin form and the PUT routes share these.
 // ---------------------------------------------------------------------------
 
-type Shaped<T> = { ok: true; value: T } | { ok: false; error: string };
+export type Shaped<T> = { ok: true; value: T } | { ok: false; error: string };
 
 const str = (v: unknown, max = 2000) => String(v ?? '').trim().slice(0, max);
 

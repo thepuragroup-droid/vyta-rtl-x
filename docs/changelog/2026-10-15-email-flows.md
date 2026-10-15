@@ -248,6 +248,47 @@ dropper and support photos are 1200px (480px for the card).
 `public/images/email/cart/`): the Welcome 1 hero and card, the Welcome 2 and
 Cart 2 "We Show Our Work" cards, and the Welcome 3 card.
 
+## Test sends
+
+**Admin → Email Flows → Test send** sends any of the ten emails to one or
+more addresses. Only the addresses need filling in. Everything else starts
+at a default:
+
+| Detail | Default |
+|---|---|
+| Emails | The current flow's five. Any mix of both flows can be ticked. |
+| First name | Alex |
+| Discount code | Each email's own. A code chosen here replaces it on every email that offers one. |
+| Time zone | The flow's default. It sets the countdown's "Ends …" time. |
+| Sample cart | The first two catalogue products. Products, packs and quantities can be edited. |
+| Subject tag | `Test`, so subjects read `[Test · Cart 3] …`. Clear it to see the subject exactly as customers do. |
+
+How a test send works:
+
+- Each address gets its own copy. One request takes up to 10 addresses and
+  10 emails.
+- Emails are rendered from their **saved** settings, so save edits in the
+  Emails tab first. The *Send a test* box there still sends an unsaved draft
+  to one address.
+- Nothing is enrolled or tracked.
+- The cart buttons open the store's cart page. They don't restore the sample
+  cart.
+- An email the live flow would hold is skipped, and the results say why. That
+  happens when it has no code, or its code is off, expired or used up.
+- Sending is admin only. Each run is written to the audit log.
+
+The same thing from the command line, reading `.env.local` (Supabase
+service key and SMTP settings):
+
+```
+npx tsx scripts/email-flows-test-send.ts --to a@x.com,b@y.com
+npx tsx scripts/email-flows-test-send.ts --to qa@x.com --emails cart:3,welcome --name Sam --code VYTA20 --tz America/Vancouver
+npx tsx scripts/email-flows-test-send.ts --emails cart --out ./email-tests    # write HTML files, send nothing
+```
+
+Other options are `--cart productId:pack:qty,…`, `--tag ""` and `--site`.
+The full list is at the top of the script.
+
 ## Tests
 
 ```

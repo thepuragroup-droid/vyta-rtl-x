@@ -11,10 +11,11 @@ import OverviewTab from '@/components/admin/email-flows/OverviewTab';
 import PeopleTab from '@/components/admin/email-flows/PeopleTab';
 import EmailsTab from '@/components/admin/email-flows/EmailsTab';
 import SettingsTab from '@/components/admin/email-flows/SettingsTab';
+import TestTab from '@/components/admin/email-flows/TestTab';
 import { apiBase, fmtDateTime, primaryBtn, secondaryBtn, type FlowResponse } from '@/components/admin/email-flows/shared';
 import { FLOWS, FLOW_KEYS, isFlowKey, stepsMissingCode, type FlowKey } from '@/lib/email-flows/types';
 
-type Tab = 'overview' | 'people' | 'emails' | 'settings';
+type Tab = 'overview' | 'people' | 'emails' | 'test' | 'settings';
 
 const RANGES = [
   { days: 0, label: 'All time' },
@@ -118,6 +119,7 @@ export default function EmailFlowsPage() {
     { key: 'overview', label: 'Overview' },
     { key: 'people', label: meta.peopleLabel },
     { key: 'emails', label: 'Emails' },
+    { key: 'test', label: 'Test send' },
     { key: 'settings', label: 'Settings' },
   ];
 
@@ -255,6 +257,7 @@ export default function EmailFlowsPage() {
           {tab === 'emails' && (
             <EmailsTab key={flow} flow={flow} steps={data.steps} editable={editable} initialStep={emailStep} adminEmail={adminEmail} onSaved={load} />
           )}
+          {tab === 'test' && <TestTab key={flow} flow={flow} editable={editable} adminEmail={adminEmail} />}
           {tab === 'settings' && <SettingsTab key={flow} flow={flow} settings={settings} editable={editable} onSaved={load} />}
         </>
       ) : null}

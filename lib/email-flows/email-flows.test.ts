@@ -22,6 +22,7 @@ import {
   type TimingInput,
 } from './schedule';
 import { absoluteUrl, mergeTagProblems, mergeTags, renderFlowEmail, withUtm, type RenderContext } from './render';
+import { ALL_TEST_EMAILS, TEST_LIMITS, parseEmailRefs, parseRecipients, shapeTestSendInput, testSubject } from './test-send';
 import { ICONS, delayLabel, iconForLabel, isSafeLink, normalizeCode, normalizeHighlights, requiresCode, shapeSettingsInput, shapeStepInput, stepsMissingCode } from './types';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -567,4 +568,74 @@ test('shapeStepInput keeps the overlay settings and a sane ratio', () => {
   const odd = shapeStepInput('welcome', 2, { ...defaultStep(2), hero_text_tone: 'neon', hero_image_ratio: 99 });
   assert.equal(odd.ok && odd.value.hero_text_tone, 'dark');
   assert.equal(odd.ok && odd.value.hero_image_ratio, null);
+});
+
+// ---------------------------------------------------------------------------
+// Test sends
+// ---------------------------------------------------------------------------
+
+test('test recipients: split on commas, semicolons and new lines, lowercased and deduplicated', () => {
+  const r = parseRecipients('A@x.com, b@y.com;\nc@z.com a@X.com');
+  assert.deepEqual(r.emails, ['a@x.com', 'b@y.com', 'c@z.com']);
+  assert.deepEqual(r.invalid, []);
+  assert.deepEqual(parseRecipients(['a@x.com', 'nope']).invalid, ['nope']);
+});
+
+test('test emails: all ten by default, a flow name means its five, flow:step picks one', () => {
+  assert.equal(parseEmailRefs(undefined)?.length, 10);
+  assert.deepEqual(parseEmailRefs('cart')?.map((r) => r.step), [1, 2, 3, 4, 5]);
+  assert.deepEqual(parseEmailRefs('cart:3,welcome:1'), [{ flow: 'welcome', step: 1 }, { flow: 'cart', step: 3 }]);
+  assert.deepEqual(parseEmailRefs([{ flow: 'welcome', step: 4 }]), [{ flow: 'welcome', step: 4 }]);
+  assert.equal(parseEmailRefs('welcome:6'), null);
+  assert.equal(parseEmailRefs('promo'), null);
+});
+
+test('a test request needs only addresses; everything else has a default', () => {
+  const r = shapeTestSendInput({ recipients: 'qa@vyta.test' });
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.deepEqual(r.value.recipients, ['qa@vyta.test']);
+  assert.deepEqual(r.value.emails, ALL_TEST_EMAILS);
+  assert.equal(r.value.firstName, 'Alex');
+  assert.equal(r.value.code, null);
+  assert.equal(r.value.timezone, null);
+  assert.equal(r.value.cart, null);
+  assert.equal(r.value.subjectTag, 'Test');
+});
+
+test('a test request takes the details it is given', () => {
+  const r = shapeTestSendInput({
+    to: ['a@x.com', 'b@y.com'],
+    emails: 'cart:3',
+    firstName: '  Sam ',
+    code: ' vyta20 ',
+    timezone: 'America/Vancouver',
+    cart: [{ productId: '1b4e28ba-2fa1-11d2-883f-0016d3cca427', packSize: 3, quantity: 2 }],
+    subjectTag: '',
+  });
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.deepEqual(r.value.recipients, ['a@x.com', 'b@y.com']);
+  assert.equal(r.value.firstName, 'Sam');
+  assert.equal(r.value.code, 'VYTA20');
+  assert.equal(r.value.timezone, 'America/Vancouver');
+  assert.equal(r.value.cart?.length, 1);
+  assert.equal(r.value.subjectTag, '');
+});
+
+test('a test request refuses what it cannot send', () => {
+  assert.equal(shapeTestSendInput({}).ok, false);
+  assert.equal(shapeTestSendInput({ recipients: 'a@x.com, oops' }).ok, false);
+  const many = Array.from({ length: TEST_LIMITS.recipients + 1 }, (_, i) => `q${i}@x.com`);
+  assert.equal(shapeTestSendInput({ recipients: many }).ok, false);
+  assert.equal(shapeTestSendInput({ recipients: 'a@x.com', emails: 'nope:1' }).ok, false);
+  assert.equal(shapeTestSendInput({ recipients: 'a@x.com', timezone: 'Mars/Base' }).ok, false);
+  assert.equal(shapeTestSendInput({ recipients: 'a@x.com', cart: [{ productId: 'not-a-uuid', packSize: 1, quantity: 1 }] }).ok, false);
+});
+
+test('test subjects say which email they are, unless the tag is cleared', () => {
+  assert.equal(testSubject('Test', { flow: 'cart', step: 3 }, '20% off'), '[Test · Cart 3] 20% off');
+  assert.equal(testSubject('', { flow: 'welcome', step: 1 }, 'Welcome'), 'Welcome');
+  const r = shapeTestSendInput({ recipients: 'a@x.com', subjectTag: '[QA]\n' });
+  assert.equal(r.ok && r.value.subjectTag, 'QA');
 });
