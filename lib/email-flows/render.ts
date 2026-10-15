@@ -21,6 +21,8 @@ import {
   CART_ONLY_TAGS,
   FLOWS,
   MERGE_TAGS,
+  MISSING_CODE_MESSAGE,
+  requiresCode,
   type CartLineView,
   type FlowSettings,
   type FlowStep,
@@ -132,7 +134,9 @@ export function mergeTagProblems(step: FlowStep): string[] {
     step.cta_label, step.cta_url, step.card_title, step.card_body, step.card_link_url, step.cart_title,
     step.cart_body, step.fine_print, ...step.highlights].join('\n');
   const problems: string[] = [];
-  if (!step.promo_code && /\{\{\s*(code|discount)\s*\}\}/.test(fields)) {
+  if (!step.promo_code && step.enabled && requiresCode(step.flow, step.step)) {
+    problems.push(`${MISSING_CODE_MESSAGE} Until you do, this email is on hold.`);
+  } else if (!step.promo_code && /\{\{\s*(code|discount)\s*\}\}/.test(fields)) {
     problems.push('The copy uses {{code}} or {{discount}} but this email has no discount code — they would print blank.');
   }
   if (!step.deadline_hours && /\{\{\s*offer_ends\s*\}\}/.test(fields)) {

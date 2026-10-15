@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ArrowRight, Clock, Mail, Repeat, ShoppingCart, Tag, Users } from 'lucide-react';
-import { FLOWS, type FlowKey, type FlowOverview, type FlowSettings } from '@/lib/email-flows/types';
+import { FLOWS, requiresCode, type FlowKey, type FlowOverview, type FlowSettings } from '@/lib/email-flows/types';
 import { fmtMoney, Panel, pct, stepTitle, whenLabel, type AdminStep } from './shared';
 
 const hourLabel = (h: number) => {
@@ -50,7 +50,8 @@ export default function OverviewTab({ flow, overview, steps, settings, onOpenEma
         <ol className="grid gap-3 md:grid-cols-5">
           {steps.map((step, i) => {
             const st = stats.get(step.step);
-            const held = step.enabled && step.code && !step.code.usable;
+            const noCode = step.enabled && !step.promo_code && requiresCode(flow, step.step);
+            const held = noCode || (step.enabled && step.code && !step.code.usable);
             return (
               <li key={step.step} className="relative">
                 <button
@@ -72,6 +73,11 @@ export default function OverviewTab({ flow, overview, steps, settings, onOpenEma
                       <Tag className="h-3 w-3" /> {step.promo_code}
                       {step.code?.label ? ` · ${step.code.label}` : ''}
                       {held ? ' · on hold' : ''}
+                    </span>
+                  )}
+                  {noCode && (
+                    <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+                      <Tag className="h-3 w-3" /> Choose a code · on hold
                     </span>
                   )}
                   {!step.enabled && <span className="mt-2 text-[11px] font-medium text-ink-muted">Switched off — skipped</span>}

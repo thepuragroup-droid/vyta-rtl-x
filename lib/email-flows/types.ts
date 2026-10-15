@@ -43,7 +43,7 @@ export interface FlowMeta {
   /** What a row in the people table is. */
   peopleLabel: string;
   description: string;
-  steps: Record<StepNumber, { layout: StepLayout; label: string; theme: string }>;
+  steps: Record<StepNumber, { layout: StepLayout; label: string; theme: string; requiresCode?: boolean }>;
 }
 
 export const FLOWS: Record<FlowKey, FlowMeta> = {
@@ -57,11 +57,11 @@ export const FLOWS: Record<FlowKey, FlowMeta> = {
     description:
       'Five emails that turn new subscribers into first-time customers — welcome, education, trust, offer and a last reminder.',
     steps: {
-      1: { layout: 'welcome', label: 'Welcome', theme: 'Introduce the brand and the first-order code' },
+      1: { layout: 'welcome', label: 'Welcome', theme: 'Introduce the brand and the first-order code', requiresCode: true },
       2: { layout: 'education', label: 'Education', theme: 'The science and research behind the range' },
       3: { layout: 'trust', label: 'Trust', theme: 'Testing, transparency and quality' },
-      4: { layout: 'offer', label: 'Offer', theme: 'The subscriber discount' },
-      5: { layout: 'reminder', label: 'Reminder', theme: 'Last call, with a deadline' },
+      4: { layout: 'offer', label: 'Offer', theme: 'The subscriber discount', requiresCode: true },
+      5: { layout: 'reminder', label: 'Reminder', theme: 'Last call, with a deadline', requiresCode: true },
     },
   },
   cart: {
@@ -76,7 +76,7 @@ export const FLOWS: Record<FlowKey, FlowMeta> = {
     steps: {
       1: { layout: 'cart_reminder', label: 'Reminder', theme: 'Your cart is waiting' },
       2: { layout: 'cart_educate', label: 'Educate', theme: 'Why VYTA — research, quality, peace of mind' },
-      3: { layout: 'cart_offer', label: 'Offer', theme: 'A time-limited discount on the cart' },
+      3: { layout: 'cart_offer', label: 'Offer', theme: 'A time-limited discount on the cart', requiresCode: true },
       4: { layout: 'cart_questions', label: 'Address objections', theme: 'Answers and real support' },
       5: { layout: 'cart_last_chance', label: 'Last chance', theme: 'Final reminder, with a countdown' },
     },
@@ -156,6 +156,22 @@ export interface FlowStep {
   updated_by_email?: string | null;
   updated_at?: string | null;
 }
+
+/**
+ * Offer emails carry a discount, and no code is ever assumed: an admin must
+ * choose one from Discount Codes before the email can be saved (while it is
+ * switched on), before its flow can be switched on, and before it will send.
+ */
+export function requiresCode(flow: FlowKey, step: StepNumber): boolean {
+  return FLOWS[flow].steps[step].requiresCode === true;
+}
+
+/** "Email 1, Email 4" — the switched-on offer emails still waiting for a code. */
+export function stepsMissingCode(steps: Pick<FlowStep, 'flow' | 'step' | 'enabled' | 'promo_code'>[]): number[] {
+  return steps.filter((s) => s.enabled && requiresCode(s.flow, s.step) && !s.promo_code).map((s) => s.step);
+}
+
+export const MISSING_CODE_MESSAGE = 'Choose the discount code this email offers.';
 
 // ---------------------------------------------------------------------------
 // Merge tags
@@ -242,7 +258,13 @@ export function normalizeCode(raw: unknown): string {
 
 export type StepInput = Omit<FlowStep, 'updated_by_email' | 'updated_at'>;
 
-export function shapeStepInput(flow: FlowKey, step: StepNumber, raw: Record<string, unknown>): Shaped<StepInput> {
+export function shapeStepInput(
+  flow: FlowKey,
+  step: StepNumber,
+  raw: Record<string, unknown>,
+  /** Off for the live preview, which shows the missing code as a warning instead. */
+  opts: { requireCode?: boolean } = {},
+): Shaped<StepInput> {
   const delay = intIn(raw.delay_hours, 0, 2160);
   if (delay == null) return { ok: false, error: 'Delay must be a whole number of hours, up to 90 days.' };
 
@@ -271,13 +293,17 @@ export function shapeStepInput(flow: FlowKey, step: StepNumber, raw: Record<stri
     .slice(0, 6);
 
   const code = normalizeCode(raw.promo_code);
+  const enabled = raw.enabled !== false;
+  if (opts.requireCode !== false && enabled && requiresCode(flow, step) && !code) {
+    return { ok: false, error: `${MISSING_CODE_MESSAGE} It's an offer email, so it needs one — pick it from Discount Codes, or switch this email off.` };
+  }
 
   return {
     ok: true,
     value: {
       flow,
       step,
-      enabled: raw.enabled !== false,
+      enabled,
       delay_hours: delay,
       deadline_hours: deadline,
       show_cart: flow === 'cart' && raw.show_cart === true,

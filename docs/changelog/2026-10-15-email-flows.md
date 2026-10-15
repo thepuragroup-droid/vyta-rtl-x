@@ -8,24 +8,24 @@ flow. Each flow has its own Overview, people list, Emails editor and Settings.
 
 ### Welcome flow — new subscribers → first purchase
 
-| # | Email | When | Code |
+| # | Email | When | Discount code |
 |---|---|---|---|
-| 1 | Welcome | Immediately after signup | `WELCOME10` |
+| 1 | Welcome | Immediately after signup | **required** — you choose |
 | 2 | Education | Day 2, if no purchase | — |
 | 3 | Trust | Day 4, if no purchase | — |
-| 4 | Offer — "20% OFF your order today" | Day 6, if no purchase | `VYTA20` |
-| 5 | Reminder + 24h countdown | Day 9, if no purchase | `VYTA20` |
+| 4 | Offer — "{{discount}} OFF your order today" | Day 6, if no purchase | **required** — you choose |
+| 5 | Reminder + 24h countdown | Day 9, if no purchase | **required** — you choose |
 
 **Who enters:** new customer accounts that ticked the marketing-consent box,
 created after the flow was switched on.
 
 ### Cart abandonment — left carts → completed orders
 
-| # | Email | When | Code |
+| # | Email | When | Discount code |
 |---|---|---|---|
 | 1 | Reminder — "Still thinking about it?" + the cart | 1 hour after the cart was left | — |
 | 2 | Educate — testing, COAs, sourcing + the cart | 24 hours, if no purchase | — |
-| 3 | Offer — "20% OFF, your cart is waiting", valid 48h | 48 hours, if no purchase | `VYTA20` |
+| 3 | Offer — "{{discount}} OFF, your cart is waiting", valid 48h | 48 hours, if no purchase | **required** — you choose |
 | 4 | Address objections — FAQ topics, real support + the cart | 72 hours, if no purchase | — |
 | 5 | Last chance — red banner, 24h countdown + the cart | 5 days, if no purchase | — |
 
@@ -74,10 +74,18 @@ empties it leaves the flow.
   headers. Unsubscribing stops every flow, suppresses the address for good
   (guests included) and clears `contact_consent` on the account. An admin
   cannot resume someone who unsubscribed.
-- **Codes are the source of truth:** `{{discount}}` prints the code's real
-  value from Discount Codes at send time. An email whose code is missing, off
-  or expired is **held**, with a warning on the page, rather than sent with a
-  code checkout would refuse.
+- **No code is ever assumed.** Offer emails (welcome 1, 4, 5; cart 3) ship
+  with no code: you pick each one from Discount Codes in the Emails tab, using
+  a dropdown of your real codes, never free text. Until you do:
+  - the email can't be saved or test-sent while it's switched on;
+  - its flow can't be switched on;
+  - the email is held, never sent with an empty offer.
+
+  Switch an offer email off if you don't want a discount in it.
+- **Codes are the source of truth:** `{{discount}}` prints the chosen code's
+  real value from Discount Codes at send time. An email whose code is switched
+  off, expired or used up is **held**, with a warning on the page, rather than
+  sent with a code checkout would refuse.
 
 ## Setup
 
@@ -88,8 +96,9 @@ empties it leaves the flow.
    every 15 minutes, reusing the `app_base_url` / `cron_secret` Vault secrets.
 3. Optional: set `EMAIL_FLOWS_SECRET` (signs the unsubscribe/tracking links).
    It falls back to `CRON_SECRET`.
-4. In **Discount Codes**, create `WELCOME10` (10%, first order only). `VYTA20`
-   already exists.
+4. In **Discount Codes**, create the codes you want to offer. Then, in **Email
+   Flows → Emails**, choose one for each offer email (welcome 1, 4, 5; cart 3).
+   Neither flow can be switched on until you do.
 5. In **Email Flows → Settings**, add the mailing address for the footer
    (CASL). It is shared by both flows.
 6. Send yourself a test of every email, then **Switch on** each flow.
@@ -188,12 +197,14 @@ its size. Swap them by uploading in the editor, or by replacing the files.
 npx tsx --test lib/email-flows/email-flows.test.ts
 ```
 
-There are 29 cases.
+There are 30 cases.
 
 - **Scheduling:** time zones, the send window, step order and retries, the
   minimum gap.
 - **Content:** merge tags (cart links refused in the welcome flow, deadlines
   required for `{{offer_ends}}`), escaping and link safety, the countdown.
+- **Codes:** none pre-filled; offer emails refuse to save without one (unless
+  switched off), while the preview still renders the draft.
 - **Carts:** sanitising lines from the browser, today's price and stock on
   restore, dropped products, restore links that carry the code only for
   checkout.

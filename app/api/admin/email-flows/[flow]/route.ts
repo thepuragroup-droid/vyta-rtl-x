@@ -5,7 +5,7 @@ import { resolveStaffCaller } from '@/lib/affiliate/route-auth';
 import { checkCodes, loadConfig, MIGRATION_FILE } from '@/lib/email-flows/engine';
 import { computeOverview } from '@/lib/email-flows/stats';
 import { mergeTagProblems } from '@/lib/email-flows/render';
-import { FLOW_KEYS, isFlowKey, normalizeCode, shapeSettingsInput, STEP_NUMBERS } from '@/lib/email-flows/types';
+import { FLOW_KEYS, isFlowKey, normalizeCode, shapeSettingsInput, STEP_NUMBERS, stepsMissingCode } from '@/lib/email-flows/types';
 
 const db = getSupabase();
 type Ctx = { params: Promise<{ flow: string }> };
@@ -80,6 +80,21 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
 
   const { data: current } = await db.from('email_flow_settings').select('enabled').eq('flow', flow).maybeSingle();
   const turningOn = shaped.value.enabled && !current?.enabled;
+
+  // No offer email goes out with a code nobody chose: the flow can't be
+  // switched on until every switched-on offer email has one.
+  if (shaped.value.enabled) {
+    const loaded = await loadConfig(db, flow);
+    if (!loaded.ok) return NextResponse.json({ error: loaded.error }, { status: 500 });
+    const missing = stepsMissingCode(STEP_NUMBERS.map((n) => loaded.config.steps[n]));
+    if (missing.length) {
+      const list = missing.map((n) => `Email ${n}`).join(', ');
+      return NextResponse.json(
+        { error: `Choose a discount code for ${list} first (Emails tab) — ${missing.length === 1 ? 'it is an offer email' : 'they are offer emails'}.` },
+        { status: 400 },
+      );
+    }
+  }
   const stamp = new Date().toISOString();
 
   const { data, error } = await db

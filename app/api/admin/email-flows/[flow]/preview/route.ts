@@ -47,7 +47,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ flo
   const { flow } = await params;
   const n = Number(body?.draft?.step);
   if (!isFlowKey(flow) || !isStepNumber(n)) return NextResponse.json({ error: 'Unknown email' }, { status: 400 });
-  const shaped = shapeStepInput(flow, n, body.draft ?? {});
+  // A draft still waiting for its code previews fine — the missing code comes
+  // back as a problem — but a test send needs the real thing.
+  const shaped = shapeStepInput(flow, n, body.draft ?? {}, { requireCode: sending });
   if (!shaped.ok) return NextResponse.json({ error: shaped.error }, { status: 400 });
   const step = shaped.value;
 

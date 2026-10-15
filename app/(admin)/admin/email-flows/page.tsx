@@ -12,7 +12,7 @@ import PeopleTab from '@/components/admin/email-flows/PeopleTab';
 import EmailsTab from '@/components/admin/email-flows/EmailsTab';
 import SettingsTab from '@/components/admin/email-flows/SettingsTab';
 import { apiBase, fmtDateTime, primaryBtn, secondaryBtn, type FlowResponse } from '@/components/admin/email-flows/shared';
-import { FLOWS, FLOW_KEYS, isFlowKey, type FlowKey } from '@/lib/email-flows/types';
+import { FLOWS, FLOW_KEYS, isFlowKey, stepsMissingCode, type FlowKey } from '@/lib/email-flows/types';
 
 type Tab = 'overview' | 'people' | 'emails' | 'settings';
 
@@ -80,6 +80,9 @@ export default function EmailFlowsPage() {
 
   const settings = data?.settings;
   const meta = FLOWS[flow];
+  // Offer emails with no code chosen keep the flow from being switched on.
+  const missingCodes = data?.steps ? stepsMissingCode(data.steps) : [];
+  const blockedOn = !!settings && !settings.enabled && missingCodes.length > 0;
 
   const toggle = async () => {
     if (!settings) return;
@@ -182,7 +185,13 @@ export default function EmailFlowsPage() {
               <button type="button" onClick={runNow} disabled={!!busy || !settings.enabled} className={secondaryBtn} title="Send whatever is due now instead of waiting for the next 15-minute run">
                 {busy === 'run' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />} Run now
               </button>
-              <button type="button" onClick={toggle} disabled={!!busy} className={settings.enabled ? secondaryBtn : primaryBtn}>
+              <button
+                type="button"
+                onClick={toggle}
+                disabled={!!busy || blockedOn}
+                title={blockedOn ? `Choose a discount code for ${missingCodes.map((n) => `Email ${n}`).join(', ')} first (Emails tab)` : undefined}
+                className={settings.enabled ? secondaryBtn : primaryBtn}
+              >
                 {busy === 'toggle' && <Loader2 className="h-4 w-4 animate-spin" />}
                 {settings.enabled ? 'Switch off' : 'Switch on'}
               </button>

@@ -3,6 +3,9 @@
  * flows. The first load of /admin/email-flows seeds `email_flow_steps` from
  * here, so the copy is stated once.
  *
+ * No discount code is pre-filled: the offer emails (types.ts `requiresCode`)
+ * stay on hold until an admin chooses one from Discount Codes.
+ *
  * Merge tags: {{first_name}}, {{code}}, {{discount}} (the code's real value,
  * e.g. "20%"), {{offer_ends}} (the step's per-recipient deadline), and — cart
  * flow only — {{cart_url}} (restores their cart) and {{checkout_url}} (restores
@@ -108,7 +111,6 @@ const WELCOME: FlowStep[] = [
     card_title: 'Enjoy {{discount}} Off Your First Order',
     card_body: 'Use code {{code}} at checkout.',
     card_image_url: P.welcomeCard,
-    promo_code: 'WELCOME10',
   },
   {
     ...blank('welcome', 2),
@@ -156,7 +158,6 @@ const WELCOME: FlowStep[] = [
     cta_label: 'Shop Now',
     cta_url: '/products',
     hero_image_url: P.offerHero,
-    promo_code: 'VYTA20',
     fine_print: 'Limited time offer. Valid for new customers only.',
   },
   {
@@ -171,7 +172,6 @@ const WELCOME: FlowStep[] = [
     cta_label: 'Claim {{discount}} Off',
     cta_url: '/products',
     hero_image_url: P.reminderHero,
-    promo_code: 'VYTA20',
   },
 ];
 
@@ -226,7 +226,6 @@ const CART: FlowStep[] = [
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
     hero_image_url: P.cartOfferHero,
-    promo_code: 'VYTA20',
     fine_print: 'Offer valid until {{offer_ends}}. Limited time only.',
   },
   {

@@ -22,7 +22,7 @@ import {
   type TimingInput,
 } from './schedule';
 import { absoluteUrl, mergeTagProblems, mergeTags, renderFlowEmail, withUtm, type RenderContext } from './render';
-import { delayLabel, isSafeLink, normalizeCode, shapeSettingsInput, shapeStepInput } from './types';
+import { delayLabel, isSafeLink, normalizeCode, requiresCode, shapeSettingsInput, shapeStepInput, stepsMissingCode } from './types';
 import { DEFAULT_STEPS, defaultStep as dflt, shapeStepRow as shapeRow } from './defaults';
 import { cartLineViews, cartSignature, linesFromCheckout, restoreCartLines, restoreUrls, sanitizeCartLines } from './carts';
 import { clickUrl, idToken, readClick, readIdToken } from './tokens';
@@ -163,10 +163,40 @@ test('mergeTagProblems: a code-dependent email with no code is flagged', () => {
   assert.match(mergeTagProblems({ ...defaultStep(2), cta_url: '{{cart_url}}' })[0], /cart abandonment flow/);
 });
 
-test('every default email of both flows is clean', () => {
+test('every default email of both flows is clean, except the code nobody has chosen yet', () => {
   for (const flow of ['welcome', 'cart'] as const) {
-    for (const step of DEFAULT_STEPS[flow]) assert.deepEqual(mergeTagProblems(step), [], `${flow} email ${step.step}`);
+    for (const step of DEFAULT_STEPS[flow]) {
+      const problems = mergeTagProblems(step);
+      if (requiresCode(flow, step.step)) {
+        assert.equal(problems.length, 1, `${flow} email ${step.step}`);
+        assert.match(problems[0], /Choose the discount code/);
+        assert.deepEqual(mergeTagProblems({ ...step, promo_code: 'VYTA20' }), [], `${flow} email ${step.step} with a code`);
+      } else {
+        assert.deepEqual(problems, [], `${flow} email ${step.step}`);
+      }
+    }
   }
+});
+
+test('no discount code is ever pre-filled; offer emails must be given one', () => {
+  for (const flow of ['welcome', 'cart'] as const) {
+    for (const step of DEFAULT_STEPS[flow]) assert.equal(step.promo_code, null, `${flow} email ${step.step}`);
+  }
+  assert.deepEqual(stepsMissingCode(DEFAULT_STEPS.welcome), [1, 4, 5]);
+  assert.deepEqual(stepsMissingCode(DEFAULT_STEPS.cart), [3]);
+  // A switched-off offer email needs nothing.
+  assert.deepEqual(stepsMissingCode([{ ...dflt('cart', 3), enabled: false }]), []);
+
+  const offer = dflt('welcome', 4);
+  const refused = shapeStepInput('welcome', 4, { ...offer });
+  assert.equal(refused.ok, false);
+  assert.match(!refused.ok ? refused.error : '', /Choose the discount code/);
+  assert.equal(shapeStepInput('welcome', 4, { ...offer, promo_code: 'vyta20' }).ok, true);
+  assert.equal(shapeStepInput('welcome', 4, { ...offer, enabled: false }).ok, true);
+  // The preview still renders a draft that has no code yet.
+  assert.equal(shapeStepInput('welcome', 4, { ...offer }, { requireCode: false }).ok, true);
+  // Emails that aren't offers don't need one.
+  assert.equal(shapeStepInput('welcome', 2, { ...dflt('welcome', 2) }).ok, true);
 });
 
 test('every default email renders, with the offer stated from the code', () => {
@@ -236,10 +266,10 @@ test('shapeSettingsInput: rejects a bad zone, an empty window, out-of-range hour
 });
 
 test('shapeStepInput: needs a subject, safe links, normalises the code and highlights', () => {
-  const ok = shapeStepInput('welcome', 1, { ...defaultStep(1), promo_code: ' welcome-10 ', highlights: 'A\n\nB\n' });
+  const ok = shapeStepInput('welcome', 1, { ...defaultStep(1), promo_code: ' first-order-10 ', highlights: 'A\n\nB\n' });
   assert.equal(ok.ok, true);
   if (ok.ok) {
-    assert.equal(ok.value.promo_code, 'WELCOME10');
+    assert.equal(ok.value.promo_code, 'FIRSTORDER10');
     assert.deepEqual(ok.value.highlights, ['A', 'B']);
   }
   assert.equal(shapeStepInput('welcome', 1, { ...defaultStep(1), subject: ' ' }).ok, false);

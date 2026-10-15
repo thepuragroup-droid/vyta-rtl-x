@@ -5,7 +5,8 @@ import { AlertTriangle, CheckCircle2, ImageUp, Loader2, RotateCcw, Save, Send } 
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
 import { adminFetch } from '@/components/admin/affiliates/api';
-import { FLOWS, type FlowKey, type FlowStep, type StepLayout } from '@/lib/email-flows/types';
+import Link from 'next/link';
+import { FLOWS, requiresCode, type FlowKey, type FlowStep, type StepLayout } from '@/lib/email-flows/types';
 import { defaultStep } from '@/lib/email-flows/defaults';
 import { apiBase, inputCls, labelCls, Panel, primaryBtn, secondaryBtn, stepTitle, whenLabel, type AdminStep } from './shared';
 
@@ -50,6 +51,73 @@ const LABELS: Partial<Record<Field, { label: string; hint?: string; multiline?: 
 };
 
 const IMAGE_FIELDS: Field[] = ['hero_image_url', 'card_image_url'];
+
+interface CodeOption {
+  code: string;
+  discount_type: 'percent' | 'fixed';
+  discount_value: number;
+  active: boolean;
+  starts_at: string | null;
+  expires_at: string | null;
+  first_order_only?: boolean;
+}
+
+function describeCode(c: CodeOption): string {
+  const value = c.discount_type === 'fixed' ? `$${Number(c.discount_value)}` : `${Number(c.discount_value)}%`;
+  const now = Date.now();
+  const flags = [
+    c.first_order_only ? 'first order only' : '',
+    !c.active ? 'switched off' : '',
+    c.expires_at && Date.parse(c.expires_at) <= now ? 'expired' : '',
+    c.starts_at && Date.parse(c.starts_at) > now ? 'not started' : '',
+  ].filter(Boolean);
+  return `${c.code} · ${value} off${flags.length ? ` · ${flags.join(', ')}` : ''}`;
+}
+
+/**
+ * The code an email offers, picked from Discount Codes — never typed, never
+ * assumed. Offer emails must have one; the rest may.
+ */
+function CodePicker({ value, onChange, required, disabled }: {
+  value: string | null;
+  onChange: (v: string | null) => void;
+  required: boolean;
+  disabled: boolean;
+}) {
+  const [codes, setCodes] = useState<CodeOption[] | null>(null);
+  useEffect(() => {
+    adminFetch<{ codes?: CodeOption[] }>('/api/admin/discount-codes').then((res) => setCodes(res.ok ? res.data.codes ?? [] : []));
+  }, []);
+  const known = codes?.some((c) => c.code === value);
+  const missing = required && !value;
+  return (
+    <div>
+      <label className={labelCls}>
+        Discount code {required && <span className="text-red-600">*</span>}
+        <span className="font-normal text-ink-muted">
+          {required ? ' — required: this is an offer email' : ' — optional'}
+        </span>
+      </label>
+      <select
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value || null)}
+        disabled={disabled || codes === null}
+        className={`${inputCls} font-mono ${missing ? 'border-amber-400 ring-1 ring-amber-300' : ''}`}
+      >
+        <option value="" disabled={required}>{codes === null ? 'Loading codes…' : required ? 'Choose a code…' : 'None'}</option>
+        {value && codes && !known && <option value={value}>{value} · not found in Discount Codes</option>}
+        {(codes ?? []).map((c) => (
+          <option key={c.code} value={c.code}>{describeCode(c)}</option>
+        ))}
+      </select>
+      <p className="mt-1 text-[11px] text-ink-muted">
+        {missing ? 'This email is on hold until a code is chosen. ' : ''}
+        {'{{discount}}'} prints the code's real value, so the copy can't promise more than it gives.{' '}
+        <Link href="/admin/discount-codes" className="font-medium text-teal-dark hover:underline">Manage discount codes</Link>
+      </p>
+    </div>
+  );
+}
 
 function ImageField({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled: boolean }) {
   const toast = useToast();
@@ -131,6 +199,7 @@ export default function EmailsTab({ flow, steps, editable, initialStep, adminEma
 
   const layout = FLOWS[flow].steps[draft.step].layout;
   const inDays = FLOWS[flow].delayUnit === 'days';
+  const codeMissing = draft.enabled && requiresCode(flow, draft.step) && !draft.promo_code;
   const dirty = useMemo(() => JSON.stringify(stripMeta(draft)) !== JSON.stringify(stripMeta(saved)), [draft, saved]);
 
   // Live preview: rendered on the server by the function that sends, debounced.
@@ -180,7 +249,8 @@ export default function EmailsTab({ flow, steps, editable, initialStep, adminEma
   const resetToDefault = () => {
     if (!confirm('Replace this email’s content with the original design copy? Nothing is saved until you click Save.')) return;
     const d = defaultStep(flow, draft.step);
-    setDraft({ ...d, delay_hours: draft.delay_hours, enabled: draft.enabled });
+    // Defaults carry no code — keep the one already chosen.
+    setDraft({ ...d, delay_hours: draft.delay_hours, enabled: draft.enabled, promo_code: draft.promo_code });
   };
 
   return (
@@ -213,7 +283,13 @@ export default function EmailsTab({ flow, steps, editable, initialStep, adminEma
                 <button type="button" onClick={resetToDefault} className={secondaryBtn} title="Restore the original copy">
                   <RotateCcw className="h-4 w-4" />
                 </button>
-                <button type="button" onClick={save} disabled={!dirty || saving} className={primaryBtn}>
+                <button
+                  type="button"
+                  onClick={save}
+                  disabled={!dirty || saving || codeMissing}
+                  title={codeMissing ? 'Choose the discount code this email offers first' : undefined}
+                  className={primaryBtn}
+                >
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
                 </button>
               </div>
@@ -295,18 +371,12 @@ export default function EmailsTab({ flow, steps, editable, initialStep, adminEma
               </div>
             )}
 
-            <div>
-              <label className={labelCls}>Discount code</label>
-              <input
-                value={draft.promo_code ?? ''}
-                onChange={(e) => set('promo_code', e.target.value.toUpperCase() || null)}
-                className={`${inputCls} font-mono uppercase`}
-                placeholder="None"
-              />
-              <p className="mt-1 text-[11px] text-ink-muted">
-                Must exist in Discount Codes. {'{{discount}}'} prints its real value, so the copy can't promise more than the code gives.
-              </p>
-            </div>
+            <CodePicker
+              value={draft.promo_code}
+              onChange={(v) => set('promo_code', v)}
+              required={draft.enabled && requiresCode(flow, draft.step)}
+              disabled={!editable}
+            />
 
             {LAYOUT_FIELDS[layout].map((field) => {
               const meta = { ...(LABELS[field] ?? { label: field }), ...(CART_LABELS[layout]?.[field] ?? {}) } as { label: string; hint?: string; multiline?: boolean };
@@ -378,7 +448,13 @@ export default function EmailsTab({ flow, steps, editable, initialStep, adminEma
             <Panel title="Send a test" description="Sends this draft (saved or not), marked [Test]. Links are untracked.">
               <div className="flex gap-2">
                 <input type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} className={inputCls} placeholder="you@example.com" />
-                <button type="button" onClick={sendTest} disabled={testing || !testTo} className={primaryBtn}>
+                <button
+                  type="button"
+                  onClick={sendTest}
+                  disabled={testing || !testTo || codeMissing}
+                  title={codeMissing ? 'Choose the discount code this email offers first' : undefined}
+                  className={primaryBtn}
+                >
                   {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send
                 </button>
               </div>

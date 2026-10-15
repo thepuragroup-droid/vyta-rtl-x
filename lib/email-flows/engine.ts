@@ -37,6 +37,7 @@ import {
   MAX_SEND_ATTEMPTS,
   STEP_NUMBERS,
   normalizeCode,
+  requiresCode,
   type CodeCheck,
   type ConsentBasis,
   type EntryStatus,
@@ -981,10 +982,12 @@ async function processEntry(rc: RunContext, entry: EntryRecord, account: Account
   );
   if (!decision.send) return;
 
-  // A step built around a code waits while that code is unusable, rather than
-  // going out saying "Use code VYTA20" for a code checkout will refuse.
+  // An offer email waits until an admin has chosen its code, and any step
+  // with a code waits while that code is unusable — rather than going out
+  // saying "Use code X" for a code checkout will refuse, or with no offer.
   const code = config.steps[step].promo_code;
-  if (code && !rc.codes.get(normalizeCode(code))?.usable) {
+  const noCode = !code && requiresCode(config.flow, step);
+  if (noCode || (code && !rc.codes.get(normalizeCode(code))?.usable)) {
     rc.result.heldForCode[step] = (rc.result.heldForCode[step] ?? 0) + 1;
     return;
   }
