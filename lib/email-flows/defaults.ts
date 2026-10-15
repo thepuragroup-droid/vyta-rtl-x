@@ -61,7 +61,7 @@ export const PLACEHOLDER_IMAGES = {
 export const PHOTOS = {
   manByLake: { url: '/images/email/photos/man-lake.jpg', ratio: 1.3483 },
   manByLakeVial: { url: '/images/email/photos/man-lake-vial.jpg', ratio: 0.545 },
-  womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.345 },
+  womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.3117 },
   vialsMountains: { url: '/images/email/photos/vials-mountains.jpg', ratio: 1.0367 },
   labVial: { url: '/images/email/photos/lab-vial.jpg', ratio: 0.9383 },
   threeVials: { url: '/images/email/photos/three-vials.jpg', ratio: 0.7508 },

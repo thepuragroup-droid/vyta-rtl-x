@@ -215,7 +215,7 @@ stretched cover:
 |---|---|---|
 | `man-lake` (man by the lake) | 1.35 | Cart 1 hero, headline over the sky |
 | `man-lake-vial` (vial in hand) | 0.55 | Cart 1 image above the button |
-| `woman-lake` (woman by the lake) | 1.35 | Welcome 2 and Cart 2 hero, headline over the sky |
+| `woman-lake` (woman by the lake) | 1.31 | Welcome 2 and Cart 2 hero, headline over the sky |
 | `dropper` (dropper over a vial) | 1.06 | Welcome 3 and Cart 4, under the headline |
 | `three-vials` (vials on rock, mountains) | 0.75 | Welcome 4 and Cart 3, under the offer |
 | `vials-mountains` (two vials, mountains) | 1.04 | Welcome 5, under the countdown |
