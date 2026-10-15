@@ -201,6 +201,8 @@ interface Kit {
   bannerWash?: string;
   /** Set by button: a wide button, narrowed on phones so its label stays on one line. */
   wideButton?: boolean;
+  /** Extra phone-width rules a layout adds — e.g. desktop-sized type set back for phones. */
+  phoneRules?: string[];
   m: (s: string) => string;
   href: (url: string) => string | null;
   img: (url: string) => string | null;
@@ -218,7 +220,7 @@ function paragraphs(text: string, color: string = T.body, align = 'left'): strin
     .join('');
 }
 
-function button(k: Kit, label: string, url: string, opts: { light?: boolean; urgent?: boolean; align?: 'left' | 'center'; wide?: boolean } = {}): string {
+function button(k: Kit, label: string, url: string, opts: { light?: boolean; urgent?: boolean; align?: 'left' | 'center'; wide?: boolean; large?: boolean } = {}): string {
   const href = k.href(url);
   const text = k.m(label);
   if (!href || !text) return '';
@@ -229,7 +231,7 @@ function button(k: Kit, label: string, url: string, opts: { light?: boolean; urg
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="${opts.align ?? 'center'}" style="margin: ${opts.align === 'left' ? '6px 0 4px' : '6px auto 4px'};">
       <tr>
         <td align="center" bgcolor="${bg}" style="border-radius: 8px; background: ${bg};">
-          <a href="${escapeHtml(href)}"${opts.wide ? ' class="ef-btn-wide"' : ''} style="display: inline-block; padding: ${opts.wide ? '15px 64px' : '14px 34px'}; font-family: ${T.font}; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: ${fg}; text-decoration: none; border-radius: 8px;">${escapeHtml(text)} &nbsp;&rarr;</a>
+          <a href="${escapeHtml(href)}"${opts.wide ? ' class="ef-btn-wide"' : ''} style="display: inline-block; padding: ${opts.large ? '19px 76px' : opts.wide ? '15px 64px' : '14px 34px'}; font-family: ${T.font}; font-size: ${opts.large ? '14px' : '12px'}; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: ${fg}; text-decoration: none; border-radius: 8px;">${escapeHtml(text)} &nbsp;&rarr;</a>
         </td>
       </tr>
     </table>`;
@@ -265,25 +267,28 @@ function badges(k: Kit, items: Highlight[], dark = false): string {
 }
 
 /** Vertical benefit list — each icon in a hairline circle, as in the designs. */
-function checklist(k: Kit, items: Highlight[], opts: { width?: number } = {}): string {
+function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: boolean } = {}): string {
   const list = items.map((h) => ({ ...h, label: k.m(h.label) })).filter((h) => h.label);
   if (!list.length) return '';
+  const ring = opts.large ? 50 : 38;
+  const glyph = opts.large ? 26 : 20;
+  const cls = (name: string) => (opts.large ? ` class="${name}"` : '');
   // A set width makes longer labels wrap onto two lines, as in the cover designs.
   const width = opts.width ? ` width="${opts.width}"` : '';
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0"${width} style="margin: 0 0 8px;${opts.width ? ` width: ${opts.width}px; max-width: 100%;` : ''}">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"${width}${cls('ef-check')} style="margin: 0 0 8px;${opts.width ? ` width: ${opts.width}px; max-width: 100%;` : ''}">
       ${list
         .map(
           (h) => `
         <tr>
-          <td valign="middle" style="padding: 6px 14px 6px 0;">
+          <td valign="middle" style="padding: ${opts.large ? '8px 18px 8px 0' : '6px 14px 6px 0'};">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: separate;">
-              <tr><td align="center" valign="middle" width="38" height="38" style="width: 38px; height: 38px; border: 1px solid ${T.border}; border-radius: 19px; background: #FFFFFF;">
-                <img src="${escapeHtml(iconSrc(k, h.icon, false))}" width="20" height="20" alt="" style="display: block; margin: 0 auto; border: 0;" />
+              <tr><td${cls('ef-check-ring')} align="center" valign="middle" width="${ring}" height="${ring}" style="width: ${ring}px; height: ${ring}px; border: 1px solid ${T.border}; border-radius: ${ring / 2}px; background: #FFFFFF;">
+                <img${cls('ef-check-glyph')} src="${escapeHtml(iconSrc(k, h.icon, false))}" width="${glyph}" height="${glyph}" alt="" style="display: block; margin: 0 auto; border: 0;" />
               </td></tr>
             </table>
           </td>
-          <td valign="middle" style="padding: 6px 0; font-family: ${T.font}; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
+          <td${cls('ef-check-label')} valign="middle" style="padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; font-size: ${opts.large ? '15px' : '12px'}; font-weight: 700; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
         </tr>`,
         )
         .join('')}
@@ -500,11 +505,24 @@ function educationLayout(k: Kit): string {
     const c = overlayTone(k);
     const headline = k.m(s.headline);
     const sub = k.m(s.subheadline);
+    // Desktop gets the design's large type; phones set it back to sizes
+    // that leave room for the photo.
+    (k.phoneRules ??= []).push(
+      '.ef-edu-h1 { font-size: 28px !important; max-width: 330px !important; }',
+      '.ef-edu-sub { font-size: 15px !important; }',
+      '.ef-edu-subcol { width: 270px !important; }',
+      '.ef-check { width: 196px !important; }',
+      '.ef-check-ring { width: 38px !important; height: 38px !important; border-radius: 19px !important; }',
+      '.ef-check-glyph { width: 20px !important; height: 20px !important; }',
+      '.ef-check-label { font-size: 12px !important; }',
+    );
     const top = `
-      ${headline ? `<h1 style="font-family: ${T.display}; font-size: 28px; font-weight: 700; line-height: 1.18; color: ${c.heading}; margin: 0 0 14px; max-width: 330px; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
-      ${sub ? narrow(`<p style="font-family: ${T.font}; font-size: 15px; line-height: 1.55; color: ${c.body}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>`, 270) : ''}
-      <div style="height: 22px; line-height: 22px; font-size: 0;">&nbsp;</div>
-      ${checklist(k, s.highlights, { width: 196 })}
+      ${headline ? `<h1 class="ef-edu-h1" style="font-family: ${T.display}; font-size: 40px; font-weight: 700; line-height: 1.12; color: ${c.heading}; margin: 0 0 16px; max-width: 470px; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
+      ${sub ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="345" class="ef-edu-subcol" style="width: 345px; max-width: 100%;"><tr><td>
+        <p class="ef-edu-sub" style="font-family: ${T.font}; font-size: 19px; line-height: 1.5; color: ${c.body}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>
+      </td></tr></table>` : ''}
+      <div style="height: 26px; line-height: 26px; font-size: 0;">&nbsp;</div>
+      ${checklist(k, s.highlights, { width: 270, large: true })}
       ${paragraphs(k.m(s.body), c.body)}`;
     return [
       coverHero(
@@ -513,7 +531,7 @@ function educationLayout(k: Kit): string {
         // a client that ignores the height puts it straight after the list.
         `<table role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100%;">
           <tr><td valign="top">${top}</td></tr>
-          <tr><td valign="bottom" style="padding-top: 18px;">${button(k, s.cta_label, s.cta_url, { wide: true })}</td></tr>
+          <tr><td valign="bottom" style="padding-top: 18px;">${button(k, s.cta_label, s.cta_url, { wide: true, large: true })}</td></tr>
         </table>`,
         { padding: '34px 32px 30px', phoneWash: 'left', fill: true },
       ),
@@ -806,7 +824,7 @@ export function renderFlowEmail(step: FlowStep, ctx: RenderContext): RenderedEma
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="x-apple-disable-message-reformatting" />
 <title>${escapeHtml(subject)}</title>
-${k.coverRatio || k.bannerWash || k.wideButton ? `<style>
+${k.coverRatio || k.bannerWash || k.wideButton || k.phoneRules?.length ? `<style>
   /* Phones: the cover keeps its shape instead of being cropped to a strip. */
   @media only screen and (max-width: 620px) {
     ${k.coverRatio ? `.ef-cover, .ef-cover-fill { height: calc((100vw - 22px) * ${k.coverRatio}) !important; }` : ''}${k.coverWash ? `
@@ -814,7 +832,8 @@ ${k.coverRatio || k.bannerWash || k.wideButton ? `<style>
     .ef-cover-wash { background-image: ${washGradient(k.coverWash.from, k.coverWash.dark ? '5,24,43' : '255,255,255')}, url('${escapeHtml(k.coverWash.src)}') !important; }` : ''}${k.bannerWash ? `
     .ef-banner { background-image: ${washGradient('left', '241,246,249')}, url('${escapeHtml(k.bannerWash)}') !important; }
     .ef-banner-title { font-size: 22px !important; }` : ''}${k.wideButton ? `
-    .ef-btn-wide { padding: 15px 30px !important; }` : ''}
+    .ef-btn-wide { padding: 15px 30px !important; font-size: 12px !important; }` : ''}${k.phoneRules?.length ? `
+    ${k.phoneRules.join('\n    ')}` : ''}
   }
 </style>` : ''}
 </head>

@@ -570,7 +570,15 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   const twoHtml = renderFlowEmail(defaultStep(2), ctx()).html;
   assert.match(twoHtml, /class="ef-cover-fill" style="height: 780px;"/);
   assert.match(twoHtml, /class="ef-btn-wide"/);
-  assert.match(twoHtml, /\.ef-btn-wide \{ padding: 15px 30px !important; \}/, 'narrower on phones');
+  assert.match(twoHtml, /\.ef-btn-wide \{ padding: 15px 30px !important; font-size: 12px !important; \}/, 'narrower on phones');
+  // Desktop gets the design's large type; phones set it back.
+  assert.match(twoHtml, /class="ef-edu-h1" style="[^"]*font-size: 40px;/);
+  assert.match(twoHtml, /class="ef-edu-sub" style="[^"]*font-size: 19px;/);
+  assert.match(twoHtml, /class="ef-check-label"[^>]*font-size: 15px;/);
+  const phone = twoHtml.slice(twoHtml.indexOf('@media'), twoHtml.indexOf('</style>'));
+  assert.match(phone, /\.ef-edu-h1 \{ font-size: 28px !important;/);
+  assert.match(phone, /\.ef-edu-sub \{ font-size: 15px !important; \}/);
+  assert.match(phone, /\.ef-check-label \{ font-size: 12px !important; \}/);
   // Welcome 3: headline over the photo, the badges and body below it.
   const threeHtml = renderFlowEmail(defaultStep(3), ctx()).html;
   const three = coverOf(threeHtml);
