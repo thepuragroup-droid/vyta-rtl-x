@@ -102,6 +102,9 @@ interface CartContextType {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  /** Merge lines from a "Return to cart" email link into the cart (keeps the
+   *  larger quantity per line). The line ids are derived here. */
+  restoreCart: (lines: Omit<CartItem, 'id'>[]) => void;
   totalItems: number;
   totalPrice: number;
   isOpen: boolean;
@@ -163,6 +166,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (isHydrated) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
+  }, [items, isHydrated]);
+
+  // Mirror the cart server-side (debounced) so the cart abandonment flow can
+  // see what was left behind and "Return to cart" can restore it anywhere.
+  // Only the lines are sent — the server reads names and prices itself — and
+  // only when they actually change.
+  const lastSynced = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isHydrated) return;
+    const lines = items.map((i) => ({ productId: i.productId, packSize: i.packSize, quantity: i.quantity }));
+    const signature = JSON.stringify(lines);
+    // An empty cart on first load has nothing to tell the server.
+    if (lastSynced.current === null && lines.length === 0) {
+      lastSynced.current = signature;
+      return;
+    }
+    if (signature === lastSynced.current) return;
+    const t = setTimeout(() => {
+      lastSynced.current = signature;
+      import('@/lib/cart-sync').then(({ syncCart }) => syncCart(lines)).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(t);
   }, [items, isHydrated]);
 
   // Cross-tab sync: when the cart is changed in another tab, mirror it here so
@@ -256,6 +281,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([]);
   };
 
+  const restoreCart = useCallback((lines: Omit<CartItem, 'id'>[]) => {
+    setItems((current) => {
+      const next = [...current];
+      for (const line of lines) {
+        const id = cartLineId(line.productId, line.packSize);
+        const at = next.findIndex((i) => i.id === id);
+        const restored = normalizeCartItem({ ...line, id });
+        if (at === -1) next.push(restored);
+        else next[at] = { ...next[at], ...restored, quantity: Math.max(next[at].quantity, restored.quantity) };
+      }
+      return next;
+    });
+  }, []);
+
   const flyToCart = useCallback(
     (source: HTMLElement | DOMRect | null, opts?: FlyToCartOptions) => {
       if (typeof window === 'undefined') return;
@@ -291,6 +330,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeItem,
         updateQuantity,
         clearCart,
+        restoreCart,
         totalItems,
         totalPrice,
         isOpen,

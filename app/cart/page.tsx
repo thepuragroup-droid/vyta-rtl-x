@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
+import CartRestorer from '@/components/CartRestorer';
 import Footer from '@/components/Footer';
 import { useCart } from '@/contexts/CartContext';
 import { siteConfig } from '@/lib/config';
@@ -150,6 +151,8 @@ export default function CartPage() {
   return (
     <main className="min-h-screen bg-surface/40">
       <Navigation />
+      {/* "Return to cart" links from the cart abandonment emails. */}
+      <CartRestorer />
 
       <div className="pt-32 sm:pt-36 md:pt-44 pb-16 sm:pb-20 md:pb-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">

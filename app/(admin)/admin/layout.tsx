@@ -99,7 +99,7 @@ const navGroups = [
       { href: '/admin/promos', label: 'Promotions', icon: Sparkles },
       { href: '/admin/landing-pages', label: 'Landing Pages', icon: Globe },
       { href: '/admin/cart-upsells', label: 'Cart Upsells', icon: Layers },
-      { href: '/admin/welcome-flow', label: 'Welcome Flow', icon: MailPlus },
+      { href: '/admin/email-flows', label: 'Email Flows', icon: MailPlus },
     ],
   },
   {

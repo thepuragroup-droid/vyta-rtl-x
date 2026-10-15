@@ -1,0 +1,407 @@
+/**
+ * Unit tests for the email flows' pure parts — welcome and cart abandonment:
+ * when an email goes out, what it says, the cart it shows, and the signed
+ * links it carries.
+ *
+ * These are the rules that go wrong in front of a customer — an email at 3 AM,
+ * two emails in one morning, "20% OFF" on a 10% code, an unsubscribe link
+ * anybody could forge — so they are pinned here rather than found in an inbox.
+ *
+ *   npx tsx --test lib/email-flows/email-flows.test.ts
+ */
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  countdown,
+  decide,
+  formatDeadline,
+  inSendWindow,
+  nextStep,
+  nextWindowOpening,
+  timezoneFor,
+  type TimingInput,
+} from './schedule';
+import { absoluteUrl, mergeTagProblems, mergeTags, renderFlowEmail, withUtm, type RenderContext } from './render';
+import { delayLabel, isSafeLink, normalizeCode, shapeSettingsInput, shapeStepInput } from './types';
+import { DEFAULT_STEPS, defaultStep as dflt, shapeStepRow as shapeRow } from './defaults';
+import { cartLineViews, cartSignature, linesFromCheckout, restoreCartLines, restoreUrls, sanitizeCartLines } from './carts';
+import { clickUrl, idToken, readClick, readIdToken } from './tokens';
+
+process.env.EMAIL_FLOWS_SECRET = 'test-secret';
+
+// The welcome-flow cases below predate the cart flow; these keep them short.
+const defaultStep = (n: 1 | 2 | 3 | 4 | 5) => dflt('welcome', n);
+const shapeStepRow = (row: any) => shapeRow('welcome', row);
+const renderWelcomeEmail = renderFlowEmail;
+
+const SITE = 'https://www.vytabio.com';
+
+// ---------------------------------------------------------------------------
+// Time zones and the send window
+// ---------------------------------------------------------------------------
+
+test('timezoneFor: reads a province, a state, and "CA" by country', () => {
+  assert.equal(timezoneFor('BC', 'CA', 'America/Toronto'), 'America/Vancouver');
+  assert.equal(timezoneFor('Alberta', 'Canada', 'America/Toronto'), 'America/Edmonton');
+  assert.equal(timezoneFor('CA', 'US', 'America/Toronto'), 'America/Los_Angeles');
+  assert.equal(timezoneFor('TX', 'US', 'America/Toronto'), 'America/Chicago');
+  // No country: a province wins, a US-only code still resolves.
+  assert.equal(timezoneFor('NS', null, 'America/Toronto'), 'America/Halifax');
+  assert.equal(timezoneFor('WA', '', 'America/Toronto'), 'America/Los_Angeles');
+  assert.equal(timezoneFor('', 'CA', 'America/Toronto'), 'America/Toronto');
+  assert.equal(timezoneFor('ZZ', 'CA', 'America/Regina'), 'America/Regina');
+});
+
+test('inSendWindow: local hours, end exclusive, and a window across midnight', () => {
+  // 13:30 UTC on Oct 20 2026 = 9:30 in Toronto (EDT), 6:30 in Vancouver (PDT).
+  const at = new Date('2026-10-20T13:30:00Z');
+  assert.equal(inSendWindow(at, 'America/Toronto', 9, 11), true);
+  assert.equal(inSendWindow(at, 'America/Vancouver', 9, 11), false);
+  assert.equal(inSendWindow(new Date('2026-10-20T15:00:00Z'), 'America/Toronto', 9, 11), false); // 11:00
+  assert.equal(inSendWindow(new Date('2026-10-21T03:00:00Z'), 'America/Toronto', 22, 2), true); // 23:00
+});
+
+test('nextWindowOpening: the next local 9 AM, Newfoundland\'s half hour included', () => {
+  const from = new Date('2026-10-20T13:30:00Z');
+  assert.equal(nextWindowOpening(from, 'America/Vancouver', 9, 11).toISOString(), '2026-10-20T16:00:00.000Z');
+  // Already inside: unchanged.
+  assert.equal(nextWindowOpening(from, 'America/Toronto', 9, 11).toISOString(), from.toISOString());
+  // 9:00 NDT = 11:30 UTC.
+  assert.equal(nextWindowOpening(new Date('2026-10-20T15:00:00Z'), 'America/St_Johns', 9, 11).toISOString(), '2026-10-21T11:30:00.000Z');
+});
+
+// ---------------------------------------------------------------------------
+// Which email, and when
+// ---------------------------------------------------------------------------
+
+test('nextStep: in order, past sent / skipped / in-flight / given-up steps', () => {
+  assert.equal(nextStep([]), 1);
+  assert.equal(nextStep([{ step: 1, status: 'sent', attempts: 1 }]), 2);
+  assert.equal(nextStep([{ step: 1, status: 'sending', attempts: 1 }]), 2);
+  assert.equal(nextStep([{ step: 1, status: 'failed', attempts: 1 }]), 1, 'a failure is retried');
+  assert.equal(nextStep([{ step: 1, status: 'failed', attempts: 3 }, { step: 2, status: 'skipped', attempts: 0 }]), 3);
+  assert.equal(nextStep([1, 2, 3, 4, 5].map((step) => ({ step, status: 'sent' as const, attempts: 1 }))), null);
+});
+
+const timing = (over: Partial<TimingInput>): TimingInput => ({
+  step: 2,
+  delayHours: 48,
+  enrolledAt: new Date('2026-10-18T20:00:00Z'),
+  lastSentAt: new Date('2026-10-18T20:00:00Z'),
+  timezone: 'America/Toronto',
+  windowStart: 9,
+  windowEnd: 11,
+  minGapHours: 20,
+  ...over,
+});
+
+test('decide: email 1 ignores the window; later emails wait for it', () => {
+  const night = new Date('2026-10-18T07:00:00Z'); // 3 AM Toronto
+  const e1 = decide(timing({ step: 1, delayHours: 0, enrolledAt: night, lastSentAt: null }), night);
+  assert.deepEqual(e1, { send: true });
+
+  // Due on Oct 20 20:00Z (4 PM) — outside the window, so 9 AM the next day.
+  const r = decide(timing({}), new Date('2026-10-20T20:30:00Z'));
+  assert.equal(r.send, false);
+  assert.equal(!r.send && r.reason, 'outside_window');
+  assert.equal(!r.send && r.at.toISOString(), '2026-10-21T13:00:00.000Z');
+
+  assert.deepEqual(decide(timing({}), new Date('2026-10-21T13:15:00Z')), { send: true });
+});
+
+test('decide: not due yet reports the window opening after the due date', () => {
+  const r = decide(timing({}), new Date('2026-10-19T14:00:00Z'));
+  assert.equal(!r.send && r.reason, 'not_due');
+  assert.equal(!r.send && r.at.toISOString(), '2026-10-21T13:00:00.000Z');
+});
+
+test('decide: the minimum gap holds back a backlog', () => {
+  // Email 3 is long overdue, but email 2 went out an hour ago.
+  const now = new Date('2026-10-30T13:30:00Z');
+  const r = decide(timing({ step: 3, delayHours: 96, lastSentAt: new Date('2026-10-30T12:30:00Z') }), now);
+  assert.equal(r.send, false);
+});
+
+test('countdown and formatDeadline', () => {
+  assert.deepEqual(countdown(new Date('2026-10-20T00:00:00Z'), new Date('2026-10-21T00:00:00Z')), { days: 1, hours: 0, minutes: 0 });
+  assert.deepEqual(countdown(new Date('2026-10-20T00:00:30Z'), new Date('2026-10-21T00:00:00Z')), { days: 0, hours: 23, minutes: 59 });
+  assert.deepEqual(countdown(new Date('2026-10-22T00:00:00Z'), new Date('2026-10-21T00:00:00Z')), { days: 0, hours: 0, minutes: 0 });
+  assert.equal(formatDeadline(new Date('2026-10-21T14:15:00Z'), 'America/Toronto'), 'Wed, Oct 21 at 10:15 AM EDT');
+});
+
+// ---------------------------------------------------------------------------
+// Merge tags and rendering
+// ---------------------------------------------------------------------------
+
+const ctx = (over: Partial<RenderContext> = {}): RenderContext => ({
+  firstName: 'Sam',
+  offer: { code: 'VYTA20', label: '20%' },
+  offerEndsAt: null,
+  now: new Date('2026-10-20T14:00:00Z'),
+  timezone: 'America/Toronto',
+  settings: { footer_address: '123 Example St, Toronto ON', footer_disclaimer: 'Research use only.' },
+  siteUrl: SITE,
+  unsubscribeUrl: `${SITE}/api/email-flows/unsubscribe?t=x`,
+  ...over,
+});
+
+test('mergeTags: name, code, discount — and no ", there" when the name is missing', () => {
+  assert.equal(mergeTags('Welcome to VYTA, {{first_name}}', ctx()), 'Welcome to VYTA, Sam');
+  assert.equal(mergeTags('Welcome to VYTA, {{first_name}}', ctx({ firstName: '  ' })), 'Welcome to VYTA');
+  assert.equal(mergeTags('Still thinking about it, {{first_name}}?', ctx({ firstName: null })), 'Still thinking about it?');
+  assert.equal(mergeTags('Hi {{first_name}}', ctx({ firstName: null })), 'Hi there');
+  assert.equal(mergeTags('{{discount}} OFF with {{ code }}', ctx()), '20% OFF with VYTA20');
+  assert.equal(mergeTags('{{unknown}}', ctx()), '{{unknown}}');
+});
+
+test('mergeTagProblems: a code-dependent email with no code is flagged', () => {
+  const offer = { ...defaultStep(4), promo_code: null };
+  assert.equal(mergeTagProblems(offer).length, 1);
+  assert.match(mergeTagProblems({ ...defaultStep(2), body: '{{nope}}' })[0], /Unknown merge tag/);
+  // {{offer_ends}} needs a deadline; cart links only exist in the cart flow.
+  assert.match(mergeTagProblems({ ...defaultStep(2), body: 'Ends {{offer_ends}}' })[0], /deadline/);
+  assert.match(mergeTagProblems({ ...defaultStep(2), cta_url: '{{cart_url}}' })[0], /cart abandonment flow/);
+});
+
+test('every default email of both flows is clean', () => {
+  for (const flow of ['welcome', 'cart'] as const) {
+    for (const step of DEFAULT_STEPS[flow]) assert.deepEqual(mergeTagProblems(step), [], `${flow} email ${step.step}`);
+  }
+});
+
+test('every default email renders, with the offer stated from the code', () => {
+  for (const step of DEFAULT_STEPS.welcome) {
+    const out = renderWelcomeEmail(step, ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') }));
+    assert.ok(out.subject.length > 0, `email ${step.step} subject`);
+    assert.ok(out.html.includes('role="presentation"'));
+    assert.ok(!out.html.includes('{{'), `email ${step.step} has an unmerged tag`);
+    assert.ok(out.html.includes('Unsubscribe'), `email ${step.step} has no unsubscribe link`);
+    assert.ok(out.text.includes('Unsubscribe:'));
+    assert.ok(out.html.includes('123 Example St'), 'CASL mailing address in the footer');
+  }
+  const offer = renderWelcomeEmail(defaultStep(4), ctx());
+  assert.match(offer.html, /20% OFF/);
+  assert.match(offer.html, /VYTA20/);
+  assert.equal(offer.subject, '20% off your order — just for subscribers');
+});
+
+test('the reminder carries a per-recipient countdown and deadline', () => {
+  const out = renderWelcomeEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') }));
+  assert.match(out.html, />01<\/p>[\s\S]*Days/);
+  assert.match(out.html, /Offer ends Wed, Oct 21 at 10:00 AM EDT/);
+  assert.match(out.text, /Offer ends Wed, Oct 21 at 10:00 AM EDT/);
+});
+
+test('links: site paths become absolute, UTM-tagged and tracked; javascript: never lands', () => {
+  const tracked: string[] = [];
+  const out = renderWelcomeEmail(
+    { ...defaultStep(1), cta_url: '/products', card_link_label: 'Go', card_link_url: 'javascript:alert(1)' },
+    ctx({ trackLink: (u) => (tracked.push(u), `${SITE}/t?u=${encodeURIComponent(u)}`) }),
+  );
+  assert.ok(tracked.some((u) => u.startsWith(`${SITE}/products?utm_source=welcome_flow`)));
+  assert.ok(!out.html.includes('javascript:'));
+  assert.equal(absoluteUrl('//evil.example', SITE), null);
+  assert.equal(withUtm('https://other.example/x', SITE, 1), 'https://other.example/x');
+});
+
+test('user-typed copy is escaped', () => {
+  const out = renderWelcomeEmail({ ...defaultStep(2), headline: '<script>x</script>' }, ctx());
+  assert.ok(!out.html.includes('<script>x'));
+  assert.ok(out.html.includes('&lt;script&gt;'));
+});
+
+test('the welcome card names the code once', () => {
+  const none = renderWelcomeEmail({ ...defaultStep(1), promo_code: null }, ctx({ offer: null }));
+  assert.ok(!none.html.includes('Code:'));
+  // Default copy already says "Use code WELCOME10" — no second chip.
+  const named = renderWelcomeEmail(defaultStep(1), ctx({ offer: { code: 'WELCOME10', label: '10%' } }));
+  assert.ok(!named.html.includes('Code:'));
+  assert.match(named.html, /Use code WELCOME10/);
+  // Copy that doesn't name it gets the chip.
+  const chip = renderWelcomeEmail({ ...defaultStep(1), card_body: 'At checkout.' }, ctx({ offer: { code: 'WELCOME10', label: '10%' } }));
+  assert.ok(chip.html.includes('Code:'));
+});
+
+// ---------------------------------------------------------------------------
+// Input shaping
+// ---------------------------------------------------------------------------
+
+test('shapeSettingsInput: rejects a bad zone, an empty window, out-of-range hours', () => {
+  const base = { send_window_start: 9, send_window_end: 11, default_timezone: 'America/Toronto', min_gap_hours: 20, reentry_days: 30 };
+  assert.equal(shapeSettingsInput(base).ok, true);
+  assert.equal(shapeSettingsInput({ ...base, default_timezone: 'Mars/Base' }).ok, false);
+  assert.equal(shapeSettingsInput({ ...base, send_window_end: 9 }).ok, false);
+  assert.equal(shapeSettingsInput({ ...base, reentry_days: -1 }).ok, false);
+  assert.equal(shapeSettingsInput({ ...base, send_window_start: 9.5 }).ok, false);
+});
+
+test('shapeStepInput: needs a subject, safe links, normalises the code and highlights', () => {
+  const ok = shapeStepInput('welcome', 1, { ...defaultStep(1), promo_code: ' welcome-10 ', highlights: 'A\n\nB\n' });
+  assert.equal(ok.ok, true);
+  if (ok.ok) {
+    assert.equal(ok.value.promo_code, 'WELCOME10');
+    assert.deepEqual(ok.value.highlights, ['A', 'B']);
+  }
+  assert.equal(shapeStepInput('welcome', 1, { ...defaultStep(1), subject: ' ' }).ok, false);
+  assert.equal(shapeStepInput('welcome', 1, { ...defaultStep(1), cta_url: 'javascript:alert(1)' }).ok, false);
+  assert.equal(shapeStepInput('welcome', 1, { ...defaultStep(1), delay_hours: -1 }).ok, false);
+  assert.equal(isSafeLink('/lab-results'), true);
+  assert.equal(isSafeLink('//evil.example'), false);
+  assert.equal(normalizeCode('vyta 20'), 'VYTA20');
+});
+
+test('shapeStepRow: fills gaps from the defaults but keeps a cleared code cleared', () => {
+  const row = shapeStepRow({ step: 4, promo_code: null, subject: 'Hi' });
+  assert.equal(row.subject, 'Hi');
+  assert.equal(row.promo_code, null);
+  assert.equal(row.headline, defaultStep(4).headline);
+});
+
+// ---------------------------------------------------------------------------
+// Signed links
+// ---------------------------------------------------------------------------
+
+test('tokens: round-trip, and a tampered id or destination is refused', () => {
+  const id = '3f1c2a3b-1111-4222-8333-944455556666';
+  const other = '3f1c2a3b-1111-4222-8333-944455556667';
+  assert.equal(readIdToken('unsub', idToken('unsub', id)), id);
+  assert.equal(readIdToken('unsub', `${other}.${idToken('unsub', id).split('.')[1]}`), null);
+  assert.equal(readIdToken('open', idToken('unsub', id)), null, 'purposes do not cross');
+
+  const url = new URL(clickUrl(SITE, id, `${SITE}/products`));
+  assert.deepEqual(readClick(url.searchParams), { sendId: id, target: `${SITE}/products` });
+  url.searchParams.set('u', 'https://evil.example/');
+  assert.equal(readClick(url.searchParams), null);
+});
+
+// ---------------------------------------------------------------------------
+// Cart abandonment
+// ---------------------------------------------------------------------------
+
+const P1 = '11111111-1111-4111-8111-111111111111';
+const P2 = '22222222-2222-4222-8222-222222222222';
+const product = (id: string, over: Record<string, unknown> = {}) => ({
+  id,
+  name: id === P1 ? 'BPC-157' : 'TB-500',
+  price: 300,
+  vial_price: 40,
+  vials_per_box: 10,
+  pack_sizes: [1, 3, 10],
+  stock_quantity: 30,
+  strength: '10mg',
+  image_url: `/img/${id}.png`,
+  active: true,
+  ...over,
+});
+
+test('sanitizeCartLines: keeps clean lines, merges duplicates, drops junk', () => {
+  const lines = sanitizeCartLines([
+    { productId: P1, packSize: 3, quantity: 1 },
+    { productId: P1.toUpperCase(), packSize: 3, quantity: 2 },
+    { productId: 'not-a-uuid', packSize: 1, quantity: 1 },
+    { productId: P2, packSize: 0, quantity: 1 },
+    { productId: P2, packSize: 1, quantity: 0 },
+    { productId: P2, packSize: 1, quantity: 5000 },
+    null,
+  ]);
+  assert.deepEqual(lines, [
+    { productId: P1, packSize: 3, quantity: 3 },
+    { productId: P2, packSize: 1, quantity: 999 },
+  ]);
+  assert.deepEqual(sanitizeCartLines('nope'), []);
+});
+
+test('cartSignature: order does not matter, quantity does', () => {
+  const a = [{ productId: P1, packSize: 1, quantity: 1 }, { productId: P2, packSize: 3, quantity: 2 }];
+  assert.equal(cartSignature(a), cartSignature([...a].reverse()));
+  assert.notEqual(cartSignature(a), cartSignature([{ ...a[0], quantity: 2 }, a[1]]));
+});
+
+test('restoreCartLines: today\'s price and stock; dropped when gone', () => {
+  const { lines, dropped } = restoreCartLines(
+    [
+      { productId: P1, packSize: 3, quantity: 50 },
+      { productId: P2, packSize: 1, quantity: 1 },
+    ],
+    [product(P1), product(P2, { active: false })],
+  );
+  assert.equal(dropped, 1);
+  assert.equal(lines.length, 1);
+  assert.equal(lines[0].price, 120); // 3 × $40 vial price
+  assert.equal(lines[0].quantity, 10); // 30 vials in stock ÷ 3 per pack
+  assert.equal(lines[0].unit, 'case');
+  // A pack size the product no longer sells is dropped, not guessed at.
+  assert.equal(restoreCartLines([{ productId: P1, packSize: 7, quantity: 1 }], [product(P1)]).dropped, 1);
+});
+
+test('cartLineViews and linesFromCheckout', () => {
+  const views = cartLineViews(
+    linesFromCheckout([{ sku: 'X', product_id: P1, pack_size: 3, quantity: 2 }, { sku: 'Y' }]),
+    [product(P1)],
+  );
+  assert.deepEqual(views, [{ productId: P1, name: 'BPC-157', packLabel: views[0].packLabel, quantity: 2, imageUrl: `/img/${P1}.png` }]);
+  assert.ok(views[0].packLabel.length > 0);
+});
+
+test('restoreUrls: the checkout link carries the code; the cart link does not', () => {
+  const u = restoreUrls(SITE, 'tok', 'VYTA20');
+  assert.equal(u.cartUrl, `${SITE}/cart?restore=tok`);
+  assert.equal(u.checkoutUrl, `${SITE}/cart?restore=tok&next=checkout&discount=VYTA20`);
+  assert.equal(restoreUrls(SITE, 'tok', null).checkoutUrl, `${SITE}/cart?restore=tok&next=checkout`);
+});
+
+const cartCtx = (over: Partial<RenderContext> = {}) =>
+  ctx({
+    offer: null,
+    cart: {
+      lines: [{ productId: P1, name: 'BPC-157', packLabel: '3 vials', quantity: 2, imageUrl: '/img/p1.png' }],
+      cartUrl: `${SITE}/cart?restore=tok`,
+      checkoutUrl: `${SITE}/cart?restore=tok&next=checkout`,
+    },
+    ...over,
+  });
+
+test('every cart email renders: the cart, a restore link, no unmerged tags', () => {
+  for (const step of DEFAULT_STEPS.cart) {
+    const offer = step.promo_code ? { code: step.promo_code, label: '20%' } : null;
+    const out = renderFlowEmail(step, cartCtx({ offer, offerEndsAt: step.deadline_hours ? new Date('2026-10-21T14:00:00Z') : null }));
+    assert.ok(!out.html.includes('{{'), `cart email ${step.step} has an unmerged tag`);
+    assert.ok(out.html.includes('restore=tok'), `cart email ${step.step} has no way back to the cart`);
+    assert.ok(out.html.includes('left items in your cart'), 'cart footer explains why they got it');
+    assert.ok(out.html.includes('utm_source=cart_flow'));
+    if (step.show_cart) {
+      assert.ok(out.html.includes('BPC-157'), `cart email ${step.step} should list the cart`);
+      assert.match(out.text, /BPC-157 \(3 vials\) × 2/);
+    }
+  }
+  const offer = renderFlowEmail(dflt('cart', 3), cartCtx({ offer: { code: 'VYTA20', label: '20%' }, offerEndsAt: new Date('2026-10-22T14:00:00Z') }));
+  assert.match(offer.html, /20% OFF/);
+  assert.match(offer.html, /next=checkout/);
+  assert.match(offer.html, /Offer valid until Thu, Oct 22/);
+  const last = renderFlowEmail(dflt('cart', 5), cartCtx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') }));
+  assert.match(last.html, /#C8102E/, 'last chance CTA is the urgent red');
+  assert.match(last.html, /Days/);
+});
+
+test('cart merge tags resolve per recipient', () => {
+  assert.equal(mergeTags('{{cart_url}}', cartCtx()), `${SITE}/cart?restore=tok`);
+  assert.equal(mergeTags('{{checkout_url}}', ctx()), '');
+  assert.equal(isSafeLink('{{cart_url}}'), true);
+  assert.equal(isSafeLink('{{cart_url}}/x'), false);
+});
+
+test('delayLabel', () => {
+  assert.equal(delayLabel(0, 'signup'), 'Immediately after signup');
+  assert.equal(delayLabel(1, 'x'), '1 hour later');
+  assert.equal(delayLabel(48, 'x'), '2 days later');
+  assert.equal(delayLabel(30, 'x'), '30 hours later');
+});
+
+test('shapeStepInput: show_cart only sticks in the cart flow; deadline optional', () => {
+  const w = shapeStepInput('welcome', 1, { ...defaultStep(1), show_cart: true });
+  assert.equal(w.ok && w.value.show_cart, false);
+  const c = shapeStepInput('cart', 1, { ...dflt('cart', 1), deadline_hours: '' });
+  assert.equal(c.ok && c.value.show_cart, true);
+  assert.equal(c.ok && c.value.deadline_hours, null);
+  assert.equal(shapeStepInput('cart', 3, { ...dflt('cart', 3), deadline_hours: 0 }).ok, false);
+});

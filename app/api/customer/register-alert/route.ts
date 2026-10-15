@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getAdminAlertEmails } from '@/lib/admin/alert-recipients';
 import { sendRegistrationAlert } from '@/lib/email';
 import { syncNewCustomer } from '@/lib/klaviyo/events';
-import { enrollAndWelcome } from '@/lib/welcome-flow/engine';
+import { enrollAndWelcome } from '@/lib/email-flows/engine';
 
 const db = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
