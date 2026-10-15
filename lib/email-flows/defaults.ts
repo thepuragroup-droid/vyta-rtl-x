@@ -50,31 +50,38 @@ export const PLACEHOLDER_IMAGES = {
   welcomeHero: '/images/email/welcome/welcome-hero.png',
   welcomeCard: '/images/email/welcome/welcome-card.png',
   educationCard: '/images/email/welcome/education-card.png',
-  trustHero: '/images/email/welcome/trust-hero.png',
   trustCard: '/images/email/welcome/trust-card.png',
-  offerHero: '/images/email/welcome/offer-hero.png',
   cartEducateCard: '/images/email/cart/educate-card.png',
-  cartOfferHero: '/images/email/cart/offer-hero.png',
-  cartQuestionsCard: '/images/email/cart/questions-card.png',
 } as const;
 
 /**
- * The supplied campaign photography — tall covers the headline is set over.
- * `ratio` is height ÷ width, so the email keeps each one's shape.
+ * The supplied photography, cropped to the shape each spot takes in the
+ * mockups (public/images/email/photos). `ratio` is height ÷ width.
  */
-export const COVERS = {
-  manByLake: { url: '/images/email/covers/cover-1.jpg', ratio: 2.8517 },
-  womanByLake: { url: '/images/email/covers/cover-2.jpg', ratio: 2.8433 },
-  womanPortrait: { url: '/images/email/covers/cover-3.jpg', ratio: 2.8867 },
-  labVial: { url: '/images/email/covers/cover-4.jpg', ratio: 2.895 },
-  vialsOnRock: { url: '/images/email/covers/cover-5.jpg', ratio: 2.8867 },
+export const PHOTOS = {
+  manByLake: { url: '/images/email/photos/man-lake.jpg', ratio: 1.3483 },
+  manByLakeVial: { url: '/images/email/photos/man-lake-vial.jpg', ratio: 0.545 },
+  womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.345 },
+  vialsMountains: { url: '/images/email/photos/vials-mountains.jpg', ratio: 1.0367 },
+  labVial: { url: '/images/email/photos/lab-vial.jpg', ratio: 0.9383 },
+  threeVials: { url: '/images/email/photos/three-vials.jpg', ratio: 0.7508 },
+  dropper: { url: '/images/email/photos/dropper.jpg', ratio: 1.055 },
+  supportAgent: { url: '/images/email/photos/support-agent.jpg', ratio: 0.9 },
 } as const;
 
-const cover = (c: { url: string; ratio: number }) => ({
+/** A photo with the headline set over it (the mockups' overlay heroes). */
+const overlay = (c: { url: string; ratio: number }) => ({
   hero_image_url: c.url,
   hero_image_ratio: c.ratio,
   hero_overlay: true,
   hero_text_tone: 'dark' as const,
+});
+
+/** A photo below the text (the mockups' product shots). */
+const below = (c: { url: string; ratio: number }) => ({
+  hero_image_url: c.url,
+  hero_image_ratio: c.ratio,
+  hero_overlay: false,
 });
 
 const blank = (flow: FlowKey, step: StepNumber): FlowStep => ({
@@ -109,7 +116,7 @@ const blank = (flow: FlowKey, step: StepNumber): FlowStep => ({
 });
 
 const P = PLACEHOLDER_IMAGES;
-const C = COVERS;
+const F = PHOTOS;
 
 const WELCOME: FlowStep[] = [
   {
@@ -141,7 +148,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Supports Recovery', icon: 'heart-pulse' }, { label: 'Promotes Vitality', icon: 'sun' }, { label: 'Helps You Feel Your Best', icon: 'hand-heart' }, { label: 'Builds a Stronger Tomorrow', icon: 'sprout' }],
     cta_label: 'Explore the Collection',
     cta_url: '/products',
-    ...cover(C.womanByLake),
+    ...overlay(F.womanByLake),
     card_title: 'We Show Our Work',
     card_body: 'Every batch is third-party tested for identity, purity and quality.',
     card_link_label: 'Learn More',
@@ -159,7 +166,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Batch-Specific COA', icon: 'file-text' }, { label: 'Cold-Chain Handling', icon: 'snowflake' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Our Testing Process',
     cta_url: '/lab-results',
-    hero_image_url: P.trustHero,
+    ...below(F.dropper),
     card_title: 'Research. Quality. Wellness.',
     card_body: "A higher standard for what's next.",
     card_image_url: P.trustCard,
@@ -176,7 +183,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Shop Now',
     cta_url: '/products',
-    hero_image_url: P.offerHero,
+    ...below(F.threeVials),
     fine_print: 'Limited time offer. Valid for new customers only.',
   },
   {
@@ -190,7 +197,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Wellness', icon: 'shield-check' }, { label: 'Discreet Shipping', icon: 'truck' }, { label: 'Trusted Quality', icon: 'shield-check' }],
     cta_label: 'Claim {{discount}} Off',
     cta_url: '/products',
-    ...cover(C.vialsOnRock),
+    ...below(F.vialsMountains),
   },
 ];
 
@@ -208,7 +215,8 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Premium Quality', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...cover(C.manByLake),
+    ...overlay(F.manByLake),
+    card_image_url: F.manByLakeVial.url,
   },
   {
     ...blank('cart', 2),
@@ -223,7 +231,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Third-Party Tested', icon: 'flask-conical' }, { label: 'Batch-Specific COA', icon: 'shield-check' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...cover(C.womanByLake),
+    ...overlay(F.womanByLake),
     card_title: 'We Show Our Work',
     card_body: 'Every batch is tested for identity, purity and quality so you can shop with confidence.',
     card_link_label: 'Learn More',
@@ -243,7 +251,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
-    hero_image_url: P.cartOfferHero,
+    ...below(F.threeVials),
     fine_print: 'Offer valid until {{offer_ends}}. Limited time only.',
   },
   {
@@ -259,12 +267,12 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Product information', icon: 'circle-help' }, { label: 'Shipping & delivery', icon: 'truck' }, { label: 'Testing & quality', icon: 'shield-check' }, { label: 'Ordering & payments', icon: 'credit-card' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...cover(C.womanPortrait),
+    ...below(F.dropper),
     card_title: 'Real People. Real Support.',
     card_body: 'Our team is here to help with any questions you may have.',
     card_link_label: 'Contact Us',
     card_link_url: '/contact',
-    card_image_url: P.cartQuestionsCard,
+    card_image_url: F.supportAgent.url,
   },
   {
     ...blank('cart', 5),
@@ -280,7 +288,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
-    ...cover(C.labVial),
+    ...below(F.labVial),
   },
 ];
 

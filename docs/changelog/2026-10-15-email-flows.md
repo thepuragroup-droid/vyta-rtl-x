@@ -207,19 +207,26 @@ to `/api/cart/sync`, debounced, whenever they change.
 
 ## Images
 
-**Supplied photography** is in `public/images/email/covers/` (600px wide JPEGs):
+**Supplied photography** is in `public/images/email/photos/`. Each photo is
+cropped to the proportions the designs use, so no email shows a tall,
+stretched cover:
 
-| Cover | Used in |
-|---|---|
-| `cover-1` (man by the lake) | Cart 1 |
-| `cover-2` (woman by the lake) | Welcome 2, Cart 2 |
-| `cover-3` (woman portrait) | Cart 4 |
-| `cover-4` (lab glove) | Cart 5 |
-| `cover-5` (two vials, mountains) | Welcome 5 |
+| Photo | Shape (h ÷ w) | Used in |
+|---|---|---|
+| `man-lake` (man by the lake) | 1.35 | Cart 1 hero, headline over the sky |
+| `man-lake-vial` (vial in hand) | 0.55 | Cart 1 image above the button |
+| `woman-lake` (woman by the lake) | 1.35 | Welcome 2 and Cart 2 hero, headline over the sky |
+| `dropper` (dropper over a vial) | 1.06 | Welcome 3 and Cart 4, under the headline |
+| `three-vials` (vials on rock, mountains) | 0.75 | Welcome 4 and Cart 3, under the offer |
+| `vials-mountains` (two vials, mountains) | 1.04 | Welcome 5, under the countdown |
+| `lab-vial` (vial in a gloved hand) | 0.94 | Cart 5, under the countdown |
+| `support-agent` (agent with headset) | 0.90 | Cart 4 "Real People" card |
 
-Each cover has its text set over the sky, as in the designs: the headline and
-subheadline. On the reminder emails (Welcome 5 and Cart 5) the countdown and
-button go over the sky too.
+Where the designs set the headline over the photo (Welcome 2, Cart 1,
+Cart 2), the text sits over the sky. Everywhere else the headline,
+countdown or offer sits above the photo, as in the designs. The supplied
+woman portrait (old cover 3) isn't used any more; it could become the
+Welcome 1 hero.
 
 **How the overlay works** (per email in the editor: *Set the headline over
 this image* and *Text: dark / white*):
@@ -227,19 +234,19 @@ this image* and *Text: dark / white*):
 - The photo is the cell's background, sized to the image's own shape. The
   ratio is read when an image is uploaded.
 - Classic Outlook gets the same photo through VML.
-- On phones a media query scales the height with the width, so a tall cover
+- On phones a media query scales the height with the width, so the photo
   isn't cropped.
 - If an email client shows no background images at all, the text sits on a
   solid colour.
 
-The supplied files are about 330px wide. They are scaled up to fill the
+The lake photos were supplied about 330px wide and are scaled up to fill the
 600px email, so they look slightly soft on high-resolution screens. Uploading
-versions at least 1200px wide in the editor will sharpen them.
+versions at least 1200px wide in the editor will sharpen them. The vials,
+dropper and support photos are 1200px (480px for the card).
 
 **Still placeholders** (in `public/images/email/welcome/` and
-`public/images/email/cart/`): Welcome 1 hero and card, Welcome 2 card,
-Welcome 3 hero and card, Welcome 4 product shot, Cart 2 and Cart 4 cards, and
-the Cart 3 product shot.
+`public/images/email/cart/`): the Welcome 1 hero and card, the Welcome 2 and
+Cart 2 "We Show Our Work" cards, and the Welcome 3 card.
 
 ## Tests
 

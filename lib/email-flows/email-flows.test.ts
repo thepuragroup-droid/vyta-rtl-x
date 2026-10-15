@@ -505,41 +505,58 @@ test('welcome title: "VYTA" is set in the wordmark over the hero photo', () => {
 // The supplied covers, with the text over them
 // ---------------------------------------------------------------------------
 
-test('each cover goes where it was asked for', () => {
-  const hero = (flow: 'welcome' | 'cart', n: 1 | 2 | 3 | 4 | 5) => dflt(flow, n).hero_image_url;
-  assert.equal(hero('welcome', 2), '/images/email/covers/cover-2.jpg');
-  assert.equal(hero('welcome', 5), '/images/email/covers/cover-5.jpg');
-  assert.equal(hero('cart', 1), '/images/email/covers/cover-1.jpg');
-  assert.equal(hero('cart', 2), '/images/email/covers/cover-2.jpg');
-  assert.equal(hero('cart', 4), '/images/email/covers/cover-3.jpg');
-  assert.equal(hero('cart', 5), '/images/email/covers/cover-4.jpg');
-  for (let n = 1; n <= 5; n++) assert.ok(existsSync(join(PUBLIC, 'images', 'email', 'covers', `cover-${n}.jpg`)));
+test('each photo goes where its mockup puts it, at the mockup proportions', () => {
+  const at = (flow: 'welcome' | 'cart', n: 1 | 2 | 3 | 4 | 5) => {
+    const s = dflt(flow, n);
+    return [s.hero_image_url.replace('/images/email/photos/', ''), s.hero_overlay];
+  };
+  assert.deepEqual(at('welcome', 2), ['woman-lake.jpg', true]);
+  assert.deepEqual(at('welcome', 3), ['dropper.jpg', false]);
+  assert.deepEqual(at('welcome', 4), ['three-vials.jpg', false]);
+  assert.deepEqual(at('welcome', 5), ['vials-mountains.jpg', false]);
+  assert.deepEqual(at('cart', 1), ['man-lake.jpg', true]);
+  assert.deepEqual(at('cart', 2), ['woman-lake.jpg', true]);
+  assert.deepEqual(at('cart', 3), ['three-vials.jpg', false]);
+  assert.deepEqual(at('cart', 4), ['dropper.jpg', false]);
+  assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
+  assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/man-lake-vial.jpg');
+  assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent.jpg');
+  for (const flow of ['welcome', 'cart'] as const) {
+    for (const step of DEFAULT_STEPS[flow]) {
+      for (const url of [step.hero_image_url, step.card_image_url].filter(Boolean)) {
+        assert.ok(existsSync(join(PUBLIC, url)), `${flow} ${step.step}: ${url}`);
+      }
+      // Nothing towers over the email the way the uncropped covers did.
+      if (step.hero_image_ratio) assert.ok(step.hero_image_ratio <= 1.5, `${flow} ${step.step} ratio ${step.hero_image_ratio}`);
+    }
+  }
 });
 
-test('a cover carries its text, keeps its shape, and works in Outlook and on phones', () => {
+test('an overlay hero carries its text, keeps its shape, and works in Outlook and on phones', () => {
   const html = renderFlowEmail(dflt('cart', 1), cartCtx()).html;
-  // The headline sits inside the cover cell, before anything else in the body.
   const cover = html.slice(html.indexOf('class="ef-cover"'), html.indexOf('</v:rect>'));
-  assert.match(cover, /cover-1\.jpg/);
+  assert.match(cover, /man-lake\.jpg/);
   assert.match(cover, />Still thinking about it\?</);
   assert.match(cover, />Your cart is waiting\.</);
-  assert.match(html, /height="1711"/, '600 × 2.8517');
-  assert.match(html, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/covers\/cover-1\.jpg"/);
-  assert.match(html, /\.ef-cover \{ height: calc\(\(100vw - 22px\) \* 2\.8517\) !important; \}/);
+  assert.match(html, /height="809"/, '600 × 1.3483');
+  assert.match(html, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/man-lake\.jpg"/);
+  assert.match(html, /\.ef-cover \{ height: calc\(\(100vw - 22px\) \* 1\.3483\) !important; \}/);
+  // The vial strip closes the email, as in the mockup.
+  assert.match(html, /man-lake-vial\.jpg/);
 });
 
-test('the reminders put the countdown and button over the cover', () => {
+test('the reminders set the question and countdown above the photo, as designed', () => {
   const html = renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
-  const cover = html.slice(html.indexOf('class="ef-cover"'), html.indexOf('</v:rect>'));
-  assert.match(cover, /Still Thinking About It\?/);
-  assert.match(cover, /Days/);
-  assert.match(cover, /Claim 20% Off/);
+  assert.ok(!html.includes('ef-cover'));
+  const photo = html.indexOf('vials-mountains.jpg');
+  assert.ok(html.indexOf('Still Thinking About It?') < photo);
+  assert.ok(html.indexOf('Claim 20% Off') < photo);
 });
 
 test('switching the overlay off falls back to headline-then-photo', () => {
   const html = renderFlowEmail({ ...defaultStep(2), hero_overlay: false }, ctx()).html;
   assert.ok(!html.includes('ef-cover'));
-  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/covers\/cover-2\.jpg"/);
+  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-lake\.jpg"/);
 });
 
 test('shapeStepInput keeps the overlay settings and a sane ratio', () => {
