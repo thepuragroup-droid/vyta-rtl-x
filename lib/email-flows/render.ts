@@ -231,7 +231,7 @@ function button(k: Kit, label: string, url: string, opts: { light?: boolean; urg
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="${opts.align ?? 'center'}" style="margin: ${opts.align === 'left' ? '6px 0 4px' : '6px auto 4px'};">
       <tr>
         <td align="center" bgcolor="${bg}" style="border-radius: 8px; background: ${bg};">
-          <a href="${escapeHtml(href)}"${opts.wide ? ' class="ef-btn-wide"' : ''} style="display: inline-block; padding: ${opts.large ? '19px 76px' : opts.wide ? '15px 64px' : '14px 34px'}; font-family: ${T.font}; font-size: ${opts.large ? '14px' : '12px'}; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: ${fg}; text-decoration: none; border-radius: 8px;">${escapeHtml(text)} &nbsp;&rarr;</a>
+          <a href="${escapeHtml(href)}"${opts.wide ? ' class="ef-btn-wide"' : ''} style="display: inline-block; padding: ${opts.large ? '21px 84px' : opts.wide ? '15px 64px' : '14px 34px'}; font-family: ${T.font}; font-size: ${opts.large ? '15px' : '12px'}; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: ${fg}; text-decoration: none; border-radius: 8px;">${escapeHtml(text)} &nbsp;&rarr;</a>
         </td>
       </tr>
     </table>`;
@@ -270,8 +270,8 @@ function badges(k: Kit, items: Highlight[], dark = false): string {
 function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: boolean } = {}): string {
   const list = items.map((h) => ({ ...h, label: k.m(h.label) })).filter((h) => h.label);
   if (!list.length) return '';
-  const ring = opts.large ? 50 : 38;
-  const glyph = opts.large ? 26 : 20;
+  const ring = opts.large ? 58 : 38;
+  const glyph = opts.large ? 30 : 20;
   const cls = (name: string) => (opts.large ? ` class="${name}"` : '');
   // A set width makes longer labels wrap onto two lines, as in the cover designs.
   const width = opts.width ? ` width="${opts.width}"` : '';
@@ -281,14 +281,14 @@ function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: b
         .map(
           (h) => `
         <tr>
-          <td valign="middle" style="padding: ${opts.large ? '8px 18px 8px 0' : '6px 14px 6px 0'};">
+          <td valign="middle" style="padding: ${opts.large ? '8px 20px 8px 0' : '6px 14px 6px 0'};">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: separate;">
               <tr><td${cls('ef-check-ring')} align="center" valign="middle" width="${ring}" height="${ring}" style="width: ${ring}px; height: ${ring}px; border: 1px solid ${T.border}; border-radius: ${ring / 2}px; background: #FFFFFF;">
                 <img${cls('ef-check-glyph')} src="${escapeHtml(iconSrc(k, h.icon, false))}" width="${glyph}" height="${glyph}" alt="" style="display: block; margin: 0 auto; border: 0;" />
               </td></tr>
             </table>
           </td>
-          <td${cls('ef-check-label')} valign="middle" style="padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; font-size: ${opts.large ? '15px' : '12px'}; font-weight: 700; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
+          <td${cls('ef-check-label')} valign="middle" style="padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; font-size: ${opts.large ? '17px' : '12px'}; font-weight: 700; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
         </tr>`,
         )
         .join('')}
@@ -517,12 +517,12 @@ function educationLayout(k: Kit): string {
       '.ef-check-label { font-size: 12px !important; }',
     );
     const top = `
-      ${headline ? `<h1 class="ef-edu-h1" style="font-family: ${T.display}; font-size: 40px; font-weight: 700; line-height: 1.12; color: ${c.heading}; margin: 0 0 16px; max-width: 470px; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
-      ${sub ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="345" class="ef-edu-subcol" style="width: 345px; max-width: 100%;"><tr><td>
-        <p class="ef-edu-sub" style="font-family: ${T.font}; font-size: 19px; line-height: 1.5; color: ${c.body}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>
+      ${headline ? `<h1 class="ef-edu-h1" style="font-family: ${T.display}; font-size: 46px; font-weight: 700; line-height: 1.1; color: ${c.heading}; margin: 0 0 18px; max-width: 536px; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
+      ${sub ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="390" class="ef-edu-subcol" style="width: 390px; max-width: 100%;"><tr><td>
+        <p class="ef-edu-sub" style="font-family: ${T.font}; font-size: 21px; line-height: 1.45; color: ${c.body}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>
       </td></tr></table>` : ''}
       <div style="height: 26px; line-height: 26px; font-size: 0;">&nbsp;</div>
-      ${checklist(k, s.highlights, { width: 270, large: true })}
+      ${checklist(k, s.highlights, { width: 320, large: true })}
       ${paragraphs(k.m(s.body), c.body)}`;
     return [
       coverHero(

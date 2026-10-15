@@ -572,9 +572,9 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   assert.match(twoHtml, /class="ef-btn-wide"/);
   assert.match(twoHtml, /\.ef-btn-wide \{ padding: 15px 30px !important; font-size: 12px !important; \}/, 'narrower on phones');
   // Desktop gets the design's large type; phones set it back.
-  assert.match(twoHtml, /class="ef-edu-h1" style="[^"]*font-size: 40px;/);
-  assert.match(twoHtml, /class="ef-edu-sub" style="[^"]*font-size: 19px;/);
-  assert.match(twoHtml, /class="ef-check-label"[^>]*font-size: 15px;/);
+  assert.match(twoHtml, /class="ef-edu-h1" style="[^"]*font-size: 46px;/);
+  assert.match(twoHtml, /class="ef-edu-sub" style="[^"]*font-size: 21px;/);
+  assert.match(twoHtml, /class="ef-check-label"[^>]*font-size: 17px;/);
   const phone = twoHtml.slice(twoHtml.indexOf('@media'), twoHtml.indexOf('</style>'));
   assert.match(phone, /\.ef-edu-h1 \{ font-size: 28px !important;/);
   assert.match(phone, /\.ef-edu-sub \{ font-size: 15px !important; \}/);
