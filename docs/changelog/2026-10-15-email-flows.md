@@ -213,20 +213,38 @@ stretched cover:
 
 | Photo | Shape (h ÷ w) | Used in |
 |---|---|---|
+| `woman-mountains` (woman by the lake, sky above) | 0.87 | Welcome 1 hero, title over the sky |
+| `woman-portrait` (woman in profile, on the right) | 1.07 | Welcome 2 hero, headline, benefits and button down the left |
+| `vials-rock` (two vials, mountains behind) | 1.22 | Welcome 3 hero, headline over the mountains |
+| `man-lake-sky` (man by the lake, sky above) | 1.50 | Welcome 5 hero, question, countdown and button over the sky |
 | `man-lake` (man by the lake) | 1.35 | Cart 1 hero, headline over the sky |
-| `man-lake-vial` (vial in hand) | 0.55 | Cart 1 image above the button |
-| `woman-lake` (woman by the lake) | 1.31 | Welcome 2 and Cart 2 hero, headline over the sky |
-| `dropper` (dropper over a vial) | 1.06 | Welcome 3 and Cart 4, under the headline |
+| `man-lake-vial` (vial on leaves) | 0.55 | Welcome 1 offer card; Cart 1 image above the button |
+| `woman-lake` (woman by the lake) | 1.31 | Cart 2 hero, headline over the sky |
+| `dropper` (dropper over a vial) | 1.06 | Cart 4, under the headline |
+| `dropper-card` (the drop, closer in) | 0.85 | Welcome 3 "Research. Quality." card |
 | `three-vials` (vials on rock, mountains) | 0.75 | Welcome 4 and Cart 3, under the offer |
-| `vials-mountains` (two vials, mountains) | 1.04 | Welcome 5, under the countdown |
-| `lab-vial` (vial in a gloved hand) | 0.94 | Cart 5, under the countdown |
+| `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 "We Show Our Work" card; Cart 5, under the countdown |
 | `support-agent` (agent with headset) | 0.90 | Cart 4 "Real People" card |
 
-Where the designs set the headline over the photo (Welcome 2, Cart 1,
-Cart 2), the text sits over the sky. Everywhere else the headline,
-countdown or offer sits above the photo, as in the designs. The supplied
-woman portrait (old cover 3) isn't used any more; it could become the
-Welcome 1 hero.
+The welcome crops come from the full-height supplied covers. On
+`woman-mountains`, `woman-portrait` and `vials-rock` the side the copy sits
+on is lightened slightly. `woman-portrait` is widened with soft sky on the
+left so she sits on the right, clear of the copy.
+
+Where the designs set the text over the photo (Welcome 1, 2, 3 and 5,
+Cart 1, Cart 2), it sits over the sky or the clear side of the photo. On
+phones, where the photo is narrower and the copy runs over the subject, the
+photo behind Welcome 1, 2 and 5's copy is lightened by a media query.
+Desktop is unchanged. Welcome 4 and the rest of the cart flow put the
+headline, countdown or offer above the photo, as in the designs. The
+welcome series has no placeholder art left.
+
+**Saved emails pick up the new images.** The first visit to the admin saved
+each email's defaults, so saved welcome emails still name the old images.
+When an email is loaded, a welcome image that was a past default is swapped
+for today's (with its shape and overlay setting). An image an admin uploaded
+is never swapped. The old files stay in `public/` so emails already sent
+still show their pictures.
 
 **How the overlay works** (per email in the editor: *Set the headline over
 this image* and *Text: dark / white*):
@@ -295,7 +313,7 @@ The full list is at the top of the script.
 npx tsx --test lib/email-flows/email-flows.test.ts
 ```
 
-There are 30 cases.
+There are 49 cases.
 
 - **Scheduling:** time zones, the send window, step order and retries, the
   minimum gap.

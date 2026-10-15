@@ -47,10 +47,6 @@ export const DEFAULT_SETTINGS: Record<FlowKey, FlowSettings> = {
  * admin or replacing these files.
  */
 export const PLACEHOLDER_IMAGES = {
-  welcomeHero: '/images/email/welcome/welcome-hero.png',
-  welcomeCard: '/images/email/welcome/welcome-card.png',
-  educationCard: '/images/email/welcome/education-card.png',
-  trustCard: '/images/email/welcome/trust-card.png',
   cartEducateCard: '/images/email/cart/educate-card.png',
 } as const;
 
@@ -60,12 +56,21 @@ export const PLACEHOLDER_IMAGES = {
  */
 export const PHOTOS = {
   manByLake: { url: '/images/email/photos/man-lake.jpg', ratio: 1.3483 },
+  /** The same shot with the sky above him — room for the reminder's copy. */
+  manByLakeSky: { url: '/images/email/photos/man-lake-sky.jpg', ratio: 1.5 },
   manByLakeVial: { url: '/images/email/photos/man-lake-vial.jpg', ratio: 0.545 },
   womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.3117 },
+  /** Woman by the lake, wider and higher, the sky left for the welcome title. */
+  womanMountains: { url: '/images/email/photos/woman-mountains.jpg', ratio: 0.8667 },
+  /** Woman in profile on the right, the left kept clear (and lightened) for copy. */
+  womanPortrait: { url: '/images/email/photos/woman-portrait.jpg', ratio: 1.07 },
+  /** Two vials on the rock under the mountains, the upper left lightened for copy. */
+  vialsRock: { url: '/images/email/photos/vials-rock.jpg', ratio: 1.2167 },
   vialsMountains: { url: '/images/email/photos/vials-mountains.jpg', ratio: 1.0367 },
   labVial: { url: '/images/email/photos/lab-vial.jpg', ratio: 0.9383 },
   threeVials: { url: '/images/email/photos/three-vials.jpg', ratio: 0.7508 },
   dropper: { url: '/images/email/photos/dropper.jpg', ratio: 1.055 },
+  dropperCard: { url: '/images/email/photos/dropper-card.jpg', ratio: 0.845 },
   supportAgent: { url: '/images/email/photos/support-agent.jpg', ratio: 0.9 },
 } as const;
 
@@ -130,13 +135,10 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Shop Now',
     cta_url: '/products',
-    hero_image_url: P.welcomeHero,
-    hero_image_ratio: 0.6,
-    hero_overlay: true,
-    hero_text_tone: 'light',
+    ...overlay(F.womanMountains),
     card_title: 'Enjoy {{discount}} Off Your First Order',
     card_body: 'Use code {{code}} at checkout.',
-    card_image_url: P.welcomeCard,
+    card_image_url: F.manByLakeVial.url,
   },
   {
     ...blank('welcome', 2),
@@ -148,12 +150,12 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Supports Recovery', icon: 'heart-pulse' }, { label: 'Promotes Vitality', icon: 'sun' }, { label: 'Helps You Feel Your Best', icon: 'hand-heart' }, { label: 'Builds a Stronger Tomorrow', icon: 'sprout' }],
     cta_label: 'Explore the Collection',
     cta_url: '/products',
-    ...overlay(F.womanByLake),
+    ...overlay(F.womanPortrait),
     card_title: 'We Show Our Work',
     card_body: 'Every batch is third-party tested for identity, purity and quality.',
     card_link_label: 'Learn More',
     card_link_url: '/lab-results',
-    card_image_url: P.educationCard,
+    card_image_url: F.labVial.url,
   },
   {
     ...blank('welcome', 3),
@@ -166,10 +168,10 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Batch-Specific COA', icon: 'file-text' }, { label: 'Cold-Chain Handling', icon: 'snowflake' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Our Testing Process',
     cta_url: '/lab-results',
-    ...below(F.dropper),
+    ...overlay(F.vialsRock),
     card_title: 'Research. Quality. Wellness.',
     card_body: "A higher standard for what's next.",
-    card_image_url: P.trustCard,
+    card_image_url: F.dropperCard.url,
   },
   {
     ...blank('welcome', 4),
@@ -197,7 +199,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Wellness', icon: 'shield-check' }, { label: 'Discreet Shipping', icon: 'truck' }, { label: 'Trusted Quality', icon: 'shield-check' }],
     cta_label: 'Claim {{discount}} Off',
     cta_url: '/products',
-    ...below(F.vialsMountains),
+    ...overlay(F.manByLakeSky),
   },
 ];
 
@@ -294,6 +296,39 @@ const CART: FlowStep[] = [
 
 export const DEFAULT_STEPS: Record<FlowKey, FlowStep[]> = { welcome: WELCOME, cart: CART };
 
+/**
+ * Images the welcome series used to ship with. The first load of the admin
+ * saved each email's defaults to the database, so a saved email still naming
+ * one of these is on an old default, not an admin's choice: it gets today's
+ * image (and that image's shape and overlay) instead. An image an admin
+ * uploaded is never on this list, so it is kept.
+ */
+const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly string[] }> = {
+  welcome: {
+    hero: [
+      '/images/email/welcome/welcome-hero.png',
+      '/images/email/welcome/education-hero.png',
+      '/images/email/welcome/trust-hero.png',
+      '/images/email/welcome/offer-hero.png',
+      '/images/email/welcome/reminder-hero.png',
+      '/images/email/covers/cover-1.jpg',
+      '/images/email/covers/cover-2.jpg',
+      '/images/email/covers/cover-3.jpg',
+      '/images/email/covers/cover-4.jpg',
+      '/images/email/covers/cover-5.jpg',
+      '/images/email/photos/woman-lake.jpg',
+      '/images/email/photos/dropper.jpg',
+      '/images/email/photos/vials-mountains.jpg',
+    ],
+    card: [
+      '/images/email/welcome/welcome-card.png',
+      '/images/email/welcome/education-card.png',
+      '/images/email/welcome/trust-card.png',
+    ],
+  },
+  cart: { hero: [], card: [] },
+};
+
 export function defaultStep(flow: FlowKey, step: StepNumber): FlowStep {
   const found = DEFAULT_STEPS[flow].find((s) => s.step === step)!;
   return { ...found, highlights: found.highlights.map((h) => ({ ...h })) };
@@ -311,6 +346,16 @@ export function shapeStepRow(flow: FlowKey, row: Partial<FlowStep> & { step: num
   merged.hero_overlay = row.hero_overlay ?? base.hero_overlay;
   merged.hero_text_tone = row.hero_text_tone === 'light' ? 'light' : row.hero_text_tone === 'dark' ? 'dark' : base.hero_text_tone;
   merged.hero_image_ratio = row.hero_image_ratio == null ? ('hero_image_ratio' in row ? null : base.hero_image_ratio) : Number(row.hero_image_ratio);
+  const retired = RETIRED_IMAGES[flow];
+  if (retired.hero.includes(merged.hero_image_url) && merged.hero_image_url !== base.hero_image_url) {
+    merged.hero_image_url = base.hero_image_url;
+    merged.hero_image_ratio = base.hero_image_ratio;
+    merged.hero_overlay = base.hero_overlay;
+    merged.hero_text_tone = base.hero_text_tone;
+  }
+  if (retired.card.includes(merged.card_image_url) && merged.card_image_url !== base.card_image_url) {
+    merged.card_image_url = base.card_image_url;
+  }
   return merged;
 }
 

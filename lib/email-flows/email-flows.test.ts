@@ -493,12 +493,18 @@ test('header: the lockup, and "View in browser" only when there is a page to vie
 
 test('welcome title: "VYTA" is set in the wordmark over the hero photo', () => {
   const html = renderFlowEmail(defaultStep(1), ctx()).html;
-  assert.match(html, /vyta-word-white\.png/);
+  // Navy over the sky, at the top of the photo.
+  assert.match(html, /vyta-word-navy\.png/);
   assert.match(html, />Welcome to</);
-  assert.match(html, /background-image: url\('https:\/\/www\.vytabio\.com\/images\/email\/welcome\/welcome-hero\.png'\)/);
+  assert.match(html, /background-image: url\('https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-mountains\.jpg'\)/);
+  assert.match(html, /class="ef-cover ef-cover-wash"[^>]*valign="top"/);
+  // White text sits low, on the darker ground.
+  const light = renderFlowEmail({ ...defaultStep(1), hero_text_tone: 'light' }, ctx()).html;
+  assert.match(light, /vyta-word-white\.png/);
+  assert.match(light, /class="ef-cover"[^>]*valign="bottom"/);
   // An edited title that doesn't end in VYTA is just text.
   const plain = renderFlowEmail({ ...defaultStep(1), headline: 'Hello there' }, ctx()).html;
-  assert.ok(!plain.includes('vyta-word-white'));
+  assert.ok(!plain.includes('vyta-word-navy'));
   assert.match(plain, />Hello there</);
 });
 
@@ -511,10 +517,15 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
     const s = dflt(flow, n);
     return [s.hero_image_url.replace('/images/email/photos/', ''), s.hero_overlay];
   };
-  assert.deepEqual(at('welcome', 2), ['woman-lake.jpg', true]);
-  assert.deepEqual(at('welcome', 3), ['dropper.jpg', false]);
+  assert.deepEqual(at('welcome', 1), ['woman-mountains.jpg', true]);
+  assert.deepEqual(at('welcome', 2), ['woman-portrait.jpg', true]);
+  assert.deepEqual(at('welcome', 3), ['vials-rock.jpg', true]);
   assert.deepEqual(at('welcome', 4), ['three-vials.jpg', false]);
-  assert.deepEqual(at('welcome', 5), ['vials-mountains.jpg', false]);
+  assert.deepEqual(at('welcome', 5), ['man-lake-sky.jpg', true]);
+  // No placeholder art left in the welcome series.
+  for (const step of DEFAULT_STEPS.welcome) {
+    assert.ok(!/\/images\/email\/welcome\//.test(`${step.hero_image_url} ${step.card_image_url}`), `welcome ${step.step}`);
+  }
   assert.deepEqual(at('cart', 1), ['man-lake.jpg', true]);
   assert.deepEqual(at('cart', 2), ['woman-lake.jpg', true]);
   assert.deepEqual(at('cart', 3), ['three-vials.jpg', false]);
@@ -546,18 +557,66 @@ test('an overlay hero carries its text, keeps its shape, and works in Outlook an
   assert.match(html, /man-lake-vial\.jpg/);
 });
 
-test('the reminders set the question and countdown above the photo, as designed', () => {
-  const html = renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
-  assert.ok(!html.includes('ef-cover'));
-  const photo = html.indexOf('vials-mountains.jpg');
-  assert.ok(html.indexOf('Still Thinking About It?') < photo);
-  assert.ok(html.indexOf('Claim 20% Off') < photo);
+/** The cover cell of an email: from its opening tag to the end of the VML box. */
+const coverOf = (html: string) => html.slice(html.indexOf('class="ef-cover'), html.indexOf('</v:rect>'));
+
+test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
+  // Welcome 2: headline, benefits and button all over the photo.
+  const two = coverOf(renderFlowEmail(defaultStep(2), ctx()).html);
+  for (const text of ['Modern Wellness Starts with Knowledge', 'Supports Recovery', 'Builds a Stronger Tomorrow', 'Explore the Collection']) {
+    assert.ok(two.includes(text), text);
+  }
+  // Welcome 3: headline over the photo, the badges and body below it.
+  const threeHtml = renderFlowEmail(defaultStep(3), ctx()).html;
+  const three = coverOf(threeHtml);
+  assert.ok(three.includes('Quality You Can Trust'));
+  assert.ok(!three.includes('We partner with independent laboratories'));
+  assert.ok(threeHtml.includes('We partner with independent laboratories'));
+  // Welcome 5: question, countdown and button over the sky.
+  const five = coverOf(renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html);
+  for (const text of ['Still Thinking About It?', 'Minutes', 'Claim 20% Off']) assert.ok(five.includes(text), text);
+});
+
+test('on phones the photo under the copy is lightened; desktop is untouched', () => {
+  const html = renderFlowEmail(defaultStep(2), ctx()).html;
+  const media = html.slice(html.indexOf('@media'), html.indexOf('</style>'));
+  assert.match(media, /\.ef-cover-wash \{ background-image: linear-gradient\(90deg[^)]*\)[^;]*url\('https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-portrait\.jpg'\)/);
+  // White text gets no white wash.
+  const light = renderFlowEmail({ ...defaultStep(2), hero_text_tone: 'light' }, ctx()).html;
+  assert.ok(!light.includes('ef-cover-wash'));
 });
 
 test('switching the overlay off falls back to headline-then-photo', () => {
-  const html = renderFlowEmail({ ...defaultStep(2), hero_overlay: false }, ctx()).html;
+  const html = renderFlowEmail({ ...defaultStep(3), hero_overlay: false }, ctx()).html;
   assert.ok(!html.includes('ef-cover'));
-  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-lake\.jpg"/);
+  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/vials-rock\.jpg"/);
+  // The reminder puts the question and countdown above the photo.
+  const five = renderFlowEmail({ ...defaultStep(5), hero_overlay: false }, ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
+  const photo = five.indexOf('man-lake-sky.jpg');
+  assert.ok(five.indexOf('Still Thinking About It?') < photo);
+  assert.ok(five.indexOf('Claim 20% Off') < photo);
+});
+
+test('saved welcome emails still on an old default image get the new one; uploads are kept', () => {
+  // Seeded before this change: the old placeholder and the old crop.
+  const one = shapeRow('welcome', { step: 1, hero_image_url: '/images/email/welcome/welcome-hero.png', hero_image_ratio: 0.6, hero_overlay: true, hero_text_tone: 'light', card_image_url: '/images/email/welcome/welcome-card.png', headline: 'Hi VYTA' });
+  assert.equal(one.hero_image_url, '/images/email/photos/woman-mountains.jpg');
+  assert.equal(one.hero_image_ratio, 0.8667);
+  assert.equal(one.hero_text_tone, 'dark');
+  assert.equal(one.card_image_url, '/images/email/photos/man-lake-vial.jpg');
+  assert.equal(one.headline, 'Hi VYTA', 'copy is left alone');
+  const five = shapeRow('welcome', { step: 5, hero_image_url: '/images/email/photos/vials-mountains.jpg', hero_overlay: false });
+  assert.equal(five.hero_image_url, '/images/email/photos/man-lake-sky.jpg');
+  assert.equal(five.hero_overlay, true);
+  // An admin's own upload stays, overlay setting and all.
+  const mine = 'https://cdn.example.com/my-photo.jpg';
+  const kept = shapeRow('welcome', { step: 2, hero_image_url: mine, hero_overlay: false, hero_image_ratio: 0.7 });
+  assert.equal(kept.hero_image_url, mine);
+  assert.equal(kept.hero_overlay, false);
+  assert.equal(kept.hero_image_ratio, 0.7);
+  // The cart flow still uses the lake photo and the dropper.
+  assert.equal(shapeRow('cart', { step: 2, hero_image_url: '/images/email/photos/woman-lake.jpg' }).hero_image_url, '/images/email/photos/woman-lake.jpg');
+  assert.equal(shapeRow('cart', { step: 4, hero_image_url: '/images/email/photos/dropper.jpg' }).hero_image_url, '/images/email/photos/dropper.jpg');
 });
 
 test('shapeStepInput keeps the overlay settings and a sane ratio', () => {

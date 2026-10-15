@@ -195,6 +195,8 @@ interface Kit {
   step: FlowStep;
   /** Set by coverHero: the cover's height ÷ width, for the phone-width rule in <head>. */
   coverRatio?: number;
+  /** Set by coverHero: the photo to lighten on phones, where the copy runs over the subject. */
+  coverWash?: { src: string; from: 'left' | 'top' };
   m: (s: string) => string;
   href: (url: string) => string | null;
   img: (url: string) => string | null;
@@ -212,14 +214,14 @@ function paragraphs(text: string, color: string = T.body, align = 'left'): strin
     .join('');
 }
 
-function button(k: Kit, label: string, url: string, opts: { light?: boolean; urgent?: boolean } = {}): string {
+function button(k: Kit, label: string, url: string, opts: { light?: boolean; urgent?: boolean; align?: 'left' | 'center' } = {}): string {
   const href = k.href(url);
   const text = k.m(label);
   if (!href || !text) return '';
   const bg = opts.light ? '#FFFFFF' : opts.urgent ? T.urgent : T.button;
   const fg = opts.light ? T.ink : '#FFFFFF';
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 6px auto 4px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="${opts.align ?? 'center'}" style="margin: ${opts.align === 'left' ? '6px 0 4px' : '6px auto 4px'};">
       <tr>
         <td align="center" bgcolor="${bg}" style="border-radius: 8px; background: ${bg};">
           <a href="${escapeHtml(href)}" style="display: inline-block; padding: 14px 34px; font-family: ${T.font}; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: ${fg}; text-decoration: none; border-radius: 8px;">${escapeHtml(text)} &nbsp;&rarr;</a>
@@ -338,7 +340,7 @@ const pad = (inner: string, p = '28px 32px') => (inner.trim() ? `<tr><td style="
  * On phones a media query (in <head>) scales the height with the width, so a
  * tall cover isn't cropped down to a sliver.
  */
-function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; padding?: string } = {}): string {
+function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; padding?: string; phoneWash?: 'left' | 'top' } = {}): string {
   const s = k.step;
   const src = k.img(s.hero_image_url);
   const ratio = s.hero_image_ratio && s.hero_image_ratio > 0 ? s.hero_image_ratio : 0.6;
@@ -346,10 +348,11 @@ function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; pad
   const fallback = s.hero_text_tone === 'light' ? T.navy : '#DCE9F1';
   const valign = opts.valign ?? 'top';
   k.coverRatio = ratio;
+  if (opts.phoneWash && src) k.coverWash = { src, from: opts.phoneWash };
   const bg = src
     ? `background="${escapeHtml(src)}" style="background-color: ${fallback}; background-image: url('${escapeHtml(src)}'); background-size: cover; background-position: center top; background-repeat: no-repeat; height: ${h}px;"`
     : `style="background-color: ${fallback}; height: ${h}px;"`;
-  return `<tr><td class="ef-cover" ${bg} bgcolor="${fallback}" height="${h}" valign="${valign}">
+  return `<tr><td class="ef-cover${opts.phoneWash && src ? ' ef-cover-wash' : ''}" ${bg} bgcolor="${fallback}" height="${h}" valign="${valign}">
     <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:${h}px;"><v:fill type="frame"${src ? ` src="${escapeHtml(src)}"` : ''} color="${fallback}" /><v:textbox inset="0,0,0,0"><![endif]-->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr><td valign="${valign}" style="padding: ${opts.padding ?? '36px 32px'};">${inner}</td></tr>
@@ -385,8 +388,8 @@ function overlayHeadline(k: Kit, align: 'left' | 'center' = 'left', size = 32): 
 }
 
 /** Left-set overlay text keeps to the side of the photo the subject isn't on. */
-const narrow = (inner: string) =>
-  `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="360" style="width: 360px; max-width: 100%;"><tr><td>${inner}</td></tr></table>`;
+const narrow = (inner: string, width = 360) =>
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${width}" style="width: ${width}px; max-width: 100%;"><tr><td>${inner}</td></tr></table>`;
 
 /** Does this step set its text over the main image? */
 const overlaid = (k: Kit) => k.step.hero_overlay && !!k.img(k.step.hero_image_url);
@@ -413,9 +416,11 @@ function welcomeTitle(k: Kit): string {
 
 function welcomeLayout(k: Kit): string {
   const s = k.step;
+  // White text sits low, on the darker ground; navy text sits high, on the sky.
+  const low = s.hero_text_tone === 'light';
   return [
     overlaid(k)
-      ? coverHero(k, welcomeTitle(k), { valign: 'bottom', padding: '0 32px 34px' })
+      ? coverHero(k, welcomeTitle(k), low ? { valign: 'bottom', padding: '0 32px 34px' } : { valign: 'top', padding: '34px 32px 0', phoneWash: 'left' })
       : pad(headlineBlock(k, 'left', 32), '28px 32px 8px'),
     pad(badges(k, s.highlights), '24px 20px 14px'),
     pad(paragraphs(k.m(s.body)) + button(k, s.cta_label, s.cta_url), '10px 32px 24px'),
@@ -435,6 +440,25 @@ function heroWithHeadline(k: Kit, size = 30): string {
 
 function educationLayout(k: Kit): string {
   const s = k.step;
+  if (overlaid(k)) {
+    // As designed: the headline, the benefits and the button all over the
+    // photo, down its left side, the subject on the right.
+    return [
+      coverHero(
+        k,
+        narrow(
+          overlayHeadline(k, 'left', 30) +
+            `<div style="height: 22px; line-height: 22px; font-size: 0;">&nbsp;</div>` +
+            checklist(k, s.highlights) +
+            paragraphs(k.m(s.body), overlayTone(k).body) +
+            button(k, s.cta_label, s.cta_url, { align: 'left' }),
+          290,
+        ),
+        { padding: '36px 32px 32px', phoneWash: k.step.hero_text_tone === 'light' ? undefined : 'left' },
+      ),
+      pad(card(k, { imageLeft: true }), '24px 20px 24px'),
+    ].join('');
+  }
   return [
     heroWithHeadline(k),
     pad(checklist(k, s.highlights) + paragraphs(k.m(s.body)) + button(k, s.cta_label, s.cta_url), '24px 32px 24px'),
@@ -523,7 +547,7 @@ function reminderLayout(k: Kit): string {
           countdownBlock(k) +
           button(k, s.cta_label, s.cta_url) +
           codeLine,
-        { padding: '40px 36px' },
+        { padding: '40px 36px', phoneWash: k.step.hero_text_tone === 'light' ? undefined : 'top' },
       ),
       `<tr><td bgcolor="${T.navy}" style="background: ${T.navy}; padding: 22px 20px;">${badges(k, s.highlights, true)}</td></tr>`,
       finePrint(k),
@@ -724,7 +748,11 @@ export function renderFlowEmail(step: FlowStep, ctx: RenderContext): RenderedEma
 ${k.coverRatio ? `<style>
   /* Phones: the cover keeps its shape instead of being cropped to a strip. */
   @media only screen and (max-width: 620px) {
-    .ef-cover { height: calc((100vw - 22px) * ${k.coverRatio}) !important; }
+    .ef-cover { height: calc((100vw - 22px) * ${k.coverRatio}) !important; }${k.coverWash ? `
+    /* The copy runs over the subject at this width: lighten the photo behind it. */
+    .ef-cover-wash { background-image: ${k.coverWash.from === 'left'
+      ? 'linear-gradient(90deg, rgba(255,255,255,0.78), rgba(255,255,255,0.55) 70%, rgba(255,255,255,0.2))'
+      : 'linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.5) 80%, rgba(255,255,255,0))'}, url('${escapeHtml(k.coverWash.src)}') !important; }` : ''}
   }
 </style>` : ''}
 </head>
