@@ -576,7 +576,12 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   assert.match(twoHtml, /class="ef-edu-sub" style="[^"]*font-size: 21px;/);
   assert.match(twoHtml, /class="ef-check-label"[^>]*font-size: 17px;/);
   const phone = twoHtml.slice(twoHtml.indexOf('@media'), twoHtml.indexOf('</style>'));
-  assert.match(phone, /\.ef-edu-h1 \{ font-size: 28px !important;/);
+  assert.match(phone, /\.ef-edu-h1 \{ font-size: 28px !important; max-width: 100% !important; \}/);
+  // Phones give the copy the full width, with slimmer side margins.
+  assert.match(twoHtml, /class="ef-edu-pad"/);
+  assert.match(phone, /\.ef-edu-pad \{ padding: 28px 20px 24px !important; \}/);
+  assert.match(phone, /\.ef-edu-subcol \{ width: 100% !important; \}/);
+  assert.match(phone, /\.ef-check \{ width: 100% !important; \}/);
   assert.match(phone, /\.ef-edu-sub \{ font-size: 15px !important; \}/);
   assert.match(phone, /\.ef-check-label \{ font-size: 12px !important; \}/);
   // Welcome 3: headline over the photo, the badges and body below it.

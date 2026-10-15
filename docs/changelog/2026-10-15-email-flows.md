@@ -235,7 +235,8 @@ so it sits narrower on the right. Its own sky is stretched into a soft haze
 on the left behind the copy. It is saved 1200 wide for sharp screens.
 The photo fades to white at its foot, into the email below. On desktop the
 Welcome 2 cover uses large type (46px headline, 21px line, 17px benefits in
-58px rings, a larger button). Phones
+58px rings, a larger button). On phones the copy uses the full width of the photo,
+with slimmer side margins, so the headline fits on two lines. Phones
 set it back to the smaller sizes so the photo still shows.
 
 Where the designs set the text over the photo (Welcome 1, 2, 3 and 5,

@@ -281,7 +281,7 @@ function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: b
         .map(
           (h) => `
         <tr>
-          <td valign="middle" style="padding: ${opts.large ? '8px 20px 8px 0' : '6px 14px 6px 0'};">
+          <td${cls('ef-check-icon')} valign="middle" width="${ring + (opts.large ? 20 : 14)}" style="width: ${ring}px; padding: ${opts.large ? '8px 20px 8px 0' : '6px 14px 6px 0'};">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: separate;">
               <tr><td${cls('ef-check-ring')} align="center" valign="middle" width="${ring}" height="${ring}" style="width: ${ring}px; height: ${ring}px; border: 1px solid ${T.border}; border-radius: ${ring / 2}px; background: #FFFFFF;">
                 <img${cls('ef-check-glyph')} src="${escapeHtml(iconSrc(k, h.icon, false))}" width="${glyph}" height="${glyph}" alt="" style="display: block; margin: 0 auto; border: 0;" />
@@ -352,7 +352,7 @@ const pad = (inner: string, p = '28px 32px') => (inner.trim() ? `<tr><td style="
  * On phones a media query (in <head>) scales the height with the width, so a
  * tall cover isn't cropped down to a sliver.
  */
-function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; padding?: string; phoneWash?: 'left' | 'top'; fill?: boolean } = {}): string {
+function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; padding?: string; phoneWash?: 'left' | 'top'; fill?: boolean; padClass?: string } = {}): string {
   const s = k.step;
   const src = k.img(s.hero_image_url);
   const ratio = s.hero_image_ratio && s.hero_image_ratio > 0 ? s.hero_image_ratio : 0.6;
@@ -367,7 +367,7 @@ function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; pad
   return `<tr><td class="ef-cover${opts.phoneWash && src ? ' ef-cover-wash' : ''}" ${bg} bgcolor="${fallback}" height="${h}" valign="${valign}">
     <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:${h}px;"><v:fill type="frame"${src ? ` src="${escapeHtml(src)}"` : ''} color="${fallback}" /><v:textbox inset="0,0,0,0"><![endif]-->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${opts.fill ? ` height="${h}" class="ef-cover-fill" style="height: ${h}px;"` : ''}>
-      <tr><td valign="${valign}" style="padding: ${opts.padding ?? '36px 32px'};">${inner}</td></tr>
+      <tr><td${opts.padClass ? ` class="${opts.padClass}"` : ''} valign="${valign}" style="padding: ${opts.padding ?? '36px 32px'};">${inner}</td></tr>
     </table>
     <!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
   </td></tr>`;
@@ -508,10 +508,13 @@ function educationLayout(k: Kit): string {
     // Desktop gets the design's large type; phones set it back to sizes
     // that leave room for the photo.
     (k.phoneRules ??= []).push(
-      '.ef-edu-h1 { font-size: 28px !important; max-width: 330px !important; }',
+      // Phones use the full width for the copy, with slimmer side margins.
+      '.ef-edu-pad { padding: 28px 20px 24px !important; }',
+      '.ef-edu-h1 { font-size: 28px !important; max-width: 100% !important; }',
       '.ef-edu-sub { font-size: 15px !important; }',
-      '.ef-edu-subcol { width: 270px !important; }',
-      '.ef-check { width: 196px !important; }',
+      '.ef-edu-subcol { width: 100% !important; }',
+      '.ef-check { width: 100% !important; }',
+      '.ef-check-icon { width: 38px !important; padding: 6px 14px 6px 0 !important; }',
       '.ef-check-ring { width: 38px !important; height: 38px !important; border-radius: 19px !important; }',
       '.ef-check-glyph { width: 20px !important; height: 20px !important; }',
       '.ef-check-label { font-size: 12px !important; }',
@@ -533,7 +536,7 @@ function educationLayout(k: Kit): string {
           <tr><td valign="top">${top}</td></tr>
           <tr><td valign="bottom" style="padding-top: 18px;">${button(k, s.cta_label, s.cta_url, { wide: true, large: true })}</td></tr>
         </table>`,
-        { padding: '34px 32px 30px', phoneWash: 'left', fill: true },
+        { padding: '34px 32px 30px', phoneWash: 'left', fill: true, padClass: 'ef-edu-pad' },
       ),
       pad(card(k, { imageLeft: true }), '24px 20px 24px'),
     ].join('');
