@@ -60,8 +60,10 @@ export const PHOTOS = {
   manByLakeSky: { url: '/images/email/photos/man-lake-sky.jpg', ratio: 1.5 },
   manByLakeVial: { url: '/images/email/photos/man-lake-vial.jpg', ratio: 0.545 },
   womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.3117 },
-  /** Woman by the lake, wider and higher, the sky left for the welcome title. */
-  womanMountains: { url: '/images/email/photos/woman-mountains.jpg', ratio: 0.8667 },
+  /** Woman by the lake on the right, the left darkened for the white welcome title. */
+  womanLakeDark: { url: '/images/email/photos/woman-lake-dark.jpg', ratio: 0.8 },
+  /** The welcome offer panel: pale mountains behind the copy, the vials at the right. */
+  offerCard: { url: '/images/email/photos/offer-card.jpg', ratio: 0.3933 },
   /** Woman in profile on the right, the left kept clear (and lightened) for copy. */
   womanPortrait: { url: '/images/email/photos/woman-portrait.jpg', ratio: 1.07 },
   /** Two vials on the rock under the mountains, the upper left lightened for copy. */
@@ -135,10 +137,11 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Shop Now',
     cta_url: '/products',
-    ...overlay(F.womanMountains),
+    ...overlay(F.womanLakeDark),
+    hero_text_tone: 'light',
     card_title: 'Enjoy {{discount}} Off Your First Order',
     card_body: 'Use code {{code}} at checkout.',
-    card_image_url: F.manByLakeVial.url,
+    card_image_url: F.offerCard.url,
   },
   {
     ...blank('welcome', 2),
@@ -319,11 +322,13 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/photos/woman-lake.jpg',
       '/images/email/photos/dropper.jpg',
       '/images/email/photos/vials-mountains.jpg',
+      '/images/email/photos/woman-mountains.jpg',
     ],
     card: [
       '/images/email/welcome/welcome-card.png',
       '/images/email/welcome/education-card.png',
       '/images/email/welcome/trust-card.png',
+      '/images/email/photos/man-lake-vial.jpg',
     ],
   },
   cart: { hero: [], card: [] },

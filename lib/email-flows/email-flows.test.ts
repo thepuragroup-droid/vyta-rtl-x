@@ -249,7 +249,7 @@ test('the welcome card names the code once', () => {
   // Default copy already says "Use code WELCOME10" — no second chip.
   const named = renderWelcomeEmail(defaultStep(1), ctx({ offer: { code: 'WELCOME10', label: '10%' } }));
   assert.ok(!named.html.includes('Code:'));
-  assert.match(named.html, /Use code WELCOME10/);
+  assert.match(named.html, /Use code <strong[^>]*>WELCOME10<\/strong>/);
   // Copy that doesn't name it gets the chip.
   const chip = renderWelcomeEmail({ ...defaultStep(1), card_body: 'At checkout.' }, ctx({ offer: { code: 'WELCOME10', label: '10%' } }));
   assert.ok(chip.html.includes('Code:'));
@@ -493,18 +493,18 @@ test('header: the lockup, and "View in browser" only when there is a page to vie
 
 test('welcome title: "VYTA" is set in the wordmark over the hero photo', () => {
   const html = renderFlowEmail(defaultStep(1), ctx()).html;
-  // Navy over the sky, at the top of the photo.
-  assert.match(html, /vyta-word-navy\.png/);
+  // White, low on the darkened side of the photo, as designed.
+  assert.match(html, /vyta-word-white\.png/);
   assert.match(html, />Welcome to</);
-  assert.match(html, /background-image: url\('https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-mountains\.jpg'\)/);
-  assert.match(html, /class="ef-cover ef-cover-wash"[^>]*valign="top"/);
-  // White text sits low, on the darker ground.
-  const light = renderFlowEmail({ ...defaultStep(1), hero_text_tone: 'light' }, ctx()).html;
-  assert.match(light, /vyta-word-white\.png/);
-  assert.match(light, /class="ef-cover"[^>]*valign="bottom"/);
+  assert.match(html, /background-image: url\('https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-lake-dark\.jpg'\)/);
+  assert.match(html, /class="ef-cover ef-cover-wash"[^>]*valign="bottom"/);
+  // Navy text sits high, on the sky.
+  const dark = renderFlowEmail({ ...defaultStep(1), hero_text_tone: 'dark' }, ctx()).html;
+  assert.match(dark, /vyta-word-navy\.png/);
+  assert.match(dark, /class="ef-cover ef-cover-wash"[^>]*valign="top"/);
   // An edited title that doesn't end in VYTA is just text.
   const plain = renderFlowEmail({ ...defaultStep(1), headline: 'Hello there' }, ctx()).html;
-  assert.ok(!plain.includes('vyta-word-navy'));
+  assert.ok(!plain.includes('vyta-word-white'));
   assert.match(plain, />Hello there</);
 });
 
@@ -517,7 +517,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
     const s = dflt(flow, n);
     return [s.hero_image_url.replace('/images/email/photos/', ''), s.hero_overlay];
   };
-  assert.deepEqual(at('welcome', 1), ['woman-mountains.jpg', true]);
+  assert.deepEqual(at('welcome', 1), ['woman-lake-dark.jpg', true]);
   assert.deepEqual(at('welcome', 2), ['woman-portrait.jpg', true]);
   assert.deepEqual(at('welcome', 3), ['vials-rock.jpg', true]);
   assert.deepEqual(at('welcome', 4), ['three-vials.jpg', false]);
@@ -581,9 +581,27 @@ test('on phones the photo under the copy is lightened; desktop is untouched', ()
   const html = renderFlowEmail(defaultStep(2), ctx()).html;
   const media = html.slice(html.indexOf('@media'), html.indexOf('</style>'));
   assert.match(media, /\.ef-cover-wash \{ background-image: linear-gradient\(90deg[^)]*\)[^;]*url\('https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-portrait\.jpg'\)/);
-  // White text gets no white wash.
+  // White text gets a navy wash instead.
   const light = renderFlowEmail({ ...defaultStep(2), hero_text_tone: 'light' }, ctx()).html;
-  assert.ok(!light.includes('ef-cover-wash'));
+  assert.match(light, /\.ef-cover-wash \{ background-image: linear-gradient\(90deg, rgba\(5,24,43,/);
+});
+
+test('welcome 1 offer: the copy over the picture, the code in bold', () => {
+  const html = renderFlowEmail(defaultStep(1), ctx({ offer: { code: 'WELCOME10', label: '10%' } })).html;
+  const banner = html.slice(html.indexOf('class="ef-banner"'));
+  assert.match(banner, /^class="ef-banner" background="https:\/\/www\.vytabio\.com\/images\/email\/photos\/offer-card\.jpg"/);
+  assert.match(banner, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/offer-card\.jpg"/);
+  assert.match(banner, />Enjoy 10% Off Your First Order</);
+  assert.match(banner, /Use code <strong[^>]*>WELCOME10<\/strong> at checkout\./);
+  // Phones lighten the picture behind the copy.
+  assert.match(html, /\.ef-banner \{ background-image: linear-gradient/);
+  // Copy that doesn't name the code gets it on a line of its own.
+  const noCode = renderFlowEmail({ ...defaultStep(1), card_body: 'Applies at checkout.' }, ctx({ offer: { code: 'WELCOME10', label: '10%' } })).html;
+  assert.match(noCode, /Code: <strong[^>]*>WELCOME10<\/strong>/);
+  // Without a picture it falls back to the side-by-side panel.
+  const bare = renderFlowEmail({ ...defaultStep(1), card_image_url: '' }, ctx({ offer: { code: 'WELCOME10', label: '10%' } })).html;
+  assert.ok(!bare.includes('ef-banner'));
+  assert.match(bare, />Enjoy 10% Off Your First Order</);
 });
 
 test('switching the overlay off falls back to headline-then-photo', () => {
@@ -600,10 +618,10 @@ test('switching the overlay off falls back to headline-then-photo', () => {
 test('saved welcome emails still on an old default image get the new one; uploads are kept', () => {
   // Seeded before this change: the old placeholder and the old crop.
   const one = shapeRow('welcome', { step: 1, hero_image_url: '/images/email/welcome/welcome-hero.png', hero_image_ratio: 0.6, hero_overlay: true, hero_text_tone: 'light', card_image_url: '/images/email/welcome/welcome-card.png', headline: 'Hi VYTA' });
-  assert.equal(one.hero_image_url, '/images/email/photos/woman-mountains.jpg');
-  assert.equal(one.hero_image_ratio, 0.8667);
-  assert.equal(one.hero_text_tone, 'dark');
-  assert.equal(one.card_image_url, '/images/email/photos/man-lake-vial.jpg');
+  assert.equal(one.hero_image_url, '/images/email/photos/woman-lake-dark.jpg');
+  assert.equal(one.hero_image_ratio, 0.8);
+  assert.equal(one.hero_text_tone, 'light');
+  assert.equal(one.card_image_url, '/images/email/photos/offer-card.jpg');
   assert.equal(one.headline, 'Hi VYTA', 'copy is left alone');
   const five = shapeRow('welcome', { step: 5, hero_image_url: '/images/email/photos/vials-mountains.jpg', hero_overlay: false });
   assert.equal(five.hero_image_url, '/images/email/photos/man-lake-sky.jpg');
