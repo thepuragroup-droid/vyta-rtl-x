@@ -527,7 +527,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
     assert.ok(!/\/images\/email\/welcome\//.test(`${step.hero_image_url} ${step.card_image_url}`), `welcome ${step.step}`);
   }
   assert.deepEqual(at('cart', 1), ['cart-woman-lake.jpg', true]);
-  assert.deepEqual(at('cart', 2), ['woman-lake.jpg', true]);
+  assert.deepEqual(at('cart', 2), ['cart-woman-sun.jpg', true]);
   assert.deepEqual(at('cart', 3), ['three-vials.jpg', false]);
   assert.deepEqual(at('cart', 4), ['dropper.jpg', false]);
   assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
@@ -564,6 +564,20 @@ test('an overlay hero carries its text, keeps its shape, and works in Outlook an
   assert.equal(after.split('Return to Cart').length - 1, 1, 'one Return to Cart button');
   assert.match(after, /class="ef-btn-wide"/);
   assert.ok(after.indexOf('Canadian Owned') < after.indexOf('vial-rock.jpg'));
+});
+
+test('cart 2: the education cover without a button, then the cart panel with it', () => {
+  const html = renderFlowEmail(dflt('cart', 2), cartCtx()).html;
+  const cover = coverOf(html);
+  for (const text of ['Invest in a Healthier You', 'Research. Quality. Peace of Mind.', 'Third-Party Tested', 'Premium Sourcing']) assert.ok(cover.includes(text), text);
+  assert.ok(!cover.includes('Return to Cart'), 'no button in the cover');
+  const after = html.slice(html.indexOf('</v:rect>'));
+  assert.ok(after.indexOf('Your cart is still waiting.') < after.indexOf('BPC-157'));
+  assert.ok(after.indexOf('BPC-157') < after.indexOf('Return to Cart'));
+  assert.ok(after.indexOf('Return to Cart') < after.indexOf('We Show Our Work'));
+  assert.match(after, /class="ef-panel-title" style="[^"]*font-size: 26px;/);
+  assert.match(after, /lab-vial\.jpg/);
+  assert.ok(html.includes('.ef-panel-title { font-size: 19px !important; }'));
 });
 
 test('saved cart emails still on an old default image get the new one', () => {
@@ -695,8 +709,10 @@ test('saved welcome emails still on an old default image get the new one; upload
   assert.equal(kept.hero_image_url, mine);
   assert.equal(kept.hero_overlay, false);
   assert.equal(kept.hero_image_ratio, 0.7);
-  // The cart flow still uses the lake photo and the dropper.
-  assert.equal(shapeRow('cart', { step: 2, hero_image_url: '/images/email/photos/woman-lake.jpg' }).hero_image_url, '/images/email/photos/woman-lake.jpg');
+  // Cart 2 moves on from the lake photo; Cart 4 keeps the dropper.
+  const cart2 = shapeRow('cart', { step: 2, hero_image_url: '/images/email/photos/woman-lake.jpg', card_image_url: '/images/email/cart/educate-card.png' });
+  assert.equal(cart2.hero_image_url, '/images/email/photos/cart-woman-sun.jpg');
+  assert.equal(cart2.card_image_url, '/images/email/photos/lab-vial.jpg');
   assert.equal(shapeRow('cart', { step: 4, hero_image_url: '/images/email/photos/dropper.jpg' }).hero_image_url, '/images/email/photos/dropper.jpg');
 });
 

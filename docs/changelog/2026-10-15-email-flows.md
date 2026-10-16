@@ -220,12 +220,12 @@ stretched cover:
 | `man-lake-sky` (man by the lake, pale daylight sky above) | 1.50 | Welcome 5 hero, question, countdown and button over the sky |
 | `cart-woman-lake` (woman by the lake, head and shoulders on the right) | 0.68 | Cart 1 hero, headline at the upper left |
 | `vial-rock` (the supplied single vial on a rock, lake behind) | 0.78 | Cart 1, closing the email |
-| `woman-lake` (woman by the lake) | 1.31 | Cart 2 hero, headline over the sky |
+| `cart-woman-sun` (the supplied woman-in-the-sun photo, head to waist on the right) | 0.95 | Cart 2 hero: headline, line and benefits down the left |
 | `dropper` (dropper over a vial) | 1.06 | Cart 4, under the headline |
 | `dropper-card` (the drop, closer in) | 0.85 | Welcome 3 "Research. Quality." card |
 | `offer-cover` (the three vials darkened, navy fading down into them) | 1.25 | Welcome 4 cover, the offer set over its navy top |
 | `three-vials` (vials on rock, mountains) | 0.75 | Cart 3, under the offer |
-| `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 "We Show Our Work" card; Cart 5, under the countdown |
+| `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 and Cart 2 "We Show Our Work" cards; Cart 5, under the countdown |
 | `support-agent` (agent with headset) | 0.90 | Cart 4 "Real People" card |
 
 The welcome crops come from the full-height supplied covers, except
@@ -262,6 +262,14 @@ photo, with the left side paled. Below come the line, what's in the cart
 and the supplied vial-on-a-rock photo (`vial-rock`, 1200 wide) to close. Phones set the
 type back. Saved Cart 1 emails still on the man-by-the-lake photos get the
 new ones; the old files stay so sent emails keep their pictures.
+
+**Cart 2** (`cart-woman-sun`) shares Welcome 2's cover: "Invest in a
+Healthier You", the line and three benefits in outlined rings down the
+left of the woman-in-the-sun photo, which fades to white at its foot. There
+is no button in the cover. Below it, the cart panel is large ("Your cart
+is still waiting.", its line, the items, and a wide Return to Cart), then a
+larger "We Show Our Work" panel with the lab photo, replacing the last
+placeholder image. Phones set the type back.
 - **Welcome 5** (`man-lake-sky`): the sunset is toned to daylight and the
   sky paled at the top, as designed. Over it sit the question, the line,
   the countdown, the wide Claim button and the code. Desktop type is large:
@@ -359,7 +367,7 @@ The full list is at the top of the script.
 npx tsx --test lib/email-flows/email-flows.test.ts
 ```
 
-There are 51 cases.
+There are 52 cases.
 
 - **Scheduling:** time zones, the send window, step order and retries, the
   minimum gap.

@@ -42,26 +42,18 @@ export const DEFAULT_SETTINGS: Record<FlowKey, FlowSettings> = {
 };
 
 /**
- * Placeholder artwork in public/images/email/. Relative paths resolve against
- * the site origin at send time; swap in real photography by uploading in the
- * admin or replacing these files.
- */
-export const PLACEHOLDER_IMAGES = {
-  cartEducateCard: '/images/email/cart/educate-card.png',
-} as const;
-
-/**
  * The supplied photography, cropped to the shape each spot takes in the
  * mockups (public/images/email/photos). `ratio` is height ÷ width.
  */
 export const PHOTOS = {
+  /** The supplied woman-in-the-sun photo, head to waist on the right, sky on the left (Cart 2). */
+  cartWomanSun: { url: '/images/email/photos/cart-woman-sun.jpg', ratio: 0.95 },
   /** The woman by the lake, head and shoulders on the right, the left paled for the headline. */
   cartWomanLake: { url: '/images/email/photos/cart-woman-lake.jpg', ratio: 0.68 },
   /** The supplied single vial on a rock, the lake and mountains behind (1200 wide). */
   vialRock: { url: '/images/email/photos/vial-rock.jpg', ratio: 0.7825 },
   /** The same shot with the sky above him — room for the reminder's copy. */
   manByLakeSky: { url: '/images/email/photos/man-lake-sky.jpg', ratio: 1.5 },
-  womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.3117 },
   /** Woman by the lake on the right, the left darkened for the white welcome title. */
   womanLakeDark: { url: '/images/email/photos/woman-lake-dark.jpg', ratio: 0.8 },
   /** The welcome offer panel: pale mountains behind the copy, the vials at the right. */
@@ -130,7 +122,6 @@ const blank = (flow: FlowKey, step: StepNumber): FlowStep => ({
   fine_print: '',
 });
 
-const P = PLACEHOLDER_IMAGES;
 const F = PHOTOS;
 
 const WELCOME: FlowStep[] = [
@@ -245,12 +236,12 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Third-Party Tested', icon: 'flask-conical' }, { label: 'Batch-Specific COA', icon: 'shield-check' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...overlay(F.womanByLake),
+    ...overlay(F.cartWomanSun),
     card_title: 'We Show Our Work',
     card_body: 'Every batch is tested for identity, purity and quality so you can shop with confidence.',
     card_link_label: 'Learn More',
     card_link_url: '/lab-results',
-    card_image_url: P.cartEducateCard,
+    card_image_url: F.labVial.url,
   },
   {
     ...blank('cart', 3),
@@ -347,10 +338,14 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/photos/man-lake.jpg',
       '/images/email/covers/cover-1.jpg',
       '/images/email/cart/reminder-hero.png',
+      '/images/email/photos/woman-lake.jpg',
+      '/images/email/covers/cover-2.jpg',
+      '/images/email/cart/educate-hero.png',
     ],
     card: [
       '/images/email/photos/man-lake-vial.jpg',
       '/images/email/cart/reminder-product.png',
+      '/images/email/cart/educate-card.png',
     ],
   },
 };
