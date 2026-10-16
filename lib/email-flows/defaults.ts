@@ -74,6 +74,8 @@ export const PHOTOS = {
   offerCover: { url: '/images/email/photos/offer-cover.jpg', ratio: 1.25 },
   dropper: { url: '/images/email/photos/dropper.jpg', ratio: 1.055 },
   dropperCard: { url: '/images/email/photos/dropper-card.jpg', ratio: 0.845 },
+  /** The dropper over the vial at the right, a pale haze on the left for the help topics (Cart 4). */
+  questionsCover: { url: '/images/email/photos/questions-cover.jpg', ratio: 1 },
   supportAgent: { url: '/images/email/photos/support-agent.jpg', ratio: 0.9 },
 } as const;
 
@@ -274,7 +276,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Product information', icon: 'circle-help' }, { label: 'Shipping & delivery', icon: 'truck' }, { label: 'Testing & quality', icon: 'shield-check' }, { label: 'Ordering & payments', icon: 'credit-card' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...below(F.dropper),
+    ...overlay(F.questionsCover),
     card_title: 'Real People. Real Support.',
     card_body: 'Our team is here to help with any questions you may have.',
     card_link_label: 'Contact Us',
@@ -345,11 +347,14 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/cart/educate-hero.png',
       '/images/email/photos/three-vials.jpg',
       '/images/email/cart/offer-hero.png',
+      '/images/email/photos/dropper.jpg',
+      '/images/email/cart/questions-hero.png',
     ],
     card: [
       '/images/email/photos/man-lake-vial.jpg',
       '/images/email/cart/reminder-product.png',
       '/images/email/cart/educate-card.png',
+      '/images/email/cart/questions-card.png',
     ],
   },
 };

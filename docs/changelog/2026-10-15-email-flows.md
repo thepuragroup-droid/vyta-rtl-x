@@ -221,7 +221,7 @@ stretched cover:
 | `cart-woman-lake` (woman by the lake, head and shoulders on the right) | 0.68 | Cart 1 hero, headline at the upper left |
 | `vial-rock` (the supplied single vial on a rock, lake behind) | 0.78 | Cart 1, closing the email |
 | `cart-woman-sun` (the supplied woman-in-the-sun photo, head to waist on the right) | 0.95 | Cart 2 hero: headline, line and benefits down the left |
-| `dropper` (dropper over a vial) | 1.06 | Cart 4, under the headline |
+| `questions-cover` (the dropper over the vial at the right, pale haze on the left) | 1.00 | Cart 4 cover, the help topics down the left |
 | `dropper-card` (the drop, closer in) | 0.85 | Welcome 3 "Research. Quality." card |
 | `offer-cover` (the three vials darkened, navy fading down into them) | 1.25 | Welcome 4 cover, the offer set over its navy top |
 | `cart-offer-cover` (the supplied single vial on a rock, darkened, navy fading into it) | 1.50 | Cart 3 cover, the offer and button set over its navy top |
@@ -278,6 +278,14 @@ keeps a narrow measure (the line breaks into three even lines, the button
 is the standard wide one), and the navy fades into the photo over a short
 band, so the photo shows from just under the button. The
 badges and the offer's end time follow below.
+
+**Cart 4** (`questions-cover`): "Have Questions?" and "We've Got You
+Covered." at the upper left of the dropper photo, with the four help topics
+down the left as written (sentence case, in outlined rings). Below come the
+large cart panel ("Your cart is still saved.", the items, a wide Return to
+Cart) and a larger "Real People. Real Support." panel with the support
+agent. On phones the large panels give the picture less width, so their
+titles don't break a word to a line.
 
 **Bold benefits on the covers** (Welcome 2, Cart 2): the labels are extra
 bold, and the icons use a bold set (`*-navy-bold.png`, made from the navy
@@ -380,7 +388,7 @@ The full list is at the top of the script.
 npx tsx --test lib/email-flows/email-flows.test.ts
 ```
 
-There are 52 cases.
+There are 53 cases.
 
 - **Scheduling:** time zones, the send window, step order and retries, the
   minimum gap.

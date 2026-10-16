@@ -529,7 +529,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
   assert.deepEqual(at('cart', 1), ['cart-woman-lake.jpg', true]);
   assert.deepEqual(at('cart', 2), ['cart-woman-sun.jpg', true]);
   assert.deepEqual(at('cart', 3), ['cart-offer-cover.jpg', true]);
-  assert.deepEqual(at('cart', 4), ['dropper.jpg', false]);
+  assert.deepEqual(at('cart', 4), ['questions-cover.jpg', true]);
   assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
   assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/vial-rock.jpg');
   assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent.jpg');
@@ -591,6 +591,19 @@ test('cart 2: the education cover without a button, then the cart panel with it'
   }
 });
 
+test('cart 4: the help topics over the photo as written, then the cart and support panels', () => {
+  const html = renderFlowEmail(dflt('cart', 4), cartCtx()).html;
+  const cover = coverOf(html);
+  for (const text of ['Have Questions?', 'We&#39;ve Got You Covered.', 'Product information', 'Ordering &amp; payments']) assert.ok(cover.includes(text), text);
+  assert.match(cover, /class="ef-check-label"[^>]*font-size: 19px; font-weight: 600; letter-spacing: 0;/, 'sentence case, not small caps');
+  assert.ok(!/class="ef-check-label"[^>]*text-transform: uppercase/.test(cover));
+  const after = html.slice(html.indexOf('</v:rect>'));
+  assert.ok(after.indexOf('Your cart is still saved.') < after.indexOf('Return to Cart'));
+  assert.ok(after.indexOf('Return to Cart') < after.indexOf('Real People. Real Support.'));
+  assert.match(after, /support-agent\.jpg/);
+  assert.ok(html.includes('.ef-card-pic { width: 36% !important; }'));
+});
+
 test('saved cart emails still on an old default image get the new one', () => {
   const one = shapeRow('cart', { step: 1, hero_image_url: '/images/email/photos/man-lake.jpg', hero_image_ratio: 1.3483, card_image_url: '/images/email/photos/man-lake-vial.jpg' });
   assert.equal(one.hero_image_url, '/images/email/photos/cart-woman-lake.jpg');
@@ -639,7 +652,7 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   assert.match(threeHtml, /class="ef-trust-body" style="[^"]*font-size: 17px;/);
   assert.match(threeHtml, /class="ef-card-title" style="[^"]*font-size: 28px;/);
   const threePhone = threeHtml.slice(threeHtml.indexOf('@media'), threeHtml.indexOf('</style>'));
-  for (const rule of ['.ef-trust-h1 { font-size: 32px !important; }', '.ef-trust-subcol { width: 190px !important; }', '.ef-card-title { font-size: 21px !important; }']) {
+  for (const rule of ['.ef-trust-h1 { font-size: 32px !important; }', '.ef-trust-subcol { width: 190px !important; }', '.ef-card-title { font-size: 19px !important; }']) {
     assert.ok(threePhone.includes(rule), rule);
   }
   // Welcome 4: the offer and its code over the navy top of one dark cover.
@@ -725,11 +738,13 @@ test('saved welcome emails still on an old default image get the new one; upload
   assert.equal(kept.hero_image_url, mine);
   assert.equal(kept.hero_overlay, false);
   assert.equal(kept.hero_image_ratio, 0.7);
-  // Cart 2 moves on from the lake photo; Cart 4 keeps the dropper.
+  // Cart 2 moves on from the lake photo, Cart 4 from the plain dropper photo.
   const cart2 = shapeRow('cart', { step: 2, hero_image_url: '/images/email/photos/woman-lake.jpg', card_image_url: '/images/email/cart/educate-card.png' });
   assert.equal(cart2.hero_image_url, '/images/email/photos/cart-woman-sun.jpg');
   assert.equal(cart2.card_image_url, '/images/email/photos/lab-vial.jpg');
-  assert.equal(shapeRow('cart', { step: 4, hero_image_url: '/images/email/photos/dropper.jpg' }).hero_image_url, '/images/email/photos/dropper.jpg');
+  const cart4 = shapeRow('cart', { step: 4, hero_image_url: '/images/email/photos/dropper.jpg', hero_overlay: false });
+  assert.equal(cart4.hero_image_url, '/images/email/photos/questions-cover.jpg');
+  assert.equal(cart4.hero_overlay, true);
 });
 
 test('shapeStepInput keeps the overlay settings and a sane ratio', () => {
