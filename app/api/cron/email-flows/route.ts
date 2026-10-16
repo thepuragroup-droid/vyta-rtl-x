@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
 import { runAllFlows } from '@/lib/email-flows/engine';
+import { FLOW_KEYS } from '@/lib/email-flows/types';
 
 // Each run sends at most 40 emails across both flows; give SMTP room to answer them.
 export const maxDuration = 60;
@@ -19,9 +20,15 @@ export const maxDuration = 60;
  * other /api/cron routes.
  */
 export async function GET(req: NextRequest) {
-  if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Fails closed: with CRON_SECRET unset, "Bearer undefined" must not pass.
+  const secret = process.env.CRON_SECRET;
+  if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const results = await runAllFlows(getSupabase());
+  const db = getSupabase();
+  // The heartbeat the setup check reads: the scheduler reached us with the
+  // right secret. Silently skipped until email-flows-health-migration.sql runs.
+  await db.from('email_flow_settings').update({ last_cron_at: new Date().toISOString() }).in('flow', FLOW_KEYS);
+  const results = await runAllFlows(db);
   return NextResponse.json({ results });
 }

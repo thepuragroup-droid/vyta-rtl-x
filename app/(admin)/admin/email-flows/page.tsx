@@ -12,10 +12,11 @@ import PeopleTab from '@/components/admin/email-flows/PeopleTab';
 import EmailsTab from '@/components/admin/email-flows/EmailsTab';
 import SettingsTab from '@/components/admin/email-flows/SettingsTab';
 import TestTab from '@/components/admin/email-flows/TestTab';
+import HealthTab from '@/components/admin/email-flows/HealthTab';
 import { apiBase, fmtDateTime, primaryBtn, secondaryBtn, type FlowResponse } from '@/components/admin/email-flows/shared';
 import { FLOWS, FLOW_KEYS, isFlowKey, stepsMissingCode, type FlowKey } from '@/lib/email-flows/types';
 
-type Tab = 'overview' | 'people' | 'emails' | 'test' | 'settings';
+type Tab = 'overview' | 'people' | 'emails' | 'test' | 'settings' | 'health';
 
 const RANGES = [
   { days: 0, label: 'All time' },
@@ -121,6 +122,7 @@ export default function EmailFlowsPage() {
     { key: 'emails', label: 'Emails' },
     { key: 'test', label: 'Test send' },
     { key: 'settings', label: 'Settings' },
+    { key: 'health', label: 'Setup check' },
   ];
 
   return (
@@ -224,6 +226,9 @@ export default function EmailFlowsPage() {
 
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-5 w-5 animate-spin text-ink-muted" /></div>
+      ) : data?.migrationNeeded ? (
+        // Not set up yet — the tabs have nothing to show, but the setup check does.
+        <HealthTab />
       ) : data && settings && data.steps && data.overview ? (
         <>
           <div className="flex gap-1 border-b border-line" role="tablist">
@@ -259,6 +264,7 @@ export default function EmailFlowsPage() {
           )}
           {tab === 'test' && <TestTab key={flow} flow={flow} editable={editable} adminEmail={adminEmail} />}
           {tab === 'settings' && <SettingsTab key={flow} flow={flow} settings={settings} editable={editable} onSaved={load} />}
+          {tab === 'health' && <HealthTab />}
         </>
       ) : null}
     </div>
