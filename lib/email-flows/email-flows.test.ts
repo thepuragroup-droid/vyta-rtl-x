@@ -519,7 +519,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
   };
   assert.deepEqual(at('welcome', 1), ['woman-lake-dark.jpg', true]);
   assert.deepEqual(at('welcome', 2), ['woman-portrait.jpg', true]);
-  assert.deepEqual(at('welcome', 3), ['vials-rock.jpg', true]);
+  assert.deepEqual(at('welcome', 3), ['quality-vials.jpg', true]);
   assert.deepEqual(at('welcome', 4), ['three-vials.jpg', false]);
   assert.deepEqual(at('welcome', 5), ['man-lake-sky.jpg', true]);
   // No placeholder art left in the welcome series.
@@ -593,6 +593,14 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   assert.ok(three.includes('Quality You Can Trust'));
   assert.ok(!three.includes('We partner with independent laboratories'));
   assert.ok(threeHtml.includes('We partner with independent laboratories'));
+  // Large type on desktop, set back on phones.
+  assert.match(threeHtml, /class="ef-trust-h1" style="[^"]*font-size: 48px;/);
+  assert.match(threeHtml, /class="ef-trust-body" style="[^"]*font-size: 17px;/);
+  assert.match(threeHtml, /class="ef-card-title" style="[^"]*font-size: 28px;/);
+  const threePhone = threeHtml.slice(threeHtml.indexOf('@media'), threeHtml.indexOf('</style>'));
+  for (const rule of ['.ef-trust-h1 { font-size: 32px !important; }', '.ef-trust-subcol { width: 190px !important; }', '.ef-card-title { font-size: 21px !important; }']) {
+    assert.ok(threePhone.includes(rule), rule);
+  }
   // Welcome 5: question, countdown and button over the sky.
   const five = coverOf(renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html);
   for (const text of ['Still Thinking About It?', 'Minutes', 'Claim 20% Off']) assert.ok(five.includes(text), text);
@@ -628,7 +636,7 @@ test('welcome 1 offer: the copy over the picture, the code in bold', () => {
 test('switching the overlay off falls back to headline-then-photo', () => {
   const html = renderFlowEmail({ ...defaultStep(3), hero_overlay: false }, ctx()).html;
   assert.ok(!html.includes('ef-cover'));
-  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/vials-rock\.jpg"/);
+  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/quality-vials\.jpg"/);
   // The reminder puts the question and countdown above the photo.
   const five = renderFlowEmail({ ...defaultStep(5), hero_overlay: false }, ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
   const photo = five.indexOf('man-lake-sky.jpg');

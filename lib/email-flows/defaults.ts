@@ -70,8 +70,8 @@ export const PHOTOS = {
    * 1200 wide for sharp screens.
    */
   womanPortrait: { url: '/images/email/photos/woman-portrait.jpg', ratio: 1.3 },
-  /** Two vials on the rock under the mountains, the upper left lightened for copy. */
-  vialsRock: { url: '/images/email/photos/vials-rock.jpg', ratio: 1.2167 },
+  /** The vials on the right, a pale haze at the upper left for the headline. */
+  qualityVials: { url: '/images/email/photos/quality-vials.jpg', ratio: 0.84 },
   vialsMountains: { url: '/images/email/photos/vials-mountains.jpg', ratio: 1.0367 },
   labVial: { url: '/images/email/photos/lab-vial.jpg', ratio: 0.9383 },
   threeVials: { url: '/images/email/photos/three-vials.jpg', ratio: 0.7508 },
@@ -175,7 +175,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Batch-Specific COA', icon: 'file-text' }, { label: 'Cold-Chain Handling', icon: 'snowflake' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Our Testing Process',
     cta_url: '/lab-results',
-    ...overlay(F.vialsRock),
+    ...overlay(F.qualityVials),
     card_title: 'Research. Quality. Wellness.',
     card_body: "A higher standard for what's next.",
     card_image_url: F.dropperCard.url,
@@ -327,6 +327,7 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/photos/dropper.jpg',
       '/images/email/photos/vials-mountains.jpg',
       '/images/email/photos/woman-mountains.jpg',
+      '/images/email/photos/vials-rock.jpg',
     ],
     card: [
       '/images/email/welcome/welcome-card.png',

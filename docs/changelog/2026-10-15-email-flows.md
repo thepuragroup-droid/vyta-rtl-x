@@ -216,7 +216,7 @@ stretched cover:
 | `woman-lake-dark` (woman by the lake, left side darkened) | 0.80 | Welcome 1 hero, white title low on the left |
 | `offer-card` (pale mountains, vials at the right) | 0.39 | Welcome 1 offer panel, copy over the left |
 | `woman-portrait` (the supplied woman-in-the-sun photo, whole, on the right) | 1.30 | Welcome 2 hero: headline, line and benefits down the left, button centred at the foot |
-| `vials-rock` (two vials, mountains behind) | 1.22 | Welcome 3 hero, headline over the mountains |
+| `quality-vials` (two vials on the right, pale haze at the upper left) | 0.84 | Welcome 3 hero, headline and line at the upper left |
 | `man-lake-sky` (man by the lake, sky above) | 1.50 | Welcome 5 hero, question, countdown and button over the sky |
 | `man-lake` (man by the lake) | 1.35 | Cart 1 hero, headline over the sky |
 | `man-lake-vial` (vial on leaves) | 0.55 | Cart 1 image above the button |
@@ -227,19 +227,26 @@ stretched cover:
 | `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 "We Show Our Work" card; Cart 5, under the countdown |
 | `support-agent` (agent with headset) | 0.90 | Cart 4 "Real People" card |
 
-The welcome crops come from the full-height supplied covers. On
-`woman-portrait` and `vials-rock` the side the copy sits on is lightened
-slightly; on `woman-lake-dark` it is darkened for the white title. `woman-portrait` is the supplied photo of the
-woman in the sun, shown top to bottom: it is scaled to the cover's height,
-so it sits narrower on the right. Its own sky is stretched into a soft haze
-on the left behind the copy. It is saved 1200 wide for sharp screens.
-The photo fades to white at its foot, into the email below. On desktop the
-Welcome 2 cover uses large type (46px headline, 21px line, a larger
-button). The benefits sit in a short 200px label column beside 70px icon
-rings. On phones the headline and line use the full width of the photo,
-with slimmer side margins, and the benefits keep a short 150px column
-beside 48px rings. Phones
-set it back to the smaller sizes so the photo still shows.
+The welcome crops come from the full-height supplied covers, except
+Welcome 2's, which is a photo supplied later.
+
+- **Welcome 1** (`woman-lake-dark`): the side the white title sits on is
+  darkened.
+- **Welcome 2** (`woman-portrait`): the supplied photo of the woman in the
+  sun, shown top to bottom. It is scaled to the cover's height, so it sits
+  narrower on the right, and its own sky is stretched into a soft haze on
+  the left behind the copy. It fades to white at its foot, into the email
+  below, and is saved 1200 wide for sharp screens. On desktop the type is
+  large: 46px headline, 21px line, a larger button, and the benefits in a
+  short 200px label column beside 70px outlined icon rings. On phones the
+  headline and line use the full width of the photo with slimmer side
+  margins, and the benefits keep a short 150px column beside 48px rings.
+- **Welcome 3** (`quality-vials`): built the same way. The vials photo, with
+  its own mountains, is scaled to the cover's height on the right, and its
+  edge is drawn into a pale haze on the left and across the top. On desktop
+  the type is large: 48px headline, 20px line, 17px body, a wide button, and
+  a larger panel with a 28px title. Phones set it back to a 32px headline,
+  with the line broken after "Testing.".
 
 Where the designs set the text over the photo (Welcome 1, 2, 3 and 5,
 Cart 1, Cart 2), it sits over the sky or the clear side of the photo. On

@@ -300,7 +300,7 @@ function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: b
 }
 
 /** Side-by-side panel: copy on one side, a picture on the other. */
-function card(k: Kit, opts: { imageLeft?: boolean; showCode?: boolean } = {}): string {
+function card(k: Kit, opts: { imageLeft?: boolean; showCode?: boolean; large?: boolean } = {}): string {
   const s = k.step;
   const title = k.m(s.card_title);
   const body = k.m(s.card_body);
@@ -313,14 +313,14 @@ function card(k: Kit, opts: { imageLeft?: boolean; showCode?: boolean } = {}): s
       ? `<p style="font-family: ${T.font}; font-size: 13px; color: ${T.body}; margin: 10px 0 0;">Code: <span style="font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-weight: 700; letter-spacing: 0.08em; color: ${T.ink}; background: #FFFFFF; border: 1px dashed ${T.teal}; padding: 3px 8px; border-radius: 4px;">${escapeHtml(k.ctx.offer.code)}</span></p>`
       : '';
   const copy = `
-    <td valign="middle" style="padding: 22px 20px;">
-      ${title ? `<p style="font-family: ${T.display}; font-size: 21px; font-weight: 700; line-height: 1.25; color: ${T.ink}; margin: 0 0 8px;">${escapeHtml(title)}</p>` : ''}
-      ${body ? `<p style="font-family: ${T.font}; font-size: 13px; line-height: 1.6; color: ${T.body}; margin: 0;">${escapeHtml(body)}</p>` : ''}
+    <td valign="middle" style="padding: ${opts.large ? '26px 26px' : '22px 20px'};">
+      ${title ? `<p${opts.large ? ' class="ef-card-title"' : ''} style="font-family: ${T.display}; font-size: ${opts.large ? '28px' : '21px'}; font-weight: 700; line-height: ${opts.large ? '1.15' : '1.25'}; color: ${T.ink}; margin: 0 0 ${opts.large ? '12px' : '8px'};">${escapeHtml(title)}</p>` : ''}
+      ${body ? `<p${opts.large ? ' class="ef-card-body"' : ''} style="font-family: ${T.font}; font-size: ${opts.large ? '16px' : '13px'}; line-height: 1.55; color: ${T.body}; margin: 0;">${escapeHtml(body)}</p>` : ''}
       ${code}
       ${linkHref ? `<p style="margin: 12px 0 0;"><a href="${escapeHtml(linkHref)}" style="font-family: ${T.font}; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: ${T.ink}; text-decoration: none;">${escapeHtml(k.m(s.card_link_label))} &rarr;</a></p>` : ''}
     </td>`;
   const pic = src
-    ? `<td width="44%" valign="middle" style="padding: 0;"><img src="${escapeHtml(src)}" width="240" alt="" style="display: block; width: 100%; height: auto; border: 0;" /></td>`
+    ? `<td width="${opts.large ? '50%' : '44%'}" valign="middle" style="padding: 0;"><img src="${escapeHtml(src)}" width="${opts.large ? 280 : 240}" alt="" style="display: block; width: 100%; height: auto; border: 0;" /></td>`
     : '';
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: ${T.panel}; border-radius: 10px; border-collapse: separate; overflow: hidden;">
@@ -554,6 +554,41 @@ function educationLayout(k: Kit): string {
 
 function trustLayout(k: Kit): string {
   const s = k.step;
+  if (overlaid(k)) {
+    // As designed: a large headline and the line under it at the top left of
+    // the photo, the product on the right; then the badges, the body, a wide
+    // button and the panel, all in large type on desktop.
+    const c = overlayTone(k);
+    const headline = k.m(s.headline);
+    const sub = k.m(s.subheadline);
+    (k.phoneRules ??= []).push(
+      '.ef-trust-h1 { font-size: 32px !important; }',
+      '.ef-trust-sub { font-size: 15px !important; }',
+      '.ef-trust-subcol { width: 190px !important; }',
+      '.ef-trust-body { font-size: 15px !important; }',
+      '.ef-card-title { font-size: 21px !important; }',
+      '.ef-card-body { font-size: 13px !important; }',
+    );
+    const body = String(k.m(s.body) ?? '')
+      .split(/\n{2,}/)
+      .map((b) => b.trim())
+      .filter(Boolean)
+      .map((b) => `<p class="ef-trust-body" style="font-family: ${T.font}; font-size: 17px; line-height: 1.6; color: ${T.body}; margin: 0 0 16px;">${escapeHtml(b).replace(/\n/g, '<br />')}</p>`)
+      .join('');
+    return [
+      coverHero(
+        k,
+        `${headline ? `<h1 class="ef-trust-h1" style="font-family: ${T.display}; font-size: 48px; font-weight: 700; line-height: 1.08; color: ${c.heading}; margin: 0 0 14px; max-width: 300px; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
+         ${sub ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="250" class="ef-trust-subcol" style="width: 250px; max-width: 100%;"><tr><td>
+           <p class="ef-trust-sub" style="font-family: ${T.font}; font-size: 20px; line-height: 1.45; color: ${c.body}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>
+         </td></tr></table>` : ''}`,
+        { padding: '40px 32px', phoneWash: 'left' },
+      ),
+      pad(badges(k, s.highlights), '26px 20px 10px'),
+      pad(body + button(k, s.cta_label, s.cta_url, { wide: true, large: true }), '16px 32px 26px'),
+      pad(card(k, { imageLeft: true, large: true }), '0 20px 24px'),
+    ].join('');
+  }
   return [
     heroWithHeadline(k),
     pad(badges(k, s.highlights), '22px 20px 10px'),
