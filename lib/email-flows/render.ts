@@ -356,7 +356,7 @@ const pad = (inner: string, p = '28px 32px') => (inner.trim() ? `<tr><td style="
  * On phones a media query (in <head>) scales the height with the width, so a
  * tall cover isn't cropped down to a sliver.
  */
-function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; padding?: string; phoneWash?: 'left' | 'top'; fill?: boolean; padClass?: string } = {}): string {
+function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; padding?: string; phoneWash?: 'left' | 'top'; fill?: boolean; padClass?: string; cellClass?: string } = {}): string {
   const s = k.step;
   const src = k.img(s.hero_image_url);
   const ratio = s.hero_image_ratio && s.hero_image_ratio > 0 ? s.hero_image_ratio : 0.6;
@@ -368,7 +368,7 @@ function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; pad
   const bg = src
     ? `background="${escapeHtml(src)}" style="background-color: ${fallback}; background-image: url('${escapeHtml(src)}'); background-size: cover; background-position: center top; background-repeat: no-repeat; height: ${h}px;"`
     : `style="background-color: ${fallback}; height: ${h}px;"`;
-  return `<tr><td class="ef-cover${opts.phoneWash && src ? ' ef-cover-wash' : ''}" ${bg} bgcolor="${fallback}" height="${h}" valign="${valign}">
+  return `<tr><td class="ef-cover${opts.phoneWash && src ? ' ef-cover-wash' : ''}${opts.cellClass ? ` ${opts.cellClass}` : ''}" ${bg} bgcolor="${fallback}" height="${h}" valign="${valign}">
     <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:${h}px;"><v:fill type="frame"${src ? ` src="${escapeHtml(src)}"` : ''} color="${fallback}" /><v:textbox inset="0,0,0,0"><![endif]-->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${opts.fill ? ` height="${h}" class="ef-cover-fill" style="height: ${h}px;"` : ''}>
       <tr><td${opts.padClass ? ` class="${opts.padClass}"` : ''} valign="${valign}" style="padding: ${opts.padding ?? '36px 32px'};">${inner}</td></tr>
@@ -608,6 +608,38 @@ function offerLayout(k: Kit): string {
        </table>`
     : '';
   const fine = k.m(s.fine_print);
+  const finePrint_ = fine ? `<p style="font-family: ${T.font}; font-size: 11px; color: ${T.faint}; text-align: center; margin: 14px 0 0;">${escapeHtml(fine)}</p>` : '';
+  if (overlaid(k)) {
+    // As designed: one dark cover, the offer set over its navy top and the
+    // product photo below, in large type on desktop.
+    (k.phoneRules ??= []).push(
+      '.ef-offer-h1 { font-size: 54px !important; }',
+      '.ef-offer-sub { font-size: 21px !important; }',
+      '.ef-offer-body { font-size: 15px !important; }',
+      '.ef-offer-code { font-size: 15px !important; padding: 10px 22px !important; }',
+      // The text takes more of a narrow screen: the cover grows, the photo
+      // stays whole at its foot, and the navy above it runs taller.
+      `.ef-offer-cover { height: calc((100vw - 22px) * ${k.step.hero_image_ratio || 1.25} + 120px) !important; background-size: 100% auto !important; background-position: center bottom !important; }`,
+    );
+    const bodyText = k.m(s.body);
+    return [
+      coverHero(
+        k,
+        `<div style="text-align: center;">
+          ${eyebrow ? `<p style="font-family: ${T.font}; font-size: 12px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: ${T.tealLight}; margin: 0 0 16px;">${escapeHtml(eyebrow)}</p>` : ''}
+          ${headline ? `<h1 class="ef-offer-h1" style="font-family: ${T.display}; font-size: 76px; font-weight: 800; line-height: 1; letter-spacing: -0.01em; color: #FFFFFF; margin: 0 0 10px;">${escapeHtml(headline)}</h1>` : ''}
+          ${sub ? `<p class="ef-offer-sub" style="font-family: ${T.display}; font-size: 28px; font-weight: 600; color: #FFFFFF; margin: 0 0 14px;">${escapeHtml(sub)}</p>` : ''}
+          ${bodyText ? `<p class="ef-offer-body" style="font-family: ${T.font}; font-size: 18px; line-height: 1.5; color: #D6E4EA; margin: 0 auto; max-width: 330px;">${escapeHtml(bodyText)}</p>` : ''}
+          ${k.ctx.offer ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 22px auto 0;">
+            <tr><td class="ef-offer-code" style="border: 1.5px solid ${T.tealLight}; border-radius: 6px; padding: 12px 30px; font-family: ${T.font}; font-size: 18px; color: #FFFFFF;">Use Code: <strong style="letter-spacing: 0.08em;">${escapeHtml(k.ctx.offer.code)}</strong></td></tr>
+          </table>` : ''}
+        </div>`,
+        { padding: '42px 28px', cellClass: 'ef-offer-cover' },
+      ),
+      pad(badges(k, s.highlights), '26px 20px 12px'),
+      pad(button(k, s.cta_label, s.cta_url, { wide: true, large: true }) + finePrint_, '10px 32px 28px'),
+    ].join('');
+  }
   return [
     `<tr><td bgcolor="${T.navy}" style="background: ${T.navy}; padding: 36px 28px 30px; text-align: center;">
       ${eyebrow ? `<p style="font-family: ${T.font}; font-size: 11px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; color: ${T.tealLight}; margin: 0 0 14px;">${escapeHtml(eyebrow)}</p>` : ''}

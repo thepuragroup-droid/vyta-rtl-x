@@ -520,7 +520,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
   assert.deepEqual(at('welcome', 1), ['woman-lake-dark.jpg', true]);
   assert.deepEqual(at('welcome', 2), ['woman-portrait.jpg', true]);
   assert.deepEqual(at('welcome', 3), ['quality-vials.jpg', true]);
-  assert.deepEqual(at('welcome', 4), ['three-vials.jpg', false]);
+  assert.deepEqual(at('welcome', 4), ['offer-cover.jpg', true]);
   assert.deepEqual(at('welcome', 5), ['man-lake-sky.jpg', true]);
   // No placeholder art left in the welcome series.
   for (const step of DEFAULT_STEPS.welcome) {
@@ -601,6 +601,16 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   for (const rule of ['.ef-trust-h1 { font-size: 32px !important; }', '.ef-trust-subcol { width: 190px !important; }', '.ef-card-title { font-size: 21px !important; }']) {
     assert.ok(threePhone.includes(rule), rule);
   }
+  // Welcome 4: the offer and its code over the navy top of one dark cover.
+  const fourHtml = renderFlowEmail(defaultStep(4), ctx()).html;
+  const four = coverOf(fourHtml);
+  for (const text of ['Exclusive for our subscribers', '20% OFF', 'Your Order Today', 'VYTA20']) assert.ok(four.includes(text), text);
+  assert.match(fourHtml, /class="ef-offer-h1" style="[^"]*font-size: 76px;/);
+  assert.match(fourHtml, /\.ef-offer-cover \{ height: calc\(\(100vw - 22px\) \* 1\.25 \+ 120px\) !important;/, 'taller on phones, photo whole at the foot');
+  // Cart 3 shares the layout and keeps its own: offer on navy, photo below.
+  const cart3 = renderFlowEmail(dflt('cart', 3), cartCtx()).html;
+  assert.ok(!cart3.includes('ef-offer-cover'));
+  assert.match(cart3, /<img src="[^"]*three-vials\.jpg"/);
   // Welcome 5: question, countdown and button over the sky.
   const five = coverOf(renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html);
   for (const text of ['Still Thinking About It?', 'Minutes', 'Claim 20% Off']) assert.ok(five.includes(text), text);

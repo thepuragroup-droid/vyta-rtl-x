@@ -75,6 +75,8 @@ export const PHOTOS = {
   vialsMountains: { url: '/images/email/photos/vials-mountains.jpg', ratio: 1.0367 },
   labVial: { url: '/images/email/photos/lab-vial.jpg', ratio: 0.9383 },
   threeVials: { url: '/images/email/photos/three-vials.jpg', ratio: 0.7508 },
+  /** The three vials darkened, with navy fading down into them: the offer is set over the top. */
+  offerCover: { url: '/images/email/photos/offer-cover.jpg', ratio: 1.25 },
   dropper: { url: '/images/email/photos/dropper.jpg', ratio: 1.055 },
   dropperCard: { url: '/images/email/photos/dropper-card.jpg', ratio: 0.845 },
   supportAgent: { url: '/images/email/photos/support-agent.jpg', ratio: 0.9 },
@@ -192,7 +194,8 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Shop Now',
     cta_url: '/products',
-    ...below(F.threeVials),
+    ...overlay(F.offerCover),
+    hero_text_tone: 'light',
     fine_print: 'Limited time offer. Valid for new customers only.',
   },
   {
@@ -328,6 +331,7 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/photos/vials-mountains.jpg',
       '/images/email/photos/woman-mountains.jpg',
       '/images/email/photos/vials-rock.jpg',
+      '/images/email/photos/three-vials.jpg',
     ],
     card: [
       '/images/email/welcome/welcome-card.png',

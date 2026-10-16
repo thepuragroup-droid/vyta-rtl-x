@@ -223,7 +223,8 @@ stretched cover:
 | `woman-lake` (woman by the lake) | 1.31 | Cart 2 hero, headline over the sky |
 | `dropper` (dropper over a vial) | 1.06 | Cart 4, under the headline |
 | `dropper-card` (the drop, closer in) | 0.85 | Welcome 3 "Research. Quality." card |
-| `three-vials` (vials on rock, mountains) | 0.75 | Welcome 4 and Cart 3, under the offer |
+| `offer-cover` (the three vials darkened, navy fading down into them) | 1.25 | Welcome 4 cover, the offer set over its navy top |
+| `three-vials` (vials on rock, mountains) | 0.75 | Cart 3, under the offer |
 | `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 "We Show Our Work" card; Cart 5, under the countdown |
 | `support-agent` (agent with headset) | 0.90 | Cart 4 "Real People" card |
 
@@ -247,6 +248,12 @@ Welcome 2's, which is a photo supplied later.
   the type is large: 48px headline, 20px line, 17px body, a wide button, and
   a larger panel with a 28px title. Phones set it back to a 32px headline,
   with the line broken after "Testing.".
+- **Welcome 4** (`offer-cover`): one dark cover, as designed. The three
+  vials photo is darkened, with navy fading down into it, and the offer
+  (eyebrow, 76px "20% OFF", "Your Order Today", the line, and the code in a
+  teal-outlined box) sits over the navy top. On phones the type steps down
+  and the cover grows taller, so the photo stays whole below the code. Cart 3
+  shares the layout but keeps its own look: offer on navy, photo below.
 
 Where the designs set the text over the photo (Welcome 1, 2, 3 and 5,
 Cart 1, Cart 2), it sits over the sky or the clear side of the photo. On
