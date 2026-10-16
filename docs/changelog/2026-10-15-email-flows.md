@@ -273,7 +273,10 @@ phones), so it breaks after "Quality." as designed. Phones set the type back.
 
 **Cart 3** (`cart-offer-cover`) shares Welcome 4's dark cover, built from
 the supplied vial-on-a-rock photo. Its Complete My Order button sits in the
-cover under the code, in a brighter blue that stands off the navy. The
+cover under the code, in a brighter blue that stands off the navy. The copy
+keeps a narrow measure (the line breaks into three even lines, the button
+is the standard wide one), and the navy fades into the photo over a short
+band, so the photo shows from just under the button. The
 badges and the offer's end time follow below.
 
 **Bold benefits on the covers** (Welcome 2, Cart 2): the labels are extra
