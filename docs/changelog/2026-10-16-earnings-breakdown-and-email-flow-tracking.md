@@ -11,9 +11,11 @@
 | Organic & referral | **By source** | Google organic, Meta organic, Referral, Email | referring site / flow email |
 
 Each row shows orders, store (CAD) and hosted revenue, and its share of the
-bucket. Click a row — or use the dropdown above the order list — to list only
-that platform's / affiliate's / source's orders. The dashboard's compact card
-shows the same breakdown in one line.
+bucket. Every row opens like a table row, even with a single order: it shows
+the campaigns / codes / sites under it and that row's own orders. The
+dropdown above **All orders** narrows the full list to one platform /
+affiliate / source, and is shown even when there is only one to pick. The
+dashboard's compact card shows the same breakdown in one line.
 
 Which affiliate an order belongs to: the code on the order (what the
 commission is paid on), else the `?ref=` code of the buyer's first visit,

@@ -11,6 +11,8 @@ import {
   type ChannelRow,
 } from '@/lib/admin/attribution';
 import EarningsByChannel from '@/components/admin/EarningsByChannel';
+import AttributionAudit from '@/components/admin/AttributionAudit';
+import { useUserRole } from '../../layout';
 import InfoTip from '@/components/admin/InfoTip';
 import {
   PaidAdsTip,
@@ -47,6 +49,7 @@ export default function AcquisitionSection({
 }) {
   const [data, setData] = useState<AttributionSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const role = useUserRole();
 
   const load = useCallback(() => {
     let cancelled = false;
@@ -268,6 +271,10 @@ export default function AcquisitionSection({
           </p>
         )}
       </div>
+
+      {/* Are ad clicks being filed as organic? Read from the stored tags.
+          The paid-ads-scoped role sees no unpaid visitors, so not for it. */}
+      {data.scope === 'all' && <AttributionAudit from={from} to={to} canApply={role === 'admin'} />}
 
       {/* Campaign drill-down */}
       {data.campaigns.length > 0 && (

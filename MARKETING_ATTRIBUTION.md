@@ -65,7 +65,7 @@ exactly what auto-tagging produces:
 | Channel | Recognised by |
 | --- | --- |
 | `google_ads` | `gclid`, `gbraid`, `wbraid`, or `utm_source=google` + a paid medium |
-| `meta_ads` | `fbclid`, or a Meta source + a paid medium |
+| `meta_ads` | `fbclid`; a Meta source (`facebook`, `ig`, `fb`, `an`, `msg`…) + a paid medium; or Meta's own `{{placement}}` value as the medium (`Instagram_Stories`, `Facebook_Mobile_Feed`, …), which only an ad produces |
 | `bing_ads` / `tiktok_ads` / `linkedin_ads` | `msclkid` / `ttclid` / `li_fat_id` |
 | `other_paid` | any source with `utm_medium` in cpc, ppc, paid*, cpm, display… |
 | `google_organic` / `meta_organic` | that platform, without a click id or paid medium |
@@ -150,8 +150,9 @@ breakdown one level down: **By platform** (Google Ads, Meta Ads, … and the
 campaigns under each), **By affiliate** (every code an affiliate owns rolls up
 to them; the order's own `referral_code` decides, else the first visit's
 `?ref=`), and **By source** (Google organic, Meta organic, Referral by site,
-Email by flow email). Picking a row, or the dropdown above the order list,
-narrows the orders to that platform / affiliate / source. The rule lives in
+Email by flow email). Every row opens, even with a single order, to show
+what is under it and its own orders; the dropdown above the order list
+narrows the full list to one platform / affiliate / source. The rule lives in
 `lib/analytics/earnings-breakdown.ts` and is shared by the summary and the
 order list, so they always agree. The dashboard's compact view shows the same
 breakdown as one line ("Google Ads 10 · Meta Ads 4").
@@ -292,3 +293,24 @@ who accepts *after* landing.
   why the email join exists for the checkout path.
 - **Ad spend is not imported**, so the report shows revenue per channel, not
   ROAS. Spend would have to come from the Ads and Meta APIs.
+- **Our visitor counts will not match Meta's click counts.** A visitor is
+  credited to their first visit, so someone who found the store on Instagram or
+  Google before clicking an ad stays organic. Instagram and Facebook open links
+  in their own browser with its own cookies, so a person who clicks the ad and
+  comes back later in Safari or Chrome is a new visitor with no tags. Visitors
+  who decline the cookie banner are not recorded. And Meta counts link clicks
+  whose page never finished loading.
+- **A Meta ad link tagged `utm_medium=social`** (and without its `fbclid`) is
+  read as Meta organic, because posts are tagged that way too. Use
+  `utm_medium=paid_social`, or Meta's `{{placement}}`.
+
+## Checking for misfiled ad clicks
+
+**Analytics → Acquisition → Check the unpaid visitors** lists what the
+visitors credited to organic, referral and direct actually arrived with — utm
+source and medium, referring site, click id — and marks the groups the current
+rules say were ad clicks. An admin can then move every such row (visitors,
+orders, customers, all history) to its paid channel. The move is one-way —
+unpaid to paid only — and re-reads the raw tags each row was stored with
+(`lib/analytics/reclassify.ts`), so it fixes only what a missing rule got
+wrong. It runs again safely; a second run finds nothing.
