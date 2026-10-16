@@ -285,7 +285,10 @@ down the left as written (sentence case, in outlined rings). Below come the
 large cart panel ("Your cart is still saved.", the items, a wide Return to
 Cart) and a larger "Real People. Real Support." panel with the support
 agent. On phones the large panels give the picture less width, so their
-titles don't break a word to a line.
+titles don't break a word to a line. Cart 4 alone is 560px wide (the rest are 600px),
+with larger cover type (44px headline, 28px line, 22px topics in 64px
+rings) and the vial moved further right to make room. The support photo is
+shown whole, inside the panel's padding with rounded corners.
 
 **Bold benefits on the covers** (Welcome 2, Cart 2): the labels are extra
 bold, and the icons use a bold set (`*-navy-bold.png`, made from the navy

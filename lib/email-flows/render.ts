@@ -207,6 +207,8 @@ interface Kit {
   wideButton?: boolean;
   /** Extra phone-width rules a layout adds — e.g. desktop-sized type set back for phones. */
   phoneRules?: string[];
+  /** The email's width, when a layout sets a narrower one than the standard 600px. */
+  emailWidth?: number;
   m: (s: string) => string;
   href: (url: string) => string | null;
   img: (url: string) => string | null;
@@ -271,14 +273,14 @@ function badges(k: Kit, items: Highlight[], dark = false): string {
 }
 
 /** Vertical benefit list — each icon in an outlined circle (no fill), as in the designs. */
-function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: boolean; plain?: boolean } = {}): string {
+function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: boolean; plain?: boolean; big?: boolean } = {}): string {
   const list = items.map((h) => ({ ...h, label: k.m(h.label) })).filter((h) => h.label);
   if (!list.length) return '';
   // `plain`: the labels as written (sentence case), as in the questions design.
-  const ring = opts.plain ? 56 : opts.large ? 70 : 38;
-  const glyph = opts.plain ? 30 : opts.large ? 38 : 20;
+  const ring = opts.plain ? (opts.big ? 64 : 56) : opts.large ? 70 : 38;
+  const glyph = opts.plain ? (opts.big ? 34 : 30) : opts.large ? 38 : 20;
   // The labels' own column: narrow on the cover, so they wrap short beside the icons.
-  const labelWidth = opts.plain ? 210 : opts.large ? 200 : 0;
+  const labelWidth = opts.plain ? (opts.big ? 230 : 210) : opts.large ? 200 : 0;
   const cls = (name: string) => (opts.large ? ` class="${name}"` : '');
   // A set width makes longer labels wrap onto two lines, as in the cover designs.
   const width = opts.width ? ` width="${opts.width}"` : '';
@@ -295,7 +297,7 @@ function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: b
               </td></tr>
             </table>
           </td>
-          <td${cls('ef-check-label')} valign="middle"${labelWidth ? ` width="${labelWidth}"` : ''} style="${labelWidth ? `width: ${labelWidth}px; ` : ''}padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; ${opts.plain ? `font-size: 19px; font-weight: 600; letter-spacing: 0; line-height: 1.3; color: ${T.ink};` : `font-size: ${opts.large ? '17px' : '12px'}; font-weight: ${opts.large ? 800 : 700}; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};`}">${escapeHtml(h.label)}</td>
+          <td${cls('ef-check-label')} valign="middle"${labelWidth ? ` width="${labelWidth}"` : ''} style="${labelWidth ? `width: ${labelWidth}px; ` : ''}padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; ${opts.plain ? `font-size: ${opts.big ? 22 : 19}px; font-weight: 600; letter-spacing: 0; line-height: 1.3; color: ${T.ink};` : `font-size: ${opts.large ? '17px' : '12px'}; font-weight: ${opts.large ? 800 : 700}; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};`}">${escapeHtml(h.label)}</td>
         </tr>`,
         )
         .join('')}
@@ -303,7 +305,7 @@ function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: b
 }
 
 /** Side-by-side panel: copy on one side, a picture on the other. */
-function card(k: Kit, opts: { imageLeft?: boolean; showCode?: boolean; large?: boolean } = {}): string {
+function card(k: Kit, opts: { imageLeft?: boolean; showCode?: boolean; large?: boolean; containPic?: boolean } = {}): string {
   const s = k.step;
   const title = k.m(s.card_title);
   const body = k.m(s.card_body);
@@ -332,7 +334,10 @@ function card(k: Kit, opts: { imageLeft?: boolean; showCode?: boolean; large?: b
       ${linkHref ? `<p style="margin: ${opts.large ? '16px' : '12px'} 0 0;"><a href="${escapeHtml(linkHref)}" style="font-family: ${T.font}; font-size: ${opts.large ? '13px' : '11px'}; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: ${T.ink}; text-decoration: none; white-space: nowrap;">${escapeHtml(k.m(s.card_link_label))} &rarr;</a></p>` : ''}
     </td>`;
   const pic = src
-    ? `<td${opts.large ? ' class="ef-card-pic"' : ''} width="${opts.large ? '50%' : '44%'}" valign="middle" style="padding: 0;"><img src="${escapeHtml(src)}" width="${opts.large ? 280 : 240}" alt="" style="display: block; width: 100%; height: auto; border: 0;" /></td>`
+    ? opts.containPic
+      // The whole picture, inside the panel's padding, with its own rounded corners.
+      ? `<td${opts.large ? ' class="ef-card-pic"' : ''} width="${opts.large ? '46%' : '42%'}" valign="middle" style="padding: 16px 0 16px 16px;"><img src="${escapeHtml(src)}" width="${opts.large ? 240 : 210}" alt="" style="display: block; width: 100%; height: auto; border: 0; border-radius: 8px;" /></td>`
+      : `<td${opts.large ? ' class="ef-card-pic"' : ''} width="${opts.large ? '50%' : '44%'}" valign="middle" style="padding: 0;"><img src="${escapeHtml(src)}" width="${opts.large ? 280 : 240}" alt="" style="display: block; width: 100%; height: auto; border: 0;" /></td>`
     : '';
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: ${T.panel}; border-radius: 10px; border-collapse: separate; overflow: hidden;">
@@ -372,7 +377,8 @@ function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; pad
   const s = k.step;
   const src = k.img(s.hero_image_url);
   const ratio = s.hero_image_ratio && s.hero_image_ratio > 0 ? s.hero_image_ratio : 0.6;
-  const h = Math.round(600 * ratio);
+  const w = k.emailWidth ?? 600;
+  const h = Math.round(w * ratio);
   const fallback = s.hero_text_tone === 'light' ? T.navy : '#DCE9F1';
   const valign = opts.valign ?? 'top';
   k.coverRatio = ratio;
@@ -381,7 +387,7 @@ function coverHero(k: Kit, inner: string, opts: { valign?: 'top' | 'bottom'; pad
     ? `background="${escapeHtml(src)}" style="background-color: ${fallback}; background-image: url('${escapeHtml(src)}'); background-size: cover; background-position: center top; background-repeat: no-repeat; height: ${h}px;"`
     : `style="background-color: ${fallback}; height: ${h}px;"`;
   return `<tr><td class="ef-cover${opts.phoneWash && src ? ' ef-cover-wash' : ''}${opts.cellClass ? ` ${opts.cellClass}` : ''}" ${bg} bgcolor="${fallback}" height="${h}" valign="${valign}">
-    <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:${h}px;"><v:fill type="frame"${src ? ` src="${escapeHtml(src)}"` : ''} color="${fallback}" /><v:textbox inset="0,0,0,0"><![endif]-->
+    <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:${w}px;height:${h}px;"><v:fill type="frame"${src ? ` src="${escapeHtml(src)}"` : ''} color="${fallback}" /><v:textbox inset="0,0,0,0"><![endif]-->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${opts.fill ? ` height="${h}" class="ef-cover-fill" style="height: ${h}px;"` : ''}>
       <tr><td${opts.padClass ? ` class="${opts.padClass}"` : ''} valign="${valign}" style="padding: ${opts.padding ?? '36px 32px'};">${inner}</td></tr>
     </table>
@@ -878,12 +884,14 @@ function cartQuestionsLayout(k: Kit): string {
     // As designed: "Have questions?" and the line under it at the top left of
     // the photo, the help topics down its left side (the product on the
     // right); then the cart panel with the button, and the support panel.
+    // A narrower email than the rest, as asked for this one.
+    k.emailWidth = 560;
     const c = overlayTone(k);
     const headline = k.m(s.headline);
     const sub = k.m(s.subheadline);
     (k.phoneRules ??= []).push(
       '.ef-q-pad { padding: 28px 20px 24px !important; }',
-      '.ef-q-h1 { font-size: 32px !important; }',
+      '.ef-q-h1 { font-size: 28px !important; }',
       '.ef-q-sub { font-size: 17px !important; }',
       '.ef-check-icon { width: 40px !important; padding: 5px 12px 5px 0 !important; }',
       '.ef-check-ring { width: 40px !important; height: 40px !important; border-radius: 20px !important; }',
@@ -895,15 +903,15 @@ function cartQuestionsLayout(k: Kit): string {
     return [
       coverHero(
         k,
-        `${headline ? `<h1 class="ef-q-h1" style="font-family: ${T.display}; font-size: 42px; font-weight: 800; line-height: 1.05; color: ${c.heading}; margin: 0 0 10px; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
-         ${sub ? `<p class="ef-q-sub" style="font-family: ${T.font}; font-size: 24px; line-height: 1.35; color: ${c.heading}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>` : ''}
+        `${headline ? `<h1 class="ef-q-h1" style="font-family: ${T.display}; font-size: 44px; font-weight: 800; line-height: 1.05; letter-spacing: -0.01em; color: ${c.heading}; margin: 0 0 10px; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
+         ${sub ? `<p class="ef-q-sub" style="font-family: ${T.font}; font-size: 28px; line-height: 1.3; color: ${c.heading}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>` : ''}
          <div style="height: 22px; line-height: 22px; font-size: 0;">&nbsp;</div>
-         ${checklist(k, s.highlights, { large: true, plain: true })}
+         ${checklist(k, s.highlights, { large: true, plain: true, big: true })}
          ${paragraphs(k.m(s.body), c.body)}`,
         { padding: '38px 32px 26px', phoneWash: 'left', padClass: 'ef-q-pad' },
       ),
       pad(s.show_cart ? cartPanel(k, { center: true, large: true }) : button(k, s.cta_label, s.cta_url, { wide: true, large: true }), '20px 20px 18px'),
-      pad(card(k, { imageLeft: true, large: true }), '0 20px 24px'),
+      pad(card(k, { imageLeft: true, large: true, containPic: true }), '0 20px 24px'),
     ].join('');
   }
   return [
@@ -1023,7 +1031,7 @@ ${preheader ? `<div style="display: none; max-height: 0; overflow: hidden; mso-h
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; background: ${T.paper};">
   <tr>
     <td align="center" style="padding: 28px 10px;">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 600px; border-collapse: separate; background: ${T.card}; border: 1px solid ${T.border}; border-radius: ${T.radius}; overflow: hidden;">
+      <table role="presentation" width="${k.emailWidth ?? 600}" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: ${k.emailWidth ?? 600}px; border-collapse: separate; background: ${T.card}; border: 1px solid ${T.border}; border-radius: ${T.radius}; overflow: hidden;">
         <tr>
           <td style="padding: 18px 20px 16px; border-bottom: 1px solid ${T.border};">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -1040,7 +1048,7 @@ ${preheader ? `<div style="display: none; max-height: 0; overflow: hidden; mso-h
         ${content}
         <tr><td style="padding: 0 0 8px;"></td></tr>
       </table>
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 600px;">
+      <table role="presentation" width="${k.emailWidth ?? 600}" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: ${k.emailWidth ?? 600}px;">
         <tr>
           <td align="center" style="padding: 20px 24px 6px; font-family: ${T.font}; font-size: 11px; line-height: 1.6; color: ${T.faint};">
             ${footerLines.map((l) => `<p style="margin: 0 0 6px;">${l}</p>`).join('')}

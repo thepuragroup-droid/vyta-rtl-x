@@ -595,12 +595,18 @@ test('cart 4: the help topics over the photo as written, then the cart and suppo
   const html = renderFlowEmail(dflt('cart', 4), cartCtx()).html;
   const cover = coverOf(html);
   for (const text of ['Have Questions?', 'We&#39;ve Got You Covered.', 'Product information', 'Ordering &amp; payments']) assert.ok(cover.includes(text), text);
-  assert.match(cover, /class="ef-check-label"[^>]*font-size: 19px; font-weight: 600; letter-spacing: 0;/, 'sentence case, not small caps');
+  assert.match(cover, /class="ef-check-label"[^>]*font-size: 22px; font-weight: 600; letter-spacing: 0;/, 'sentence case, not small caps');
+  assert.match(cover, /class="ef-q-h1" style="[^"]*font-size: 44px;/);
+  // This email alone is narrower: 560px, the cover sized to match.
+  assert.match(html, /<table role="presentation" width="560"[^>]*max-width: 560px; border-collapse: separate;/);
+  assert.match(html, /style="width:560px;height:560px;"/);
+  assert.match(renderFlowEmail(dflt('cart', 2), cartCtx()).html, /<table role="presentation" width="600"[^>]*max-width: 600px; border-collapse: separate;/, 'the others stay 600px');
   assert.ok(!/class="ef-check-label"[^>]*text-transform: uppercase/.test(cover));
   const after = html.slice(html.indexOf('</v:rect>'));
   assert.ok(after.indexOf('Your cart is still saved.') < after.indexOf('Return to Cart'));
   assert.ok(after.indexOf('Return to Cart') < after.indexOf('Real People. Real Support.'));
-  assert.match(after, /support-agent\.jpg/);
+  // The support photo whole, inside the panel's padding, with rounded corners.
+  assert.match(after, /<td class="ef-card-pic" width="46%" valign="middle" style="padding: 16px 0 16px 16px;"><img src="[^"]*support-agent\.jpg"[^>]*border-radius: 8px;/);
   assert.ok(html.includes('.ef-card-pic { width: 36% !important; }'));
 });
 
