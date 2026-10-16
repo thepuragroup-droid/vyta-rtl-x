@@ -531,7 +531,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
   assert.deepEqual(at('cart', 3), ['three-vials.jpg', false]);
   assert.deepEqual(at('cart', 4), ['dropper.jpg', false]);
   assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
-  assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/vials-lake.jpg');
+  assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/vial-rock.jpg');
   assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent.jpg');
   for (const flow of ['welcome', 'cart'] as const) {
     for (const step of DEFAULT_STEPS[flow]) {
@@ -563,14 +563,14 @@ test('an overlay hero carries its text, keeps its shape, and works in Outlook an
   assert.ok(after.indexOf('BPC-157') < after.indexOf('Return to Cart'));
   assert.equal(after.split('Return to Cart').length - 1, 1, 'one Return to Cart button');
   assert.match(after, /class="ef-btn-wide"/);
-  assert.ok(after.indexOf('Canadian Owned') < after.indexOf('vials-lake.jpg'));
+  assert.ok(after.indexOf('Canadian Owned') < after.indexOf('vial-rock.jpg'));
 });
 
 test('saved cart emails still on an old default image get the new one', () => {
   const one = shapeRow('cart', { step: 1, hero_image_url: '/images/email/photos/man-lake.jpg', hero_image_ratio: 1.3483, card_image_url: '/images/email/photos/man-lake-vial.jpg' });
   assert.equal(one.hero_image_url, '/images/email/photos/cart-woman-lake.jpg');
   assert.equal(one.hero_image_ratio, 0.68);
-  assert.equal(one.card_image_url, '/images/email/photos/vials-lake.jpg');
+  assert.equal(one.card_image_url, '/images/email/photos/vial-rock.jpg');
 });
 
 /** The cover cell of an email: from its opening tag to the end of the VML box. */

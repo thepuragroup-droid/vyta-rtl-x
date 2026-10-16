@@ -57,8 +57,8 @@ export const PLACEHOLDER_IMAGES = {
 export const PHOTOS = {
   /** The woman by the lake, head and shoulders on the right, the left paled for the headline. */
   cartWomanLake: { url: '/images/email/photos/cart-woman-lake.jpg', ratio: 0.68 },
-  /** The two vials on the rock with the lake behind them. */
-  vialsLake: { url: '/images/email/photos/vials-lake.jpg', ratio: 0.7167 },
+  /** The supplied single vial on a rock, the lake and mountains behind (1200 wide). */
+  vialRock: { url: '/images/email/photos/vial-rock.jpg', ratio: 0.7825 },
   /** The same shot with the sky above him — room for the reminder's copy. */
   manByLakeSky: { url: '/images/email/photos/man-lake-sky.jpg', ratio: 1.5 },
   womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.3117 },
@@ -230,7 +230,7 @@ const CART: FlowStep[] = [
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
     ...overlay(F.cartWomanLake),
-    card_image_url: F.vialsLake.url,
+    card_image_url: F.vialRock.url,
   },
   {
     ...blank('cart', 2),
