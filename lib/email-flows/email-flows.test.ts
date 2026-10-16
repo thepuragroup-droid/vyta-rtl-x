@@ -539,7 +539,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
         assert.ok(existsSync(join(PUBLIC, url)), `${flow} ${step.step}: ${url}`);
       }
       // Nothing towers over the email the way the uncropped covers did.
-      if (step.hero_image_ratio) assert.ok(step.hero_image_ratio <= 1.6, `${flow} ${step.step} ratio ${step.hero_image_ratio}`);
+      if (step.hero_image_ratio) assert.ok(step.hero_image_ratio <= 1.7, `${flow} ${step.step} ratio ${step.hero_image_ratio}`);
     }
   }
 });

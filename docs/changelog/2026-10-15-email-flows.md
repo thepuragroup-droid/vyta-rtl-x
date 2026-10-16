@@ -226,7 +226,7 @@ stretched cover:
 | `offer-cover` (the three vials darkened, navy fading down into them) | 1.25 | Welcome 4 cover, the offer set over its navy top |
 | `cart-offer-cover` (the supplied single vial on a rock, darkened, navy fading into it) | 1.50 | Cart 3 cover, the offer and button set over its navy top |
 | `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 and Cart 2 "We Show Our Work" cards |
-| `last-chance-cover` (the three vials on the rock, a pale sky fading down into them) | 1.53 | Cart 5 cover, the headline, countdown and button over the sky |
+| `last-chance-cover` (the supplied vials-under-the-mountains photo, sky paled at the top) | 1.63 | Cart 5 cover, the headline, countdown and button over the sky |
 | `support-agent-full` (the supplied support photo, whole: head to waist) | 1.23 | Cart 4 "Real People" card, shown whole |
 
 The welcome crops come from the full-height supplied covers, except
@@ -294,7 +294,8 @@ shown whole, inside the panel's padding with rounded corners.
 **Cart 5** (`last-chance-cover`): the "Final reminder" band, then "Last
 Chance to Complete Your Order" (46px on desktop), "Your cart will expire
 soon.", the large countdown and the wide red Complete My Order button over
-a pale sky that fades down into the three vials on the rock. Below come
+the supplied vials-under-the-mountains photo, its sky paled behind the copy
+and fading out over the peaks. Below come
 what's in the cart (no second button) and the badges. On phones the type
 and countdown step down and the cover grows, with the photo whole at its
 foot.

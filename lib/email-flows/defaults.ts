@@ -74,8 +74,8 @@ export const PHOTOS = {
   offerCover: { url: '/images/email/photos/offer-cover.jpg', ratio: 1.25 },
   dropper: { url: '/images/email/photos/dropper.jpg', ratio: 1.055 },
   dropperCard: { url: '/images/email/photos/dropper-card.jpg', ratio: 0.845 },
-  /** The three vials on the rock, a pale sky fading down into them (Cart 5). */
-  lastChanceCover: { url: '/images/email/photos/last-chance-cover.jpg', ratio: 1.5333 },
+  /** The supplied vials-under-the-mountains photo, the sky paled behind the copy (Cart 5). */
+  lastChanceCover: { url: '/images/email/photos/last-chance-cover.jpg', ratio: 1.6342 },
   /** The dropper over the vial at the right, a pale haze on the left for the help topics (Cart 4). */
   questionsCover: { url: '/images/email/photos/questions-cover.jpg', ratio: 1 },
   /** The supplied support photo, whole: head to waist (Cart 4's "Real People" panel). */

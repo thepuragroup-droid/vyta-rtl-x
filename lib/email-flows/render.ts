@@ -942,7 +942,7 @@ function cartLastChanceLayout(k: Kit): string {
             '.ef-count-unit { font-size: 9px !important; margin-top: 6px !important; }',
             // The copy takes more of a narrow screen: the cover grows, the photo
             // stays whole at its foot, and the pale sky above it runs taller.
-            `.ef-lc-cover { height: calc((100vw - 22px) * ${s.hero_image_ratio || 1.5333} + 60px) !important; background-size: 100% auto !important; background-position: center bottom !important; background-color: #F8F6F7 !important; }`,
+            `.ef-lc-cover { height: calc((100vw - 22px) * ${s.hero_image_ratio || 1.6342} + 40px) !important; background-size: 100% auto !important; background-position: center bottom !important; background-color: #F8F8FA !important; }`,
           ), []),
           coverHero(
             k,
