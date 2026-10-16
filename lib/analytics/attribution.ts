@@ -80,6 +80,30 @@ export function isPaidChannel(channel: string | null | undefined): boolean {
   return PAID_CHANNELS.includes(channel as Channel);
 }
 
+/**
+ * Display names for the channel keys. Unknown keys fall back to the raw value.
+ * Kept here (isomorphic) so the admin routes and the browser name a channel
+ * the same way.
+ */
+export const CHANNEL_LABELS: Record<string, string> = {
+  google_ads: 'Google Ads',
+  meta_ads: 'Meta Ads',
+  bing_ads: 'Microsoft Ads',
+  tiktok_ads: 'TikTok Ads',
+  linkedin_ads: 'LinkedIn Ads',
+  other_paid: 'Other paid',
+  google_organic: 'Google organic',
+  meta_organic: 'Meta organic',
+  email: 'Email',
+  affiliate: 'Affiliate',
+  referral: 'Referral',
+  direct: 'Direct',
+};
+
+export function channelLabel(channel: string): string {
+  return CHANNEL_LABELS[channel] ?? channel;
+}
+
 /** A single attribution touch — one arrival at the site. */
 export interface AttributionTouch {
   channel: Channel;

@@ -20,6 +20,7 @@ import {
   smtpLoginCheck,
   summarize,
   tableCheck,
+  trackingCheck,
   TABLE_PROBES,
   type CronStatus,
   type HealthCheck,
@@ -277,4 +278,11 @@ test('summarize: ok means no failures — warnings don’t count', () => {
   assert.equal(r.ok, true);
   assert.deepEqual(r.counts, { pass: 1, warn: 1, fail: 0, info: 0 });
   assert.equal(summarize([{ id: 'c', group: 'Links', label: 'c', status: 'fail', detail: '' }], NOW).ok, false);
+});
+
+test('trackingCheck: post-click tracking is optional — a warning, never a failure', () => {
+  assert.equal(trackingCheck(null).status, 'pass');
+  const missing = trackingCheck({ code: '42P01', message: 'relation "email_flow_events" does not exist' });
+  assert.equal(missing.status, 'warn');
+  assert.match(missing.fix!, /email-flows-tracking-migration\.sql/);
 });

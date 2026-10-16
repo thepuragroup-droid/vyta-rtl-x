@@ -9,6 +9,10 @@
  *   click        /api/email-flows/click?t=<sendId>&u=<url>&s=<sig>
  *   web view     /api/email-flows/view?t=<sendId>.<sig>
  *
+ * A fourth signed value never leaves in an email: the click cookie, written by
+ * the click tracker when a person (not a mail scanner) follows a link, and read
+ * at checkout so the order can say which email it came through.
+ *
  * The click signature covers the destination as well as the send, so the
  * tracker can't be turned into an open redirect by editing `u`, and nobody can
  * unsubscribe somebody else by guessing an id.
@@ -16,6 +20,8 @@
  * Server-only (node:crypto).
  */
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { FLOW_ATTRIBUTION_DAYS, isFlowKey, isStepNumber } from './types';
+import type { FlowClick } from './engagement';
 
 /**
  * EMAIL_FLOWS_SECRET when set; otherwise CRON_SECRET, then the service-role
@@ -82,4 +88,48 @@ export function readClick(params: URLSearchParams): { sendId: string; target: st
   const sig = params.get('s') ?? '';
   if (!UUID.test(sendId) || !/^https?:\/\//i.test(target)) return null;
   return verify('click', `${sendId}|${target}`, sig) ? { sendId, target } : null;
+}
+
+// ---------------------------------------------------------------------------
+// The click cookie
+// ---------------------------------------------------------------------------
+
+/**
+ * Set on a person's click, read at checkout. First-party and httpOnly; its
+ * value is an opaque send id plus the flow and step — nothing about the person.
+ */
+export const FLOW_CLICK_COOKIE = 'aminocan_ef';
+export const FLOW_CLICK_MAX_AGE = FLOW_ATTRIBUTION_DAYS * 24 * 60 * 60;
+
+function clickCookieBody(c: { sendId: string; flow: string; step: number; ts: number }): string {
+  return `${c.sendId}.${c.flow}.${c.step}.${c.ts}`;
+}
+
+/** `<sendId>.<flow>.<step>.<unix seconds>.<sig>` */
+export function flowClickCookieValue(click: FlowClick): string {
+  const body = clickCookieBody({
+    sendId: click.sendId,
+    flow: click.flow,
+    step: click.step,
+    ts: Math.floor(Date.parse(click.at) / 1000),
+  });
+  return `${body}.${sign('flowclick', body)}`;
+}
+
+/**
+ * The verified click behind the cookie, or null — tampered with, malformed, or
+ * older than the attribution window (the cookie's own max-age says the same,
+ * but a client clock or a copied cookie shouldn't stretch it).
+ */
+export function readFlowClickCookie(value: string | null | undefined, now = new Date()): FlowClick | null {
+  const parts = String(value ?? '').split('.');
+  if (parts.length !== 5) return null;
+  const [sendId, flow, stepRaw, tsRaw, sig] = parts;
+  const step = Number(stepRaw);
+  const ts = Number(tsRaw);
+  if (!UUID.test(sendId) || !isFlowKey(flow) || !isStepNumber(step) || !Number.isInteger(ts)) return null;
+  if (!verify('flowclick', clickCookieBody({ sendId, flow, step, ts }), sig)) return null;
+  const ageSeconds = now.getTime() / 1000 - ts;
+  if (ageSeconds < -300 || ageSeconds > FLOW_CLICK_MAX_AGE) return null;
+  return { sendId, flow, step, at: new Date(ts * 1000).toISOString() };
 }

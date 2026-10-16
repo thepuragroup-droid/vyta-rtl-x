@@ -32,6 +32,7 @@ import { isMissingColumnError } from '@/lib/payments/puramass-columns';
 import {
   ENTRY_STATUS_META,
   FLOWS,
+  FLOW_ATTRIBUTION_DAYS,
   FLOW_KEYS,
   IMPLIED_CONSENT_DAYS,
   MAX_SEND_ATTEMPTS,
@@ -50,6 +51,8 @@ import { DEFAULT_STEPS, defaultStep, shapeSettingsRow, shapeStepRow } from './de
 import { decide, nextStep, timezoneFor, type SendRecord } from './schedule';
 import { renderFlowEmail, type RenderCart, type ResolvedOffer } from './render';
 import { clickUrl, openPixelUrl, unsubscribeUrl, viewUrl } from './tokens';
+import { creditConversion } from './engagement';
+import { checkoutEntriesByOrder, recordFlowEvent } from './events';
 import {
   CART_PRODUCT_COLUMNS,
   cartLineViews,
@@ -66,8 +69,6 @@ type Db = SupabaseClient<any, any, any>;
 /** Triggers older than this are never auto-enrolled, whatever `enabled_at` says. */
 const ENROLL_LOOKBACK_DAYS = 7;
 const WELCOME_LOOKBACK_DAYS = 14;
-/** A purchase this long after the last email still counts as the flow's. */
-const ATTRIBUTION_DAYS = 14;
 /** Per run, across both flows — keeps one cron call inside a serverless limit. */
 const MAX_SENDS_PER_RUN = 40;
 /** Never call a cart abandoned sooner than this, whatever step 1's delay says. */
@@ -184,6 +185,12 @@ export interface Conversion {
   ref: string | null;
   amount: number | null;
   currency: string | null;
+  /**
+   * The order's checkout was opened from one of this entry's emails (the click
+   * cookie rode into the hand-off) — proof of a click-through even when the
+   * buyer paid under another email address. Absent on every other match.
+   */
+  viaCheckout?: { sendId: string | null } | null;
 }
 
 interface ConversionWho {
@@ -258,6 +265,14 @@ export async function findConversions(
     })),
   ].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
 
+  // Checkouts opened from a flow email (email-flows-tracking-migration.sql).
+  // Empty when that hasn't run — matching then falls back to account and email.
+  // Only hosted hand-offs log a checkout, so only their refs are looked up.
+  const fromFlowEmail = await checkoutEntriesByOrder(
+    db,
+    paid.map((p) => p.ref).filter((r): r is string => !!r && r.startsWith('puramass:')),
+  );
+
   for (const s of entries) {
     const email = normalizeOrderEmail(s.email);
     const since = Date.parse(s.enrolled_at);
@@ -266,10 +281,14 @@ export async function findConversions(
     const hit = paid.find(
       (p) =>
         Math.max(Date.parse(p.created), Date.parse(p.at)) >= since &&
-        ((s.customer_id && p.customerId === s.customer_id) || (email && p.email === email)),
+        ((s.customer_id && p.customerId === s.customer_id) ||
+          (email && p.email === email) ||
+          (p.ref && fromFlowEmail.get(p.ref)?.has(s.id))),
     );
     if (hit) {
-      out.set(s.id, { at: hit.at, ref: hit.ref, amount: hit.amount, currency: hit.currency });
+      const byEntry = hit.ref ? fromFlowEmail.get(hit.ref) : undefined;
+      const viaCheckout = byEntry?.has(s.id) ? { sendId: byEntry.get(s.id) ?? null } : null;
+      out.set(s.id, { at: hit.at, ref: hit.ref, amount: hit.amount, currency: hit.currency, viaCheckout });
     } else if (opts.useFirstOrderFlag && s.customer_id && accountFlags.get(s.customer_id)?.has_completed_first_order) {
       // Welcome only: enrolment takes people who had not ordered, so a set
       // legacy flag means they bought since (in a way the reads can't see).
@@ -370,12 +389,17 @@ export async function createEntry(db: Db, flow: FlowKey, e: NewEntry): Promise<E
   return data as EntryRecord;
 }
 
+/** Added by email-flows-tracking-migration.sql — dropped from a write the database doesn't know yet. */
+const OPTIONAL_ENTRY_COLUMNS = ['converted_via'];
+
 async function setStatus(db: Db, entry: EntryRecord, status: EntryStatus, extra: Record<string, unknown> = {}) {
   const now = new Date().toISOString();
-  await db
-    .from('email_flow_entries')
-    .update({ status, updated_at: now, paused_reason: null, ...(status === 'exited' ? { exited_at: now } : {}), ...extra })
-    .eq('id', entry.id);
+  const patch = { status, updated_at: now, paused_reason: null, ...(status === 'exited' ? { exited_at: now } : {}), ...extra };
+  const { error } = await db.from('email_flow_entries').update(patch).eq('id', entry.id);
+  if (error && isMissingColumnError(error) && OPTIONAL_ENTRY_COLUMNS.some((c) => c in patch)) {
+    const stripped = Object.fromEntries(Object.entries(patch).filter(([k]) => !OPTIONAL_ENTRY_COLUMNS.includes(k)));
+    await db.from('email_flow_entries').update(stripped).eq('id', entry.id);
+  }
   entry.status = status;
   await tagInKlaviyo(db, entry.flow, entry.email, status);
 }
@@ -383,20 +407,30 @@ async function setStatus(db: Db, entry: EntryRecord, status: EntryStatus, extra:
 async function markConverted(db: Db, entry: EntryRecord, conv: Conversion) {
   const { data: sends } = await db
     .from('email_flow_sends')
-    .select('step, sent_at')
+    .select('id, step, sent_at, clicked_at')
     .eq('entry_id', entry.id)
     .eq('status', 'sent');
-  const before = (sends ?? [])
-    .filter((s: any) => s.sent_at && Date.parse(s.sent_at) <= Date.parse(conv.at))
-    .sort((a: any, b: any) => Date.parse(b.sent_at) - Date.parse(a.sent_at));
+  const credit = creditConversion((sends ?? []) as any[], conv.at, conv.viaCheckout ?? null);
   await setStatus(db, entry, 'converted', {
     converted_at: conv.at,
     converted_order_ref: conv.ref,
     converted_amount: conv.amount,
     converted_currency: conv.currency,
-    attributed_step: before[0]?.step ?? null,
+    attributed_step: credit.step,
+    converted_via: credit.via,
+    exit_reason: null,
   });
   if (entry.cart_id) await db.from('saved_carts').update({ status: 'purchased' }).eq('id', entry.cart_id);
+  await recordFlowEvent(db, {
+    send_id: credit.sendId,
+    entry_id: entry.id,
+    flow: entry.flow,
+    step: credit.step,
+    kind: 'purchase',
+    order_ref: conv.ref,
+    amount: conv.amount,
+    currency: conv.currency,
+  });
 }
 
 /**
@@ -936,7 +970,10 @@ async function processEntry(rc: RunContext, entry: EntryRecord, account: Account
       return;
     }
     if (cart.status === 'purchased') {
-      await setStatus(db, entry, 'converted', { converted_at: new Date().toISOString(), exit_reason: null });
+      // The cart was bought in a way the order reads didn't see (it is marked
+      // purchased by the storefront). No order to name, but a click before now
+      // still says whether an email was acted on.
+      await markConverted(db, entry, { at: new Date().toISOString(), ref: null, amount: null, currency: null });
       rc.result.converted++;
       return;
     }
@@ -1070,7 +1107,7 @@ export async function runFlow(db: Db, flow: FlowKey, now = new Date(), budget = 
     ? await enrollNewSignups(db, config.settings, now)
     : await enrollAbandonedCarts(db, config, now);
 
-  const attributionFloor = new Date(now.getTime() - ATTRIBUTION_DAYS * 864e5).toISOString();
+  const attributionFloor = new Date(now.getTime() - FLOW_ATTRIBUTION_DAYS * 864e5).toISOString();
   const [{ data: active }, { data: recent }] = await Promise.all([
     db.from('email_flow_entries').select(ENTRY_COLUMNS).eq('flow', flow).eq('status', 'active').order('enrolled_at', { ascending: true }).limit(500),
     db.from('email_flow_entries').select(ENTRY_COLUMNS).eq('flow', flow).eq('status', 'completed').gte('last_sent_at', attributionFloor).limit(500),

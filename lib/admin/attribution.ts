@@ -2,6 +2,10 @@ import { supabase } from '@/lib/supabase';
 import { appendAdminViewParam } from '@/lib/admin/admin-view';
 import { apiFetch } from '@/lib/api-fetch';
 import type { AnalyticsRange } from '@/lib/admin/analytics';
+import type { BreakdownRow } from '@/lib/analytics/earnings-breakdown';
+import type { EmailFlowAnalytics } from '@/lib/analytics/email-flow-report';
+
+export type { BreakdownRow, BreakdownChild } from '@/lib/analytics/earnings-breakdown';
 
 /** One acquisition channel's funnel and revenue. Mirrors the API route. */
 export interface ChannelRow {
@@ -33,6 +37,8 @@ export interface EarningsGroup {
   aov_cad: number;
   aov_usd: number;
   order_share: number;     // % of all paid orders in range
+  /** Paid ads by platform, affiliate by affiliate, organic by source. */
+  breakdown: BreakdownRow[];
 }
 
 export interface AttributionSummary {
@@ -64,25 +70,8 @@ export interface AttributionSummary {
   truncated: boolean;
 }
 
-/** Display names for the channel keys. Unknown keys fall back to the raw value. */
-export const CHANNEL_LABELS: Record<string, string> = {
-  google_ads: 'Google Ads',
-  meta_ads: 'Meta Ads',
-  bing_ads: 'Microsoft Ads',
-  tiktok_ads: 'TikTok Ads',
-  linkedin_ads: 'LinkedIn Ads',
-  other_paid: 'Other paid',
-  google_organic: 'Google organic',
-  meta_organic: 'Meta organic',
-  email: 'Email',
-  affiliate: 'Affiliate',
-  referral: 'Referral',
-  direct: 'Direct',
-};
-
-export function channelLabel(channel: string): string {
-  return CHANNEL_LABELS[channel] ?? channel;
-}
+// Channel names are shared with the server routes — see lib/analytics/attribution.ts.
+export { CHANNEL_LABELS, channelLabel } from '@/lib/analytics/attribution';
 
 export async function getAttributionSummary(
   range?: AnalyticsRange,
@@ -133,6 +122,10 @@ export interface SourceOrderRow {
   reason: string;
   evidence: Array<{ label: string; value: string }>;
   hints: Array<{ channel: string; reason: string }>;
+  /** The breakdown row this order sits in (platform / affiliate / source). */
+  sub: { key: string; label: string } | null;
+  /** The flow email this order came through, if any. */
+  email_flow: { label: string; evidence: 'click' | 'utm' } | null;
 }
 
 export interface SourceOrdersResponse {
@@ -161,6 +154,33 @@ export async function getEarningsGroupOrders(
   try {
     return await apiFetch<SourceOrdersResponse>(
       `/api/admin/analytics/attribution/orders?${params.toString()}`,
+      { cache: 'no-store', headers: token ? { Authorization: `Bearer ${token}` } : {} },
+    );
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+export type { FlowReport, MoneyByCurrency } from '@/lib/analytics/email-flow-report';
+export type { EmailFlowAnalytics };
+
+/** How the welcome and cart flows performed over the range — admin/assistant only. */
+export async function getEmailFlowAnalytics(
+  range?: AnalyticsRange,
+): Promise<EmailFlowAnalytics | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token ?? null;
+
+  const params = new URLSearchParams();
+  if (range?.from) params.set('from', range.from);
+  if (range?.to) params.set('to', range.to);
+  appendAdminViewParam(params);
+  const qs = params.toString();
+
+  try {
+    return await apiFetch<EmailFlowAnalytics>(
+      `/api/admin/analytics/email-flows${qs ? `?${qs}` : ''}`,
       { cache: 'no-store', headers: token ? { Authorization: `Bearer ${token}` } : {} },
     );
   } catch (e) {

@@ -21,6 +21,8 @@ import {
 } from './attribution';
 import { isMissingColumnError } from '@/lib/payments/puramass-columns';
 import { LANDING_COOKIE, normalizeLandingSlug } from '@/lib/promos/landing';
+import { FLOW_CLICK_COOKIE, readFlowClickCookie } from '@/lib/email-flows/tokens';
+import { flowClickPayload, type FlowClick } from '@/lib/email-flows/engagement';
 
 const SESSION_COOKIE = 'aminocan_sid';
 const REF_COOKIE = 'ref_code';
@@ -43,6 +45,12 @@ export interface VisitorContext {
    * lib/promos/landing.ts for why the offer has a cookie of its own.
    */
   landingPage: string | null;
+  /**
+   * The flow email this browser last clicked through from, within the
+   * attribution window — the signed `aminocan_ef` cookie the click tracker
+   * writes for a person's click. Null when there is none or it doesn't verify.
+   */
+  emailFlowClick: FlowClick | null;
 }
 
 /** Pull the visitor + attribution cookies off a request. */
@@ -55,7 +63,18 @@ export function readVisitorContext(cookies: CookieReader): VisitorContext {
     last: decodeTouch(value(ATTRIBUTION_LAST_COOKIE)),
     refCode: value(REF_COOKIE),
     landingPage: normalizeLandingSlug(value(LANDING_COOKIE)),
+    emailFlowClick: safeFlowClick(value(FLOW_CLICK_COOKIE)),
   };
+}
+
+/** Verifying needs the signing secret; a deployment without one just has no click. */
+function safeFlowClick(raw: string | null): FlowClick | null {
+  if (!raw) return null;
+  try {
+    return readFlowClickCookie(raw);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -272,20 +291,36 @@ export async function stampVisitorMilestone(
  * Channel and campaign come from the FIRST touch: the campaign that earned the
  * visitor is the one the acquisition report should credit for their revenue.
  * The last touch travels along inside the JSONB for anyone who wants to look.
+ *
+ * `withEmailFlow` (orders only) also records the flow email this browser last
+ * clicked through from. It is left off customer rows: an acquisition snapshot
+ * is about what won the person, and a flow email is sent after that.
  */
-export function attributionColumns(ctx: VisitorContext): {
+export function attributionColumns(
+  ctx: VisitorContext,
+  opts: { withEmailFlow?: boolean } = {},
+): {
   attribution_channel: string | null;
   attribution_campaign: string | null;
   attribution: Record<string, unknown> | null;
 } {
   const primary = ctx.first ?? ctx.last;
+  const extra: Record<string, unknown> = {};
+  if (ctx.anonymousId) Object.assign(extra, { anonymous_id: ctx.anonymousId, session_id: ctx.sessionId });
+  // The flow email clicked on the way here, if any. It does not change the
+  // channel — a cart email doesn't earn a customer the ad already won — but it
+  // lets analytics say which sales a flow email closed (emailFlowTouchOf).
+  const flowClick = opts.withEmailFlow ? ctx.emailFlowClick : null;
+  if (flowClick) extra.email_flow = flowClickPayload(flowClick);
+  const payload =
+    toAttributionPayload(
+      { first: ctx.first ?? undefined, last: ctx.last ?? undefined },
+      Object.keys(extra).length ? extra : undefined,
+    ) ?? (flowClick ? { first: null, last: null, ...extra } : null);
   return {
     attribution_channel: primary?.channel ?? null,
     attribution_campaign: primary?.campaign ?? null,
-    attribution: toAttributionPayload(
-      { first: ctx.first ?? undefined, last: ctx.last ?? undefined },
-      ctx.anonymousId ? { anonymous_id: ctx.anonymousId, session_id: ctx.sessionId } : undefined,
-    ),
+    attribution: payload,
   };
 }
 

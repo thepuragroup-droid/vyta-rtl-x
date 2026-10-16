@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, Wallet, ArrowRight, ChevronDown, ExternalLink, Lightbulb } from 'lucide-react';
+import { Loader2, Wallet, ArrowRight, ChevronDown, ExternalLink, Lightbulb, Mail } from 'lucide-react';
 import { formatMoney, normalizeCurrency } from '@/lib/currency';
 import {
   getAttributionSummary,
@@ -10,7 +10,9 @@ import {
   channelLabel,
   EARNINGS_TINTS,
   type AttributionSummary,
+  type BreakdownRow,
   type EarningsGroup,
+  type EarningsGroupKey,
   type SourceOrderRow,
   type SourceOrdersResponse,
 } from '@/lib/admin/attribution';
@@ -20,6 +22,7 @@ import {
   EarningsSplitTip,
   CurrencyTip,
 } from '@/components/admin/AttributionTips';
+import EmailFlowsAttribution from '@/components/admin/EmailFlowsAttribution';
 
 const fmtInt = (n: number) => n.toLocaleString();
 const fmtCAD = (n: number) => formatMoney(n, 'CAD');
@@ -226,6 +229,18 @@ function Header({ hasRange, compact }: { hasRange: boolean; compact?: boolean })
   );
 }
 
+/** How each bucket's breakdown is named — the toggle, the heading, the filter. */
+const BREAKDOWN_NOUNS: Partial<Record<EarningsGroupKey, { toggle: string; heading: string; all: string }>> = {
+  paid: { toggle: 'By platform', heading: 'Which ad platform sold', all: 'All platforms' },
+  affiliate: { toggle: 'By affiliate', heading: 'Which affiliate sold', all: 'All affiliates' },
+  organic: { toggle: 'By source', heading: 'Where the buyers came from', all: 'All sources' },
+};
+
+/** "Google Ads 12 · Meta Ads 3" — the breakdown in one line. */
+function breakdownSummary(rows: BreakdownRow[]): string {
+  return rows.map((r) => `${r.label} ${fmtInt(r.paid_orders)}`).join(' · ');
+}
+
 function GroupRow({
   group,
   compact,
@@ -240,6 +255,8 @@ function GroupRow({
   const tint = EARNINGS_TINTS[group.key];
   const [open, setOpen] = useState(false);
   const canOpen = !compact && group.paid_orders > 0;
+  const breakdown = group.breakdown ?? [];
+  const nouns = BREAKDOWN_NOUNS[group.key];
 
   return (
     <div>
@@ -270,11 +287,23 @@ function GroupRow({
           )}
         </span>
 
-        {/* Which channels rolled up here — the drill-down the group hides. */}
-        {!compact && group.channels.length > 0 && (
-          <span className="text-[11px] text-ink-muted truncate max-w-[16rem]" title={group.channels.map(channelLabel).join(', ')}>
-            {group.channels.map(channelLabel).join(' · ')}
+        {/* What's inside the bucket, in one line — platforms with their order
+            counts for paid ads, affiliates for affiliate. On the dashboard too,
+            since "which platform" is the first thing anyone asks. */}
+        {breakdown.length > 0 ? (
+          <span
+            className="text-[11px] text-ink-muted truncate max-w-[18rem]"
+            title={breakdownSummary(breakdown)}
+          >
+            {breakdownSummary(breakdown)}
           </span>
+        ) : (
+          !compact &&
+          group.channels.length > 0 && (
+            <span className="text-[11px] text-ink-muted truncate max-w-[16rem]" title={group.channels.map(channelLabel).join(', ')}>
+              {group.channels.map(channelLabel).join(' · ')}
+            </span>
+          )
         )}
 
         {canOpen && (
@@ -284,22 +313,177 @@ function GroupRow({
             aria-expanded={open}
             className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-teal-dark hover:text-teal-dark/80"
           >
-            {open ? 'Hide orders' : 'Which orders?'}
+            {open ? 'Hide' : nouns && breakdown.length > 0 ? nouns.toggle : 'Which orders?'}
             <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden />
           </button>
         )}
       </div>
 
-      {open && <GroupOrders group={group} from={from} to={to} />}
+      {open && <GroupDetail group={group} from={from} to={to} />}
     </div>
   );
 }
 
 /**
- * The orders behind one bucket, each with the evidence that put it there.
- * Fetched only when opened — most visits never look.
+ * The inside of one bucket: its breakdown (platform / affiliate / source),
+ * the email-flow panel under Organic & referral, and the orders themselves
+ * with a dropdown to narrow them to one row of the breakdown.
  */
-function GroupOrders({ group, from, to }: { group: EarningsGroup; from?: string; to?: string }) {
+function GroupDetail({ group, from, to }: { group: EarningsGroup; from?: string; to?: string }) {
+  const breakdown = group.breakdown ?? [];
+  const nouns = BREAKDOWN_NOUNS[group.key];
+  const [filter, setFilter] = useState<string>('');
+
+  return (
+    <div className="px-5 pb-4">
+      {nouns && breakdown.length > 0 && (
+        <BreakdownList
+          rows={breakdown}
+          heading={nouns.heading}
+          selected={filter}
+          onSelect={(key) => setFilter((cur) => (cur === key ? '' : key))}
+        />
+      )}
+
+      {group.key === 'organic' && <EmailFlowsAttribution from={from} to={to} />}
+
+      <GroupOrders
+        group={group}
+        from={from}
+        to={to}
+        filter={filter}
+        onFilter={setFilter}
+        options={nouns ? breakdown.map((r) => ({ key: r.key, label: `${r.label} (${fmtInt(r.paid_orders)})` })) : []}
+        allLabel={nouns?.all ?? ''}
+      />
+    </div>
+  );
+}
+
+function BreakdownList({
+  rows,
+  heading,
+  selected,
+  onSelect,
+}: {
+  rows: BreakdownRow[];
+  heading: string;
+  selected: string;
+  onSelect: (key: string) => void;
+}) {
+  return (
+    <div className="mb-4">
+      <h4 className="text-xs font-semibold text-ink mb-1.5">{heading}</h4>
+      <ul className="rounded-lg border border-line divide-y divide-line bg-white">
+        {rows.map((r) => (
+          <BreakdownItem key={r.key} row={r} active={selected === r.key} onSelect={() => onSelect(r.key)} />
+        ))}
+      </ul>
+      <p className="mt-1 text-[11px] text-ink-muted">Pick a row to list only its orders below.</p>
+    </div>
+  );
+}
+
+function BreakdownItem({ row, active, onSelect }: { row: BreakdownRow; active: boolean; onSelect: () => void }) {
+  const [open, setOpen] = useState(false);
+  // A lone "No campaign tag" child only restates the row; its detail line says it instead.
+  const children = row.children.length === 1 && row.children[0].key === 'campaign:' ? [] : row.children;
+
+  return (
+    <li className={active ? 'bg-teal/5' : ''}>
+      <div className="px-3 py-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-pressed={active}
+          className="min-w-[10rem] text-left text-sm font-medium text-ink hover:text-teal-dark"
+        >
+          {row.label}
+        </button>
+        <span className="text-xs text-ink-muted tabular-nums w-20">
+          {fmtInt(row.paid_orders)} order{row.paid_orders === 1 ? '' : 's'}
+        </span>
+        <span className="text-sm tabular-nums text-ink w-24">
+          {row.order_revenue > 0 ? fmtCAD(row.order_revenue) : <span className="text-ink-light">—</span>}
+        </span>
+        <span className="text-sm tabular-nums text-ink w-24">
+          {row.hosted_revenue > 0 ? fmtUSD(row.hosted_revenue) : <span className="text-ink-light">—</span>}
+        </span>
+        <span className="flex items-center gap-1.5 w-28" title={`${row.order_share}% of this bucket's orders`}>
+          <span className="flex-1 h-1.5 rounded-full bg-surface overflow-hidden">
+            <span className="block h-full bg-teal" style={{ width: `${row.order_share}%` }} />
+          </span>
+          <span className="text-[11px] text-ink-muted tabular-nums">{row.order_share}%</span>
+        </span>
+        {children.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-teal-dark hover:text-teal-dark/80"
+          >
+            {children.length} {childNoun(row, children.length)}
+            <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden />
+          </button>
+        )}
+        {row.detail && <p className="basis-full text-[11px] text-ink-muted">{row.detail}</p>}
+      </div>
+      {open && (
+        <ul className="px-3 pb-2 pl-6 space-y-0.5">
+          {children.map((c) => (
+            <li key={c.key} className="flex flex-wrap items-baseline gap-x-4 text-xs">
+              <span className="min-w-[10rem] text-ink break-all">{c.label}</span>
+              <span className="text-ink-muted tabular-nums w-20">
+                {fmtInt(c.paid_orders)} order{c.paid_orders === 1 ? '' : 's'}
+              </span>
+              <span className="tabular-nums text-ink w-24">{c.order_revenue > 0 ? fmtCAD(c.order_revenue) : '—'}</span>
+              <span className="tabular-nums text-ink w-24">{c.hosted_revenue > 0 ? fmtUSD(c.hosted_revenue) : '—'}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+/** What a row's children are, for the toggle. */
+function childNoun(row: BreakdownRow, n: number): string {
+  const key = row.children[0]?.key ?? '';
+  const one = key.startsWith('campaign:')
+    ? 'campaign'
+    : key.startsWith('code:')
+      ? 'code'
+      : key.startsWith('site:')
+        ? 'site'
+        : key.startsWith('flow:') || key.startsWith('email:')
+          ? 'email'
+          : 'item';
+  return n === 1 ? one : `${one}s`;
+}
+
+/**
+ * The orders behind one bucket, each with the evidence that put it there.
+ * Fetched only when opened — most visits never look. The dropdown narrows the
+ * list to one platform / affiliate / source, using the same key the breakdown
+ * above counts with.
+ */
+function GroupOrders({
+  group,
+  from,
+  to,
+  filter,
+  onFilter,
+  options,
+  allLabel,
+}: {
+  group: EarningsGroup;
+  from?: string;
+  to?: string;
+  filter: string;
+  onFilter: (key: string) => void;
+  options: Array<{ key: string; label: string }>;
+  allLabel: string;
+}) {
   const [data, setData] = useState<SourceOrdersResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -320,22 +504,43 @@ function GroupOrders({ group, from, to }: { group: EarningsGroup; from?: string;
 
   if (loading) {
     return (
-      <div className="px-5 pb-4 flex items-center gap-2 text-xs text-ink-muted">
+      <div className="pt-3 flex items-center gap-2 text-xs text-ink-muted">
         <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden /> Loading orders…
       </div>
     );
   }
 
   if (!data || !data.available) {
-    return <p className="px-5 pb-4 text-xs text-ink-muted">Couldn&apos;t load the orders for this bucket.</p>;
+    return <p className="pt-3 text-xs text-ink-muted">Couldn&apos;t load the orders for this bucket.</p>;
   }
 
   if (data.orders.length === 0) {
-    return <p className="px-5 pb-4 text-xs text-ink-muted">No paid orders in this bucket for the range.</p>;
+    return <p className="pt-3 text-xs text-ink-muted">No paid orders in this bucket for the range.</p>;
   }
 
+  const shown = filter ? data.orders.filter((o) => o.sub?.key === filter) : data.orders;
+
   return (
-    <div className="px-5 pb-4">
+    <div className="pt-3">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <h4 className="text-xs font-semibold text-ink">Orders</h4>
+        {options.length > 1 && (
+          <select
+            value={filter}
+            onChange={(e) => onFilter(e.target.value)}
+            aria-label={`Show orders from ${allLabel.toLowerCase().replace(/^all /, 'one ')}`}
+            className="ml-auto rounded-md border border-line bg-white px-2 py-1 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-teal"
+          >
+            <option value="">{allLabel}</option>
+            {options.map((o) => (
+              <option key={o.key} value={o.key}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
       {group.key === 'unattributed' && (
         <p className="mb-2 text-xs text-ink-muted leading-relaxed">
           These orders have no channel recorded, so they stay in Unattributed.{' '}
@@ -350,16 +555,20 @@ function GroupOrders({ group, from, to }: { group: EarningsGroup; from?: string;
         </p>
       )}
 
-      <ul className="rounded-lg border border-line divide-y divide-line bg-surface/40 max-h-[28rem] overflow-y-auto">
-        {data.orders.map((o) => (
-          <OrderSourceItem key={`${o.kind}:${o.id}`} order={o} />
-        ))}
-      </ul>
+      {shown.length === 0 ? (
+        <p className="text-xs text-ink-muted">No orders listed for this selection.</p>
+      ) : (
+        <ul className="rounded-lg border border-line divide-y divide-line bg-surface/40 max-h-[28rem] overflow-y-auto">
+          {shown.map((o) => (
+            <OrderSourceItem key={`${o.kind}:${o.id}`} order={o} />
+          ))}
+        </ul>
+      )}
 
       {data.truncated && (
         <p className="mt-2 text-[11px] text-ink-muted">
-          Showing the most recent {fmtInt(data.orders.length)} of {fmtInt(data.total)} orders. Narrow the
-          date range to see the rest.
+          Showing the most recent {fmtInt(data.orders.length)} of {fmtInt(data.total)} orders
+          {filter ? ', narrowed by the dropdown' : ''}. Narrow the date range to see the rest.
         </p>
       )}
     </div>
@@ -382,6 +591,9 @@ function OrderSourceItem({ order }: { order: SourceOrderRow }) {
           {order.kind === 'hosted' ? 'Hosted' : 'Store'}
         </span>
         <span className="text-xs text-ink-muted tabular-nums">{order.created_at.slice(0, 10)}</span>
+        {order.sub && order.group === 'affiliate' && (
+          <span className="text-xs font-medium text-blue-700 truncate max-w-[12rem]">{order.sub.label}</span>
+        )}
         {order.email && <span className="text-xs text-ink-muted truncate max-w-[14rem]">{order.email}</span>}
         <span className="ml-auto text-sm tabular-nums text-ink">{amount}</span>
       </div>
@@ -408,6 +620,18 @@ function OrderSourceItem({ order }: { order: SourceOrderRow }) {
             </span>
           ))}
         </div>
+      )}
+
+      {order.email_flow && (
+        <p className="mt-1.5 flex items-start gap-1.5 text-xs text-emerald-700">
+          <Mail className="w-3.5 h-3.5 mt-px shrink-0" aria-hidden />
+          <span>
+            Came through <span className="font-semibold">{order.email_flow.label}</span> —{' '}
+            {order.email_flow.evidence === 'click'
+              ? 'the buyer clicked that email on the way to checkout.'
+              : 'the visit before the order carried that email’s link tags.'}
+          </span>
+        </p>
       )}
 
       {order.hints.map((h) => (

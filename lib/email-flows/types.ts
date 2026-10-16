@@ -110,6 +110,13 @@ export const MAX_SEND_ATTEMPTS = 3;
 /** CASL: a checkout inquiry implies consent for this long. */
 export const IMPLIED_CONSENT_DAYS = 180;
 
+/**
+ * A purchase this long after a flow's last email (or after a click on one)
+ * still counts as the flow's. Shared by the engine's conversion check and the
+ * click cookie that carries a flow email into checkout.
+ */
+export const FLOW_ATTRIBUTION_DAYS = 14;
+
 export interface FlowSettings {
   flow: FlowKey;
   enabled: boolean;
@@ -458,6 +465,8 @@ export interface StepStats {
   opened: number;
   clicked: number;
   conversions: number;
+  /** Of `conversions`, how many clicked a flow email first. */
+  clickConversions: number;
   revenue: number;
 }
 
@@ -466,6 +475,12 @@ export interface FlowOverview {
   byStatus: Record<EntryStatus, number>;
   conversionRate: number | null;
   revenue: number;
+  /**
+   * Conversions by whether the buyer clicked first (email-flows-tracking-
+   * migration.sql). `unknown` is everything converted before that ran; null
+   * when the column isn't there at all.
+   */
+  conversionsVia: { click: number; email_match: number; unknown: number } | null;
   steps: StepStats[];
 }
 

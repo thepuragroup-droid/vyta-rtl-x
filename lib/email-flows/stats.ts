@@ -7,6 +7,7 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SITE_URL } from '@/lib/config';
+import { isMissingColumnError } from '@/lib/payments/puramass-columns';
 import {
   ENTRY_STATUSES,
   STEP_NUMBERS,
@@ -27,9 +28,18 @@ type Db = SupabaseClient<any, any, any>;
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 
 export async function computeOverview(db: Db, flow: FlowKey, sinceIso: string | null): Promise<FlowOverview> {
-  let entriesQ = db.from('email_flow_entries').select('id, status, converted_amount, attributed_step').eq('flow', flow).limit(20000);
-  if (sinceIso) entriesQ = entriesQ.gte('enrolled_at', sinceIso);
-  const { data: entries } = await entriesQ;
+  const readEntries = (cols: string) => {
+    let q = db.from('email_flow_entries').select(cols).eq('flow', flow).limit(20000);
+    if (sinceIso) q = q.gte('enrolled_at', sinceIso);
+    return q;
+  };
+  // converted_via arrives with email-flows-tracking-migration.sql.
+  let hasVia = true;
+  let { data: entries, error: entriesError } = await readEntries('id, status, converted_amount, attributed_step, converted_via');
+  if (entriesError && isMissingColumnError(entriesError)) {
+    hasVia = false;
+    ({ data: entries } = await readEntries('id, status, converted_amount, attributed_step'));
+  }
   const ids = new Set((entries ?? []).map((s: any) => s.id));
 
   let sendsQ = db.from('email_flow_sends').select('entry_id, step, status, opened_at, clicked_at').eq('flow', flow).limit(100000);
@@ -38,18 +48,22 @@ export async function computeOverview(db: Db, flow: FlowKey, sinceIso: string | 
 
   const byStatus = Object.fromEntries(ENTRY_STATUSES.map((s) => [s, 0])) as Record<EntryStatus, number>;
   const steps = new Map<StepNumber, StepStats>(
-    STEP_NUMBERS.map((n) => [n, { step: n, sent: 0, failed: 0, skipped: 0, opened: 0, clicked: 0, conversions: 0, revenue: 0 }]),
+    STEP_NUMBERS.map((n) => [n, { step: n, sent: 0, failed: 0, skipped: 0, opened: 0, clicked: 0, conversions: 0, clickConversions: 0, revenue: 0 }]),
   );
   let revenue = 0;
+  const via = { click: 0, email_match: 0, unknown: 0 };
 
   for (const s of (entries ?? []) as any[]) {
     if (s.status in byStatus) byStatus[s.status as EntryStatus]++;
     if (s.status === 'converted') {
       const amount = Number(s.converted_amount) || 0;
       revenue += amount;
+      const how: keyof typeof via = s.converted_via === 'click' || s.converted_via === 'email_match' ? s.converted_via : 'unknown';
+      via[how]++;
       const st = steps.get(s.attributed_step as StepNumber);
       if (st) {
         st.conversions++;
+        if (how === 'click') st.clickConversions++;
         st.revenue += amount;
       }
     }
@@ -72,6 +86,7 @@ export async function computeOverview(db: Db, flow: FlowKey, sinceIso: string | 
     byStatus,
     conversionRate: enrolled ? round2((byStatus.converted / enrolled) * 100) : null,
     revenue: round2(revenue),
+    conversionsVia: hasVia ? via : null,
     steps: [...steps.values()].map((s) => ({ ...s, revenue: round2(s.revenue) })),
   };
 }
