@@ -765,7 +765,7 @@ function cartLines(k: Kit): string {
 }
 
 /** The "your cart is waiting" panel: heading, a line, the items, the button. */
-function cartPanel(k: Kit, opts: { center?: boolean; urgent?: boolean } = {}): string {
+function cartPanel(k: Kit, opts: { center?: boolean; urgent?: boolean; noButton?: boolean } = {}): string {
   const s = k.step;
   if (!s.show_cart) return '';
   const title = k.m(s.cart_title);
@@ -777,7 +777,7 @@ function cartPanel(k: Kit, opts: { center?: boolean; urgent?: boolean } = {}): s
         ${title ? `<p style="font-family: ${T.display}; font-size: 18px; font-weight: 700; color: ${T.ink}; margin: 0 0 4px; text-align: ${align};">${escapeHtml(title)}</p>` : ''}
         ${body ? `<p style="font-family: ${T.font}; font-size: 13px; line-height: 1.6; color: ${T.body}; margin: 0 0 10px; text-align: ${align};">${escapeHtml(body)}</p>` : ''}
         ${cartLines(k)}
-        ${button(k, s.cta_label, s.cta_url, { urgent: opts.urgent })}
+        ${opts.noButton ? '' : button(k, s.cta_label, s.cta_url, { urgent: opts.urgent })}
       </td></tr>
     </table>`;
 }
@@ -785,17 +785,47 @@ function cartPanel(k: Kit, opts: { center?: boolean; urgent?: boolean } = {}): s
 function cartReminderLayout(k: Kit): string {
   const s = k.step;
   const product = k.img(s.card_image_url);
+  const productRow = product
+    ? `<tr><td style="padding: 0;"><img src="${escapeHtml(product)}" width="600" alt="" style="display: block; width: 100%; max-width: 600px; height: auto; border: 0;" /></td></tr>`
+    : '';
+  if (overlaid(k)) {
+    // As designed: the question and "your cart is waiting" large at the upper
+    // left of the photo, the subject on the right; then the line, what's in
+    // the cart, a wide button, the badges and the product photo.
+    const c = overlayTone(k);
+    const headline = k.m(s.headline);
+    const sub = k.m(s.subheadline);
+    (k.phoneRules ??= []).push(
+      '.ef-cr-h1 { font-size: 30px !important; max-width: 200px !important; }',
+      '.ef-cr-sub { font-size: 17px !important; }',
+      '.ef-cr-body { font-size: 15px !important; }',
+    );
+    const body = k.m(s.body);
+    return [
+      coverHero(
+        k,
+        `${headline ? `<h1 class="ef-cr-h1" style="font-family: ${T.display}; font-size: 46px; font-weight: 800; line-height: 1.08; color: ${c.heading}; margin: 0 0 12px; max-width: 330px; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
+         ${sub ? `<p class="ef-cr-sub" style="font-family: ${T.display}; font-size: 24px; font-weight: 600; line-height: 1.3; color: ${c.heading}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>` : ''}`,
+        { padding: '40px 32px', phoneWash: 'left' },
+      ),
+      body ? pad(`<p class="ef-cr-body" style="font-family: ${T.font}; font-size: 17px; line-height: 1.6; color: ${T.body}; text-align: center; margin: 0 auto; max-width: 470px;">${escapeHtml(body)}</p>`, '28px 32px 6px') : '',
+      s.show_cart ? pad(cartPanel(k, { noButton: true }), '16px 20px 4px') : '',
+      pad(button(k, s.cta_label, s.cta_url, { wide: true, large: true }), '18px 32px 8px'),
+      pad(badges(k, s.highlights), '20px 20px 24px'),
+      productRow,
+    ].join('');
+  }
   const intro = paragraphs(k.m(s.body)) + (s.show_cart ? '' : button(k, s.cta_label, s.cta_url));
   return [
     ...(overlaid(k)
-      ? [coverHero(k, narrow(overlayHeadline(k, 'left', 34))), pad(intro, '26px 32px 4px')]
+      ? []
       : [
           `<tr><td style="padding: 0;">${image(k, s.hero_image_url, k.m(s.headline))}</td></tr>`,
           pad(headlineBlock(k, 'left', 32) + intro, '28px 32px 8px'),
         ]),
     s.show_cart ? pad(cartPanel(k), '8px 20px 20px') : '',
     pad(badges(k, s.highlights), '6px 20px 22px'),
-    product ? `<tr><td style="padding: 0;"><img src="${escapeHtml(product)}" width="600" alt="" style="display: block; width: 100%; max-width: 600px; height: auto; border: 0;" /></td></tr>` : '',
+    productRow,
   ].join('');
 }
 

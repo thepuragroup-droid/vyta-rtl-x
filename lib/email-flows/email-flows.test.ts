@@ -526,12 +526,12 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
   for (const step of DEFAULT_STEPS.welcome) {
     assert.ok(!/\/images\/email\/welcome\//.test(`${step.hero_image_url} ${step.card_image_url}`), `welcome ${step.step}`);
   }
-  assert.deepEqual(at('cart', 1), ['man-lake.jpg', true]);
+  assert.deepEqual(at('cart', 1), ['cart-woman-lake.jpg', true]);
   assert.deepEqual(at('cart', 2), ['woman-lake.jpg', true]);
   assert.deepEqual(at('cart', 3), ['three-vials.jpg', false]);
   assert.deepEqual(at('cart', 4), ['dropper.jpg', false]);
   assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
-  assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/man-lake-vial.jpg');
+  assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/vials-lake.jpg');
   assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent.jpg');
   for (const flow of ['welcome', 'cart'] as const) {
     for (const step of DEFAULT_STEPS[flow]) {
@@ -546,15 +546,31 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
 
 test('an overlay hero carries its text, keeps its shape, and works in Outlook and on phones', () => {
   const html = renderFlowEmail(dflt('cart', 1), cartCtx()).html;
-  const cover = html.slice(html.indexOf('class="ef-cover"'), html.indexOf('</v:rect>'));
-  assert.match(cover, /man-lake\.jpg/);
+  const cover = html.slice(html.indexOf('class="ef-cover'), html.indexOf('</v:rect>'));
+  assert.match(cover, /cart-woman-lake\.jpg/);
   assert.match(cover, />Still thinking about it\?</);
   assert.match(cover, />Your cart is waiting\.</);
-  assert.match(html, /height="809"/, '600 × 1.3483');
-  assert.match(html, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/man-lake\.jpg"/);
-  assert.match(html, /\.ef-cover, \.ef-cover-fill \{ height: calc\(\(100vw - 22px\) \* 1\.3483\) !important; \}/);
-  // The vial strip closes the email, as in the mockup.
-  assert.match(html, /man-lake-vial\.jpg/);
+  assert.match(html, /height="408"/, '600 × 0.68');
+  assert.match(html, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/cart-woman-lake\.jpg"/);
+  assert.match(html, /\.ef-cover, \.ef-cover-fill \{ height: calc\(\(100vw - 22px\) \* 0\.68\) !important; \}/);
+  // Large type on desktop, set back on phones.
+  assert.match(html, /class="ef-cr-h1" style="[^"]*font-size: 46px;/);
+  assert.ok(html.includes('.ef-cr-h1 { font-size: 30px !important; max-width: 200px !important; }'));
+  // Below the cover: the line, the cart (no button of its own), one wide
+  // button, the badges, and the vials photo to close.
+  const after = html.slice(html.indexOf('</v:rect>'));
+  assert.ok(after.indexOf('Great choices!') < after.indexOf('BPC-157'));
+  assert.ok(after.indexOf('BPC-157') < after.indexOf('Return to Cart'));
+  assert.equal(after.split('Return to Cart').length - 1, 1, 'one Return to Cart button');
+  assert.match(after, /class="ef-btn-wide"/);
+  assert.ok(after.indexOf('Canadian Owned') < after.indexOf('vials-lake.jpg'));
+});
+
+test('saved cart emails still on an old default image get the new one', () => {
+  const one = shapeRow('cart', { step: 1, hero_image_url: '/images/email/photos/man-lake.jpg', hero_image_ratio: 1.3483, card_image_url: '/images/email/photos/man-lake-vial.jpg' });
+  assert.equal(one.hero_image_url, '/images/email/photos/cart-woman-lake.jpg');
+  assert.equal(one.hero_image_ratio, 0.68);
+  assert.equal(one.card_image_url, '/images/email/photos/vials-lake.jpg');
 });
 
 /** The cover cell of an email: from its opening tag to the end of the VML box. */

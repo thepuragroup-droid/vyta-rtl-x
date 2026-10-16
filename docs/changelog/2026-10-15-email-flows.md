@@ -218,8 +218,8 @@ stretched cover:
 | `woman-portrait` (the supplied woman-in-the-sun photo, whole, on the right) | 1.30 | Welcome 2 hero: headline, line and benefits down the left, button centred at the foot |
 | `quality-vials` (two vials on the right, pale haze at the upper left) | 0.84 | Welcome 3 hero, headline and line at the upper left |
 | `man-lake-sky` (man by the lake, pale daylight sky above) | 1.50 | Welcome 5 hero, question, countdown and button over the sky |
-| `man-lake` (man by the lake) | 1.35 | Cart 1 hero, headline over the sky |
-| `man-lake-vial` (vial on leaves) | 0.55 | Cart 1 image above the button |
+| `cart-woman-lake` (woman by the lake, head and shoulders on the right) | 0.68 | Cart 1 hero, headline at the upper left |
+| `vials-lake` (two vials on the rock, lake behind) | 0.72 | Cart 1, closing the email |
 | `woman-lake` (woman by the lake) | 1.31 | Cart 2 hero, headline over the sky |
 | `dropper` (dropper over a vial) | 1.06 | Cart 4, under the headline |
 | `dropper-card` (the drop, closer in) | 0.85 | Welcome 3 "Research. Quality." card |
@@ -254,6 +254,14 @@ Welcome 2's, which is a photo supplied later.
   teal-outlined box) sits over the navy top. On phones the type steps down
   and the cover grows taller, so the photo stays whole below the code. Cart 3
   shares the layout but keeps its own look: offer on navy, photo below.
+
+**Cart 1** (`cart-woman-lake`): "Still thinking about it?" (46px on desktop)
+and "Your cart is waiting." sit at the upper left of the woman-by-the-lake
+photo, with the left side paled. Below come the line, what's in the cart
+(without a button of its own), one wide Return to Cart button, the badges,
+and the vials-by-the-lake photo (`vials-lake`) to close. Phones set the
+type back. Saved Cart 1 emails still on the man-by-the-lake photos get the
+new ones; the old files stay so sent emails keep their pictures.
 - **Welcome 5** (`man-lake-sky`): the sunset is toned to daylight and the
   sky paled at the top, as designed. Over it sit the question, the line,
   the countdown, the wide Claim button and the code. Desktop type is large:
@@ -351,7 +359,7 @@ The full list is at the top of the script.
 npx tsx --test lib/email-flows/email-flows.test.ts
 ```
 
-There are 50 cases.
+There are 51 cases.
 
 - **Scheduling:** time zones, the send window, step order and retries, the
   minimum gap.

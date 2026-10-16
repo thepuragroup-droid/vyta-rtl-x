@@ -55,10 +55,12 @@ export const PLACEHOLDER_IMAGES = {
  * mockups (public/images/email/photos). `ratio` is height ÷ width.
  */
 export const PHOTOS = {
-  manByLake: { url: '/images/email/photos/man-lake.jpg', ratio: 1.3483 },
+  /** The woman by the lake, head and shoulders on the right, the left paled for the headline. */
+  cartWomanLake: { url: '/images/email/photos/cart-woman-lake.jpg', ratio: 0.68 },
+  /** The two vials on the rock with the lake behind them. */
+  vialsLake: { url: '/images/email/photos/vials-lake.jpg', ratio: 0.7167 },
   /** The same shot with the sky above him — room for the reminder's copy. */
   manByLakeSky: { url: '/images/email/photos/man-lake-sky.jpg', ratio: 1.5 },
-  manByLakeVial: { url: '/images/email/photos/man-lake-vial.jpg', ratio: 0.545 },
   womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.3117 },
   /** Woman by the lake on the right, the left darkened for the white welcome title. */
   womanLakeDark: { url: '/images/email/photos/woman-lake-dark.jpg', ratio: 0.8 },
@@ -227,8 +229,8 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Premium Quality', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...overlay(F.manByLake),
-    card_image_url: F.manByLakeVial.url,
+    ...overlay(F.cartWomanLake),
+    card_image_url: F.vialsLake.url,
   },
   {
     ...blank('cart', 2),
@@ -307,7 +309,7 @@ const CART: FlowStep[] = [
 export const DEFAULT_STEPS: Record<FlowKey, FlowStep[]> = { welcome: WELCOME, cart: CART };
 
 /**
- * Images the welcome series used to ship with. The first load of the admin
+ * Images the flows used to ship with. The first load of the admin
  * saved each email's defaults to the database, so a saved email still naming
  * one of these is on an old default, not an admin's choice: it gets today's
  * image (and that image's shape and overlay) instead. An image an admin
@@ -340,7 +342,17 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/photos/man-lake-vial.jpg',
     ],
   },
-  cart: { hero: [], card: [] },
+  cart: {
+    hero: [
+      '/images/email/photos/man-lake.jpg',
+      '/images/email/covers/cover-1.jpg',
+      '/images/email/cart/reminder-hero.png',
+    ],
+    card: [
+      '/images/email/photos/man-lake-vial.jpg',
+      '/images/email/cart/reminder-product.png',
+    ],
+  },
 };
 
 export function defaultStep(flow: FlowKey, step: StepNumber): FlowStep {
