@@ -37,7 +37,16 @@ export default function OverviewTab({ flow, overview, steps, settings, onOpenEma
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Kpi label={cart ? 'Carts' : 'Enrolled'} value={String(overview.enrolled)} sub={cart ? 'abandoned & enrolled' : undefined} />
         <Kpi label="In flow" value={String(s.active)} sub="still receiving emails" />
-        <Kpi label={cart ? 'Recovered' : 'Purchased'} value={String(s.converted)} sub={overview.conversionRate != null ? `${overview.conversionRate}% of ${cart ? 'carts' : 'enrolled'}` : undefined} />
+        <Kpi
+          label={cart ? 'Recovered' : 'Purchased'}
+          value={String(s.converted)}
+          sub={[
+            overview.conversionRate != null ? `${overview.conversionRate}% of ${cart ? 'carts' : 'enrolled'}` : null,
+            overview.conversionsVia && overview.conversionsVia.click + overview.conversionsVia.email_match > 0
+              ? `${overview.conversionsVia.click} clicked through, ${overview.conversionsVia.email_match} without a click`
+              : null,
+          ].filter(Boolean).join(' · ') || undefined}
+        />
         <Kpi label="Revenue" value={fmtMoney(overview.revenue)} sub={cart ? 'orders placed after abandoning' : 'first orders after enrolling'} />
         <Kpi label="Completed" value={String(s.completed)} sub="all 5, no purchase" />
         <Kpi label="Unsubscribed" value={String(s.unsubscribed)} sub={s.exited ? `${s.exited} removed${cart ? ' / emptied' : ''}` : undefined} />
@@ -90,6 +99,12 @@ export default function OverviewTab({ flow, overview, steps, settings, onOpenEma
                     <dd className="text-right tabular-nums text-ink">{pct(st?.clicked ?? 0, st?.sent ?? 0)}</dd>
                     <dt className="text-ink-muted">Purchases</dt>
                     <dd className="text-right tabular-nums text-ink">{st?.conversions ?? 0}</dd>
+                    {overview.conversionsVia && (st?.conversions ?? 0) > 0 && (
+                      <>
+                        <dt className="text-ink-muted">After a click</dt>
+                        <dd className="text-right tabular-nums text-ink">{st?.clickConversions ?? 0}</dd>
+                      </>
+                    )}
                     {(st?.failed ?? 0) > 0 && (
                       <>
                         <dt className="text-red-600">Failed</dt>
@@ -107,7 +122,10 @@ export default function OverviewTab({ flow, overview, steps, settings, onOpenEma
         </ol>
         <p className="mt-3 text-[11px] text-ink-muted">
           Opens are approximate: Apple Mail pre-loads images and some inboxes block them. Clicks and purchases are
-          the reliable numbers. A purchase is credited to the last flow email sent before it.
+          the reliable numbers — and clicks count people only: mail security scanners that follow every link on
+          delivery are left out. A purchase is credited to the email whose click led to it, or to the last flow
+          email sent before it when nothing was clicked. Analytics → Earnings by source → Organic &amp; referral
+          shows what the flows led to across the store.
         </p>
       </Panel>
 

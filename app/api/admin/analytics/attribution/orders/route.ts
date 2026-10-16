@@ -9,6 +9,15 @@ import {
   type OrderSourceExplanation,
 } from '@/lib/analytics/order-source';
 import { isPaidAdsScoped } from '@/lib/analytics/paid-scope';
+import {
+  affiliateCodeOf,
+  breakdownKeysOf,
+  type AffiliateLookup,
+  type BreakdownFact,
+} from '@/lib/analytics/earnings-breakdown';
+import { loadAffiliateOwners } from '@/lib/analytics/affiliate-lookup';
+import { touchesOf } from '@/lib/analytics/order-source';
+import { emailFlowTouchOf, flowStepLabel } from '@/lib/email-flows/engagement';
 import { canViewAnalytics, type UserRole } from '@/lib/permissions';
 import { ADMIN_VIEW_PARAM, previewedRole } from '@/lib/admin/admin-view';
 
@@ -58,6 +67,13 @@ export interface SourceOrderRow extends OrderSourceExplanation {
   created_at: string;
   /** Where the order opens in the admin. */
   href: string;
+  /**
+   * Where inside the bucket it sits — the platform, affiliate or source row
+   * of the breakdown (same key), so the list can be filtered to one row.
+   */
+  sub: { key: string; label: string } | null;
+  /** The flow email this order came through, if any ("Cart Abandonment · email 3"). */
+  email_flow: { label: string; evidence: 'click' | 'utm' } | null;
 }
 
 export interface SourceOrdersResponse {
@@ -261,6 +277,35 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // ---- Breakdown: which platform / affiliate / source row each order is in ----
+  const factOf = (o: any): BreakdownFact => {
+    const { first } = touchesOf(o.attribution);
+    return {
+      channel: o.attribution_channel ?? null,
+      campaign: o.attribution_campaign ?? null,
+      referral_code: o.referral_code ?? null,
+      first_ref: (first?.ref_code as string | null | undefined) ?? null,
+      first_source: (first?.source as string | null | undefined) ?? null,
+      first_medium: (first?.medium as string | null | undefined) ?? null,
+      first_host: (first?.referrer_host as string | null | undefined) ?? null,
+      order_revenue: 0,
+      hosted_revenue: 0,
+    };
+  };
+  let affiliateOf: AffiliateLookup = () => null;
+  if (group === 'affiliate') {
+    const owners = await loadAffiliateOwners(
+      db,
+      [...store, ...hosted].map((o) => affiliateCodeOf(factOf(o))).filter(Boolean) as string[],
+    );
+    affiliateOf = (code) => owners.get(code) ?? null;
+  }
+  const subOf = (o: any) => breakdownKeysOf(group, factOf(o), affiliateOf)?.row ?? null;
+  const flowOf = (o: any) => {
+    const t = emailFlowTouchOf(o.attribution);
+    return t ? { label: flowStepLabel(t.flow, t.step), evidence: t.evidence } : null;
+  };
+
   const ctxFor = (customerId: unknown, email: unknown, kind: 'store' | 'hosted') => ({
     customerChannel: customerId ? customerChannel.get(String(customerId)) ?? null : null,
     visitorChannel: email ? visitorChannel.get(String(email).trim().toLowerCase()) ?? null : null,
@@ -277,6 +322,8 @@ export async function GET(req: NextRequest) {
       currency: 'CAD',
       created_at: o.created_at,
       href: `/admin/orders/${o.id}`,
+      sub: subOf(o),
+      email_flow: flowOf(o),
       ...explainOrderSource(
         {
           kind: 'store',
@@ -298,6 +345,8 @@ export async function GET(req: NextRequest) {
       currency: String(h.currency || 'usd').toUpperCase(),
       created_at: h.created_at,
       href: '/admin/stealth-health?tab=orders',
+      sub: subOf(h),
+      email_flow: flowOf(h),
       ...explainOrderSource(
         {
           kind: 'hosted',

@@ -3,6 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 import { CHANNELS, isPaidChannel, type Channel } from '@/lib/analytics/attribution';
 import { earningsGroupOf } from '@/lib/analytics/order-source';
 import {
+  affiliateCodeOf,
+  buildBreakdown,
+  hasBreakdown,
+  type BreakdownFact,
+  type BreakdownRow,
+} from '@/lib/analytics/earnings-breakdown';
+import { loadAffiliateOwners } from '@/lib/analytics/affiliate-lookup';
+import {
   isPaidAdsScoped,
   scopeToPaidAds,
   PAID_ADS_SCOPE_NOTE,
@@ -87,6 +95,12 @@ export interface EarningsGroup {
   aov_usd: number;
   /** Share of all paid orders in range, attributed or not (%). */
   order_share: number;
+  /**
+   * One level down: paid ads by platform, affiliate by affiliate, organic by
+   * source — each with its own children (campaigns, codes, sites, flow
+   * emails). Empty for Direct and Unattributed. See earnings-breakdown.ts.
+   */
+  breakdown: BreakdownRow[];
 }
 
 export interface AttributionSummary {
@@ -220,7 +234,9 @@ export async function GET(req: NextRequest) {
       inRange(
         db
           .from('orders')
-          .select('attribution_channel, attribution_campaign, status, total')
+          .select(
+            'attribution_channel, attribution_campaign, status, total, referral_code, first_ref:attribution->first->>ref_code, first_source:attribution->first->>source, first_medium:attribution->first->>medium, first_host:attribution->first->>referrer_host',
+          )
           .limit(MAX_ROWS),
         'created_at',
       ),
@@ -230,7 +246,9 @@ export async function GET(req: NextRequest) {
       inRange(
         db
           .from('puramass_orders')
-          .select('attribution_channel, attribution_campaign, status, subtotal_cents')
+          .select(
+            'attribution_channel, attribution_campaign, status, subtotal_cents, referral_code, first_ref:attribution->first->>ref_code, first_source:attribution->first->>source, first_medium:attribution->first->>medium, first_host:attribution->first->>referrer_host',
+          )
           .limit(MAX_ROWS),
         'created_at',
       ),
@@ -286,6 +304,25 @@ export async function GET(req: NextRequest) {
     return existing;
   };
 
+  // What each paid order says about where inside its bucket it belongs — the
+  // breakdown under each earnings row (platform / affiliate / source).
+  const facts = new Map<string, BreakdownFact[]>();
+  const addFact = (o: any, money: { order_revenue: number; hosted_revenue: number }) => {
+    const group = earningsGroupOf(o.attribution_channel);
+    if (!hasBreakdown(group)) return;
+    if (!facts.has(group)) facts.set(group, []);
+    facts.get(group)!.push({
+      channel: o.attribution_channel ?? null,
+      campaign: o.attribution_campaign ?? null,
+      referral_code: o.referral_code ?? null,
+      first_ref: o.first_ref ?? null,
+      first_source: o.first_source ?? null,
+      first_medium: o.first_medium ?? null,
+      first_host: o.first_host ?? null,
+      ...money,
+    });
+  };
+
   // ---- 1. Funnel, from the visitor rows ----
   const visitorRows = visitorsRes.data ?? [];
   for (const v of visitorRows as any[]) {
@@ -324,6 +361,7 @@ export async function GET(req: NextRequest) {
     if (PAID_ORDER_STATUSES.includes(o.status)) {
       bucket.paid_orders += 1;
       bucket.order_revenue += Number(o.total ?? 0);
+      addFact(o, { order_revenue: Number(o.total ?? 0), hosted_revenue: 0 });
       const c = campaign(o.attribution_channel, o.attribution_campaign);
       if (c) c.revenue += Number(o.total ?? 0);
     }
@@ -345,6 +383,7 @@ export async function GET(req: NextRequest) {
       bucket.hosted_paid += 1;
       const amount = Number(h.subtotal_cents ?? 0) / 100;
       bucket.hosted_revenue += amount;
+      addFact(h, { order_revenue: 0, hosted_revenue: amount });
       const c = campaign(h.attribution_channel, h.attribution_campaign);
       if (c) c.revenue += amount;
     }
@@ -385,11 +424,18 @@ export async function GET(req: NextRequest) {
   );
 
   // ---- 4. Earnings, grouped by how the sale was won ----
+  const affiliateFacts = facts.get('affiliate') ?? [];
+  const owners = affiliateFacts.length
+    ? await loadAffiliateOwners(db, affiliateFacts.map(affiliateCodeOf).filter(Boolean) as string[])
+    : new Map();
   const earnings = buildEarnings(channels, {
     paid_orders: unattributedPaidOrders,
     order_revenue: unattributedOrderRevenue,
     hosted_revenue: unattributedHostedRevenue,
-  });
+  }).map((g) => ({
+    ...g,
+    breakdown: buildBreakdown(g.key, facts.get(g.key) ?? [], (code) => owners.get(code) ?? null),
+  }));
   const earningsTotal = earnings.reduce(
     (acc, g) => ({
       paid_orders: acc.paid_orders + g.paid_orders,
@@ -478,6 +524,7 @@ function buildEarnings(
       aov_cad: cadOrders > 0 ? +(orderRevenue / cadOrders).toFixed(2) : 0,
       aov_usd: usdOrders > 0 ? +(hostedRevenue / usdOrders).toFixed(2) : 0,
       order_share: 0,
+      breakdown: [] as BreakdownRow[],
     };
   });
 
@@ -494,6 +541,7 @@ function buildEarnings(
       aov_cad: 0,
       aov_usd: 0,
       order_share: 0,
+      breakdown: [],
     });
   }
 

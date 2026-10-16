@@ -145,6 +145,25 @@ range, so the split reads as a whole rather than a sample. When the unattributed
 share is 20% or more the full view says so in as many words, because until it
 falls the split is not yet trustworthy.
 
+**Inside each bucket**: Paid ads, Affiliate and Organic & referral open a
+breakdown one level down: **By platform** (Google Ads, Meta Ads, … and the
+campaigns under each), **By affiliate** (every code an affiliate owns rolls up
+to them; the order's own `referral_code` decides, else the first visit's
+`?ref=`), and **By source** (Google organic, Meta organic, Referral by site,
+Email by flow email). Picking a row, or the dropdown above the order list,
+narrows the orders to that platform / affiliate / source. The rule lives in
+`lib/analytics/earnings-breakdown.ts` and is shared by the summary and the
+order list, so they always agree. The dashboard's compact view shows the same
+breakdown as one line ("Google Ads 10 · Meta Ads 4").
+
+**Email flows** sit under Organic & referral, read from their own side: a flow
+email almost never wins a customer, so the split keeps crediting the sale to
+the first touch. The panel shows sends, opens, people's clicks (mail-scanner
+clicks excluded), checkouts opened from a click, purchases split into *clicked
+through* and *bought without clicking*, and the paid orders a flow email
+closed, by the bucket they are credited to. See
+`docs/changelog/2026-10-16-earnings-breakdown-and-email-flow-tracking.md`.
+
 **Which orders are in each bucket**: in the full view every group row has a
 *Which orders?* toggle. It lists the paid orders behind that percentage (from
 `GET /api/admin/analytics/attribution/orders?group=…`), each with a one-line

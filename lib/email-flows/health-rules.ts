@@ -49,6 +49,7 @@ export interface HealthReport {
 
 export const MIGRATION = 'email-flows-migration.sql';
 export const HEALTH_MIGRATION = 'email-flows-health-migration.sql';
+export const TRACKING_MIGRATION = 'email-flows-tracking-migration.sql';
 export const CRON_FILE = 'supabase-cron-email-flows.sql';
 /** The cron runs every 15 minutes; this long without one means it has stopped. */
 export const CRON_STALE_MINUTES = 45;
@@ -296,6 +297,23 @@ export function trackFunctionCheck(error: { code?: string; message?: string } | 
         fix: `Run ${MIGRATION} in the Supabase SQL editor.`,
       }
     : { id: 'db-track', group: 'Database', label: 'Open & click counter', status: 'pass', detail: 'email_flow_track() is in place.' };
+}
+
+/**
+ * The post-send tracking (email_flow_events + entries.converted_via). Optional:
+ * flows send and convert without it, so a gap is a warning, never a failure.
+ */
+export function trackingCheck(error: { code?: string; message?: string } | null): HealthCheck {
+  return error
+    ? {
+        id: 'db-tracking', group: 'Database', label: 'Post-click tracking', status: 'warn',
+        detail: 'Not recording what happens after an email is opened — mail-scanner clicks aren’t told apart from people, and checkouts and sales aren’t tied to the click that led to them.',
+        fix: `Run ${TRACKING_MIGRATION} in the Supabase SQL editor (safe to re-run).`,
+      }
+    : {
+        id: 'db-tracking', group: 'Database', label: 'Post-click tracking', status: 'pass',
+        detail: 'Recording opens, clicks, checkouts and sales per email, with mail scanners filtered out.',
+      };
 }
 
 // ---------------------------------------------------------------------------

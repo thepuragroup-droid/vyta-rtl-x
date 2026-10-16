@@ -9,6 +9,7 @@ import {
   PURAMASS_CURRENCY,
   type PuramassOrderLine,
 } from '@/lib/payments/puramass';
+import { recordFlowCheckout } from '@/lib/email-flows/events';
 import {
   readVisitorContext,
   attributionColumns,
@@ -777,7 +778,7 @@ export async function POST(req: NextRequest) {
   // is redirected to Stealth Health they leave our cookies behind, and the payment
   // comes back through a webhook that knows nothing but an email address — so
   // the channel has to be frozen here, on the way out, or it is lost.
-  const attribution = attributionColumns(visitor);
+  const attribution = attributionColumns(visitor, { withEmailFlow: true });
 
   // Columns the base puramass-hosted-checkout migration created — always safe.
   const base: Record<string, unknown> = {
@@ -949,6 +950,17 @@ export async function POST(req: NextRequest) {
   // payment when it lands, and mark them as having reached a checkout.
   void linkVisitorIdentity(db, visitor.anonymousId, { email, customerId });
   void stampVisitorMilestone(db, visitor.anonymousId, 'checkout_at');
+
+  // Reached checkout through a flow email: logged now, while the click cookie
+  // is in reach. The engine reads it back when the payment lands, so a buyer
+  // who pays under a different email than the one we wrote to still counts as
+  // that flow's sale.
+  void recordFlowCheckout(db, visitor.emailFlowClick, {
+    ref: `puramass:${partnerReference}`,
+    amount: order.subtotal_cents != null ? Number(order.subtotal_cents) / 100 : null,
+    currency: String(order.currency ?? PURAMASS_CURRENCY).toUpperCase(),
+    anonymousId: visitor.anonymousId,
+  });
 
   // Klaviyo "Started Checkout" — drives the abandoned-checkout flow. The
   // payment link is the resume URL; Klaviyo drops the flow for anyone who

@@ -40,6 +40,7 @@ import {
   smtpLoginCheck,
   summarize,
   tableCheck,
+  trackingCheck,
   trackFunctionCheck,
   type CronStatus,
   type HealthCheck,
@@ -84,7 +85,11 @@ async function databaseChecks(db: Db): Promise<{ checks: HealthCheck[]; ownTable
   );
   // 'none' matches neither branch of the function: it is called, and changes nothing.
   const { error: trackErr } = await db.rpc('email_flow_track', { p_send_id: NIL_UUID, p_kind: 'none' });
-  const checks = [...results.map((r) => r.check), trackFunctionCheck(trackErr)];
+  const [{ error: eventsErr }, { error: viaErr }] = await Promise.all([
+    db.from('email_flow_events').select('id, send_id, kind, machine, order_ref').limit(1),
+    db.from('email_flow_entries').select('converted_via').limit(1),
+  ]);
+  const checks = [...results.map((r) => r.check), trackFunctionCheck(trackErr), trackingCheck(eventsErr ?? viaErr)];
   return { checks, ownTablesOk: results.every((r) => !r.p.own || r.check.status === 'pass') };
 }
 
