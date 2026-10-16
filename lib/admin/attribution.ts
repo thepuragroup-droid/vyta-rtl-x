@@ -4,8 +4,40 @@ import { apiFetch } from '@/lib/api-fetch';
 import type { AnalyticsRange } from '@/lib/admin/analytics';
 import type { BreakdownRow } from '@/lib/analytics/earnings-breakdown';
 import type { EmailFlowAnalytics } from '@/lib/analytics/email-flow-report';
+import type { AttributionAudit, ReclassifyResult } from '@/lib/analytics/reclassify';
 
 export type { BreakdownRow, BreakdownChild } from '@/lib/analytics/earnings-breakdown';
+export type { AttributionAudit, ReclassifyResult, ArrivalGroup } from '@/lib/analytics/reclassify';
+
+/** What unpaid visitors arrived with, and which look like misfiled ad clicks. */
+export async function getAttributionAudit(range?: AnalyticsRange): Promise<AttributionAudit | null> {
+  const params = new URLSearchParams();
+  if (range?.from) params.set('from', range.from);
+  if (range?.to) params.set('to', range.to);
+  appendAdminViewParam(params);
+  const qs = params.toString();
+  try {
+    return await apiFetch<AttributionAudit>(`/api/admin/analytics/attribution/audit${qs ? `?${qs}` : ''}`, {
+      cache: 'no-store',
+    });
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+/** Count (`apply: false`) or apply the moves to paid channels, over all history. Admin only. */
+export async function reclassifyAttribution(apply: boolean): Promise<ReclassifyResult> {
+  const params = new URLSearchParams();
+  appendAdminViewParam(params);
+  const qs = params.toString();
+  return apiFetch<ReclassifyResult>(`/api/admin/analytics/attribution/audit${qs ? `?${qs}` : ''}`, {
+    method: 'POST',
+    cache: 'no-store',
+    timeoutMs: 120_000,
+    body: JSON.stringify({ apply }),
+  });
+}
 
 /** One acquisition channel's funnel and revenue. Mirrors the API route. */
 export interface ChannelRow {

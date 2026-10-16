@@ -168,10 +168,30 @@ function normClickId(value: string | null | undefined): string | null {
  * to whatever UTM tagging the link carried, which is how email and app links
  * are meant to be tracked anyway.
  */
+/**
+ * Android apps that open a link in their own browser send the app as the
+ * referrer — `android-app://com.instagram.android` — rather than a web page.
+ * The ones that matter for acquisition are mapped to the site they stand for,
+ * so an Instagram or Facebook tap reads as Meta instead of decaying to direct.
+ */
+const ANDROID_APP_HOSTS: Record<string, string> = {
+  'com.instagram.android': 'instagram.com',
+  'com.instagram.lite': 'instagram.com',
+  'com.instagram.barcelona': 'threads.net',
+  'com.facebook.katana': 'facebook.com',
+  'com.facebook.lite': 'facebook.com',
+  'com.facebook.orca': 'messenger.com',
+  'com.facebook.mlite': 'messenger.com',
+  'com.google.android.googlequicksearchbox': 'google.com',
+  // Deliberately not Gmail or other mail apps: `mail.google.com` would read
+  // as a Google search. Email is tracked by its UTM tags.
+};
+
 export function referrerHost(referrer: string | null | undefined): string | null {
   if (!referrer) return null;
   try {
     const url = new URL(referrer);
+    if (url.protocol === 'android-app:') return ANDROID_APP_HOSTS[url.hostname.toLowerCase()] ?? null;
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
     const host = url.hostname.toLowerCase();
     return host.replace(/^www\./, '') || null;
@@ -193,7 +213,39 @@ const PAID_MEDIA = new Set([
   'cpc', 'ppc', 'paid', 'paidsearch', 'paid_search', 'paid-search',
   'cpm', 'cpv', 'cpa', 'display', 'banner', 'retargeting', 'remarketing',
   'paidsocial', 'paid_social', 'paid-social',
+  'social_paid', 'social-paid', 'socialpaid', 'paid_ads', 'paid-ads', 'paidads',
+  'ads', 'ad', 'sponsored',
 ]);
+
+/**
+ * Meta's dynamic URL parameters. Ads Manager's parameter builder offers
+ * `utm_source={{site_source_name}}` (fb, ig, msg, an, th) and
+ * `utm_medium={{placement}}` (Facebook_Mobile_Feed, Instagram_Stories,
+ * Instagram_Reels, Messenger_Inbox, Audience_Network_…). Neither says
+ * "paid" in a word the medium list knows, so without this every such click
+ * that lost its fbclid was filed as Meta organic (or, for `an`/`msg`, as a
+ * referral). Only ads expand these macros, so a medium that is exactly one of
+ * Meta's placement names is read as an ad. The list is Meta's own names, not
+ * a prefix: a hand-typed organic tag like `instagram_bio` must stay organic.
+ */
+const META_PLACEMENT_MEDIUM = new RegExp(
+  '^(?:' +
+    [
+      'facebook_(?:mobile_feed|desktop_feed|feed|right_column|instant_articles|instream_video|in_stream_video|marketplace|stories|reels|mobile_reels|reels_overlay|search|profile_feed|video_feeds|business_explore|groups_feed|notification)',
+      'instagram_(?:feed|stories|reels|explore|explore_grid_home|explore_home|profile_feed|profile_reels|search|shop)',
+      'messenger_(?:inbox|stories|sponsored_messages)',
+      'threads_feed',
+      'audience_network(?:_[a-z_]+)?',
+      'an_(?:classic|rewarded_video|instream_video|native|banner|interstitial)',
+    ].join('|') +
+    ')$',
+);
+const META_SITE_SOURCE_NAMES = new Set(['fb', 'ig', 'msg', 'an', 'th', 'threads']);
+
+/** Meta's `{{placement}}` value, e.g. `instagram_stories`. */
+export function isMetaPlacement(medium: string | null | undefined): boolean {
+  return !!medium && META_PLACEMENT_MEDIUM.test(medium.toLowerCase());
+}
 
 const EMAIL_MEDIA = new Set(['email', 'e-mail', 'newsletter', 'mail']);
 
@@ -245,11 +297,17 @@ export function classifyChannel(parts: {
       return 'linkedin_ads';
   }
 
-  // 2. UTM tagging that declares itself paid.
+  // 2. Meta's own dynamic tags ({{placement}} as the medium) — only an ad
+  //    expands them, so they mean a paid Meta click with or without fbclid.
+  if (isMetaPlacement(medium) && (!source || META_SOURCES.has(source) || META_SITE_SOURCE_NAMES.has(source))) {
+    return 'meta_ads';
+  }
+
+  // 3. UTM tagging that declares itself paid.
   const isPaid = !!medium && PAID_MEDIA.has(medium);
   if (isPaid) {
     if (source && GOOGLE_SOURCES.has(source)) return 'google_ads';
-    if (source && META_SOURCES.has(source)) return 'meta_ads';
+    if (source && (META_SOURCES.has(source) || META_SITE_SOURCE_NAMES.has(source))) return 'meta_ads';
     if (source && BING_SOURCES.has(source)) return 'bing_ads';
     if (source && TIKTOK_SOURCES.has(source)) return 'tiktok_ads';
     if (source && LINKEDIN_SOURCES.has(source)) return 'linkedin_ads';
@@ -259,13 +317,13 @@ export function classifyChannel(parts: {
   if (medium && EMAIL_MEDIA.has(medium)) return 'email';
   if (medium === 'affiliate' || parts.refCode) return 'affiliate';
 
-  // 3. Untagged, or tagged non-paid — fall back to where they came from.
+  // 4. Untagged, or tagged non-paid — fall back to where they came from.
   if (source && GOOGLE_SOURCES.has(source)) return 'google_organic';
   if (source && META_SOURCES.has(source)) return 'meta_organic';
   if (host && GOOGLE_HOSTS.test(host)) return 'google_organic';
   if (host && META_HOSTS.test(host)) return 'meta_organic';
 
-  // 4. Any other referrer, or a UTM-tagged link from somewhere untracked.
+  // 5. Any other referrer, or a UTM-tagged link from somewhere untracked.
   if (host || source) return 'referral';
   return 'direct';
 }

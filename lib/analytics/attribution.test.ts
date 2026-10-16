@@ -202,3 +202,31 @@ test('classifyChannel is usable directly on stored row fields', () => {
   assert.equal(classifyChannel({ referrerHost: 'news.ycombinator.com' }), 'referral');
   assert.equal(classifyChannel({}), 'direct');
 });
+
+test('Meta ads tagged with Meta’s own dynamic parameters are paid even without an fbclid', () => {
+  const at = (qs: string, referrer: string | null = null) =>
+    parseTouch({ url: `https://vytabio.com/products?${qs}`, referrer, selfHost: 'vytabio.com' }).channel;
+  // utm_source={{site_source_name}}&utm_medium={{placement}}
+  assert.equal(at('utm_source=ig&utm_medium=Instagram_Stories&utm_campaign=oct'), 'meta_ads');
+  assert.equal(at('utm_source=fb&utm_medium=Facebook_Mobile_Feed'), 'meta_ads');
+  assert.equal(at('utm_source=an&utm_medium=Audience_Network_Classic'), 'meta_ads');
+  assert.equal(at('utm_source=msg&utm_medium=Messenger_Inbox'), 'meta_ads');
+  assert.equal(at('utm_source=facebook&utm_medium=Instagram_Reels'), 'meta_ads');
+  // Paid wording the old list missed.
+  assert.equal(at('utm_source=facebook&utm_medium=paid_ads'), 'meta_ads');
+  assert.equal(at('utm_source=ig&utm_medium=paid'), 'meta_ads');
+  // Hand-typed organic tags stay organic.
+  assert.equal(at('utm_source=instagram&utm_medium=instagram_bio'), 'meta_organic');
+  assert.equal(at('utm_source=instagram&utm_medium=social'), 'meta_organic');
+  // A placement-looking medium from a non-Meta source is not a Meta ad.
+  assert.equal(at('utm_source=newsletter&utm_medium=instagram_feed'), 'referral');
+});
+
+test('Meta and Google Android apps as referrers count as those sites, not direct', () => {
+  const at = (referrer: string) =>
+    parseTouch({ url: 'https://vytabio.com/', referrer, selfHost: 'vytabio.com' });
+  assert.equal(at('android-app://com.instagram.android/').channel, 'meta_organic');
+  assert.equal(at('android-app://com.facebook.katana/').channel, 'meta_organic');
+  assert.equal(at('android-app://com.google.android.googlequicksearchbox/').channel, 'google_organic');
+  assert.equal(at('android-app://com.some.unknown.app/').channel, 'direct');
+});
