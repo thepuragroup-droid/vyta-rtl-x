@@ -199,8 +199,8 @@ to `/api/cart/sync`, debounced, whenever they change.
   against.
 - **Icons:** every badge and benefit line carries its own icon, matching the
   designs (shield, maple leaf, truck, flask, COA document, snowflake, leaf,
-  heart, sun, sprout, question mark, credit card…). List items sit in hairline
-  circles. Icons are 96px PNGs in `public/images/email/icons/`, navy for light
+  heart, sun, sprout, question mark, credit card…). List items sit in
+  outlined circles with no fill, so a photo behind them shows through. Icons are 96px PNGs in `public/images/email/icons/`, navy for light
   grounds and white for the dark band, because Gmail and Outlook don't render
   SVG. In the editor each badge is a row: pick its icon, type its label. A new
   badge's icon is suggested from its wording.
@@ -213,20 +213,126 @@ stretched cover:
 
 | Photo | Shape (h ÷ w) | Used in |
 |---|---|---|
-| `man-lake` (man by the lake) | 1.35 | Cart 1 hero, headline over the sky |
-| `man-lake-vial` (vial in hand) | 0.55 | Cart 1 image above the button |
-| `woman-lake` (woman by the lake) | 1.31 | Welcome 2 and Cart 2 hero, headline over the sky |
-| `dropper` (dropper over a vial) | 1.06 | Welcome 3 and Cart 4, under the headline |
-| `three-vials` (vials on rock, mountains) | 0.75 | Welcome 4 and Cart 3, under the offer |
-| `vials-mountains` (two vials, mountains) | 1.04 | Welcome 5, under the countdown |
-| `lab-vial` (vial in a gloved hand) | 0.94 | Cart 5, under the countdown |
-| `support-agent` (agent with headset) | 0.90 | Cart 4 "Real People" card |
+| `woman-lake-dark` (woman by the lake, left side darkened) | 0.80 | Welcome 1 hero, white title low on the left |
+| `offer-card` (pale mountains, vials at the right) | 0.39 | Welcome 1 offer panel, copy over the left |
+| `woman-portrait` (the supplied woman-in-the-sun photo, whole, on the right) | 1.30 | Welcome 2 hero: headline, line and benefits down the left, button centred at the foot |
+| `quality-vials` (two vials on the right, pale haze at the upper left) | 0.84 | Welcome 3 hero, headline and line at the upper left |
+| `man-lake-sky` (man by the lake, pale daylight sky above) | 1.50 | Welcome 5 hero, question, countdown and button over the sky |
+| `cart-woman-lake` (woman by the lake, head and shoulders on the right) | 0.68 | Cart 1 hero, headline at the upper left |
+| `vial-rock` (the supplied single vial on a rock, lake behind) | 0.78 | Cart 1, closing the email |
+| `cart-woman-sun` (the supplied woman-in-the-sun photo, head to waist on the right) | 0.95 | Cart 2 hero: headline, line and benefits down the left |
+| `questions-cover` (the dropper over the vial at the right, pale haze on the left) | 1.00 | Cart 4 cover, the help topics down the left |
+| `dropper-card` (the drop, closer in) | 0.85 | Welcome 3 "Research. Quality." card |
+| `offer-cover` (the three vials darkened, navy fading down into them) | 1.25 | Welcome 4 cover, the offer set over its navy top |
+| `cart-offer-cover` (the supplied single vial on a rock, darkened, navy fading into it) | 1.50 | Cart 3 cover, the offer and button set over its navy top |
+| `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 and Cart 2 "We Show Our Work" cards |
+| `last-chance-cover` (the supplied vials-under-the-mountains photo, sky paled at the top) | 1.63 | Cart 5 cover, the headline, countdown and button over the sky |
+| `support-agent-full` (the supplied support photo, whole: head to waist) | 1.23 | Cart 4 "Real People" card, shown whole |
 
-Where the designs set the headline over the photo (Welcome 2, Cart 1,
-Cart 2), the text sits over the sky. Everywhere else the headline,
-countdown or offer sits above the photo, as in the designs. The supplied
-woman portrait (old cover 3) isn't used any more; it could become the
-Welcome 1 hero.
+The welcome crops come from the full-height supplied covers, except
+Welcome 2's, which is a photo supplied later.
+
+- **Welcome 1** (`woman-lake-dark`): the side the white title sits on is
+  darkened.
+- **Welcome 2** (`woman-portrait`): the supplied photo of the woman in the
+  sun, shown top to bottom. It is scaled to the cover's height, so it sits
+  narrower on the right, and its own sky is stretched into a soft haze on
+  the left behind the copy. It fades to white at its foot, into the email
+  below, and is saved 1200 wide for sharp screens. On desktop the type is
+  large: 46px headline, 21px line, a larger button, and the benefits in a
+  short 200px label column beside 70px outlined icon rings. On phones the
+  headline and line use the full width of the photo with slimmer side
+  margins, and the benefits keep a short 150px column beside 48px rings.
+- **Welcome 3** (`quality-vials`): built the same way. The vials photo, with
+  its own mountains, is scaled to the cover's height on the right, and its
+  edge is drawn into a pale haze on the left and across the top. On desktop
+  the type is large: 48px headline, 20px line, 17px body, a wide button, and
+  a larger panel with a 28px title. Phones set it back to a 32px headline,
+  with the line broken after "Testing.".
+- **Welcome 4** (`offer-cover`): one dark cover, as designed. The three
+  vials photo is darkened, with navy fading down into it, and the offer
+  (eyebrow, 76px "20% OFF", "Your Order Today", the line, and the code in a
+  teal-outlined box) sits over the navy top. On phones the type steps down
+  and the cover grows taller, so the photo stays whole below the code.
+
+**Cart 1** (`cart-woman-lake`): "Still thinking about it?" (46px on desktop)
+and "Your cart is waiting." sit at the upper left of the woman-by-the-lake
+photo, with the left side paled. Below come the line, what's in the cart
+(without a button of its own), one wide Return to Cart button, the badges,
+and the supplied vial-on-a-rock photo (`vial-rock`, 1200 wide) to close. Phones set the
+type back. Saved Cart 1 emails still on the man-by-the-lake photos get the
+new ones; the old files stay so sent emails keep their pictures.
+
+**Cart 2** (`cart-woman-sun`) shares Welcome 2's cover: "Invest in a
+Healthier You", the line and three benefits in outlined rings down the
+left of the woman-in-the-sun photo, which fades to white at its foot. There
+is no button in the cover. Below it, the cart panel is large ("Your cart
+is still waiting.", its line, the items, and a wide Return to Cart), then a
+larger "We Show Our Work" panel with the lab photo, replacing the last
+placeholder image. Its tagline sits in a short column (230px, 170px on
+phones), so it breaks after "Quality." as designed. Phones set the type back.
+
+**Cart 3** (`cart-offer-cover`) shares Welcome 4's dark cover, built from
+the supplied vial-on-a-rock photo. Its Complete My Order button sits in the
+cover under the code, in a brighter blue that stands off the navy. The copy
+keeps a narrow measure (the line breaks into three even lines, the button
+is the standard wide one), and the navy fades into the photo over a short
+band, so the photo shows from just under the button. The
+badges and the offer's end time follow below.
+
+**Cart 4** (`questions-cover`): "Have Questions?" and "We've Got You
+Covered." at the upper left of the dropper photo, with the four help topics
+down the left as written (sentence case, in outlined rings). Below come the
+large cart panel ("Your cart is still saved.", the items, a wide Return to
+Cart) and a larger "Real People. Real Support." panel with the support
+agent. On phones the large panels give the picture less width, so their
+titles don't break a word to a line. Cart 4 alone is 560px wide (the rest are 600px),
+with larger cover type (44px headline, 28px line, 22px topics in 64px
+rings) and the vial moved further right to make room. The support photo is
+shown whole, inside the panel's padding with rounded corners.
+
+**Cart 5** (`last-chance-cover`): the "Final reminder" band, then "Last
+Chance to Complete Your Order" (46px on desktop), "Your cart will expire
+soon.", the large countdown and the wide red Complete My Order button over
+the supplied vials-under-the-mountains photo, its sky paled behind the copy
+and fading out over the peaks. Below come
+what's in the cart (no second button) and the badges. On phones the type
+and countdown step down and the cover grows, with the photo whole at its
+foot.
+
+**Bold benefits on the covers** (Welcome 2, Cart 2): the labels are extra
+bold, and the icons use a bold set (`*-navy-bold.png`, made from the navy
+icons by thickening their strokes with `scripts/email-icons-bold.py`) inside
+2px ink rings.
+- **Welcome 5** (`man-lake-sky`): the sunset is toned to daylight and the
+  sky paled at the top, as designed. Over it sit the question, the line,
+  the countdown, the wide Claim button and the code. Desktop type is large:
+  42px headline, 18px line, and countdown boxes with 36px numbers. On
+  phones the type steps down and the cover grows taller, with the photo
+  pinned whole at its foot and the pale sky running taller above it.
+
+Where the designs set the text over the photo (Welcome 1, 2, 3 and 5,
+Cart 1, Cart 2), it sits over the sky or the clear side of the photo. On
+phones, where the photo is narrower and the copy runs over the subject, the
+photo behind Welcome 1, 2 and 5's copy is washed by a media query: navy
+behind white text, white behind navy text. The Welcome 1 offer panel gets a
+pale wash and a smaller title.
+Desktop is unchanged. Welcome 4 and the rest of the cart flow put the
+headline, countdown or offer above the photo, as in the designs. The
+welcome series has no placeholder art left.
+
+**Welcome 1** follows the design: "Welcome to VYTA" in white, low on the
+left of the photo, a wide Shop Now button, and the offer as a picture
+panel with the copy over it and the code in bold. The design's photo (a
+woman with her arms raised on a rock) wasn't among the supplied images.
+The woman-by-the-lake shot stands in until it is uploaded in the editor.
+
+**Saved emails pick up the new images.** The first visit to the admin saved
+each email's defaults, so saved welcome emails still name the old images.
+When an email is loaded, a welcome image that was a past default is swapped
+for today's (with its shape and overlay setting). An image an admin uploaded
+is never swapped. The old files stay in `public/` so emails already sent
+still show their pictures.
 
 **How the overlay works** (per email in the editor: *Set the headline over
 this image* and *Text: dark / white*):
@@ -295,7 +401,7 @@ The full list is at the top of the script.
 npx tsx --test lib/email-flows/email-flows.test.ts
 ```
 
-There are 30 cases.
+There are 54 cases.
 
 - **Scheduling:** time zones, the send window, step order and retries, the
   minimum gap.

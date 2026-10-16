@@ -42,31 +42,44 @@ export const DEFAULT_SETTINGS: Record<FlowKey, FlowSettings> = {
 };
 
 /**
- * Placeholder artwork in public/images/email/. Relative paths resolve against
- * the site origin at send time; swap in real photography by uploading in the
- * admin or replacing these files.
- */
-export const PLACEHOLDER_IMAGES = {
-  welcomeHero: '/images/email/welcome/welcome-hero.png',
-  welcomeCard: '/images/email/welcome/welcome-card.png',
-  educationCard: '/images/email/welcome/education-card.png',
-  trustCard: '/images/email/welcome/trust-card.png',
-  cartEducateCard: '/images/email/cart/educate-card.png',
-} as const;
-
-/**
  * The supplied photography, cropped to the shape each spot takes in the
  * mockups (public/images/email/photos). `ratio` is height ÷ width.
  */
 export const PHOTOS = {
-  manByLake: { url: '/images/email/photos/man-lake.jpg', ratio: 1.3483 },
-  manByLakeVial: { url: '/images/email/photos/man-lake-vial.jpg', ratio: 0.545 },
-  womanByLake: { url: '/images/email/photos/woman-lake.jpg', ratio: 1.3117 },
+  /** The supplied woman-in-the-sun photo, head to waist on the right, sky on the left (Cart 2). */
+  cartWomanSun: { url: '/images/email/photos/cart-woman-sun.jpg', ratio: 0.95 },
+  /** The woman by the lake, head and shoulders on the right, the left paled for the headline. */
+  cartWomanLake: { url: '/images/email/photos/cart-woman-lake.jpg', ratio: 0.68 },
+  /** The supplied single vial on a rock, the lake and mountains behind (1200 wide). */
+  vialRock: { url: '/images/email/photos/vial-rock.jpg', ratio: 0.7825 },
+  /** The same shot with the sky above him — room for the reminder's copy. */
+  manByLakeSky: { url: '/images/email/photos/man-lake-sky.jpg', ratio: 1.5 },
+  /** Woman by the lake on the right, the left darkened for the white welcome title. */
+  womanLakeDark: { url: '/images/email/photos/woman-lake-dark.jpg', ratio: 0.8 },
+  /** The welcome offer panel: pale mountains behind the copy, the vials at the right. */
+  offerCard: { url: '/images/email/photos/offer-card.jpg', ratio: 0.3933 },
+  /**
+   * The supplied woman-in-the-sun photo, whole and top to bottom, on the
+   * right; its own sky stretched into a soft haze on the left for the copy.
+   * 1200 wide for sharp screens.
+   */
+  womanPortrait: { url: '/images/email/photos/woman-portrait.jpg', ratio: 1.3 },
+  /** The vials on the right, a pale haze at the upper left for the headline. */
+  qualityVials: { url: '/images/email/photos/quality-vials.jpg', ratio: 0.84 },
   vialsMountains: { url: '/images/email/photos/vials-mountains.jpg', ratio: 1.0367 },
   labVial: { url: '/images/email/photos/lab-vial.jpg', ratio: 0.9383 },
-  threeVials: { url: '/images/email/photos/three-vials.jpg', ratio: 0.7508 },
+  /** The supplied single vial on a rock, darkened, navy fading down into it: Cart 3's offer cover. */
+  cartOfferCover: { url: '/images/email/photos/cart-offer-cover.jpg', ratio: 1.5 },
+  /** The three vials darkened, with navy fading down into them: the offer is set over the top. */
+  offerCover: { url: '/images/email/photos/offer-cover.jpg', ratio: 1.25 },
   dropper: { url: '/images/email/photos/dropper.jpg', ratio: 1.055 },
-  supportAgent: { url: '/images/email/photos/support-agent.jpg', ratio: 0.9 },
+  dropperCard: { url: '/images/email/photos/dropper-card.jpg', ratio: 0.845 },
+  /** The supplied vials-under-the-mountains photo, the sky paled behind the copy (Cart 5). */
+  lastChanceCover: { url: '/images/email/photos/last-chance-cover.jpg', ratio: 1.6342 },
+  /** The dropper over the vial at the right, a pale haze on the left for the help topics (Cart 4). */
+  questionsCover: { url: '/images/email/photos/questions-cover.jpg', ratio: 1 },
+  /** The supplied support photo, whole: head to waist (Cart 4's "Real People" panel). */
+  supportAgent: { url: '/images/email/photos/support-agent-full.jpg', ratio: 1.23 },
 } as const;
 
 /** A photo with the headline set over it (the mockups' overlay heroes). */
@@ -115,7 +128,6 @@ const blank = (flow: FlowKey, step: StepNumber): FlowStep => ({
   fine_print: '',
 });
 
-const P = PLACEHOLDER_IMAGES;
 const F = PHOTOS;
 
 const WELCOME: FlowStep[] = [
@@ -130,13 +142,11 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Shop Now',
     cta_url: '/products',
-    hero_image_url: P.welcomeHero,
-    hero_image_ratio: 0.6,
-    hero_overlay: true,
+    ...overlay(F.womanLakeDark),
     hero_text_tone: 'light',
     card_title: 'Enjoy {{discount}} Off Your First Order',
     card_body: 'Use code {{code}} at checkout.',
-    card_image_url: P.welcomeCard,
+    card_image_url: F.offerCard.url,
   },
   {
     ...blank('welcome', 2),
@@ -148,12 +158,12 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Supports Recovery', icon: 'heart-pulse' }, { label: 'Promotes Vitality', icon: 'sun' }, { label: 'Helps You Feel Your Best', icon: 'hand-heart' }, { label: 'Builds a Stronger Tomorrow', icon: 'sprout' }],
     cta_label: 'Explore the Collection',
     cta_url: '/products',
-    ...overlay(F.womanByLake),
+    ...overlay(F.womanPortrait),
     card_title: 'We Show Our Work',
     card_body: 'Every batch is third-party tested for identity, purity and quality.',
     card_link_label: 'Learn More',
     card_link_url: '/lab-results',
-    card_image_url: P.educationCard,
+    card_image_url: F.labVial.url,
   },
   {
     ...blank('welcome', 3),
@@ -166,10 +176,10 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Third-Party Tested', icon: 'shield-check' }, { label: 'Batch-Specific COA', icon: 'file-text' }, { label: 'Cold-Chain Handling', icon: 'snowflake' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Our Testing Process',
     cta_url: '/lab-results',
-    ...below(F.dropper),
+    ...overlay(F.qualityVials),
     card_title: 'Research. Quality. Wellness.',
     card_body: "A higher standard for what's next.",
-    card_image_url: P.trustCard,
+    card_image_url: F.dropperCard.url,
   },
   {
     ...blank('welcome', 4),
@@ -183,7 +193,8 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Shop Now',
     cta_url: '/products',
-    ...below(F.threeVials),
+    ...overlay(F.offerCover),
+    hero_text_tone: 'light',
     fine_print: 'Limited time offer. Valid for new customers only.',
   },
   {
@@ -197,7 +208,7 @@ const WELCOME: FlowStep[] = [
     highlights: [{ label: 'Premium Wellness', icon: 'shield-check' }, { label: 'Discreet Shipping', icon: 'truck' }, { label: 'Trusted Quality', icon: 'shield-check' }],
     cta_label: 'Claim {{discount}} Off',
     cta_url: '/products',
-    ...below(F.vialsMountains),
+    ...overlay(F.manByLakeSky),
   },
 ];
 
@@ -215,8 +226,8 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Premium Quality', icon: 'shield-check' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...overlay(F.manByLake),
-    card_image_url: F.manByLakeVial.url,
+    ...overlay(F.cartWomanLake),
+    card_image_url: F.vialRock.url,
   },
   {
     ...blank('cart', 2),
@@ -231,12 +242,12 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Third-Party Tested', icon: 'flask-conical' }, { label: 'Batch-Specific COA', icon: 'shield-check' }, { label: 'Premium Sourcing', icon: 'leaf' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...overlay(F.womanByLake),
+    ...overlay(F.cartWomanSun),
     card_title: 'We Show Our Work',
     card_body: 'Every batch is tested for identity, purity and quality so you can shop with confidence.',
     card_link_label: 'Learn More',
     card_link_url: '/lab-results',
-    card_image_url: P.cartEducateCard,
+    card_image_url: F.labVial.url,
   },
   {
     ...blank('cart', 3),
@@ -251,7 +262,8 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
-    ...below(F.threeVials),
+    ...overlay(F.cartOfferCover),
+    hero_text_tone: 'light',
     fine_print: 'Offer valid until {{offer_ends}}. Limited time only.',
   },
   {
@@ -267,7 +279,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Product information', icon: 'circle-help' }, { label: 'Shipping & delivery', icon: 'truck' }, { label: 'Testing & quality', icon: 'shield-check' }, { label: 'Ordering & payments', icon: 'credit-card' }],
     cta_label: 'Return to Cart',
     cta_url: '{{cart_url}}',
-    ...below(F.dropper),
+    ...overlay(F.questionsCover),
     card_title: 'Real People. Real Support.',
     card_body: 'Our team is here to help with any questions you may have.',
     card_link_label: 'Contact Us',
@@ -288,11 +300,71 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
-    ...below(F.labVial),
+    ...overlay(F.lastChanceCover),
   },
 ];
 
 export const DEFAULT_STEPS: Record<FlowKey, FlowStep[]> = { welcome: WELCOME, cart: CART };
+
+/**
+ * Images the flows used to ship with. The first load of the admin
+ * saved each email's defaults to the database, so a saved email still naming
+ * one of these is on an old default, not an admin's choice: it gets today's
+ * image (and that image's shape and overlay) instead. An image an admin
+ * uploaded is never on this list, so it is kept.
+ */
+const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly string[] }> = {
+  welcome: {
+    hero: [
+      '/images/email/welcome/welcome-hero.png',
+      '/images/email/welcome/education-hero.png',
+      '/images/email/welcome/trust-hero.png',
+      '/images/email/welcome/offer-hero.png',
+      '/images/email/welcome/reminder-hero.png',
+      '/images/email/covers/cover-1.jpg',
+      '/images/email/covers/cover-2.jpg',
+      '/images/email/covers/cover-3.jpg',
+      '/images/email/covers/cover-4.jpg',
+      '/images/email/covers/cover-5.jpg',
+      '/images/email/photos/woman-lake.jpg',
+      '/images/email/photos/dropper.jpg',
+      '/images/email/photos/vials-mountains.jpg',
+      '/images/email/photos/woman-mountains.jpg',
+      '/images/email/photos/vials-rock.jpg',
+      '/images/email/photos/three-vials.jpg',
+    ],
+    card: [
+      '/images/email/welcome/welcome-card.png',
+      '/images/email/welcome/education-card.png',
+      '/images/email/welcome/trust-card.png',
+      '/images/email/photos/man-lake-vial.jpg',
+    ],
+  },
+  cart: {
+    hero: [
+      '/images/email/photos/man-lake.jpg',
+      '/images/email/covers/cover-1.jpg',
+      '/images/email/cart/reminder-hero.png',
+      '/images/email/photos/woman-lake.jpg',
+      '/images/email/covers/cover-2.jpg',
+      '/images/email/cart/educate-hero.png',
+      '/images/email/photos/three-vials.jpg',
+      '/images/email/cart/offer-hero.png',
+      '/images/email/photos/dropper.jpg',
+      '/images/email/cart/questions-hero.png',
+      '/images/email/photos/lab-vial.jpg',
+      '/images/email/covers/cover-4.jpg',
+      '/images/email/cart/last-chance-hero.png',
+    ],
+    card: [
+      '/images/email/photos/man-lake-vial.jpg',
+      '/images/email/cart/reminder-product.png',
+      '/images/email/cart/educate-card.png',
+      '/images/email/cart/questions-card.png',
+      '/images/email/photos/support-agent.jpg',
+    ],
+  },
+};
 
 export function defaultStep(flow: FlowKey, step: StepNumber): FlowStep {
   const found = DEFAULT_STEPS[flow].find((s) => s.step === step)!;
@@ -311,6 +383,16 @@ export function shapeStepRow(flow: FlowKey, row: Partial<FlowStep> & { step: num
   merged.hero_overlay = row.hero_overlay ?? base.hero_overlay;
   merged.hero_text_tone = row.hero_text_tone === 'light' ? 'light' : row.hero_text_tone === 'dark' ? 'dark' : base.hero_text_tone;
   merged.hero_image_ratio = row.hero_image_ratio == null ? ('hero_image_ratio' in row ? null : base.hero_image_ratio) : Number(row.hero_image_ratio);
+  const retired = RETIRED_IMAGES[flow];
+  if (retired.hero.includes(merged.hero_image_url) && merged.hero_image_url !== base.hero_image_url) {
+    merged.hero_image_url = base.hero_image_url;
+    merged.hero_image_ratio = base.hero_image_ratio;
+    merged.hero_overlay = base.hero_overlay;
+    merged.hero_text_tone = base.hero_text_tone;
+  }
+  if (retired.card.includes(merged.card_image_url) && merged.card_image_url !== base.card_image_url) {
+    merged.card_image_url = base.card_image_url;
+  }
   return merged;
 }
 

@@ -249,7 +249,7 @@ test('the welcome card names the code once', () => {
   // Default copy already says "Use code WELCOME10" — no second chip.
   const named = renderWelcomeEmail(defaultStep(1), ctx({ offer: { code: 'WELCOME10', label: '10%' } }));
   assert.ok(!named.html.includes('Code:'));
-  assert.match(named.html, /Use code WELCOME10/);
+  assert.match(named.html, /Use code <strong[^>]*>WELCOME10<\/strong>/);
   // Copy that doesn't name it gets the chip.
   const chip = renderWelcomeEmail({ ...defaultStep(1), card_body: 'At checkout.' }, ctx({ offer: { code: 'WELCOME10', label: '10%' } }));
   assert.ok(chip.html.includes('Code:'));
@@ -493,9 +493,15 @@ test('header: the lockup, and "View in browser" only when there is a page to vie
 
 test('welcome title: "VYTA" is set in the wordmark over the hero photo', () => {
   const html = renderFlowEmail(defaultStep(1), ctx()).html;
+  // White, low on the darkened side of the photo, as designed.
   assert.match(html, /vyta-word-white\.png/);
   assert.match(html, />Welcome to</);
-  assert.match(html, /background-image: url\('https:\/\/www\.vytabio\.com\/images\/email\/welcome\/welcome-hero\.png'\)/);
+  assert.match(html, /background-image: url\('https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-lake-dark\.jpg'\)/);
+  assert.match(html, /class="ef-cover ef-cover-wash"[^>]*valign="bottom"/);
+  // Navy text sits high, on the sky.
+  const dark = renderFlowEmail({ ...defaultStep(1), hero_text_tone: 'dark' }, ctx()).html;
+  assert.match(dark, /vyta-word-navy\.png/);
+  assert.match(dark, /class="ef-cover ef-cover-wash"[^>]*valign="top"/);
   // An edited title that doesn't end in VYTA is just text.
   const plain = renderFlowEmail({ ...defaultStep(1), headline: 'Hello there' }, ctx()).html;
   assert.ok(!plain.includes('vyta-word-white'));
@@ -511,53 +517,257 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
     const s = dflt(flow, n);
     return [s.hero_image_url.replace('/images/email/photos/', ''), s.hero_overlay];
   };
-  assert.deepEqual(at('welcome', 2), ['woman-lake.jpg', true]);
-  assert.deepEqual(at('welcome', 3), ['dropper.jpg', false]);
-  assert.deepEqual(at('welcome', 4), ['three-vials.jpg', false]);
-  assert.deepEqual(at('welcome', 5), ['vials-mountains.jpg', false]);
-  assert.deepEqual(at('cart', 1), ['man-lake.jpg', true]);
-  assert.deepEqual(at('cart', 2), ['woman-lake.jpg', true]);
-  assert.deepEqual(at('cart', 3), ['three-vials.jpg', false]);
-  assert.deepEqual(at('cart', 4), ['dropper.jpg', false]);
-  assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
-  assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/man-lake-vial.jpg');
-  assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent.jpg');
+  assert.deepEqual(at('welcome', 1), ['woman-lake-dark.jpg', true]);
+  assert.deepEqual(at('welcome', 2), ['woman-portrait.jpg', true]);
+  assert.deepEqual(at('welcome', 3), ['quality-vials.jpg', true]);
+  assert.deepEqual(at('welcome', 4), ['offer-cover.jpg', true]);
+  assert.deepEqual(at('welcome', 5), ['man-lake-sky.jpg', true]);
+  // No placeholder art left in the welcome series.
+  for (const step of DEFAULT_STEPS.welcome) {
+    assert.ok(!/\/images\/email\/welcome\//.test(`${step.hero_image_url} ${step.card_image_url}`), `welcome ${step.step}`);
+  }
+  assert.deepEqual(at('cart', 1), ['cart-woman-lake.jpg', true]);
+  assert.deepEqual(at('cart', 2), ['cart-woman-sun.jpg', true]);
+  assert.deepEqual(at('cart', 3), ['cart-offer-cover.jpg', true]);
+  assert.deepEqual(at('cart', 4), ['questions-cover.jpg', true]);
+  assert.deepEqual(at('cart', 5), ['last-chance-cover.jpg', true]);
+  assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/vial-rock.jpg');
+  assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent-full.jpg');
   for (const flow of ['welcome', 'cart'] as const) {
     for (const step of DEFAULT_STEPS[flow]) {
       for (const url of [step.hero_image_url, step.card_image_url].filter(Boolean)) {
         assert.ok(existsSync(join(PUBLIC, url)), `${flow} ${step.step}: ${url}`);
       }
       // Nothing towers over the email the way the uncropped covers did.
-      if (step.hero_image_ratio) assert.ok(step.hero_image_ratio <= 1.5, `${flow} ${step.step} ratio ${step.hero_image_ratio}`);
+      if (step.hero_image_ratio) assert.ok(step.hero_image_ratio <= 1.7, `${flow} ${step.step} ratio ${step.hero_image_ratio}`);
     }
   }
 });
 
 test('an overlay hero carries its text, keeps its shape, and works in Outlook and on phones', () => {
   const html = renderFlowEmail(dflt('cart', 1), cartCtx()).html;
-  const cover = html.slice(html.indexOf('class="ef-cover"'), html.indexOf('</v:rect>'));
-  assert.match(cover, /man-lake\.jpg/);
+  const cover = html.slice(html.indexOf('class="ef-cover'), html.indexOf('</v:rect>'));
+  assert.match(cover, /cart-woman-lake\.jpg/);
   assert.match(cover, />Still thinking about it\?</);
   assert.match(cover, />Your cart is waiting\.</);
-  assert.match(html, /height="809"/, '600 × 1.3483');
-  assert.match(html, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/man-lake\.jpg"/);
-  assert.match(html, /\.ef-cover \{ height: calc\(\(100vw - 22px\) \* 1\.3483\) !important; \}/);
-  // The vial strip closes the email, as in the mockup.
-  assert.match(html, /man-lake-vial\.jpg/);
+  assert.match(html, /height="408"/, '600 × 0.68');
+  assert.match(html, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/cart-woman-lake\.jpg"/);
+  assert.match(html, /\.ef-cover, \.ef-cover-fill \{ height: calc\(\(100vw - 22px\) \* 0\.68\) !important; \}/);
+  // Large type on desktop, set back on phones.
+  assert.match(html, /class="ef-cr-h1" style="[^"]*font-size: 46px;/);
+  assert.ok(html.includes('.ef-cr-h1 { font-size: 30px !important; max-width: 200px !important; }'));
+  // Below the cover: the line, the cart (no button of its own), one wide
+  // button, the badges, and the vials photo to close.
+  const after = html.slice(html.indexOf('</v:rect>'));
+  assert.ok(after.indexOf('Great choices!') < after.indexOf('BPC-157'));
+  assert.ok(after.indexOf('BPC-157') < after.indexOf('Return to Cart'));
+  assert.equal(after.split('Return to Cart').length - 1, 1, 'one Return to Cart button');
+  assert.match(after, /class="ef-btn-wide"/);
+  assert.ok(after.indexOf('Canadian Owned') < after.indexOf('vial-rock.jpg'));
 });
 
-test('the reminders set the question and countdown above the photo, as designed', () => {
-  const html = renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
-  assert.ok(!html.includes('ef-cover'));
-  const photo = html.indexOf('vials-mountains.jpg');
-  assert.ok(html.indexOf('Still Thinking About It?') < photo);
-  assert.ok(html.indexOf('Claim 20% Off') < photo);
+test('cart 2: the education cover without a button, then the cart panel with it', () => {
+  const html = renderFlowEmail(dflt('cart', 2), cartCtx()).html;
+  const cover = coverOf(html);
+  for (const text of ['Invest in a Healthier You', 'Research. Quality. Peace of Mind.', 'Third-Party Tested', 'Premium Sourcing']) assert.ok(cover.includes(text), text);
+  assert.ok(!cover.includes('Return to Cart'), 'no button in the cover');
+  const after = html.slice(html.indexOf('</v:rect>'));
+  assert.ok(after.indexOf('Your cart is still waiting.') < after.indexOf('BPC-157'));
+  assert.ok(after.indexOf('BPC-157') < after.indexOf('Return to Cart'));
+  assert.ok(after.indexOf('Return to Cart') < after.indexOf('We Show Our Work'));
+  assert.match(after, /class="ef-panel-title" style="[^"]*font-size: 26px;/);
+  assert.match(after, /lab-vial\.jpg/);
+  assert.ok(html.includes('.ef-panel-title { font-size: 19px !important; }'));
+  // Bold benefits: heavy labels and the bold icon set in ink rings.
+  assert.match(cover, /flask-conical-navy-bold\.png/);
+  assert.match(cover, /class="ef-check-label"[^>]*font-weight: 800;/);
+  // A short tagline column, so it breaks after "Quality."
+  assert.match(cover, /width="230" class="ef-edu-subcol-short"/);
+  assert.ok(html.includes('.ef-edu-subcol-short { width: 170px !important; }'));
+  for (const step of DEFAULT_STEPS.welcome.concat(DEFAULT_STEPS.cart)) {
+    for (const h of step.highlights) {
+      assert.ok(existsSync(join(PUBLIC, `/images/email/icons/${h.icon}-navy-bold.png`)), `${h.icon} bold icon`);
+    }
+  }
+});
+
+test('cart 4: the help topics over the photo as written, then the cart and support panels', () => {
+  const html = renderFlowEmail(dflt('cart', 4), cartCtx()).html;
+  const cover = coverOf(html);
+  for (const text of ['Have Questions?', 'We&#39;ve Got You Covered.', 'Product information', 'Ordering &amp; payments']) assert.ok(cover.includes(text), text);
+  assert.match(cover, /class="ef-check-label"[^>]*font-size: 22px; font-weight: 600; letter-spacing: 0;/, 'sentence case, not small caps');
+  assert.match(cover, /class="ef-q-h1" style="[^"]*font-size: 44px;/);
+  // This email alone is narrower: 560px, the cover sized to match.
+  assert.match(html, /<table role="presentation" width="560"[^>]*max-width: 560px; border-collapse: separate;/);
+  assert.match(html, /style="width:560px;height:560px;"/);
+  assert.match(renderFlowEmail(dflt('cart', 2), cartCtx()).html, /<table role="presentation" width="600"[^>]*max-width: 600px; border-collapse: separate;/, 'the others stay 600px');
+  assert.ok(!/class="ef-check-label"[^>]*text-transform: uppercase/.test(cover));
+  const after = html.slice(html.indexOf('</v:rect>'));
+  assert.ok(after.indexOf('Your cart is still saved.') < after.indexOf('Return to Cart'));
+  assert.ok(after.indexOf('Return to Cart') < after.indexOf('Real People. Real Support.'));
+  // The support photo whole, inside the panel's padding, with rounded corners.
+  assert.match(after, /<td class="ef-card-pic" width="46%" valign="middle" style="padding: 16px 0 16px 16px;"><img src="[^"]*support-agent-full\.jpg"[^>]*border-radius: 8px;/);
+  assert.ok(html.includes('.ef-card-pic { width: 36% !important; }'));
+});
+
+test('cart 5: final reminder band, headline, countdown and red button over the sky', () => {
+  const html = renderFlowEmail(dflt('cart', 5), cartCtx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
+  assert.ok(html.indexOf('Final reminder') < html.indexOf('class="ef-cover'));
+  const cover = coverOf(html);
+  for (const text of ['Last Chance to Complete Your Order', 'Your cart will expire soon.', 'Minutes', 'Complete My Order']) assert.ok(cover.includes(text), text);
+  assert.match(cover, /last-chance-cover\.jpg/);
+  assert.match(cover, /class="ef-lc-h1" style="[^"]*font-size: 46px;/);
+  assert.ok(cover.includes(`background: ${'#C8102E'}`), 'the red button');
+  const after = html.slice(html.indexOf('</v:rect>'));
+  assert.ok(after.includes('BPC-157'), 'the cart is listed');
+  assert.ok(!after.includes('Complete My Order'), 'no second button');
+  assert.ok(html.includes('.ef-lc-h1 { font-size: 30px !important; }'));
+});
+
+test('saved cart emails still on an old default image get the new one', () => {
+  const one = shapeRow('cart', { step: 1, hero_image_url: '/images/email/photos/man-lake.jpg', hero_image_ratio: 1.3483, card_image_url: '/images/email/photos/man-lake-vial.jpg' });
+  assert.equal(one.hero_image_url, '/images/email/photos/cart-woman-lake.jpg');
+  assert.equal(one.hero_image_ratio, 0.68);
+  assert.equal(one.card_image_url, '/images/email/photos/vial-rock.jpg');
+  const five = shapeRow('cart', { step: 5, hero_image_url: '/images/email/photos/lab-vial.jpg', hero_overlay: false });
+  assert.equal(five.hero_image_url, '/images/email/photos/last-chance-cover.jpg');
+  assert.equal(five.hero_overlay, true);
+});
+
+/** The cover cell of an email: from its opening tag to the end of the VML box. */
+const coverOf = (html: string) => html.slice(html.indexOf('class="ef-cover'), html.indexOf('</v:rect>'));
+
+test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
+  // Welcome 2: headline, benefits and button all over the photo.
+  const two = coverOf(renderFlowEmail(defaultStep(2), ctx()).html);
+  for (const text of ['Modern Wellness Starts with Knowledge', 'Supports Recovery', 'Builds a Stronger Tomorrow', 'Explore the Collection']) {
+    assert.ok(two.includes(text), text);
+  }
+  // The copy fills the photo so the button sits at its foot, centred and wide.
+  const twoHtml = renderFlowEmail(defaultStep(2), ctx()).html;
+  assert.match(twoHtml, /class="ef-cover-fill" style="height: 780px;"/);
+  assert.match(twoHtml, /class="ef-btn-wide"/);
+  assert.match(twoHtml, /\.ef-btn-wide \{ padding: 15px 30px !important; font-size: 12px !important; \}/, 'narrower on phones');
+  // Desktop gets the design's large type; phones set it back.
+  assert.match(twoHtml, /class="ef-edu-h1" style="[^"]*font-size: 46px;/);
+  assert.match(twoHtml, /class="ef-edu-sub" style="[^"]*font-size: 21px;/);
+  assert.match(twoHtml, /class="ef-check-label"[^>]*font-size: 17px;/);
+  const phone = twoHtml.slice(twoHtml.indexOf('@media'), twoHtml.indexOf('</style>'));
+  assert.match(phone, /\.ef-edu-h1 \{ font-size: 28px !important; max-width: 100% !important; \}/);
+  // Phones give the copy the full width, with slimmer side margins.
+  assert.match(twoHtml, /class="ef-edu-pad"/);
+  assert.match(phone, /\.ef-edu-pad \{ padding: 28px 20px 24px !important; \}/);
+  assert.match(phone, /\.ef-edu-subcol \{ width: 100% !important; \}/);
+  // The benefits keep a short label column, with larger icons.
+  assert.match(phone, /\.ef-check-label \{ font-size: 12px !important; width: 150px !important; \}/);
+  assert.match(phone, /\.ef-check-ring \{ width: 48px !important; height: 48px !important;/);
+  assert.match(twoHtml, /class="ef-check-ring"[^>]*width="70" height="70"/);
+  assert.match(twoHtml, /class="ef-check-label" valign="middle" width="200"/);
+  assert.match(phone, /\.ef-edu-sub \{ font-size: 15px !important; \}/);
+  // Welcome 3: headline over the photo, the badges and body below it.
+  const threeHtml = renderFlowEmail(defaultStep(3), ctx()).html;
+  const three = coverOf(threeHtml);
+  assert.ok(three.includes('Quality You Can Trust'));
+  assert.ok(!three.includes('We partner with independent laboratories'));
+  assert.ok(threeHtml.includes('We partner with independent laboratories'));
+  // Large type on desktop, set back on phones.
+  assert.match(threeHtml, /class="ef-trust-h1" style="[^"]*font-size: 48px;/);
+  assert.match(threeHtml, /class="ef-trust-body" style="[^"]*font-size: 17px;/);
+  assert.match(threeHtml, /class="ef-card-title" style="[^"]*font-size: 28px;/);
+  const threePhone = threeHtml.slice(threeHtml.indexOf('@media'), threeHtml.indexOf('</style>'));
+  for (const rule of ['.ef-trust-h1 { font-size: 32px !important; }', '.ef-trust-subcol { width: 190px !important; }', '.ef-card-title { font-size: 19px !important; }']) {
+    assert.ok(threePhone.includes(rule), rule);
+  }
+  // Welcome 4: the offer and its code over the navy top of one dark cover.
+  const fourHtml = renderFlowEmail(defaultStep(4), ctx()).html;
+  const four = coverOf(fourHtml);
+  for (const text of ['Exclusive for our subscribers', '20% OFF', 'Your Order Today', 'VYTA20']) assert.ok(four.includes(text), text);
+  assert.match(fourHtml, /class="ef-offer-h1" style="[^"]*font-size: 76px;/);
+  assert.match(fourHtml, /\.ef-offer-cover \{ height: calc\(\(100vw - 22px\) \* 1\.25 \+ 120px\) !important;/, 'taller on phones, photo whole at the foot');
+  // Welcome 4's button sits below the badges.
+  assert.ok(!four.includes('Shop Now'));
+  // Cart 3 shares the cover and puts its button in it, under the code.
+  const cart3 = renderFlowEmail(dflt('cart', 3), cartCtx({ offer: { code: 'VYTA20', label: '20%' }, offerEndsAt: new Date('2026-10-22T14:00:00Z') })).html;
+  const cart3Cover = coverOf(cart3);
+  assert.match(cart3Cover, /cart-offer-cover\.jpg/);
+  assert.ok(cart3Cover.indexOf('VYTA20') < cart3Cover.indexOf('Complete My Order'));
+  assert.ok(cart3Cover.includes(`background: ${'#1D4F80'}`), 'the brighter button on the dark cover');
+  assert.equal(cart3.split('Complete My Order').length - 1, 1, 'one button');
+  // Welcome 5: question, countdown and button over the sky.
+  const five = coverOf(renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html);
+  for (const text of ['Still Thinking About It?', 'Minutes', 'Claim 20% Off']) assert.ok(five.includes(text), text);
+  // Large type and countdown on desktop; on phones they step down and the
+  // cover grows, with the photo whole at its foot.
+  const fiveHtml = renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
+  assert.match(fiveHtml, /class="ef-rem-h1" style="[^"]*font-size: 42px;/);
+  assert.match(fiveHtml, /class="ef-count-n" style="[^"]*font-size: 36px;/);
+  const fivePhone = fiveHtml.slice(fiveHtml.indexOf('@media'), fiveHtml.indexOf('</style>'));
+  assert.ok(fivePhone.includes('.ef-count-n { font-size: 26px !important; }'));
+  assert.match(fivePhone, /\.ef-rem-cover \{ height: calc\(\(100vw - 22px\) \* 1\.5 \+ 130px\) !important;/);
+});
+
+test('on phones the photo under the copy is lightened; desktop is untouched', () => {
+  const html = renderFlowEmail(defaultStep(2), ctx()).html;
+  const media = html.slice(html.indexOf('@media'), html.indexOf('</style>'));
+  assert.match(media, /\.ef-cover-wash \{ background-image: linear-gradient\(90deg[^)]*\)[^;]*url\('https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-portrait\.jpg'\)/);
+  // White text gets a navy wash instead.
+  const light = renderFlowEmail({ ...defaultStep(2), hero_text_tone: 'light' }, ctx()).html;
+  assert.match(light, /\.ef-cover-wash \{ background-image: linear-gradient\(90deg, rgba\(5,24,43,/);
+});
+
+test('welcome 1 offer: the copy over the picture, the code in bold', () => {
+  const html = renderFlowEmail(defaultStep(1), ctx({ offer: { code: 'WELCOME10', label: '10%' } })).html;
+  const banner = html.slice(html.indexOf('class="ef-banner"'));
+  assert.match(banner, /^class="ef-banner" background="https:\/\/www\.vytabio\.com\/images\/email\/photos\/offer-card\.jpg"/);
+  assert.match(banner, /<v:fill type="frame" src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/offer-card\.jpg"/);
+  assert.match(banner, />Enjoy 10% Off Your First Order</);
+  assert.match(banner, /Use code <strong[^>]*>WELCOME10<\/strong> at checkout\./);
+  // Phones lighten the picture behind the copy.
+  assert.match(html, /\.ef-banner \{ background-image: linear-gradient/);
+  // Copy that doesn't name the code gets it on a line of its own.
+  const noCode = renderFlowEmail({ ...defaultStep(1), card_body: 'Applies at checkout.' }, ctx({ offer: { code: 'WELCOME10', label: '10%' } })).html;
+  assert.match(noCode, /Code: <strong[^>]*>WELCOME10<\/strong>/);
+  // Without a picture it falls back to the side-by-side panel.
+  const bare = renderFlowEmail({ ...defaultStep(1), card_image_url: '' }, ctx({ offer: { code: 'WELCOME10', label: '10%' } })).html;
+  assert.ok(!bare.includes('ef-banner'));
+  assert.match(bare, />Enjoy 10% Off Your First Order</);
 });
 
 test('switching the overlay off falls back to headline-then-photo', () => {
-  const html = renderFlowEmail({ ...defaultStep(2), hero_overlay: false }, ctx()).html;
+  const html = renderFlowEmail({ ...defaultStep(3), hero_overlay: false }, ctx()).html;
   assert.ok(!html.includes('ef-cover'));
-  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/woman-lake\.jpg"/);
+  assert.match(html, /<img src="https:\/\/www\.vytabio\.com\/images\/email\/photos\/quality-vials\.jpg"/);
+  // The reminder puts the question and countdown above the photo.
+  const five = renderFlowEmail({ ...defaultStep(5), hero_overlay: false }, ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
+  const photo = five.indexOf('man-lake-sky.jpg');
+  assert.ok(five.indexOf('Still Thinking About It?') < photo);
+  assert.ok(five.indexOf('Claim 20% Off') < photo);
+});
+
+test('saved welcome emails still on an old default image get the new one; uploads are kept', () => {
+  // Seeded before this change: the old placeholder and the old crop.
+  const one = shapeRow('welcome', { step: 1, hero_image_url: '/images/email/welcome/welcome-hero.png', hero_image_ratio: 0.6, hero_overlay: true, hero_text_tone: 'light', card_image_url: '/images/email/welcome/welcome-card.png', headline: 'Hi VYTA' });
+  assert.equal(one.hero_image_url, '/images/email/photos/woman-lake-dark.jpg');
+  assert.equal(one.hero_image_ratio, 0.8);
+  assert.equal(one.hero_text_tone, 'light');
+  assert.equal(one.card_image_url, '/images/email/photos/offer-card.jpg');
+  assert.equal(one.headline, 'Hi VYTA', 'copy is left alone');
+  const five = shapeRow('welcome', { step: 5, hero_image_url: '/images/email/photos/vials-mountains.jpg', hero_overlay: false });
+  assert.equal(five.hero_image_url, '/images/email/photos/man-lake-sky.jpg');
+  assert.equal(five.hero_overlay, true);
+  // An admin's own upload stays, overlay setting and all.
+  const mine = 'https://cdn.example.com/my-photo.jpg';
+  const kept = shapeRow('welcome', { step: 2, hero_image_url: mine, hero_overlay: false, hero_image_ratio: 0.7 });
+  assert.equal(kept.hero_image_url, mine);
+  assert.equal(kept.hero_overlay, false);
+  assert.equal(kept.hero_image_ratio, 0.7);
+  // Cart 2 moves on from the lake photo, Cart 4 from the plain dropper photo.
+  const cart2 = shapeRow('cart', { step: 2, hero_image_url: '/images/email/photos/woman-lake.jpg', card_image_url: '/images/email/cart/educate-card.png' });
+  assert.equal(cart2.hero_image_url, '/images/email/photos/cart-woman-sun.jpg');
+  assert.equal(cart2.card_image_url, '/images/email/photos/lab-vial.jpg');
+  const cart4 = shapeRow('cart', { step: 4, hero_image_url: '/images/email/photos/dropper.jpg', hero_overlay: false });
+  assert.equal(cart4.hero_image_url, '/images/email/photos/questions-cover.jpg');
+  assert.equal(cart4.hero_overlay, true);
 });
 
 test('shapeStepInput keeps the overlay settings and a sane ratio', () => {
