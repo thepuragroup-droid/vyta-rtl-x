@@ -150,8 +150,9 @@ breakdown one level down: **By platform** (Google Ads, Meta Ads, … and the
 campaigns under each), **By affiliate** (every code an affiliate owns rolls up
 to them; the order's own `referral_code` decides, else the first visit's
 `?ref=`), and **By source** (Google organic, Meta organic, Referral by site,
-Email by flow email). Picking a row, or the dropdown above the order list,
-narrows the orders to that platform / affiliate / source. The rule lives in
+Email by flow email). Every row opens, even with a single order, to show
+what is under it and its own orders; the dropdown above the order list
+narrows the full list to one platform / affiliate / source. The rule lives in
 `lib/analytics/earnings-breakdown.ts` and is shared by the summary and the
 order list, so they always agree. The dashboard's compact view shows the same
 breakdown as one line ("Google Ads 10 · Meta Ads 4").
