@@ -224,7 +224,7 @@ stretched cover:
 | `dropper` (dropper over a vial) | 1.06 | Cart 4, under the headline |
 | `dropper-card` (the drop, closer in) | 0.85 | Welcome 3 "Research. Quality." card |
 | `offer-cover` (the three vials darkened, navy fading down into them) | 1.25 | Welcome 4 cover, the offer set over its navy top |
-| `three-vials` (vials on rock, mountains) | 0.75 | Cart 3, under the offer |
+| `cart-offer-cover` (the supplied single vial on a rock, darkened, navy fading into it) | 1.50 | Cart 3 cover, the offer and button set over its navy top |
 | `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 and Cart 2 "We Show Our Work" cards; Cart 5, under the countdown |
 | `support-agent` (agent with headset) | 0.90 | Cart 4 "Real People" card |
 
@@ -252,8 +252,7 @@ Welcome 2's, which is a photo supplied later.
   vials photo is darkened, with navy fading down into it, and the offer
   (eyebrow, 76px "20% OFF", "Your Order Today", the line, and the code in a
   teal-outlined box) sits over the navy top. On phones the type steps down
-  and the cover grows taller, so the photo stays whole below the code. Cart 3
-  shares the layout but keeps its own look: offer on navy, photo below.
+  and the cover grows taller, so the photo stays whole below the code.
 
 **Cart 1** (`cart-woman-lake`): "Still thinking about it?" (46px on desktop)
 and "Your cart is waiting." sit at the upper left of the woman-by-the-lake
@@ -271,6 +270,11 @@ is still waiting.", its line, the items, and a wide Return to Cart), then a
 larger "We Show Our Work" panel with the lab photo, replacing the last
 placeholder image. Its tagline sits in a short column (230px, 170px on
 phones), so it breaks after "Quality." as designed. Phones set the type back.
+
+**Cart 3** (`cart-offer-cover`) shares Welcome 4's dark cover, built from
+the supplied vial-on-a-rock photo. Its Complete My Order button sits in the
+cover under the code, in a brighter blue that stands off the navy. The
+badges and the offer's end time follow below.
 
 **Bold benefits on the covers** (Welcome 2, Cart 2): the labels are extra
 bold, and the icons use a bold set (`*-navy-bold.png`, made from the navy

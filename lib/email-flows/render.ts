@@ -81,6 +81,8 @@ const T = {
   card: '#FFFFFF',
   navy: '#05182B',
   button: '#0A2A4A',
+  /** The button on a dark cover: a brighter blue, so it stands off the navy. */
+  buttonOnDark: '#1D4F80',
   ink: '#07203A',
   body: '#33505F',
   muted: '#56707F',
@@ -222,11 +224,11 @@ function paragraphs(text: string, color: string = T.body, align = 'left'): strin
     .join('');
 }
 
-function button(k: Kit, label: string, url: string, opts: { light?: boolean; urgent?: boolean; align?: 'left' | 'center'; wide?: boolean; large?: boolean } = {}): string {
+function button(k: Kit, label: string, url: string, opts: { light?: boolean; urgent?: boolean; onDark?: boolean; align?: 'left' | 'center'; wide?: boolean; large?: boolean } = {}): string {
   const href = k.href(url);
   const text = k.m(label);
   if (!href || !text) return '';
-  const bg = opts.light ? '#FFFFFF' : opts.urgent ? T.urgent : T.button;
+  const bg = opts.light ? '#FFFFFF' : opts.urgent ? T.urgent : opts.onDark ? T.buttonOnDark : T.button;
   if (opts.wide) k.wideButton = true;
   const fg = opts.light ? T.ink : '#FFFFFF';
   return `
@@ -606,7 +608,7 @@ function trustLayout(k: Kit): string {
   ].join('');
 }
 
-function offerLayout(k: Kit): string {
+function offerLayout(k: Kit, opts: { buttonInCover?: boolean } = {}): string {
   const s = k.step;
   const eyebrow = k.m(s.eyebrow);
   const headline = k.m(s.headline);
@@ -638,15 +640,18 @@ function offerLayout(k: Kit): string {
           ${eyebrow ? `<p style="font-family: ${T.font}; font-size: 12px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: ${T.tealLight}; margin: 0 0 16px;">${escapeHtml(eyebrow)}</p>` : ''}
           ${headline ? `<h1 class="ef-offer-h1" style="font-family: ${T.display}; font-size: 76px; font-weight: 800; line-height: 1; letter-spacing: -0.01em; color: #FFFFFF; margin: 0 0 10px;">${escapeHtml(headline)}</h1>` : ''}
           ${sub ? `<p class="ef-offer-sub" style="font-family: ${T.display}; font-size: 28px; font-weight: 600; color: #FFFFFF; margin: 0 0 14px;">${escapeHtml(sub)}</p>` : ''}
-          ${bodyText ? `<p class="ef-offer-body" style="font-family: ${T.font}; font-size: 18px; line-height: 1.5; color: #D6E4EA; margin: 0 auto; max-width: 330px;">${escapeHtml(bodyText)}</p>` : ''}
+          ${bodyText ? `<p class="ef-offer-body" style="font-family: ${T.font}; font-size: 18px; line-height: 1.5; color: #D6E4EA; margin: 0 auto; max-width: ${opts.buttonInCover ? 440 : 330}px;">${escapeHtml(bodyText)}</p>` : ''}
           ${k.ctx.offer ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 22px auto 0;">
             <tr><td class="ef-offer-code" style="border: 1.5px solid ${T.tealLight}; border-radius: 6px; padding: 12px 30px; font-family: ${T.font}; font-size: 18px; color: #FFFFFF;">Use Code: <strong style="letter-spacing: 0.08em;">${escapeHtml(k.ctx.offer.code)}</strong></td></tr>
           </table>` : ''}
+          ${opts.buttonInCover ? `<div style="height: 22px; line-height: 22px; font-size: 0;">&nbsp;</div>${button(k, s.cta_label, s.cta_url, { wide: true, large: true, onDark: true })}` : ''}
         </div>`,
         { padding: '42px 28px', cellClass: 'ef-offer-cover' },
       ),
       pad(badges(k, s.highlights), '26px 20px 12px'),
-      pad(button(k, s.cta_label, s.cta_url, { wide: true, large: true }) + finePrint_, '10px 32px 28px'),
+      opts.buttonInCover
+        ? (finePrint_ ? pad(finePrint_, '0 32px 26px') : '')
+        : pad(button(k, s.cta_label, s.cta_url, { wide: true, large: true }) + finePrint_, '10px 32px 28px'),
     ].join('');
   }
   return [
@@ -912,8 +917,8 @@ const LAYOUTS: Record<StepLayout, (k: Kit) => string> = {
   reminder: reminderLayout,
   cart_reminder: cartReminderLayout,
   cart_educate: cartEducateLayout,
-  // The offer email is the same design in both flows.
-  cart_offer: offerLayout,
+  // The offer email is the same design in both flows; the cart's has its button in the cover.
+  cart_offer: (k) => offerLayout(k, { buttonInCover: true }),
   cart_questions: cartQuestionsLayout,
   cart_last_chance: cartLastChanceLayout,
 };

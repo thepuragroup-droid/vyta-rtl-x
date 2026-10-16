@@ -68,7 +68,8 @@ export const PHOTOS = {
   qualityVials: { url: '/images/email/photos/quality-vials.jpg', ratio: 0.84 },
   vialsMountains: { url: '/images/email/photos/vials-mountains.jpg', ratio: 1.0367 },
   labVial: { url: '/images/email/photos/lab-vial.jpg', ratio: 0.9383 },
-  threeVials: { url: '/images/email/photos/three-vials.jpg', ratio: 0.7508 },
+  /** The supplied single vial on a rock, darkened, navy fading down into it: Cart 3's offer cover. */
+  cartOfferCover: { url: '/images/email/photos/cart-offer-cover.jpg', ratio: 1.5 },
   /** The three vials darkened, with navy fading down into them: the offer is set over the top. */
   offerCover: { url: '/images/email/photos/offer-cover.jpg', ratio: 1.25 },
   dropper: { url: '/images/email/photos/dropper.jpg', ratio: 1.055 },
@@ -256,7 +257,8 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
-    ...below(F.threeVials),
+    ...overlay(F.cartOfferCover),
+    hero_text_tone: 'light',
     fine_print: 'Offer valid until {{offer_ends}}. Limited time only.',
   },
   {
@@ -341,6 +343,8 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/photos/woman-lake.jpg',
       '/images/email/covers/cover-2.jpg',
       '/images/email/cart/educate-hero.png',
+      '/images/email/photos/three-vials.jpg',
+      '/images/email/cart/offer-hero.png',
     ],
     card: [
       '/images/email/photos/man-lake-vial.jpg',

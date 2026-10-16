@@ -528,7 +528,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
   }
   assert.deepEqual(at('cart', 1), ['cart-woman-lake.jpg', true]);
   assert.deepEqual(at('cart', 2), ['cart-woman-sun.jpg', true]);
-  assert.deepEqual(at('cart', 3), ['three-vials.jpg', false]);
+  assert.deepEqual(at('cart', 3), ['cart-offer-cover.jpg', true]);
   assert.deepEqual(at('cart', 4), ['dropper.jpg', false]);
   assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
   assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/vial-rock.jpg');
@@ -648,10 +648,15 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   for (const text of ['Exclusive for our subscribers', '20% OFF', 'Your Order Today', 'VYTA20']) assert.ok(four.includes(text), text);
   assert.match(fourHtml, /class="ef-offer-h1" style="[^"]*font-size: 76px;/);
   assert.match(fourHtml, /\.ef-offer-cover \{ height: calc\(\(100vw - 22px\) \* 1\.25 \+ 120px\) !important;/, 'taller on phones, photo whole at the foot');
-  // Cart 3 shares the layout and keeps its own: offer on navy, photo below.
-  const cart3 = renderFlowEmail(dflt('cart', 3), cartCtx()).html;
-  assert.ok(!cart3.includes('ef-offer-cover'));
-  assert.match(cart3, /<img src="[^"]*three-vials\.jpg"/);
+  // Welcome 4's button sits below the badges.
+  assert.ok(!four.includes('Shop Now'));
+  // Cart 3 shares the cover and puts its button in it, under the code.
+  const cart3 = renderFlowEmail(dflt('cart', 3), cartCtx({ offer: { code: 'VYTA20', label: '20%' }, offerEndsAt: new Date('2026-10-22T14:00:00Z') })).html;
+  const cart3Cover = coverOf(cart3);
+  assert.match(cart3Cover, /cart-offer-cover\.jpg/);
+  assert.ok(cart3Cover.indexOf('VYTA20') < cart3Cover.indexOf('Complete My Order'));
+  assert.ok(cart3Cover.includes(`background: ${'#1D4F80'}`), 'the brighter button on the dark cover');
+  assert.equal(cart3.split('Complete My Order').length - 1, 1, 'one button');
   // Welcome 5: question, countdown and button over the sky.
   const five = coverOf(renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html);
   for (const text of ['Still Thinking About It?', 'Minutes', 'Claim 20% Off']) assert.ok(five.includes(text), text);
