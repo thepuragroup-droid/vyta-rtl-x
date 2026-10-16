@@ -226,7 +226,7 @@ stretched cover:
 | `offer-cover` (the three vials darkened, navy fading down into them) | 1.25 | Welcome 4 cover, the offer set over its navy top |
 | `cart-offer-cover` (the supplied single vial on a rock, darkened, navy fading into it) | 1.50 | Cart 3 cover, the offer and button set over its navy top |
 | `lab-vial` (vial in a gloved hand) | 0.94 | Welcome 2 and Cart 2 "We Show Our Work" cards; Cart 5, under the countdown |
-| `support-agent` (agent with headset) | 0.90 | Cart 4 "Real People" card |
+| `support-agent-full` (the supplied support photo, whole: head to waist) | 1.23 | Cart 4 "Real People" card, shown whole |
 
 The welcome crops come from the full-height supplied covers, except
 Welcome 2's, which is a photo supplied later.

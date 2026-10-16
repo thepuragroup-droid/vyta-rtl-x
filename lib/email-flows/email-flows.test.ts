@@ -532,7 +532,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
   assert.deepEqual(at('cart', 4), ['questions-cover.jpg', true]);
   assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
   assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/vial-rock.jpg');
-  assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent.jpg');
+  assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent-full.jpg');
   for (const flow of ['welcome', 'cart'] as const) {
     for (const step of DEFAULT_STEPS[flow]) {
       for (const url of [step.hero_image_url, step.card_image_url].filter(Boolean)) {
@@ -606,7 +606,7 @@ test('cart 4: the help topics over the photo as written, then the cart and suppo
   assert.ok(after.indexOf('Your cart is still saved.') < after.indexOf('Return to Cart'));
   assert.ok(after.indexOf('Return to Cart') < after.indexOf('Real People. Real Support.'));
   // The support photo whole, inside the panel's padding, with rounded corners.
-  assert.match(after, /<td class="ef-card-pic" width="46%" valign="middle" style="padding: 16px 0 16px 16px;"><img src="[^"]*support-agent\.jpg"[^>]*border-radius: 8px;/);
+  assert.match(after, /<td class="ef-card-pic" width="46%" valign="middle" style="padding: 16px 0 16px 16px;"><img src="[^"]*support-agent-full\.jpg"[^>]*border-radius: 8px;/);
   assert.ok(html.includes('.ef-card-pic { width: 36% !important; }'));
 });
 

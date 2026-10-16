@@ -76,7 +76,8 @@ export const PHOTOS = {
   dropperCard: { url: '/images/email/photos/dropper-card.jpg', ratio: 0.845 },
   /** The dropper over the vial at the right, a pale haze on the left for the help topics (Cart 4). */
   questionsCover: { url: '/images/email/photos/questions-cover.jpg', ratio: 1 },
-  supportAgent: { url: '/images/email/photos/support-agent.jpg', ratio: 0.9 },
+  /** The supplied support photo, whole: head to waist (Cart 4's "Real People" panel). */
+  supportAgent: { url: '/images/email/photos/support-agent-full.jpg', ratio: 1.23 },
 } as const;
 
 /** A photo with the headline set over it (the mockups' overlay heroes). */
@@ -355,6 +356,7 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/cart/reminder-product.png',
       '/images/email/cart/educate-card.png',
       '/images/email/cart/questions-card.png',
+      '/images/email/photos/support-agent.jpg',
     ],
   },
 };
