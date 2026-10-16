@@ -269,7 +269,13 @@ left of the woman-in-the-sun photo, which fades to white at its foot. There
 is no button in the cover. Below it, the cart panel is large ("Your cart
 is still waiting.", its line, the items, and a wide Return to Cart), then a
 larger "We Show Our Work" panel with the lab photo, replacing the last
-placeholder image. Phones set the type back.
+placeholder image. Its tagline sits in a short column (230px, 170px on
+phones), so it breaks after "Quality." as designed. Phones set the type back.
+
+**Bold benefits on the covers** (Welcome 2, Cart 2): the labels are extra
+bold, and the icons use a bold set (`*-navy-bold.png`, made from the navy
+icons by thickening their strokes with `scripts/email-icons-bold.py`) inside
+2px ink rings.
 - **Welcome 5** (`man-lake-sky`): the sunset is toned to daylight and the
   sky paled at the top, as designed. Over it sit the question, the line,
   the countdown, the wide Claim button and the code. Desktop type is large:

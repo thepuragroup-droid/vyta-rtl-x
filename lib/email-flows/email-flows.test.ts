@@ -578,6 +578,17 @@ test('cart 2: the education cover without a button, then the cart panel with it'
   assert.match(after, /class="ef-panel-title" style="[^"]*font-size: 26px;/);
   assert.match(after, /lab-vial\.jpg/);
   assert.ok(html.includes('.ef-panel-title { font-size: 19px !important; }'));
+  // Bold benefits: heavy labels and the bold icon set in ink rings.
+  assert.match(cover, /flask-conical-navy-bold\.png/);
+  assert.match(cover, /class="ef-check-label"[^>]*font-weight: 800;/);
+  // A short tagline column, so it breaks after "Quality."
+  assert.match(cover, /width="230" class="ef-edu-subcol-short"/);
+  assert.ok(html.includes('.ef-edu-subcol-short { width: 170px !important; }'));
+  for (const step of DEFAULT_STEPS.welcome.concat(DEFAULT_STEPS.cart)) {
+    for (const h of step.highlights) {
+      assert.ok(existsSync(join(PUBLIC, `/images/email/icons/${h.icon}-navy-bold.png`)), `${h.icon} bold icon`);
+    }
+  }
 });
 
 test('saved cart emails still on an old default image get the new one', () => {

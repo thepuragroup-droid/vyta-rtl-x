@@ -245,8 +245,8 @@ function image(k: Kit, url: string, alt: string, opts: { radius?: string } = {})
   return `<img src="${escapeHtml(src)}" width="600" alt="${escapeHtml(alt)}" style="display: block; width: 100%; max-width: 600px; height: auto; border: 0; ${opts.radius ? `border-radius: ${opts.radius};` : ''}" />`;
 }
 
-const iconSrc = (k: Kit, icon: IconKey, dark: boolean) =>
-  `${k.ctx.siteUrl.replace(/\/$/, '')}/images/email/icons/${icon}-${dark ? 'white' : 'navy'}.png`;
+const iconSrc = (k: Kit, icon: IconKey, dark: boolean, bold = false) =>
+  `${k.ctx.siteUrl.replace(/\/$/, '')}/images/email/icons/${icon}-${dark ? 'white' : bold ? 'navy-bold' : 'navy'}.png`;
 
 /** Badge row — up to four columns, each its own icon over a small-caps label. */
 function badges(k: Kit, items: Highlight[], dark = false): string {
@@ -287,12 +287,12 @@ function checklist(k: Kit, items: Highlight[], opts: { width?: number; large?: b
         <tr>
           <td${cls('ef-check-icon')} valign="middle" width="${ring + (opts.large ? 20 : 14)}" style="width: ${ring}px; padding: ${opts.large ? '8px 20px 8px 0' : '6px 14px 6px 0'};">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: separate;">
-              <tr><td${cls('ef-check-ring')} align="center" valign="middle" width="${ring}" height="${ring}" style="width: ${ring}px; height: ${ring}px; border: ${opts.large ? '1.5px' : '1px'} solid ${T.ringLine}; border-radius: ${ring / 2}px;">
-                <img${cls('ef-check-glyph')} src="${escapeHtml(iconSrc(k, h.icon, false))}" width="${glyph}" height="${glyph}" alt="" style="display: block; margin: 0 auto; border: 0;" />
+              <tr><td${cls('ef-check-ring')} align="center" valign="middle" width="${ring}" height="${ring}" style="width: ${ring}px; height: ${ring}px; border: ${opts.large ? `2px solid ${T.ink}` : `1px solid ${T.ringLine}`}; border-radius: ${ring / 2}px;">
+                <img${cls('ef-check-glyph')} src="${escapeHtml(iconSrc(k, h.icon, false, opts.large))}" width="${glyph}" height="${glyph}" alt="" style="display: block; margin: 0 auto; border: 0;" />
               </td></tr>
             </table>
           </td>
-          <td${cls('ef-check-label')} valign="middle"${labelWidth ? ` width="${labelWidth}"` : ''} style="${labelWidth ? `width: ${labelWidth}px; ` : ''}padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; font-size: ${opts.large ? '17px' : '12px'}; font-weight: 700; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
+          <td${cls('ef-check-label')} valign="middle"${labelWidth ? ` width="${labelWidth}"` : ''} style="${labelWidth ? `width: ${labelWidth}px; ` : ''}padding: ${opts.large ? '8px 0' : '6px 0'}; font-family: ${T.font}; font-size: ${opts.large ? '17px' : '12px'}; font-weight: ${opts.large ? 800 : 700}; letter-spacing: 0.08em; line-height: 1.35; text-transform: uppercase; color: ${T.ink};">${escapeHtml(h.label)}</td>
         </tr>`,
         )
         .join('')}
@@ -507,7 +507,7 @@ function heroWithHeadline(k: Kit, size = 30): string {
  * side (the subject on the right). Welcome 2 also puts its button at the
  * photo's foot; Cart 2's button is in the cart panel below.
  */
-function educationCover(k: Kit, opts: { withButton: boolean }): string {
+function educationCover(k: Kit, opts: { withButton: boolean; shortSub?: boolean }): string {
   const s = k.step;
   const c = overlayTone(k);
   const headline = k.m(s.headline);
@@ -520,6 +520,8 @@ function educationCover(k: Kit, opts: { withButton: boolean }): string {
     '.ef-edu-h1 { font-size: 28px !important; max-width: 100% !important; }',
     '.ef-edu-sub { font-size: 15px !important; }',
     '.ef-edu-subcol { width: 100% !important; }',
+    // A short tagline keeps a short column, so it breaks into two short lines.
+    '.ef-edu-subcol-short { width: 170px !important; }',
     '.ef-check { width: auto !important; }',
     '.ef-check-icon { width: 48px !important; padding: 6px 14px 6px 0 !important; }',
     '.ef-check-ring { width: 48px !important; height: 48px !important; border-radius: 24px !important; }',
@@ -528,7 +530,7 @@ function educationCover(k: Kit, opts: { withButton: boolean }): string {
   );
   const top = `
     ${headline ? `<h1 class="ef-edu-h1" style="font-family: ${T.display}; font-size: 46px; font-weight: 700; line-height: 1.1; color: ${c.heading}; margin: 0 0 18px; max-width: 536px; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : ''}
-    ${sub ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="390" class="ef-edu-subcol" style="width: 390px; max-width: 100%;"><tr><td>
+    ${sub ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${opts.shortSub ? 230 : 390}" class="${opts.shortSub ? 'ef-edu-subcol-short' : 'ef-edu-subcol'}" style="width: ${opts.shortSub ? 230 : 390}px; max-width: 100%;"><tr><td>
       <p class="ef-edu-sub" style="font-family: ${T.font}; font-size: 21px; line-height: 1.45; color: ${c.body}; margin: 0; ${c.shadow}">${escapeHtml(sub)}</p>
     </td></tr></table>` : ''}
     <div style="height: 26px; line-height: 26px; font-size: 0;">&nbsp;</div>
@@ -843,7 +845,7 @@ function cartEducateLayout(k: Kit): string {
     // with the button, then the "We show our work" panel, in large type.
     (k.phoneRules ??= []).push('.ef-panel-title { font-size: 19px !important; }', '.ef-panel-body { font-size: 14px !important; }');
     return [
-      educationCover(k, { withButton: false }),
+      educationCover(k, { withButton: false, shortSub: true }),
       pad(s.show_cart ? cartPanel(k, { center: true, large: true }) : button(k, s.cta_label, s.cta_url, { wide: true, large: true }), '20px 20px 18px'),
       pad(card(k, { imageLeft: true, large: true }), '0 20px 24px'),
     ].join('');
