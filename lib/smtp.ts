@@ -15,25 +15,50 @@ import nodemailer, { type Transporter } from 'nodemailer';
 
 let transporter: Transporter | null = null;
 
-export function getTransport(): Transporter {
-  if (!transporter) {
-    const host = process.env.SMTP_HOST;
-    const port = Number(process.env.SMTP_PORT) || 587;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASSWORD;
-    if (!host || !user || !pass) {
-      throw new Error('SMTP is not configured (set SMTP_HOST / SMTP_USER / SMTP_PASSWORD)');
-    }
-    transporter = nodemailer.createTransport({
-      host,
-      port,
-      // 465 = implicit TLS; 587 = STARTTLS.
-      secure: port === 465,
-      requireTLS: port !== 465,
-      auth: { user, pass },
-    });
+/** The transport options built from SMTP_* env — shared by sending and the setup check. */
+function smtpOptions() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT) || 587;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASSWORD;
+  if (!host || !user || !pass) {
+    throw new Error('SMTP is not configured (set SMTP_HOST / SMTP_USER / SMTP_PASSWORD)');
   }
+  return {
+    host,
+    port,
+    // 465 = implicit TLS; 587 = STARTTLS.
+    secure: port === 465,
+    requireTLS: port !== 465,
+    auth: { user, pass },
+  };
+}
+
+export function getTransport(): Transporter {
+  if (!transporter) transporter = nodemailer.createTransport(smtpOptions());
   return transporter;
+}
+
+/**
+ * Connect, negotiate TLS and log in to the SMTP server without sending
+ * anything — proves the SMTP_* settings work. A throwaway transport with short
+ * timeouts, so a firewalled host fails in seconds rather than minutes.
+ */
+export async function verifySmtp(): Promise<{ ok: boolean; error?: string; ms: number }> {
+  const started = Date.now();
+  try {
+    const t = nodemailer.createTransport({
+      ...smtpOptions(),
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
+    });
+    await t.verify();
+    t.close();
+    return { ok: true, ms: Date.now() - started };
+  } catch (err: any) {
+    return { ok: false, error: err?.message ?? 'Could not connect', ms: Date.now() - started };
+  }
 }
 
 /**
