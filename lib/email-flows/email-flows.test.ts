@@ -530,7 +530,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
   assert.deepEqual(at('cart', 2), ['cart-woman-sun.jpg', true]);
   assert.deepEqual(at('cart', 3), ['cart-offer-cover.jpg', true]);
   assert.deepEqual(at('cart', 4), ['questions-cover.jpg', true]);
-  assert.deepEqual(at('cart', 5), ['lab-vial.jpg', false]);
+  assert.deepEqual(at('cart', 5), ['last-chance-cover.jpg', true]);
   assert.equal(dflt('cart', 1).card_image_url, '/images/email/photos/vial-rock.jpg');
   assert.equal(dflt('cart', 4).card_image_url, '/images/email/photos/support-agent-full.jpg');
   for (const flow of ['welcome', 'cart'] as const) {
@@ -539,7 +539,7 @@ test('each photo goes where its mockup puts it, at the mockup proportions', () =
         assert.ok(existsSync(join(PUBLIC, url)), `${flow} ${step.step}: ${url}`);
       }
       // Nothing towers over the email the way the uncropped covers did.
-      if (step.hero_image_ratio) assert.ok(step.hero_image_ratio <= 1.5, `${flow} ${step.step} ratio ${step.hero_image_ratio}`);
+      if (step.hero_image_ratio) assert.ok(step.hero_image_ratio <= 1.6, `${flow} ${step.step} ratio ${step.hero_image_ratio}`);
     }
   }
 });
@@ -610,11 +610,28 @@ test('cart 4: the help topics over the photo as written, then the cart and suppo
   assert.ok(html.includes('.ef-card-pic { width: 36% !important; }'));
 });
 
+test('cart 5: final reminder band, headline, countdown and red button over the sky', () => {
+  const html = renderFlowEmail(dflt('cart', 5), cartCtx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
+  assert.ok(html.indexOf('Final reminder') < html.indexOf('class="ef-cover'));
+  const cover = coverOf(html);
+  for (const text of ['Last Chance to Complete Your Order', 'Your cart will expire soon.', 'Minutes', 'Complete My Order']) assert.ok(cover.includes(text), text);
+  assert.match(cover, /last-chance-cover\.jpg/);
+  assert.match(cover, /class="ef-lc-h1" style="[^"]*font-size: 46px;/);
+  assert.ok(cover.includes(`background: ${'#C8102E'}`), 'the red button');
+  const after = html.slice(html.indexOf('</v:rect>'));
+  assert.ok(after.includes('BPC-157'), 'the cart is listed');
+  assert.ok(!after.includes('Complete My Order'), 'no second button');
+  assert.ok(html.includes('.ef-lc-h1 { font-size: 30px !important; }'));
+});
+
 test('saved cart emails still on an old default image get the new one', () => {
   const one = shapeRow('cart', { step: 1, hero_image_url: '/images/email/photos/man-lake.jpg', hero_image_ratio: 1.3483, card_image_url: '/images/email/photos/man-lake-vial.jpg' });
   assert.equal(one.hero_image_url, '/images/email/photos/cart-woman-lake.jpg');
   assert.equal(one.hero_image_ratio, 0.68);
   assert.equal(one.card_image_url, '/images/email/photos/vial-rock.jpg');
+  const five = shapeRow('cart', { step: 5, hero_image_url: '/images/email/photos/lab-vial.jpg', hero_overlay: false });
+  assert.equal(five.hero_image_url, '/images/email/photos/last-chance-cover.jpg');
+  assert.equal(five.hero_overlay, true);
 });
 
 /** The cover cell of an email: from its opening tag to the end of the VML box. */

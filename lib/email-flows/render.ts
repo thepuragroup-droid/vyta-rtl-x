@@ -931,16 +931,28 @@ function cartLastChanceLayout(k: Kit): string {
       : '',
     ...(overlaid(k)
       ? [
-          // As designed: the headline and countdown over the photo, the cart below.
+          // As designed: the headline, the line, the countdown and the red
+          // button over the pale sky, the product at the photo's foot; then
+          // what's in the cart (no second button) and the badges.
+          ...((k.phoneRules ??= []).push(
+            '.ef-lc-h1 { font-size: 30px !important; }',
+            '.ef-lc-body { font-size: 16px !important; }',
+            '.ef-count-box { width: 64px !important; padding: 10px 0 8px !important; }',
+            '.ef-count-n { font-size: 26px !important; }',
+            '.ef-count-unit { font-size: 9px !important; margin-top: 6px !important; }',
+            // The copy takes more of a narrow screen: the cover grows, the photo
+            // stays whole at its foot, and the pale sky above it runs taller.
+            `.ef-lc-cover { height: calc((100vw - 22px) * ${s.hero_image_ratio || 1.5333} + 60px) !important; background-size: 100% auto !important; background-position: center bottom !important; background-color: #F8F6F7 !important; }`,
+          ), []),
           coverHero(
             k,
-            `${s.headline ? `<h1 style="font-family: ${T.display}; font-size: 32px; font-weight: 700; line-height: 1.12; color: ${overlayTone(k).heading}; margin: 0 0 12px; text-align: center; ${overlayTone(k).shadow}">${escapeHtml(k.m(s.headline))}</h1>` : ''}` +
-              (s.body ? `<p style="font-family: ${T.font}; font-size: 16px; line-height: 1.6; color: ${overlayTone(k).body}; text-align: center; margin: 0 0 16px; ${overlayTone(k).shadow}">${escapeHtml(k.m(s.body))}</p>` : '') +
-              countdownBlock(k, 'Ends') +
-              (s.show_cart ? '' : button(k, s.cta_label, s.cta_url, { urgent: true })),
-            { padding: '34px 36px' },
+            `${s.headline ? `<h1 class="ef-lc-h1" style="font-family: ${T.display}; font-size: 46px; font-weight: 800; line-height: 1.08; letter-spacing: -0.01em; color: ${overlayTone(k).heading}; margin: 0 auto 14px; max-width: 420px; text-align: center; text-wrap: balance; ${overlayTone(k).shadow}">${escapeHtml(k.m(s.headline))}</h1>` : ''}` +
+              (s.body ? `<p class="ef-lc-body" style="font-family: ${T.font}; font-size: 20px; line-height: 1.5; color: ${overlayTone(k).body}; text-align: center; margin: 0 0 20px; ${overlayTone(k).shadow}">${escapeHtml(k.m(s.body))}</p>` : '') +
+              countdownBlock(k, 'Ends', { large: true }) +
+              button(k, s.cta_label, s.cta_url, { urgent: true, wide: true, large: true }),
+            { padding: '38px 32px', cellClass: 'ef-lc-cover' },
           ),
-          s.show_cart ? pad(cartPanel(k, { urgent: true }), '22px 20px 22px') : '',
+          s.show_cart ? pad(cartPanel(k, { noButton: true }), '22px 20px 4px') : '',
         ]
       : [
           pad(

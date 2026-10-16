@@ -74,6 +74,8 @@ export const PHOTOS = {
   offerCover: { url: '/images/email/photos/offer-cover.jpg', ratio: 1.25 },
   dropper: { url: '/images/email/photos/dropper.jpg', ratio: 1.055 },
   dropperCard: { url: '/images/email/photos/dropper-card.jpg', ratio: 0.845 },
+  /** The three vials on the rock, a pale sky fading down into them (Cart 5). */
+  lastChanceCover: { url: '/images/email/photos/last-chance-cover.jpg', ratio: 1.5333 },
   /** The dropper over the vial at the right, a pale haze on the left for the help topics (Cart 4). */
   questionsCover: { url: '/images/email/photos/questions-cover.jpg', ratio: 1 },
   /** The supplied support photo, whole: head to waist (Cart 4's "Real People" panel). */
@@ -298,7 +300,7 @@ const CART: FlowStep[] = [
     highlights: [{ label: 'Premium Quality', icon: 'shield-check' }, { label: 'Canadian Owned', icon: 'maple-leaf' }, { label: 'Fast & Discreet Shipping', icon: 'truck' }, { label: 'Trusted Source', icon: 'shield-check' }],
     cta_label: 'Complete My Order',
     cta_url: '{{checkout_url}}',
-    ...below(F.labVial),
+    ...overlay(F.lastChanceCover),
   },
 ];
 
@@ -350,6 +352,9 @@ const RETIRED_IMAGES: Record<FlowKey, { hero: readonly string[]; card: readonly 
       '/images/email/cart/offer-hero.png',
       '/images/email/photos/dropper.jpg',
       '/images/email/cart/questions-hero.png',
+      '/images/email/photos/lab-vial.jpg',
+      '/images/email/covers/cover-4.jpg',
+      '/images/email/cart/last-chance-hero.png',
     ],
     card: [
       '/images/email/photos/man-lake-vial.jpg',
