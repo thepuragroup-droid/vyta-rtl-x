@@ -659,23 +659,24 @@ function offerLayout(k: Kit): string {
 }
 
 /** Days / hours / minutes boxes and the deadline in words — or nothing without a deadline. */
-function countdownBlock(k: Kit, label = 'Offer ends'): string {
+function countdownBlock(k: Kit, label = 'Offer ends', opts: { large?: boolean } = {}): string {
   const ends = k.ctx.offerEndsAt;
   if (!ends) return '';
   const left = countdown(k.ctx.now, ends);
+  const cls = (name: string) => (opts.large ? ` class="${name}"` : '');
   const box = (n: number, unit: string) => `
-    <td align="center" style="padding: 0 5px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid ${T.border}; border-radius: 6px; border-collapse: separate; background: #FFFFFF;">
-        <tr><td align="center" style="width: 64px; padding: 10px 0 8px;">
-          <p style="font-family: ${T.display}; font-size: 26px; font-weight: 700; color: ${T.ink}; margin: 0; line-height: 1;">${String(n).padStart(2, '0')}</p>
-          <p style="font-family: ${T.font}; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: ${T.faint}; margin: 6px 0 0;">${unit}</p>
+    <td align="center" style="padding: 0 ${opts.large ? 7 : 5}px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid ${T.border}; border-radius: ${opts.large ? 8 : 6}px; border-collapse: separate; background: #FFFFFF;">
+        <tr><td${cls('ef-count-box')} align="center" style="width: ${opts.large ? 86 : 64}px; padding: ${opts.large ? '14px 0 11px' : '10px 0 8px'};">
+          <p${cls('ef-count-n')} style="font-family: ${T.display}; font-size: ${opts.large ? 36 : 26}px; font-weight: 700; color: ${T.ink}; margin: 0; line-height: 1;">${String(n).padStart(2, '0')}</p>
+          <p${cls('ef-count-unit')} style="font-family: ${T.font}; font-size: ${opts.large ? 10 : 9}px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: ${T.faint}; margin: ${opts.large ? 8 : 6}px 0 0;">${unit}</p>
         </td></tr>
       </table>
     </td>`;
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 6px auto 8px;">
          <tr>${box(left.days, 'Days')}${box(left.hours, 'Hours')}${box(left.minutes, 'Minutes')}</tr>
        </table>
-       <p style="font-family: ${T.font}; font-size: 12px; font-weight: 500; color: ${T.body}; text-align: center; margin: 0 0 18px; text-shadow: 0 0 10px rgba(255,255,255,0.9);">${escapeHtml(label)} ${escapeHtml(formatDeadline(ends, k.ctx.timezone))}</p>`;
+       <p style="font-family: ${T.font}; font-size: ${opts.large ? 13 : 12}px; font-weight: 500; color: ${T.body}; text-align: center; margin: 0 0 ${opts.large ? 22 : 18}px; text-shadow: 0 0 10px rgba(255,255,255,0.9);">${escapeHtml(label)} ${escapeHtml(formatDeadline(ends, k.ctx.timezone))}</p>`;
 }
 
 const finePrint = (k: Kit, pad_ = '14px 32px 0') => {
@@ -692,15 +693,26 @@ function reminderLayout(k: Kit): string {
     // As designed: the question, the countdown and the button over the sky,
     // the product below them.
     const c = overlayTone(k);
+    const headline = k.m(s.headline);
+    (k.phoneRules ??= []).push(
+      '.ef-rem-h1 { font-size: 30px !important; }',
+      '.ef-rem-body { font-size: 15px !important; }',
+      '.ef-count-box { width: 64px !important; padding: 10px 0 8px !important; }',
+      '.ef-count-n { font-size: 26px !important; }',
+      '.ef-count-unit { font-size: 9px !important; margin-top: 6px !important; }',
+      // The copy takes more of a narrow screen: the cover grows, the photo
+      // stays whole at its foot, and the pale sky above it runs taller.
+      `.ef-rem-cover { height: calc((100vw - 22px) * ${k.step.hero_image_ratio || 1.5} + 130px) !important; background-size: 100% auto !important; background-position: center bottom !important; background-color: #F6F9FB !important; }`,
+    );
     return [
       coverHero(
         k,
-        overlayHeadline(k, 'center', 30) +
-          (s.body ? `<p style="font-family: ${T.font}; font-size: 15px; line-height: 1.6; color: ${c.body}; text-align: center; margin: 12px 0 18px; ${c.shadow}">${escapeHtml(k.m(s.body))}</p>` : '') +
-          countdownBlock(k) +
-          button(k, s.cta_label, s.cta_url) +
+        (headline ? `<h1 class="ef-rem-h1" style="font-family: ${T.display}; font-size: 42px; font-weight: 700; line-height: 1.12; color: ${c.heading}; margin: 0 0 14px; text-align: center; text-wrap: balance; ${c.shadow}">${escapeHtml(headline)}</h1>` : '') +
+          (s.body ? `<p class="ef-rem-body" style="font-family: ${T.font}; font-size: 18px; line-height: 1.55; color: ${c.body}; text-align: center; margin: 0 auto 22px; max-width: 470px; ${c.shadow}">${escapeHtml(k.m(s.body))}</p>` : '') +
+          countdownBlock(k, 'Offer ends', { large: true }) +
+          button(k, s.cta_label, s.cta_url, { wide: true, large: true }) +
           codeLine,
-        { padding: '40px 36px', phoneWash: 'top' },
+        { padding: '44px 36px', phoneWash: 'top', cellClass: 'ef-rem-cover' },
       ),
       `<tr><td bgcolor="${T.navy}" style="background: ${T.navy}; padding: 22px 20px;">${badges(k, s.highlights, true)}</td></tr>`,
       finePrint(k),

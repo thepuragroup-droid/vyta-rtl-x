@@ -614,6 +614,14 @@ test('the text sits on the photo in welcome 2, 3 and 5, as designed', () => {
   // Welcome 5: question, countdown and button over the sky.
   const five = coverOf(renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html);
   for (const text of ['Still Thinking About It?', 'Minutes', 'Claim 20% Off']) assert.ok(five.includes(text), text);
+  // Large type and countdown on desktop; on phones they step down and the
+  // cover grows, with the photo whole at its foot.
+  const fiveHtml = renderFlowEmail(defaultStep(5), ctx({ offerEndsAt: new Date('2026-10-21T14:00:00Z') })).html;
+  assert.match(fiveHtml, /class="ef-rem-h1" style="[^"]*font-size: 42px;/);
+  assert.match(fiveHtml, /class="ef-count-n" style="[^"]*font-size: 36px;/);
+  const fivePhone = fiveHtml.slice(fiveHtml.indexOf('@media'), fiveHtml.indexOf('</style>'));
+  assert.ok(fivePhone.includes('.ef-count-n { font-size: 26px !important; }'));
+  assert.match(fivePhone, /\.ef-rem-cover \{ height: calc\(\(100vw - 22px\) \* 1\.5 \+ 130px\) !important;/);
 });
 
 test('on phones the photo under the copy is lightened; desktop is untouched', () => {

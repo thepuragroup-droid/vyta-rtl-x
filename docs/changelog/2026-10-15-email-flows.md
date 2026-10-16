@@ -217,7 +217,7 @@ stretched cover:
 | `offer-card` (pale mountains, vials at the right) | 0.39 | Welcome 1 offer panel, copy over the left |
 | `woman-portrait` (the supplied woman-in-the-sun photo, whole, on the right) | 1.30 | Welcome 2 hero: headline, line and benefits down the left, button centred at the foot |
 | `quality-vials` (two vials on the right, pale haze at the upper left) | 0.84 | Welcome 3 hero, headline and line at the upper left |
-| `man-lake-sky` (man by the lake, sky above) | 1.50 | Welcome 5 hero, question, countdown and button over the sky |
+| `man-lake-sky` (man by the lake, pale daylight sky above) | 1.50 | Welcome 5 hero, question, countdown and button over the sky |
 | `man-lake` (man by the lake) | 1.35 | Cart 1 hero, headline over the sky |
 | `man-lake-vial` (vial on leaves) | 0.55 | Cart 1 image above the button |
 | `woman-lake` (woman by the lake) | 1.31 | Cart 2 hero, headline over the sky |
@@ -254,6 +254,12 @@ Welcome 2's, which is a photo supplied later.
   teal-outlined box) sits over the navy top. On phones the type steps down
   and the cover grows taller, so the photo stays whole below the code. Cart 3
   shares the layout but keeps its own look: offer on navy, photo below.
+- **Welcome 5** (`man-lake-sky`): the sunset is toned to daylight and the
+  sky paled at the top, as designed. Over it sit the question, the line,
+  the countdown, the wide Claim button and the code. Desktop type is large:
+  42px headline, 18px line, and countdown boxes with 36px numbers. On
+  phones the type steps down and the cover grows taller, with the photo
+  pinned whole at its foot and the pale sky running taller above it.
 
 Where the designs set the text over the photo (Welcome 1, 2, 3 and 5,
 Cart 1, Cart 2), it sits over the sky or the clear side of the photo. On
