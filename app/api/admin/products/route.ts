@@ -5,7 +5,7 @@ import { logAuditServer } from '@/lib/admin/audit';
 import { recordProductChanges } from '@/lib/admin/product-history';
 import { toUrlSlug } from '@/lib/products/url';
 import { parsePriceOverride, parseVialsPerBox } from '@/lib/admin/product-input';
-import { normalizePackOptions, normalizePackSizes } from '@/lib/pricing';
+import { hasEnabledPack, normalizePackOptions, normalizePackSizes } from '@/lib/pricing';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -170,6 +170,9 @@ export async function POST(request: NextRequest) {
     // document can never reach the column, and stored as NULL when empty so
     // the older `pack_sizes` column keeps deciding on its own.
     const cleanedPackOptions = normalizePackOptions(pack_options);
+    if (cleanedPackOptions.length > 0 && !hasEnabledPack(cleanedPackOptions)) {
+      return NextResponse.json({ error: 'At least one pack has to stay on sale' }, { status: 400 });
+    }
 
     const productSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     // The public URL is derived from the SKU slug, never equal to it by

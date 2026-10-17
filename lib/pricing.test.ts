@@ -17,6 +17,8 @@ import {
   casePriceFromVial,
   fallbackVialPrice,
   formatPackSizes,
+  hasEnabledPack,
+  isPackOffered,
   normalizePackSizes,
   packOptionFor,
   packOptionsFor,
@@ -305,4 +307,62 @@ test('a product with no per-pack pricing stays on the sizes-only column', () => 
   assert.equal(reconcilePackOptions([], [1, 3, 5]), null);
   // Clearing the sizes clears the pricing with them.
   assert.equal(reconcilePackOptions([{ size: 3, price: 249 }], []), null);
+});
+
+test('a switched-off pack keeps its settings but is not offered or sold', () => {
+  const product = {
+    ...PRICED,
+    pack_sizes: [1, 3, 10],
+    pack_options: [
+      { size: 1 },
+      { size: 3, price: 249, badge: 'Most Popular', enabled: false },
+      { size: 10 },
+    ],
+  };
+  assert.deepEqual(packSizesFor(product), [1, 10]);
+  assert.deepEqual(packOptionsFor(product).map((o) => o.size), [1, 10]);
+  assert.equal(isPackOffered(product, 3), false);
+  assert.equal(isPackOffered(product, 10), true);
+  // The stored row keeps everything the admin typed.
+  const stored = normalizePackOptions(product.pack_options).find((o) => o.size === 3);
+  assert.deepEqual(stored, {
+    size: 3, label: null, price: 249, compare_at: null, badge: 'Most Popular', enabled: false,
+  });
+});
+
+test('pack_options with every pack off never falls back to pack_sizes', () => {
+  const product = {
+    ...PRICED,
+    pack_sizes: [1, 10],
+    pack_options: [{ size: 1, enabled: false }, { size: 10, enabled: false }],
+  };
+  assert.deepEqual(packSizesFor(product), []);
+  assert.equal(isPackOffered(product, 1), false);
+  assert.equal(hasEnabledPack(product.pack_options), false);
+  assert.equal(hasEnabledPack([{ size: 1, enabled: false }, { size: 3 }]), true);
+  assert.equal(hasEnabledPack(null), false);
+});
+
+test('a pack size the product is not sold in is not offered', () => {
+  // Legacy default pair: single vial + one case of 10.
+  assert.equal(isPackOffered(PRICED, 1), true);
+  assert.equal(isPackOffered(PRICED, 10), true);
+  assert.equal(isPackOffered(PRICED, 7), false);
+  assert.equal(isPackOffered({ ...PRICED, pack_sizes: [1, 3, 5] }, 10), false);
+});
+
+test('a sizes-only edit keeps a switched-off pack off', () => {
+  const stored = [{ size: 1 }, { size: 3, enabled: false }, { size: 10 }];
+  assert.deepEqual(
+    reconcilePackOptions(stored, [1, 3])!.map((o) => [o.size, o.enabled]),
+    [[1, true], [3, false]],
+  );
+});
+
+test('a sizes-only edit that would leave nothing on sale switches the rest back on', () => {
+  const stored = [{ size: 1, enabled: false }, { size: 3, price: 249 }];
+  assert.deepEqual(
+    reconcilePackOptions(stored, [1]),
+    [{ size: 1, label: null, price: null, compare_at: null, badge: null, enabled: true }],
+  );
 });

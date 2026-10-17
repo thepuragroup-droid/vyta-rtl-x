@@ -54,7 +54,7 @@ import { isCustomerFirstOrder } from '@/lib/promos/first-order';
 import { eligibleSubtotal, lookupDiscountCode } from '@/lib/affiliate/discount-codes';
 import { resolveLandingOffer } from '@/lib/promos/landing-server';
 import { resolvePriceMap } from '@/lib/pricing/resolve';
-import { packPriceFor, round2, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
+import { isPackOffered, packPriceFor, round2, vialPriceFor, vialsPerBoxOf } from '@/lib/pricing';
 import { isValidPhone } from '@/lib/phone';
 
 // All access is server-side against the service-role client (RLS-bypassing).
@@ -421,7 +421,7 @@ export async function POST(req: NextRequest) {
   let products: any[] = [];
   const withVial = await db
     .from('products')
-    .select('id, name, price, vial_price, vials_per_box, pack_options, puramass_sku, puramass_sku_vial')
+    .select('id, name, price, vial_price, vials_per_box, pack_sizes, pack_options, puramass_sku, puramass_sku_vial')
     .in('id', ids);
   if (withVial.error) {
     const boxOnly = await db
@@ -436,6 +436,31 @@ export async function POST(req: NextRequest) {
     products = withVial.data ?? [];
   }
   const byId = new Map(products.map((p) => [p.id, p]));
+
+  //     Only sell packs the product is on sale in right now. A cart is kept in
+  //     the browser, so it can still hold a pack an admin has since switched
+  //     off or removed; charging for it at vial × size would sell something the
+  //     product page no longer offers. Skipped on the fallback read above, which
+  //     has no pack columns to check against.
+  if (!withVial.error) {
+    const unavailable: string[] = [];
+    for (const line of rawLines) {
+      const product = byId.get(line.id);
+      if (!product || isPackOffered(product, line.packSize)) continue;
+      const label = `${product.name} (${line.packSize > 1 ? `pack of ${line.packSize}` : 'single vial'})`;
+      if (!unavailable.includes(label)) unavailable.push(label);
+    }
+    if (unavailable.length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            'Some items in your cart are no longer sold in that pack size. Remove them and add the pack you want from the product page.',
+          unavailable,
+        },
+        { status: 409 },
+      );
+    }
+  }
 
   // 7a. Decide each line's SKU now that the products are loaded. Stealth
   //     Health stocks two SKUs per product: a single vial (`puramass_sku_vial`)

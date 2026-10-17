@@ -128,3 +128,65 @@ test('admin email for a manual invoice', () => {
   assert.equal(adminOrderPaidSubject(manual), 'Invoice paid: VYTA-1016 · Guest · $364.80 CAD');
   assert.equal(renderAdminOrderPaidHtml(manual, 'https://www.vytabio.com'), renderOrderConfirmationHtml(manual.order, 'https://www.vytabio.com'));
 });
+
+test('every pack ordered shows in the email at the price and amount charged', async () => {
+  const { packPriceFor } = await import('./pricing');
+  const { stealthHealthConfirmationData } = await import('./order-confirmation-data');
+  const A = '11111111-1111-1111-1111-111111111111';
+  const B = '22222222-2222-2222-2222-222222222222';
+  // A: $25 vial with a discounted 3-pack and 10-pack. B: packs at vial × size.
+  const productA = {
+    price: 250, vial_price: 25, vials_per_box: 10,
+    pack_options: [{ size: 1 }, { size: 3, price: 66, badge: 'Most Popular' }, { size: 10, price: 200 }],
+  };
+  const productB = { price: 400, vial_price: null, vials_per_box: 10, pack_sizes: [1, 5] };
+  const order = [
+    { product_id: A, product: productA, name: 'BPC-157 10mg', pack: 3, qty: 2 },
+    { product_id: A, product: productA, name: 'BPC-157 10mg', pack: 1, qty: 1 },
+    { product_id: A, product: productA, name: 'BPC-157 10mg', pack: 10, qty: 1 },
+    { product_id: B, product: productB, name: 'TB-500 5mg', pack: 5, qty: 1 },
+  ];
+  // What the hand-off writes: list price per pack, then 10% off each line.
+  const lines = order.map((o) => {
+    const list = packPriceFor(o.product, o.pack);
+    return {
+      product_id: o.product_id,
+      description: o.pack > 1 ? `${o.name} — Pack of ${o.pack}` : `${o.name} — Single vial`,
+      qty: o.qty,
+      unit_price: Math.round(list * 90) / 100,
+      price_type: o.pack > 1 ? 'box' : 'vial',
+      vials_per_unit: o.pack,
+      list,
+    };
+  });
+  const charged = Math.round(lines.reduce((s, l) => s + l.qty * l.unit_price, 0) * 100) / 100;
+  const ledger = {
+    customer_name: 'Sam',
+    discount_code: 'VYTA10',
+    discount_code_percent: 10,
+    items: lines.map((l) => ({
+      product_id: l.product_id,
+      pack_size: l.vials_per_unit,
+      quantity: l.qty,
+      list_unit_price_cents: Math.round(l.list * 100),
+    })),
+  };
+  const invoice = {
+    id: 'inv-1', invoice_number: 'VYTA-2001', customer_email: 'sam@buyer.ca', status: 'paid',
+    subtotal: charged, shipping_cost: 15, tax_total: 0, total: charged + 15, currency: 'CAD',
+  };
+  const data = stealthHealthConfirmationData(ledger, invoice, lines)!;
+  const text = renderOrderConfirmationText(data);
+
+  assert.match(text, /BPC-157 10mg \(Pack of 3\) × 2 — \$132\.00/);
+  assert.match(text, /BPC-157 10mg \(Single vial\) × 1 — \$25\.00/);
+  assert.match(text, /BPC-157 10mg \(Pack of 10\) × 1 — \$200\.00/);
+  assert.match(text, /TB-500 5mg \(Pack of 5\) × 1 — \$200\.00/);
+  assert.match(text, /Subtotal: \$557\.00/);
+  assert.match(text, /Discount \(VYTA10\): -\$55\.70/);
+  assert.match(text, /Total: \$516\.30 CAD/);
+  // The lines add up to the subtotal, and the summary to what was charged.
+  const lineSum = data.items.reduce((s, i) => s + i.price * i.quantity, 0);
+  assert.equal(Math.round(lineSum * 100) / 100, data.subtotal);
+  assert.equal(Math.round((data.subtotal - data.discount + data.shipping) * 100) / 100, data.total);
+});

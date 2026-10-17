@@ -378,7 +378,29 @@ export function reconcilePackOptions(
         enabled: true,
       },
   );
-  return next.length > 0 ? next : null;
+  if (next.length === 0) return null;
+  // A sizes-only edit must not leave the product with nothing on sale: if every
+  // surviving pack was switched off, switch them all back on.
+  return hasEnabledPack(next) ? next : next.map((option) => ({ ...option, enabled: true }));
+}
+
+/**
+ * Does a stored `pack_options` document leave at least one pack on sale?
+ * The admin routes refuse a write where every pack is switched off: the
+ * product page would have nothing to sell.
+ */
+export function hasEnabledPack(raw: unknown): boolean {
+  return normalizePackOptions(raw).some((option) => option.enabled);
+}
+
+/**
+ * Is `size` a pack the storefront currently offers for this product? The
+ * checkout uses this to refuse a cart line for a pack an admin has since
+ * switched off or removed, rather than charging for it at vial × size.
+ */
+export function isPackOffered(product: PackOptionProduct, size: number): boolean {
+  const n = Math.max(1, Math.floor(Number(size) || 1));
+  return packSizesFor(product).includes(n);
 }
 
 /** The resolved pack of `size`, or null when the product isn't sold in it. */
@@ -401,13 +423,17 @@ export function hasCustomPackSizes(product: PackOptionProduct): boolean {
 /**
  * The pack quantities this product is sold in, ascending.
  *
- * `pack_options` wins (minus anything unticked), then the older `pack_sizes`,
- * then the legacy pair: a single vial and one full case (deduplicated, so a
- * 1-vial "case" yields just `[1]`).
+ * `pack_options` wins (minus anything switched off), then the older
+ * `pack_sizes`, then the legacy pair: a single vial and one full case
+ * (deduplicated, so a 1-vial "case" yields just `[1]`).
+ *
+ * A configured `pack_options` decides on its own even when every pack in it is
+ * switched off. Falling back to `pack_sizes` there would put the switched-off
+ * packs back on sale at vial × size.
  */
 export function packSizesFor(product: PackOptionProduct): number[] {
-  const rich = normalizePackOptions(product.pack_options).filter((o) => o.enabled);
-  if (rich.length > 0) return rich.map((o) => o.size);
+  const rich = normalizePackOptions(product.pack_options);
+  if (rich.length > 0) return rich.filter((o) => o.enabled).map((o) => o.size);
   const explicit = normalizePackSizes(product.pack_sizes);
   if (explicit.length > 0) return explicit;
   const per = vialsPerBoxOf(product.vials_per_box);
